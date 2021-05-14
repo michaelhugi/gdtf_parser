@@ -49,7 +49,7 @@ impl Deparse for Feature {
 #[cfg(test)]
 mod tests {
     use crate::deparse::Deparse;
-    use crate::feature_group::feature::Feature;
+    use crate::gdtf::fixture_type::attribute_definitions::feature_group::feature::Feature;
 
     #[test]
     fn test_feature() {

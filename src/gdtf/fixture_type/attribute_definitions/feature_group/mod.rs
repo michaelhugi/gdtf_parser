@@ -6,7 +6,7 @@ use quick_xml::Reader;
 use crate::deparse::{Deparse, DeparseList};
 use crate::errors::GdtfError;
 use crate::errors::GdtfError::QuickXMLError;
-use crate::feature_group::feature::Feature;
+use crate::gdtf::fixture_type::attribute_definitions::feature_group::feature::Feature;
 
 pub mod feature;
 
@@ -122,8 +122,8 @@ mod tests {
     use crate::deparse::{Deparse, DeparseList};
     use crate::errors::GdtfError;
     use crate::errors::GdtfError::QuickXMLError;
-    use crate::feature_group::feature::Feature;
-    use crate::feature_group::FeatureGroup;
+    use crate::gdtf::fixture_type::attribute_definitions::feature_group::FeatureGroup;
+    use crate::gdtf::fixture_type::attribute_definitions::feature_group::feature::Feature;
 
     #[test]
     fn test_feature_group_no_child() {

@@ -1,6 +1,6 @@
 mod errors;
-mod feature_group;
 mod deparse;
+mod gdtf;
 
 #[cfg(test)]
 mod tests {
