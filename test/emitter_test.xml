@@ -1,0 +1,24 @@
+<Emitters>
+    <Emitter Color="0.640,0.329,21.26" DominantWaveLength="625" Name="Red">
+        <Measurement LuminousIntensity="5625" Physical="100">
+            <MeasurementPoint Energy="0.048200" WaveLength="634"/>
+            <MeasurementPoint Energy="0.069000" WaveLength="637"/>
+            <MeasurementPoint Energy="0.073700" WaveLength="640"/>
+            <MeasurementPoint Energy="0.047800" WaveLength="643"/>
+            <MeasurementPoint Energy="0.021700" WaveLength="646"/>
+        </Measurement>
+        <Measurement LuminousIntensity="5062" Physical="90">
+            <MeasurementPoint Energy="0.040200" WaveLength="634"/>
+            <MeasurementPoint Energy="0.060000" WaveLength="637"/>
+            <MeasurementPoint Energy="0.06900" WaveLength="640"/>
+            <MeasurementPoint Energy="0.040800" WaveLength="643"/>
+            <MeasurementPoint Energy="0.016900" WaveLength="646"/>
+        </Measurement>
+    </Emitter>
+    <Emitter Color="0.300,0.600,71.52" DominantWaveLength="530" Name="Green">
+        <Measurement LuminousIntensity="10260" Physical="100" />
+    </Emitter>
+    <Emitter Color="0.150,0.060,7.22" DominantWaveLength="470" Name="Blue">
+        <Measurement LuminousIntensity="2750" Physical="100" />
+    </Emitter>
+</Emitters>
