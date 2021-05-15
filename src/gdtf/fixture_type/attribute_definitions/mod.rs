@@ -15,9 +15,9 @@ pub mod activation_group;
 
 #[derive(Debug)]
 pub struct AttributeDefinitions {
-    feature_groups: Vec<FeatureGroup>,
-    attributes: Vec<Attribute>,
-    activation_groups: Vec<ActivationGroup>,
+    pub feature_groups: Vec<FeatureGroup>,
+    pub attributes: Vec<Attribute>,
+    pub activation_groups: Vec<ActivationGroup>,
 }
 
 
