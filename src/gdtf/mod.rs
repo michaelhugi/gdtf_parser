@@ -73,9 +73,10 @@ impl DeparseSingle for GDTF {
     fn single_event_name() -> String {
         "GDTF".to_string()
     }
-
+    #[cfg(test)]
     fn is_single_eq(&self, other: &Self) -> bool {
-        self.data_version == other.data_version
+        self.data_version == other.data_version &&
+            FixtureType::is_single_eq(&self.fixture_type, &other.fixture_type)
     }
 }
 
@@ -115,7 +116,7 @@ impl TryFrom<&Path> for GDTF {
             };
         }
         buf.clear();
-        unimplemented!()
+        Err(GdtfError::RequiredValueNotFoundError(format!("Could not find {}", Self::single_event_name())))
     }
 }
 
@@ -124,11 +125,11 @@ mod tests {
     use std::convert::TryInto;
     use std::path::Path;
 
+    use crate::deparse::DeparseSingle;
     use crate::gdtf::GDTF;
 
     #[test]
     fn test_sgm() {
-        let gdtf: GDTF = Path::new("test/SGM_Light@G-7_Spot@Rev_A.gdtf").try_into().unwrap();
-        println!("{:?}", gdtf);
+        crate::testdata::sgm_light_at_g_7_spot_at_rev_a::expect().test_with_result(Path::new("test/SGM_Light@G-7_Spot@Rev_A.gdtf").try_into());
     }
 }

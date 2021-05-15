@@ -11,28 +11,28 @@ use crate::gdtf::fixture_type::attribute_definitions::AttributeDefinitions;
 use crate::units::guid::GUID;
 use crate::units::name::Name;
 
-mod attribute_definitions;
+pub mod attribute_definitions;
 
 #[derive(Debug)]
 pub struct FixtureType {
     ///Name of the fixture type.
-    name: Name,
+    pub name: Name,
     /// Shortened name of the fixture type.
-    short_name: String,
+    pub  short_name: String,
     ///Detailed name of the fixture type.
-    long_name: String,
+    pub   long_name: String,
     ///Manufacturer of the fixture type.
-    manufacturer: String,
+    pub   manufacturer: String,
     /// Description of the fixture type.
-    description: String,
+    pub   description: String,
     ///Unique number of the fixture type.
-    fixture_type_id: GUID,
+    pub   fixture_type_id: GUID,
     /// File name without extension containing description of the thumbnail.Use the following as a resource file:
-    thumbnail: Option<String>,
+    pub  thumbnail: Option<String>,
     ///GUID of the referenced fixture type
-    ref_ft: Option<GUID>,
+    pub  ref_ft: Option<GUID>,
     ///This section defines all attributes that are used in the fixture type.
-    attribute_definitions: AttributeDefinitions,
+    pub  attribute_definitions: AttributeDefinitions,
 }
 
 
