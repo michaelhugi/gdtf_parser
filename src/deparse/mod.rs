@@ -3,7 +3,6 @@ use quick_xml::events::Event;
 use quick_xml::Reader;
 
 use crate::errors::GdtfError;
-use crate::errors::GdtfError::QuickXMLError;
 
 pub trait DeparseSingle: std::fmt::Debug {
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
@@ -27,23 +26,30 @@ pub trait DeparseSingle: std::fmt::Debug {
         reader.trim_text(true);
 
         let mut buf: Vec<u8> = Vec::new();
-
+        let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf) {
-                Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
+            match reader.read_event(&mut buf)? {
+                Event::Start(e) | Event::Empty(e) => {
                     if Self::is_single_event_name(e.name()) {
                         return Self::single_from_event(reader, e);
+                    } else {
+                        tree_down += 1;
                     }
                 }
-                Ok(Event::Eof) | Ok(Event::End(_)) => {
+                Event::Eof => {
                     break;
                 }
-                Err(e) => return Err(QuickXMLError(e)),
+                Event::End(_) => {
+                    tree_down -= 1;
+                    if tree_down <= 0 {
+                        break;
+                    }
+                }
                 _ => {}
             };
         }
         buf.clear();
-        Err(GdtfError::RequiredValueNotFoundError("Could not find Feature".to_string()))
+        Err(GdtfError::RequiredValueNotFoundError(format!("Could not find {}", Self::single_event_name())))
     }
     #[cfg(test)]
     fn single_from_xml(xml: &str) -> Result<Self, GdtfError>
@@ -92,7 +98,6 @@ pub trait DeparseSingle: std::fmt::Debug {
         }
         true
     }
-
 }
 
 
@@ -105,17 +110,25 @@ pub trait DeparseVec: DeparseSingle {
 
         let mut buf: Vec<u8> = Vec::new();
         let mut out: Vec<Self> = Vec::new();
+        let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf) {
-                Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
+            match reader.read_event(&mut buf)? {
+                Event::Start(e) | Event::Empty(e) => {
                     if Self::is_single_event_name(e.name()) {
                         out.push(Self::single_from_event(reader, e)?);
+                    } else {
+                        tree_down += 1;
                     }
                 }
-                Ok(Event::Eof) | Ok(Event::End(_)) => {
+                Event::End(_) => {
+                    tree_down -= 1;
+                    if tree_down <= 0 {
+                        break;
+                    }
+                }
+                Event::Eof => {
                     break;
                 }
-                Err(e) => return Err(QuickXMLError(e)),
                 _ => {}
             }
         }
@@ -133,24 +146,30 @@ pub trait DeparseVec: DeparseSingle {
         reader.trim_text(true);
 
         let mut buf: Vec<u8> = Vec::new();
-
+        let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf) {
-                Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
+            match reader.read_event(&mut buf)? {
+                Event::Start(e) | Event::Empty(e) => {
                     if Self::is_group_event_name(e.name()) {
                         return Self::vec_from_event(reader, e);
+                    } else {
+                        tree_down += 1;
                     }
                 }
-                Ok(Event::Eof) | Ok(Event::End(_)) => {
+                Event::End(_) => {
+                    tree_down -= 1;
+                    if tree_down <= 0 {
+                        break;
+                    }
+                }
+                Event::Eof => {
                     break;
                 }
-                Err(e) => return Err(QuickXMLError(e)),
                 _ => {}
             };
             buf.clear();
         }
-
-        Err(GdtfError::RequiredValueNotFoundError("Could not find Feature".to_string()))
+        Err(GdtfError::RequiredValueNotFoundError(format!("Could not find {}", Self::single_event_name())))
     }
     #[cfg(test)]
     fn vec_from_xml(xml: &str) -> Result<Vec<Self>, GdtfError>

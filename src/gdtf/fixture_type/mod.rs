@@ -30,7 +30,7 @@ pub struct FixtureType {
     /// File name without extension containing description of the thumbnail.Use the following as a resource file:
     thumbnail: Option<String>,
     ///GUID of the referenced fixture type
-    ref_ft: GUID,
+    ref_ft: Option<GUID>,
     ///This section defines all attributes that are used in the fixture type.
     attribute_definitions: AttributeDefinitions,
 }
@@ -46,7 +46,7 @@ impl DeparseSingle for FixtureType {
         let mut description = String::new();
         let mut fixture_type_id = GUID::new();
         let mut thumbnail = None;
-        let mut ref_ft = GUID::new();
+        let mut ref_ft = None;
 
         for attr in e.attributes().into_iter() {
             let attr = attr?;
@@ -58,7 +58,7 @@ impl DeparseSingle for FixtureType {
                 b"Description" => description = std::str::from_utf8(attr.value.borrow())?.to_owned(),
                 b"FixtureTypeID" => fixture_type_id = std::str::from_utf8(attr.value.borrow())?.try_into()?,
                 b"Thumbnail" => thumbnail = Some(std::str::from_utf8(attr.value.borrow())?.to_owned()),
-                b"RefFT" => ref_ft = std::str::from_utf8(attr.value.borrow())?.try_into()?,
+                b"RefFT" => ref_ft = Some(std::str::from_utf8(attr.value.borrow())?.try_into()?),
                 _ => {}
             }
         }
@@ -80,9 +80,6 @@ impl DeparseSingle for FixtureType {
         }
         if fixture_type_id.is_empty() {
             return Err(GdtfError::RequiredValueNotFoundError("FixtureTypeId not found in FixtureType".to_string()));
-        }
-        if ref_ft.is_empty() {
-            return Err(GdtfError::RequiredValueNotFoundError("RefFT not found in FixtureType".to_string()));
         }
 
         let mut buf: Vec<u8> = Vec::new();
@@ -162,7 +159,7 @@ mod tests {
             long_name: "ACME AE 610 BEAM".to_string(),
             manufacturer: "ACME".to_string(),
             name: "ACME AE-610 BEAM".try_into().unwrap(),
-            ref_ft: "8F54E11C-4C91-11E9-80BC-F1DFE217E634".try_into().unwrap(),
+            ref_ft: Some("8F54E11C-4C91-11E9-80BC-F1DFE217E634".try_into().unwrap()),
             short_name: "ACME AE 610 BEAM".to_string(),
             thumbnail: Some("AE-610 BEAM".to_string()),
             attribute_definitions: AttributeDefinitions {

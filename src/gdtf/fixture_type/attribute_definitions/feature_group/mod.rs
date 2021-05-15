@@ -6,7 +6,6 @@ use quick_xml::Reader;
 
 use crate::deparse::{DeparseSingle, DeparseVec};
 use crate::errors::GdtfError;
-use crate::errors::GdtfError::QuickXMLError;
 use crate::gdtf::fixture_type::attribute_definitions::feature_group::feature::Feature;
 use crate::units::name::Name;
 
@@ -40,18 +39,26 @@ impl DeparseSingle for FeatureGroup {
 
         let mut buf: Vec<u8> = Vec::new();
         let mut features: Vec<Feature> = Vec::new();
+        let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf) {
-                Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
+            match reader.read_event(&mut buf)? {
+                Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"Feature" {
                         let feature = Feature::single_from_event(reader, e)?;
                         features.push(feature);
+                    } else {
+                        tree_down += 1;
                     }
                 }
-                Ok(Event::Eof) | Ok(Event::End(_)) => {
+                Event::Eof => {
                     break;
                 }
-                Err(e) => return Err(QuickXMLError(e)),
+                Event::End(_) => {
+                    tree_down -= 1;
+                    if tree_down <= 0 {
+                        break;
+                    }
+                }
                 _ => {}
             }
         }
