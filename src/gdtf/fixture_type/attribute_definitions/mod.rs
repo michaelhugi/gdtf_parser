@@ -4,17 +4,20 @@ use quick_xml::Reader;
 use crate::deparse::{DeparseSingle, DeparseVec};
 use crate::errors::GdtfError;
 use crate::errors::GdtfError::QuickXMLError;
+use crate::gdtf::fixture_type::attribute_definitions::activation_group::ActivationGroup;
 use crate::gdtf::fixture_type::attribute_definitions::attribute::Attribute;
 use crate::gdtf::fixture_type::attribute_definitions::feature_group::FeatureGroup;
 
 pub mod feature_group;
 pub mod attribute;
+pub mod activation_group;
 
 
 #[derive(Debug)]
 pub struct AttributeDefinitions {
     feature_groups: Vec<FeatureGroup>,
     attributes: Vec<Attribute>,
+    activation_groups: Vec<ActivationGroup>,
 }
 
 
@@ -24,16 +27,16 @@ impl DeparseSingle for AttributeDefinitions {
         let mut buf: Vec<u8> = Vec::new();
         let mut feature_groups: Vec<FeatureGroup> = Vec::new();
         let mut attributes: Vec<Attribute> = Vec::new();
+        let mut activation_groups: Vec<ActivationGroup> = Vec::new();
         let mut tree_down = 0;
         loop {
             match reader.read_event(&mut buf) {
                 Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
-                    if e.name() == b"FeatureGroups" {
-                        feature_groups = FeatureGroup::vec_from_event(reader, e)?;
-                    } else if e.name() == b"Attributes" {
-                        attributes = Attribute::vec_from_event(reader, e)?;
-                    } else {
-                        tree_down += 1;
+                    match e.name() {
+                        b"FeatureGroups" => feature_groups = FeatureGroup::vec_from_event(reader, e)?,
+                        b"Attributes" => attributes = Attribute::vec_from_event(reader, e)?,
+                        b"ActivationGroups" => activation_groups = ActivationGroup::vec_from_event(reader, e)?,
+                        _ => {}
                     }
                 }
                 Ok(Event::End(_)) => {
@@ -51,6 +54,7 @@ impl DeparseSingle for AttributeDefinitions {
         Ok(AttributeDefinitions {
             feature_groups,
             attributes,
+            activation_groups,
         })
     }
 
@@ -65,7 +69,8 @@ impl DeparseSingle for AttributeDefinitions {
     #[cfg(test)]
     fn is_single_eq(&self, other: &Self) -> bool {
         FeatureGroup::is_vec_eq(&self.feature_groups, &other.feature_groups) &&
-            Attribute::is_vec_eq(&self.attributes, &other.attributes)
+            Attribute::is_vec_eq(&self.attributes, &other.attributes) &&
+            ActivationGroup::is_vec_eq(&self.activation_groups, &other.activation_groups)
     }
 }
 
@@ -74,6 +79,7 @@ mod tests {
     use std::convert::TryInto;
 
     use crate::deparse::DeparseSingle;
+    use crate::gdtf::fixture_type::attribute_definitions::activation_group::ActivationGroup;
     use crate::gdtf::fixture_type::attribute_definitions::attribute::Attribute;
     use crate::gdtf::fixture_type::attribute_definitions::AttributeDefinitions;
     use crate::gdtf::fixture_type::attribute_definitions::feature_group::feature::Feature;
@@ -132,6 +138,14 @@ mod tests {
                     pretty: "G1".to_string(),
                     main_attribute: None,
                     color: None,
+                }
+            ],
+            activation_groups: vec![
+                ActivationGroup {
+                    name: "PanTilt".try_into().unwrap()
+                },
+                ActivationGroup {
+                    name: "Gobo1".try_into().unwrap()
                 }
             ],
         }.test(
