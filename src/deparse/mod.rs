@@ -86,6 +86,8 @@ pub trait DeparseSingle: std::fmt::Debug {
         }
     }
 
+    #[cfg(test)]
+    fn is_same_item_identifier(&self, compare: &Self) -> bool;
 
     #[cfg(test)]
     fn is_vec_eq(one: &Vec<Self>, two: &Vec<Self>) -> bool where Self: Sized {
@@ -94,14 +96,21 @@ pub trait DeparseSingle: std::fmt::Debug {
             return false;
         }
         for o in one.iter() {
-            let mut b = false;
-            for t in two.iter() {
-                if o.is_single_eq_no_log(&t) {
-                    b = true;
+            let mut t = o.clone();
+            let mut item_found = false;
+
+            for tw in two.iter() {
+                if o.is_same_item_identifier(tw) {
+                    t = tw;
+                    item_found = true;
                 }
             }
-            if !b {
-                println!("Testing {} for vec returned different results: \n{:?}\n{:?}", Self::single_event_name(), one, two);
+            if !item_found {
+                println!("Did not find {} that corresponds to \n{:?}", Self::single_event_name(), o);
+                return false;
+            }
+
+            if !o.is_single_eq_log(t) {
                 return false;
             }
         }

@@ -78,6 +78,10 @@ impl DeparseSingle for GDTF {
         self.data_version == other.data_version &&
             FixtureType::is_single_eq_log(&self.fixture_type, &other.fixture_type)
     }
+    #[cfg(test)]
+    fn is_same_item_identifier(&self, _: &Self) -> bool {
+        false
+    }
 }
 
 impl TryFrom<&Path> for GDTF {
@@ -128,12 +132,22 @@ mod tests {
     use crate::deparse::DeparseSingle;
 
     #[test]
-    fn test_sgm() {
-        crate::testdata::sgm_light_at_g_7_spot_at_rev_a::expect().test_with_result(Path::new("test/SGM_Light@G-7_Spot@Rev_A.gdtf").try_into());
+    fn test_acme() {
+        crate::testdata::acme_at_acme_ae_610_beam_at_acme_ae_610_beam::expect().test_with_result(Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf").try_into());
     }
 
     #[test]
-    fn test_acme() {
-        crate::testdata::acme_at_acme_ae_610_beam_at_acme_ae_610_beam::expect().test_with_result(Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf").try_into());
+    fn test_jb() {
+        crate::testdata::jb_lighting_at_p12_spot_hp_at_v_1_15::expect().test_with_result(Path::new("test/JB-Lighting@P12_Spot_HP@V_1.15.gdtf").try_into());
+    }
+
+    #[test]
+    fn test_robe() {
+        crate::testdata::robe_lighting_at_robin_viva_cmy_at_13042021::expect().test_with_result(Path::new("test/Robe_Lighting@Robin_Viva_CMY@13042021.gdtf").try_into());
+    }
+
+    #[test]
+    fn test_sgm() {
+        crate::testdata::sgm_light_at_g_7_spot_at_rev_a::expect().test_with_result(Path::new("test/SGM_Light@G-7_Spot@Rev_A.gdtf").try_into());
     }
 }

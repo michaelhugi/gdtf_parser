@@ -7,580 +7,562 @@ use crate::units::physical_unit::PhysicalUnit;
 
 pub fn expect() -> Vec<Attribute> {
     vec![
-        //<Attribute ActivationGroup="PanTilt" Feature="Position.PanTilt" Name="Pan" PhysicalUnit="Angle" Pretty="P"/>
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "Pan".try_into().unwrap(),
+            pretty: "P".to_string(),
+            activation_group: Some("PanTilt".to_string()),
+            feature: "Position.PanTilt".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::Angle,
+            color: None,
+        },
+        Attribute {
+            name: "Tilt".try_into().unwrap(),
+            pretty: "T".to_string(),
+            activation_group: Some("PanTilt".to_string()),
+            feature: "Position.PanTilt".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::Angle,
+            color: None,
+        },
+        Attribute {
+            name: "Control1".try_into().unwrap(),
+            pretty: "Ctrl1".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Control.Control".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute ActivationGroup="PanTilt" Feature="Position.PanTilt" Name="Tilt" PhysicalUnit="Angle" Pretty="T"/>
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "DimmerMode".try_into().unwrap(),
+            pretty: "Dim Mode".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Control.Control".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Feature="Control.Control" Name="Control1" PhysicalUnit="None" Pretty="Ctrl1"/>
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "Shutter1".try_into().unwrap(),
+            pretty: "Sh1".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Beam.Beam".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Feature="Control.Control" Name="DimmerMode" PhysicalUnit="None" Pretty="Dim Mode"/>
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "Dimmer".try_into().unwrap(),
+            pretty: "Dim".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Dimmer.Dimmer".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Feature="Beam.Beam" Name="Shutter1" PhysicalUnit="None" Pretty="Sh1"/>
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "Focus1".try_into().unwrap(),
+            pretty: "Focus1".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Focus.Focus".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Feature="Dimmer.Dimmer" Name="Dimmer" PhysicalUnit="None" Pretty="Dim"/>
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "Zoom".try_into().unwrap(),
+            pretty: "Zoom".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Focus.Focus".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::Angle,
+            color: None,
+        },
+        Attribute {
+            name: "Focus1Distance".try_into().unwrap(),
+            pretty: "Focus1 Distance".to_string(),
+            activation_group: None,
+            feature: "Focus.Focus".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::Length,
+            color: None,
+        },
+        Attribute {
+            name: "Focus1Adjust".try_into().unwrap(),
+            pretty: "Focus1 Adjust".to_string(),
+            activation_group: None,
+            feature: "Focus.Focus".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Feature="Focus.Focus" Name="Focus1" PhysicalUnit="None" Pretty="Focus1"/>
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "Iris".try_into().unwrap(),
+            pretty: "Iris".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Beam.Beam".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Feature="Focus.Focus" Name="Zoom" PhysicalUnit="Angle" Pretty="Zoom"/>
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
+            name: "Gobo1".try_into().unwrap(),
+            pretty: "G1".to_string(),
+            activation_group: Some("Gobo1".to_string()),
+            feature: "Gobo.Gobo".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Feature="Focus.Focus" Name="Focus1Distance" PhysicalUnit="Length" Pretty="Focus1 Distance"/>
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
+            name: "Gobo1SelectShake".try_into().unwrap(),
+            pretty: "Select Shake".to_string(),
+            activation_group: Some("Gobo1".to_string()),
+            feature: "Gobo.Gobo".to_string(),
+            main_attribute: Some("Gobo1".to_string()),
+            physical_unit: PhysicalUnit::Frequency,
+            color: None,
+        },
+        Attribute {
+            name: "Gobo1WheelSpin".try_into().unwrap(),
+            pretty: "Wheel Spin".to_string(),
+            activation_group: Some("Gobo1".to_string()),
+            feature: "Gobo.Gobo".to_string(),
+            main_attribute: Some("Gobo1".to_string()),
+            physical_unit: PhysicalUnit::AngularSpeed,
+            color: None,
+        },
+        Attribute {
+            name: "Gobo1Pos".try_into().unwrap(),
+            pretty: "G1 &lt;&gt;".to_string(),
+            activation_group: Some("Gobo1Pos".to_string()),
+            feature: "Gobo.Gobo".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::Angle,
+            color: None,
+        },
+        Attribute {
+            name: "Gobo1PosRotate".try_into().unwrap(),
+            pretty: "Rotate".to_string(),
+            activation_group: Some("Gobo1Pos".to_string()),
+            feature: "Gobo.Gobo".to_string(),
+            main_attribute: Some("Gobo1Pos".to_string()),
+            physical_unit: PhysicalUnit::AngularSpeed,
+            color: None,
+        },
+        Attribute {
+            name: "Gobo2".try_into().unwrap(),
+            pretty: "G2".to_string(),
+            activation_group: Some("Gobo2".to_string()),
+            feature: "Gobo.Gobo".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Feature="Focus.Focus" Name="Focus1Adjust" PhysicalUnit="None" Pretty="Focus1 Adjust"/>
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
+            name: "Gobo2SelectShake".try_into().unwrap(),
+            pretty: "Select Shake".to_string(),
+            activation_group: Some("Gobo2".to_string()),
+            feature: "Gobo.Gobo".to_string(),
+            main_attribute: Some("Gobo2".to_string()),
+            physical_unit: PhysicalUnit::Frequency,
             color: None,
         },
-        //<Attribute Feature="Beam.Beam" Name="Iris" PhysicalUnit="None" Pretty="Iris"/>
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="Gobo1" Feature="Gobo.Gobo" Name="Gobo1" PhysicalUnit="None" Pretty="G1"/>
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="Gobo1" Feature="Gobo.Gobo" MainAttribute="Gobo1" Name="Gobo1SelectShake" PhysicalUnit="Frequency" Pretty="Select Shake"/>
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="Gobo1" Feature="Gobo.Gobo" MainAttribute="Gobo1" Name="Gobo1WheelSpin" PhysicalUnit="AngularSpeed" Pretty="Wheel Spin"/>
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="Gobo1Pos" Feature="Gobo.Gobo" Name="Gobo1Pos" PhysicalUnit="Angle" Pretty="G1 &lt;&gt;"/>
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="Gobo1Pos" Feature="Gobo.Gobo" MainAttribute="Gobo1Pos" Name="Gobo1PosRotate" PhysicalUnit="AngularSpeed" Pretty="Rotate"/>
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="Gobo2" Feature="Gobo.Gobo" Name="Gobo2" PhysicalUnit="None" Pretty="G2"/>
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="Gobo2" Feature="Gobo.Gobo" MainAttribute="Gobo2" Name="Gobo2SelectShake" PhysicalUnit="Frequency" Pretty="Select Shake"/>
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="Gobo2" Feature="Gobo.Gobo" MainAttribute="Gobo2" Name="Gobo2WheelSpin" PhysicalUnit="AngularSpeed" Pretty="Wheel Spin"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
+            name: "Gobo2WheelSpin".try_into().unwrap(),
+            pretty: "Wheel Spin".to_string(),
+            activation_group: Some("Gobo2".to_string()),
+            feature: "Gobo.Gobo".to_string(),
+            main_attribute: Some("Gobo2".to_string()),
+            physical_unit: PhysicalUnit::AngularSpeed,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Gobo2Pos".try_into().unwrap(),
+            pretty: "G2 &lt;&gt;".to_string(),
+            activation_group: Some("Gobo2Pos".to_string()),
+            feature: "Gobo.Gobo".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::Angle,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Gobo2PosRotate".try_into().unwrap(),
+            pretty: "Rotate".to_string(),
+            activation_group: Some("Gobo2Pos".to_string()),
+            feature: "Gobo.Gobo".to_string(),
+            main_attribute: Some("Gobo2Pos".to_string()),
+            physical_unit: PhysicalUnit::AngularSpeed,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Color1".try_into().unwrap(),
+            pretty: "C1".to_string(),
+            activation_group: Some("ColorRGB".to_string()),
+            feature: "Color.Color".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute ActivationGroup="Gobo2Pos" Feature="Gobo.Gobo" Name="Gobo2Pos" PhysicalUnit="Angle" Pretty="G2 &lt;&gt;"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "Color1WheelSpin".try_into().unwrap(),
+            pretty: "Wheel Spin".to_string(),
+            activation_group: Some("ColorRGB".to_string()),
+            feature: "Color.Color".to_string(),
+            main_attribute: Some("Color1".to_string()),
+            physical_unit: PhysicalUnit::AngularSpeed,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "CTO".try_into().unwrap(),
+            pretty: "CTO".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Color.Color".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute ActivationGroup="Gobo2Pos" Feature="Gobo.Gobo" MainAttribute="Gobo2Pos" Name="Gobo2PosRotate" PhysicalUnit="AngularSpeed" Pretty="Rotate"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "Sparkle".try_into().unwrap(),
+            pretty: "Sparkle".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Beam.Beam".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::None,
+            color: Some("0.312700,0.329000,100.000000".try_into().unwrap()),
+        },
+
+        //
+        Attribute {
+            name: "SparkleSpeed".try_into().unwrap(),
+            pretty: "SparkleSpeed".to_string(),
+            activation_group: None,
+            feature: "Beam.Beam".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::Frequency,
+            color: Some("0.312700,0.329000,100.000000".try_into().unwrap()),
+        },
+
+        //
+        Attribute {
+            name: "Prism1Pos".try_into().unwrap(),
+            pretty: "Prism1 Pos".to_string(),
+            activation_group: None,
+            feature: "Beam.Beam".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::Angle,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Prism1PosRotate".try_into().unwrap(),
+            pretty: "Rotate1".to_string(),
+            activation_group: Some("Prism".to_string()),
+            feature: "Beam.Beam".to_string(),
+            main_attribute: Some("Prism1Pos".to_string()),
+            physical_unit: PhysicalUnit::AngularSpeed,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Prism2".try_into().unwrap(),
+            pretty: "Prism2".to_string(),
+            activation_group: Some("Prism".to_string()),
+            feature: "Beam.Beam".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute ActivationGroup="ColorRGB" Feature="Color.Color" Name="Color1" PhysicalUnit="None" Pretty="C1"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
+            name: "Prism1".try_into().unwrap(),
+            pretty: "Prism1".to_string(),
+            activation_group: Some("Prism".to_string()),
+            feature: "Beam.Beam".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute ActivationGroup="ColorRGB" Feature="Color.Color" MainAttribute="Color1" Name="Color1WheelSpin" PhysicalUnit="AngularSpeed" Pretty="Wheel Spin"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "Prism2Pos".try_into().unwrap(),
+            pretty: "Prism2 Pos".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Beam.Beam".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::Angle,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Frost1".try_into().unwrap(),
+            pretty: "Frost1".to_string(),
+            activation_group: None,
+            feature: "Beam.Beam".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Feature="Color.Color" Name="CTO" PhysicalUnit="None" Pretty="CTO"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "Frost2".try_into().unwrap(),
+            pretty: "Frost2".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Beam.Beam".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Color="0.312700,0.329000,100.000000" Feature="Beam.Beam" Name="Sparkle" PhysicalUnit="None" Pretty="Sparkle"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "Effects1".try_into().unwrap(),
+            pretty: "FX1".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Beam.Beam".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Color="0.312700,0.329000,100.000000" Feature="Beam.Beam" Name="SparkleSpeed" PhysicalUnit="Frequency" Pretty="SparkleSpeed"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "PositionMSpeed".try_into().unwrap(),
+            pretty: "Pos MSpeed".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Control.Control".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Feature="Beam.Beam" Name="Prism1Pos" PhysicalUnit="Angle" Pretty="Prism1 Pos"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "GlobalMSpeed".try_into().unwrap(),
+            pretty: "Global MSpeed".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Control.Control".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute ActivationGroup="Prism" Feature="Beam.Beam" MainAttribute="Prism1Pos" Name="Prism1PosRotate" PhysicalUnit="AngularSpeed" Pretty="Rotate1"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "BlackoutMode".try_into().unwrap(),
+            pretty: "Blackout Mode".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Control.Control".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute ActivationGroup="Prism" Feature="Beam.Beam" Name="Prism2" PhysicalUnit="None" Pretty="Prism2"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "Function".try_into().unwrap(),
+            pretty: "Function".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Control.Control".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute ActivationGroup="Prism" Feature="Beam.Beam" Name="Prism1" PhysicalUnit="None" Pretty="Prism1"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "LEDFrequency".try_into().unwrap(),
+            pretty: "LED Frequency".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Control.Control".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::Frequency,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "FixtureGlobalReset".try_into().unwrap(),
+            pretty: "Fixture Global Reset".to_string(),
+            activation_group: None,
+            feature: "Control.Control".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Feature="Beam.Beam" Name="Prism2Pos" PhysicalUnit="Angle" Pretty="Prism2 Pos"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
+            name: "Shutter1Strobe".try_into().unwrap(),
+            pretty: "Strobe1".to_string(),
             activation_group: None,
-            feature: "".to_string(),
+            feature: "Beam.Beam".to_string(),
+            main_attribute: Some("Shutter1".to_string()),
+            physical_unit: PhysicalUnit::Frequency,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Shutter1StrobePulseOpen".try_into().unwrap(),
+            pretty: "Pulse Open1".to_string(),
+            activation_group: None,
+            feature: "Beam.Beam".to_string(),
+            main_attribute: Some("Shutter1".to_string()),
+            physical_unit: PhysicalUnit::Frequency,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Shutter1StrobePulseClose".try_into().unwrap(),
+            pretty: "Pulse Close1".to_string(),
+            activation_group: None,
+            feature: "Beam.Beam".to_string(),
+            main_attribute: Some("Shutter1".to_string()),
+            physical_unit: PhysicalUnit::Frequency,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Shutter1StrobePulse".try_into().unwrap(),
+            pretty: "Pulse1".to_string(),
+            activation_group: None,
+            feature: "Beam.Beam".to_string(),
+            main_attribute: Some("Shutter1".to_string()),
+            physical_unit: PhysicalUnit::Frequency,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Shutter1StrobeRandom".try_into().unwrap(),
+            pretty: "Random1".to_string(),
+            activation_group: None,
+            feature: "Beam.Beam".to_string(),
+            main_attribute: Some("Shutter1".to_string()),
+            physical_unit: PhysicalUnit::Frequency,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Shutter1StrobeRandomPulseClose".try_into().unwrap(),
+            pretty: "Random Pulse Close1".to_string(),
+            activation_group: None,
+            feature: "Beam.Beam".to_string(),
+            main_attribute: Some("Shutter1".to_string()),
+            physical_unit: PhysicalUnit::Frequency,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Shutter1StrobeRandomPulseOpen".try_into().unwrap(),
+            pretty: "Random Pulse Open1".to_string(),
+            activation_group: None,
+            feature: "Beam.Beam".to_string(),
+            main_attribute: Some("Shutter1".to_string()),
+            physical_unit: PhysicalUnit::Frequency,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Color1WheelIndex".try_into().unwrap(),
+            pretty: "Wheel Index".to_string(),
+            activation_group: Some("ColorRGB".to_string()),
+            feature: "Color.Color".to_string(),
+            main_attribute: Some("Color1".to_string()),
+            physical_unit: PhysicalUnit::Angle,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "ColorSub_R".try_into().unwrap(),
+            pretty: "R".to_string(),
+            activation_group: Some("ColorRGB".to_string()),
+            feature: "Color.RGB".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::ColorComponent,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "ColorSub_G".try_into().unwrap(),
+            pretty: "G".to_string(),
+            activation_group: Some("ColorRGB".to_string()),
+            feature: "Color.RGB".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::ColorComponent,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "ColorSub_B".try_into().unwrap(),
+            pretty: "B".to_string(),
+            activation_group: Some("ColorRGB".to_string()),
+            feature: "Color.RGB".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::ColorComponent,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "Prism2PosRotate".try_into().unwrap(),
+            pretty: "Rotate2".to_string(),
+            activation_group: Some("Prism".to_string()),
+            feature: "Beam.Beam".to_string(),
+            main_attribute: Some("Prism2Pos".to_string()),
+            physical_unit: PhysicalUnit::AngularSpeed,
+            color: None,
+        },
+
+        //
+        Attribute {
+            name: "AnimationWheel1".try_into().unwrap(),
+            pretty: "Anim1".to_string(),
+            activation_group: Some("AnimationWheel1".to_string()),
+            feature: "Gobo.Gobo".to_string(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         },
-        //<Attribute Feature="Beam.Beam" Name="Frost1" PhysicalUnit="None" Pretty="Frost1"/>
+
         //
         Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
+            name: "AnimationWheel1PosRotate".try_into().unwrap(),
+            pretty: "Anim Rotate".to_string(),
+            activation_group: Some("AnimationWheel1Pos".to_string()),
+            feature: "Gobo.Gobo".to_string(),
             main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Beam.Beam" Name="Frost2" PhysicalUnit="None" Pretty="Frost2"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Beam.Beam" Name="Effects1" PhysicalUnit="None" Pretty="FX1"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Control.Control" Name="PositionMSpeed" PhysicalUnit="None" Pretty="Pos MSpeed"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Control.Control" Name="GlobalMSpeed" PhysicalUnit="None" Pretty="Global MSpeed"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Control.Control" Name="BlackoutMode" PhysicalUnit="None" Pretty="Blackout Mode"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Control.Control" Name="Function" PhysicalUnit="None" Pretty="Function"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Control.Control" Name="LEDFrequency" PhysicalUnit="Frequency" Pretty="LED Frequency"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Control.Control" Name="FixtureGlobalReset" PhysicalUnit="None" Pretty="Fixture Global Reset"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Beam.Beam" MainAttribute="Shutter1" Name="Shutter1Strobe" PhysicalUnit="Frequency" Pretty="Strobe1"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Beam.Beam" MainAttribute="Shutter1" Name="Shutter1StrobePulseOpen" PhysicalUnit="Frequency" Pretty="Pulse Open1"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Beam.Beam" MainAttribute="Shutter1" Name="Shutter1StrobePulseClose" PhysicalUnit="Frequency" Pretty="Pulse Close1"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Beam.Beam" MainAttribute="Shutter1" Name="Shutter1StrobePulse" PhysicalUnit="Frequency" Pretty="Pulse1"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Beam.Beam" MainAttribute="Shutter1" Name="Shutter1StrobeRandom" PhysicalUnit="Frequency" Pretty="Random1"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Beam.Beam" MainAttribute="Shutter1" Name="Shutter1StrobeRandomPulseClose" PhysicalUnit="Frequency" Pretty="Random Pulse Close1"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute Feature="Beam.Beam" MainAttribute="Shutter1" Name="Shutter1StrobeRandomPulseOpen" PhysicalUnit="Frequency" Pretty="Random Pulse Open1"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="ColorRGB" Feature="Color.Color" MainAttribute="Color1" Name="Color1WheelIndex" PhysicalUnit="Angle" Pretty="Wheel Index"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="ColorRGB" Feature="Color.RGB" Name="ColorSub_R" PhysicalUnit="ColorComponent" Pretty="R"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="ColorRGB" Feature="Color.RGB" Name="ColorSub_G" PhysicalUnit="ColorComponent" Pretty="G"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="ColorRGB" Feature="Color.RGB" Name="ColorSub_B" PhysicalUnit="ColorComponent" Pretty="B"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="Prism" Feature="Beam.Beam" MainAttribute="Prism2Pos" Name="Prism2PosRotate" PhysicalUnit="AngularSpeed" Pretty="Rotate2"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="AnimationWheel1" Feature="Gobo.Gobo" Name="AnimationWheel1" PhysicalUnit="None" Pretty="Anim1"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        },
-        //<Attribute ActivationGroup="AnimationWheel1Pos" Feature="Gobo.Gobo" Name="AnimationWheel1PosRotate" PhysicalUnit="AngularSpeed" Pretty="Anim Rotate"/>
-        //
-        Attribute {
-            name: "".try_into().unwrap(),
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: "".to_string(),
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
+            physical_unit: PhysicalUnit::AngularSpeed,
             color: None,
         }
     ]

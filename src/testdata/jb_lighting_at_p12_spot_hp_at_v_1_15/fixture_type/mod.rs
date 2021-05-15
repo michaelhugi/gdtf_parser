@@ -1,22 +1,23 @@
 #![cfg(test)]
 
-use crate::gdtf::fixture_type::FixtureType;
 use std::convert::TryInto;
+
+use crate::gdtf::fixture_type::FixtureType;
 
 pub mod attribute_definitions;
 
 pub fn expect() -> FixtureType {
-    //<FixtureType CanHaveChildren="Yes" Description="P12 Spot HP (High Power) 640W" FixtureTypeID="807DC00C-18D5-4133-B781-1A003FA988FA" LongName="P12 Spot HP" Manufacturer="JB-Lighting" Name="P12 Spot HP" RefFT="" ShortName="P12SPHP" Thumbnail="P12 dunkel">
+    //<FixtureType CanHaveChildren="Yes">
     //
     FixtureType {
-        name: "".try_into().unwrap(),
-        short_name: "".to_string(),
-        long_name: "".to_string(),
+        name: "P12 Spot HP".try_into().unwrap(),
+        short_name: "P12SPHP".to_string(),
+        long_name: "P12 Spot HP".to_string(),
         attribute_definitions: attribute_definitions::expect(),
-        description: "".to_string(),
-        fixture_type_id: "".try_into().unwrap(),
-        thumbnail: None,
-        manufacturer: "".to_string(),
+        description: "P12 Spot HP (High Power) 640W".to_string(),
+        fixture_type_id: "807DC00C-18D5-4133-B781-1A003FA988FA".try_into().unwrap(),
+        thumbnail: Some("P12 dunkel".to_string()),
+        manufacturer: "JB-Lighting".to_string(),
         ref_ft: None,
     }
 }

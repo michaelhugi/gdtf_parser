@@ -15,6 +15,10 @@ pub struct Feature {
 
 
 impl DeparseSingle for Feature {
+    #[cfg(test)]
+    fn is_same_item_identifier(&self, compare: &Self) -> bool {
+        self.name == compare.name
+    }
     fn single_from_event_unchecked(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         for attr in e.attributes().into_iter() {
@@ -28,7 +32,9 @@ impl DeparseSingle for Feature {
                 _ => {}
             }
         }
-        Err(GdtfError::RequiredValueNotFoundError("Name not found in Feature".to_string()))
+        return Ok(Feature {
+            name: "".try_into()?
+        });
     }
 
     fn is_single_event_name(event_name: &[u8]) -> bool {
@@ -59,5 +65,31 @@ mod tests {
         }.test(
             r#"<Feature Name="PanTilt"/>"#
         );
+    }
+
+    #[test]
+    fn test_feature_empty() {
+        Feature {
+            name: "".try_into().unwrap()
+        }.test(
+            r#"<Feature Name=""/>"#
+        );
+    }
+
+    #[test]
+    fn test_feature_min() {
+        Feature {
+            name: "".try_into().unwrap()
+        }.test(
+            r#"<Feature/>"#
+        );
+    }
+
+    #[test]
+    fn test_feature_faulty() {
+        match Feature::single_from_xml(r#"Feature Name="PanTilt"/>"#) {
+            Ok(_) => { panic!("test_feature_faulty should return an error"); }
+            Err(_) => {}
+        }
     }
 }

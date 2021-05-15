@@ -20,6 +20,11 @@ pub struct FeatureGroup {
 }
 
 impl DeparseSingle for FeatureGroup {
+    #[cfg(test)]
+    fn is_same_item_identifier(&self, compare: &Self) -> bool {
+        self.name == compare.name
+    }
+
     fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut name = Name::new();
@@ -64,12 +69,6 @@ impl DeparseSingle for FeatureGroup {
         }
         buf.clear();
 
-        if name.is_empty() {
-            return Err(GdtfError::RequiredValueNotFoundError("Name not found in FeatureGroup".to_string()));
-        }
-        if pretty == "" {
-            return Err(GdtfError::RequiredValueNotFoundError("Pretty not found in FeatureGroup".to_string()));
-        }
         Ok(FeatureGroup {
             name,
             pretty,
@@ -124,6 +123,29 @@ mod tests {
     }
 
     #[test]
+    fn test_feature_group_no_child_min() {
+        FeatureGroup {
+            pretty: "".to_string(),
+            name: "".try_into().unwrap(),
+            features: vec![],
+        }.test(
+            r#"<FeatureGroup Name="" Pretty="">
+              </FeatureGroup>"#
+        );
+    }
+
+    #[test]
+    fn test_feature_group_no_child_empty() {
+        FeatureGroup {
+            pretty: "".to_string(),
+            name: "".try_into().unwrap(),
+            features: vec![],
+        }.test(
+            r#"<FeatureGroup/>"#
+        );
+    }
+
+    #[test]
     fn test_feature_group_one_child() {
         FeatureGroup {
             pretty: "PositionPretty".to_string(),
@@ -135,6 +157,33 @@ mod tests {
               </FeatureGroup>"#
         );
     }
+
+    #[test]
+    fn test_feature_group_one_child_min() {
+        FeatureGroup {
+            pretty: "".to_string(),
+            name: "".try_into().unwrap(),
+            features: vec![Feature { name: "".try_into().unwrap() }],
+        }.test(
+            r#"<FeatureGroup Name="" Pretty="">
+              <Feature Name=""/>
+              </FeatureGroup>"#
+        );
+    }
+
+    #[test]
+    fn test_feature_group_one_child_empty() {
+        FeatureGroup {
+            pretty: "".to_string(),
+            name: "".try_into().unwrap(),
+            features: vec![Feature { name: "".try_into().unwrap() }],
+        }.test(
+            r#"<FeatureGroup>
+              <Feature/>
+              </FeatureGroup>"#
+        );
+    }
+
 
     #[test]
     fn test_feature_group_two_children() {
@@ -149,6 +198,40 @@ mod tests {
             r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
               <Feature Name="PanTilt"/>
               <Feature Name="Other"/>
+              </FeatureGroup>"#
+        );
+    }
+
+    #[test]
+    fn test_feature_group_two_children_min() {
+        FeatureGroup {
+            pretty: "".to_string(),
+            name: "".try_into().unwrap(),
+            features: vec![
+                Feature { name: "".try_into().unwrap() },
+                Feature { name: "".try_into().unwrap() }
+            ],
+        }.test(
+            r#"<FeatureGroup Name="" Pretty="">
+              <Feature Name=""/>
+              <Feature Name=""/>
+              </FeatureGroup>"#
+        );
+    }
+
+    #[test]
+    fn test_feature_group_two_children_empty() {
+        FeatureGroup {
+            pretty: "".to_string(),
+            name: "".try_into().unwrap(),
+            features: vec![
+                Feature { name: "".try_into().unwrap() },
+                Feature { name: "".try_into().unwrap() }
+            ],
+        }.test(
+            r#"<FeatureGroup>
+              <Feature/>
+              <Feature/>
               </FeatureGroup>"#
         );
     }
@@ -180,6 +263,94 @@ mod tests {
                                     <Feature Name="DimmerF"/>
                                 </FeatureGroup>"#,
         );
+    }
+
+
+    #[test]
+    fn test_feature_group_list_min() {
+        FeatureGroup::test_group(
+            vec![
+                FeatureGroup {
+                    name: "".try_into().unwrap(),
+                    pretty: "".to_string(),
+                    features: vec![Feature {
+                        name: "".try_into().unwrap()
+                    }],
+                },
+                FeatureGroup {
+                    name: "".try_into().unwrap(),
+                    pretty: "".to_string(),
+                    features: vec![Feature {
+                        name: "".try_into().unwrap()
+                    }],
+                }
+            ],
+            r#"<FeatureGroups>
+                                <FeatureGroup Name="" Pretty="">
+                                    <Feature Name=""/>
+                                </FeatureGroup>
+                                <FeatureGroup Name="" Pretty="">
+                                    <Feature Name=""/>
+                                </FeatureGroup>"#,
+        );
+    }
+
+
+    #[test]
+    fn test_feature_group_list_empty() {
+        FeatureGroup::test_group(
+            vec![
+                FeatureGroup {
+                    name: "".try_into().unwrap(),
+                    pretty: "".to_string(),
+                    features: vec![Feature {
+                        name: "".try_into().unwrap()
+                    }],
+                },
+                FeatureGroup {
+                    name: "".try_into().unwrap(),
+                    pretty: "".to_string(),
+                    features: vec![Feature {
+                        name: "".try_into().unwrap()
+                    }],
+                }
+            ],
+            r#"<FeatureGroups>
+                                <FeatureGroup >
+                                    <Feature/>
+                                </FeatureGroup>
+                                <FeatureGroup>
+                                    <Feature/>
+                                </FeatureGroup>"#,
+        );
+    }
+
+    #[test]
+    fn test_feature_group_list_faulty() {
+        match FeatureGroup::vec_from_xml(
+            r#"<FeatureGroups>
+                                FeatureGroup >
+                                    <Feature/>
+                                </FeatureGroup>
+                                <FeatureGroup>
+                                    <Feature/>
+                                </FeatureGroup>"#
+        ) {
+            Ok(_) => { panic!("test_feature_group_list_faulty should return an error"); }
+            Err(_) => {}
+        }
+    }
+
+    #[test]
+    fn test_feature_group_faulty() {
+        match FeatureGroup::single_from_xml(
+            r#"FeatureGroup >
+                     <Feature/>
+                     </FeatureGroup>"#
+        ) {
+            Ok(_) => { panic!("test_feature_group_list_faulty should return an error"); }
+            Err(_) => {}
+        }
     }
 }
 

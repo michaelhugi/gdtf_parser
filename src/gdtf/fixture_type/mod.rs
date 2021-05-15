@@ -37,6 +37,11 @@ pub struct FixtureType {
 
 
 impl DeparseSingle for FixtureType {
+    #[cfg(test)]
+    fn is_same_item_identifier(&self, _: &Self) -> bool {
+        false
+    }
+
     fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut name = Name::new();

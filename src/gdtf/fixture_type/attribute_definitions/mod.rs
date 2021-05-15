@@ -22,6 +22,10 @@ pub struct AttributeDefinitions {
 
 
 impl DeparseSingle for AttributeDefinitions {
+    #[cfg(test)]
+    fn is_same_item_identifier(&self, _: &Self) -> bool {
+        false
+    }
     fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut buf: Vec<u8> = Vec::new();
@@ -172,5 +176,236 @@ mod tests {
      </AttributeDefinitions>
      "#
         );
+    }
+
+    #[test]
+    fn test_min() {
+        AttributeDefinitions {
+            feature_groups: vec![
+                FeatureGroup {
+                    name: "".try_into().unwrap(),
+                    pretty: "".to_string(),
+                    features: vec![
+                        Feature {
+                            name: "".try_into().unwrap()
+                        }
+                    ],
+                },
+                FeatureGroup {
+                    name: "".try_into().unwrap(),
+                    pretty: "".to_string(),
+                    features: vec![
+                        Feature {
+                            name: "".try_into().unwrap()
+                        }
+                    ],
+                }],
+            attributes: vec![
+                Attribute {
+                    name: "".try_into().unwrap(),
+                    pretty: "".to_string(),
+                    activation_group: None,
+                    feature: "".to_string(),
+                    main_attribute: None,
+                    physical_unit: PhysicalUnit::None,
+                    color: None,
+                },
+                Attribute {
+                    activation_group: None,
+                    feature: "".to_string(),
+                    name: "".try_into().unwrap(),
+                    physical_unit: PhysicalUnit::None,
+                    pretty: "".to_string(),
+                    main_attribute: None,
+                    color: None,
+                },
+                Attribute {
+                    activation_group: None,
+                    feature: "".to_string(),
+                    name: "".try_into().unwrap(),
+                    physical_unit: PhysicalUnit::None,
+                    pretty: "".to_string(),
+                    main_attribute: None,
+                    color: None,
+                }
+            ],
+            activation_groups: vec![
+                ActivationGroup {
+                    name: "".try_into().unwrap()
+                },
+                ActivationGroup {
+                    name: "".try_into().unwrap()
+                }
+            ],
+        }.test(
+            r#"
+    <AttributeDefinitions>
+        <ActivationGroups>
+            <ActivationGroup Name=""/>
+            <ActivationGroup Name=""/>
+        </ActivationGroups>
+        <FeatureGroups>
+            <FeatureGroup Name="" Pretty="">
+                <Feature Name=""/>
+            </FeatureGroup>
+            <FeatureGroup Name="" Pretty="">
+                <Feature Name=""/>
+            </FeatureGroup>
+        </FeatureGroups>
+        <Attributes>
+            <Attribute ActivationGroup="" Feature="" Name="" PhysicalUnit="" Pretty=""/>
+            <Attribute ActivationGroup="" Feature="" Name="" PhysicalUnit="" Pretty=""/>
+            <Attribute ActivationGroup="" Feature="" Name="" PhysicalUnit="" Pretty=""/>
+        </Attributes>
+     </AttributeDefinitions>
+     "#
+        );
+    }
+
+
+    #[test]
+    fn test_empty() {
+        AttributeDefinitions {
+            feature_groups: vec![
+                FeatureGroup {
+                    name: "".try_into().unwrap(),
+                    pretty: "".to_string(),
+                    features: vec![
+                        Feature {
+                            name: "".try_into().unwrap()
+                        }
+                    ],
+                },
+                FeatureGroup {
+                    name: "".try_into().unwrap(),
+                    pretty: "".to_string(),
+                    features: vec![
+                        Feature {
+                            name: "".try_into().unwrap()
+                        }
+                    ],
+                }],
+            attributes: vec![
+                Attribute {
+                    name: "".try_into().unwrap(),
+                    pretty: "".to_string(),
+                    activation_group: None,
+                    feature: "".to_string(),
+                    main_attribute: None,
+                    physical_unit: PhysicalUnit::None,
+                    color: None,
+                },
+                Attribute {
+                    activation_group: None,
+                    feature: "".to_string(),
+                    name: "".try_into().unwrap(),
+                    physical_unit: PhysicalUnit::None,
+                    pretty: "".to_string(),
+                    main_attribute: None,
+                    color: None,
+                },
+                Attribute {
+                    activation_group: None,
+                    feature: "".to_string(),
+                    name: "".try_into().unwrap(),
+                    physical_unit: PhysicalUnit::None,
+                    pretty: "".to_string(),
+                    main_attribute: None,
+                    color: None,
+                }
+            ],
+            activation_groups: vec![
+                ActivationGroup {
+                    name: "".try_into().unwrap()
+                },
+                ActivationGroup {
+                    name: "".try_into().unwrap()
+                }
+            ],
+        }.test(
+            r#"
+    <AttributeDefinitions>
+        <ActivationGroups>
+            <ActivationGroup />
+            <ActivationGroup />
+        </ActivationGroups>
+        <FeatureGroups>
+            <FeatureGroup >
+                <Feature />
+            </FeatureGroup>
+            <FeatureGroup  >
+                <Feature />
+            </FeatureGroup>
+        </FeatureGroups>
+        <Attributes>
+            <Attribute />
+            <Attribute />
+            <Attribute  />
+        </Attributes >
+     </AttributeDefinitions>
+     "#
+        );
+    }
+
+    #[test]
+    fn test_faulty() {
+        match AttributeDefinitions::single_from_xml(
+            r#"
+    <AttributeDefinitions>
+        <ActivationGroups>
+            <ActivationGroup />
+            <ActivationGroup />
+        </ActivationGroups>
+        <FeatureGroups>
+            <FeatureGroup >
+                <Feature />
+            </FeatureGroup>
+            <FeatureGroup  >
+                <Feature />
+            </FeatureGroup>
+        </FeatureGroups>
+        Attributes>
+            <Attribute />
+            <Attribte />
+            <Attribute  />
+        </Attributes >
+     </AttributeDefinitions>
+     "#
+        )
+        {
+            Ok(_) => { panic!("test_faulty should return an error"); }
+            Err(_) => {}
+        }
+    }
+
+    #[test]
+    fn test_faulty_child() {
+        match AttributeDefinitions::single_from_xml(
+            r#"
+    <AttributeDefinitions>
+        <ActivationGroups>
+            <ActivationGroup />
+            <ActivationGroup />
+        </ActivationGroups>
+        <FeatureGroups>
+            <FeatureGroup >
+                <Feature />
+            </FeatureGroup>
+            <FeatureGroup  >
+                <Feature />
+            </FeatureGroup>
+        </FeatureGroups>
+        <Attributes>
+            <Attribute />
+            <Attribte />
+            <Attribute  />
+        </Attributes >
+     </AttributeDefinitions>
+     "#
+        )
+        {
+            Ok(_) => { }
+            Err(_) => { panic!("test_faulty_child should not return an error");}
+        }
     }
 }

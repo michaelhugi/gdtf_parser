@@ -1,96 +1,77 @@
 #![cfg(test)]
 
-use crate::gdtf::fixture_type::attribute_definitions::feature_group::FeatureGroup;
 use std::convert::TryInto;
-use crate::gdtf::fixture_type::attribute_definitions::feature_group::feature::Feature;
 
+use crate::gdtf::fixture_type::attribute_definitions::feature_group::feature::Feature;
+use crate::gdtf::fixture_type::attribute_definitions::feature_group::FeatureGroup;
 
 pub fn expect() -> Vec<FeatureGroup> {
     vec![
-        // <FeatureGroup Name="Position" Pretty="Position">
-        //           <Feature Name="PanTilt"/>
-        //         </FeatureGroup>
-        FeatureGroup{
-            name:"".try_into().unwrap(),
-            pretty:"".to_string(),
-            features:vec![
-                Feature{
-                    name:"".try_into().unwrap()
+        FeatureGroup {
+            name: "Position".try_into().unwrap(),
+            pretty: "Position".to_string(),
+            features: vec![
+                Feature {
+                    name: "PanTilt".try_into().unwrap()
                 }
-            ]
+            ],
         },
-        //<FeatureGroup Name="Control" Pretty="Control">
-        //           <Feature Name="Control"/>
-        //         </FeatureGroup>
-        FeatureGroup{
-            name:"".try_into().unwrap(),
-            pretty:"".to_string(),
-            features:vec![
-                Feature{
-                    name:"".try_into().unwrap()
+        FeatureGroup {
+            name: "Control".try_into().unwrap(),
+            pretty: "Control".to_string(),
+            features: vec![
+                Feature {
+                    name: "Control".try_into().unwrap()
                 }
-            ]
+            ],
         },
-        //<FeatureGroup Name="Beam" Pretty="Beam">
-        //           <Feature Name="Beam"/>
-        //         </FeatureGroup>
-        FeatureGroup{
-            name:"".try_into().unwrap(),
-            pretty:"".to_string(),
-            features:vec![
-                Feature{
-                    name:"".try_into().unwrap()
+        FeatureGroup {
+            name: "Beam".try_into().unwrap(),
+            pretty: "Beam".to_string(),
+            features: vec![
+                Feature {
+                    name: "Beam".try_into().unwrap()
                 }
-            ]
+            ],
         },
-        //<FeatureGroup Name="Dimmer" Pretty="Dimmer">
-        //           <Feature Name="Dimmer"/>
-        //         </FeatureGroup>
-        FeatureGroup{
-            name:"".try_into().unwrap(),
-            pretty:"".to_string(),
-            features:vec![
-                Feature{
-                    name:"".try_into().unwrap()
+        FeatureGroup {
+            name: "Dimmer".try_into().unwrap(),
+            pretty: "Dimmer".to_string(),
+            features: vec![
+                Feature {
+                    name: "Dimmer".try_into().unwrap()
                 }
-            ]
+            ],
         },
-        //<FeatureGroup Name="Focus" Pretty="Focus">
-        //           <Feature Name="Focus"/>
-        //         </FeatureGroup>
-        FeatureGroup{
-            name:"".try_into().unwrap(),
-            pretty:"".to_string(),
-            features:vec![
-                Feature{
-                    name:"".try_into().unwrap()
+        FeatureGroup {
+            name: "Focus".try_into().unwrap(),
+            pretty: "Focus".to_string(),
+            features: vec![
+                Feature {
+                    name: "Focus".try_into().unwrap()
                 }
-            ]
+            ],
         },
-        //<FeatureGroup Name="Gobo" Pretty="Gobo">
-        //           <Feature Name="Gobo"/>
-        //         </FeatureGroup>
-        FeatureGroup{
-            name:"".try_into().unwrap(),
-            pretty:"".to_string(),
-            features:vec![
-                Feature{
-                    name:"".try_into().unwrap()
+        FeatureGroup {
+            name: "Gobo".try_into().unwrap(),
+            pretty: "Gobo".to_string(),
+            features: vec![
+                Feature {
+                    name: "Gobo".try_into().unwrap()
                 }
-            ]
+            ],
         },
-        //<FeatureGroup Name="Color" Pretty="Color">
-        //           <Feature Name="Color"/>
-        //           <Feature Name="RGB"/>
-        //         </FeatureGroup>
-        FeatureGroup{
-            name:"".try_into().unwrap(),
-            pretty:"".to_string(),
-            features:vec![
-                Feature{
-                    name:"".try_into().unwrap()
+        FeatureGroup {
+            name: "Color".try_into().unwrap(),
+            pretty: "Color".to_string(),
+            features: vec![
+                Feature {
+                    name: "Color".try_into().unwrap()
+                },
+                Feature {
+                    name: "RGB".try_into().unwrap()
                 }
-            ]
+            ],
         },
     ]
 }

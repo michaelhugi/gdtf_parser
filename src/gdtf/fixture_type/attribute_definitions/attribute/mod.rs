@@ -22,6 +22,10 @@ pub struct Attribute {
 }
 
 impl DeparseSingle for Attribute {
+    #[cfg(test)]
+    fn is_same_item_identifier(&self, compare: &Self) -> bool {
+        self.name == compare.name
+    }
     fn single_from_event_unchecked(_reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut name = Name::new();
@@ -45,15 +49,19 @@ impl DeparseSingle for Attribute {
                 _ => {}
             }
         }
-        if name.is_empty() {
-            return Err(GdtfError::RequiredValueNotFoundError("Name not found in Attribute".to_string()));
+
+        if activation_group.is_some() {
+            if activation_group.as_ref().unwrap() == "" {
+                activation_group = None;
+            }
         }
-        if pretty == "" {
-            return Err(GdtfError::RequiredValueNotFoundError("Pretty not found in Attribute".to_string()));
+
+        if main_attribute.is_some() {
+            if main_attribute.as_ref().unwrap() == "" {
+                main_attribute = None;
+            }
         }
-        if feature == "" {
-            return Err(GdtfError::RequiredValueNotFoundError("Feature not found in Attribute".to_string()));
-        }
+
         Ok(Attribute {
             feature,
             pretty,
@@ -135,5 +143,43 @@ mod tests {
         }.test(
             r#"<Attribute Feature="Control.Control" Name="Sound" PhysicalUnit="Angle" Pretty="SoundP"/>"#
         )
+    }
+
+    #[test]
+    fn test_attribute_min_2() {
+        Attribute {
+            name: "".try_into().unwrap(),
+            pretty: "".to_string(),
+            activation_group: None,
+            feature: "".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::None,
+            color: None,
+        }.test(
+            r#"<Attribute Feature="" Name="" MainAttribute="" ActivationGroup="" PhysicalUnit="" Pretty=""/>"#
+        )
+    }
+
+    #[test]
+    fn test_attribute_empty() {
+        Attribute {
+            name: "".try_into().unwrap(),
+            pretty: "".to_string(),
+            activation_group: None,
+            feature: "".to_string(),
+            main_attribute: None,
+            physical_unit: PhysicalUnit::None,
+            color: None,
+        }.test(
+            r#"<Attribute/>"#
+        )
+    }
+
+    #[test]
+    fn test_faulty() {
+        match Attribute::single_from_xml(r#"<ttribute"#) {
+            Ok(_) => { panic!("test_faulty should return an error"); }
+            Err(_) => {}
+        }
     }
 }

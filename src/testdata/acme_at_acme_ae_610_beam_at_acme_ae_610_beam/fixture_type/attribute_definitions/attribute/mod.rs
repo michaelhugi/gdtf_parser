@@ -109,9 +109,9 @@ pub fn expect() -> Vec<Attribute> {
         Attribute {
             name: "Shutter1Strobe".try_into().unwrap(),
             pretty: "Strobe1".to_string(),
-            activation_group: Some("Shutter1".to_string()),
+            activation_group: None,
             feature: "Beam.Beam".to_string(),
-            main_attribute: None,
+            main_attribute: Some("Shutter1".to_string()),
             physical_unit: PhysicalUnit::Frequency,
             color: None,
         },
