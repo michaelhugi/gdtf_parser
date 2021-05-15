@@ -5,9 +5,9 @@ use crate::errors::GdtfError;
 
 #[derive(Debug)]
 pub struct ColorCIE {
-    pub(crate) x: f32,
-    pub(crate) y: f32,
-    pub(crate) z: f32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl TryFrom<&str> for ColorCIE {

@@ -7,7 +7,8 @@ pub enum GdtfError {
     Utf8Error(Utf8Error),
     QuickXMLError(quick_xml::Error),
     RequiredValueNotFoundError(String),
-    ColorCIENotValidError(String)
+    ColorCIENotValidError(String),
+    VersionNotValidError(String),
 }
 
 
@@ -23,7 +24,7 @@ impl From<Utf8Error> for GdtfError {
     }
 }
 
-impl From<quick_xml::Error> for GdtfError{
+impl From<quick_xml::Error> for GdtfError {
     fn from(e: quick_xml::Error) -> Self {
         GdtfError::QuickXMLError(e)
     }
