@@ -74,7 +74,7 @@ impl DeparseSingle for Attribute {
     }
 
     #[cfg(test)]
-    fn is_single_eq(&self, other: &Self) -> bool {
+    fn is_single_eq_no_log(&self, other: &Self) -> bool {
         self.name == other.name &&
             self.pretty == other.pretty &&
             self.activation_group.as_deref() == other.activation_group.as_deref() &&

@@ -1,6 +1,5 @@
 #![cfg(test)]
 
-use crate::gdtf::fixture_type::FixtureType;
 use crate::gdtf::GDTF;
 use crate::units::data_version::DataVersion;
 

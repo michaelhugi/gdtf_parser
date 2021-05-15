@@ -74,9 +74,9 @@ impl DeparseSingle for GDTF {
         "GDTF".to_string()
     }
     #[cfg(test)]
-    fn is_single_eq(&self, other: &Self) -> bool {
+    fn is_single_eq_no_log(&self, other: &Self) -> bool {
         self.data_version == other.data_version &&
-            FixtureType::is_single_eq(&self.fixture_type, &other.fixture_type)
+            FixtureType::is_single_eq_log(&self.fixture_type, &other.fixture_type)
     }
 }
 
@@ -126,7 +126,6 @@ mod tests {
     use std::path::Path;
 
     use crate::deparse::DeparseSingle;
-    use crate::gdtf::GDTF;
 
     #[test]
     fn test_sgm() {

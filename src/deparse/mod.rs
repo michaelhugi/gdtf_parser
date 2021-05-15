@@ -59,7 +59,16 @@ pub trait DeparseSingle: std::fmt::Debug {
     }
 
     #[cfg(test)]
-    fn is_single_eq(&self, other: &Self) -> bool;
+    fn is_single_eq_log(&self, other: &Self) -> bool {
+        let b = self.is_single_eq_no_log(other);
+        if !b {
+            println!("Gdtf Files in test were not equal: \n {:?} \n {:?}", self, other);
+        }
+        b
+    }
+
+    #[cfg(test)]
+    fn is_single_eq_no_log(&self, other: &Self) -> bool;
 
     #[cfg(test)]
     fn test(&self, xml: &str) where Self: Sized {
@@ -69,7 +78,7 @@ pub trait DeparseSingle: std::fmt::Debug {
     #[cfg(test)]
     fn test_with_result(&self, other: Result<Self, GdtfError>) where Self: Sized {
         let other = other.expect(&format!("Unexpected error in test of {}", Self::single_event_name())[..]);
-        if !self.is_single_eq(&other) {
+        if !self.is_single_eq_no_log(&other) {
             println!("Gdtf Files in test were not equal: \n {:?} \n {:?}", self, other);
             assert!(false);
         } else {
@@ -87,7 +96,7 @@ pub trait DeparseSingle: std::fmt::Debug {
         for o in one.iter() {
             let mut b = false;
             for t in two.iter() {
-                if o.is_single_eq(&t) {
+                if o.is_single_eq_no_log(&t) {
                     b = true;
                 }
             }

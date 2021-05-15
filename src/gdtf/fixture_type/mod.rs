@@ -18,21 +18,21 @@ pub struct FixtureType {
     ///Name of the fixture type.
     pub name: Name,
     /// Shortened name of the fixture type.
-    pub  short_name: String,
+    pub short_name: String,
     ///Detailed name of the fixture type.
-    pub   long_name: String,
+    pub long_name: String,
     ///Manufacturer of the fixture type.
-    pub   manufacturer: String,
+    pub manufacturer: String,
     /// Description of the fixture type.
-    pub   description: String,
+    pub description: String,
     ///Unique number of the fixture type.
-    pub   fixture_type_id: GUID,
+    pub fixture_type_id: GUID,
     /// File name without extension containing description of the thumbnail.Use the following as a resource file:
-    pub  thumbnail: Option<String>,
+    pub thumbnail: Option<String>,
     ///GUID of the referenced fixture type
-    pub  ref_ft: Option<GUID>,
+    pub ref_ft: Option<GUID>,
     ///This section defines all attributes that are used in the fixture type.
-    pub  attribute_definitions: AttributeDefinitions,
+    pub attribute_definitions: AttributeDefinitions,
 }
 
 
@@ -46,7 +46,7 @@ impl DeparseSingle for FixtureType {
         let mut description = String::new();
         let mut fixture_type_id = GUID::new();
         let mut thumbnail = None;
-        let mut ref_ft = None;
+        let mut ref_ft: Option<GUID> = None;
 
         for attr in e.attributes().into_iter() {
             let attr = attr?;
@@ -58,7 +58,9 @@ impl DeparseSingle for FixtureType {
                 b"Description" => description = std::str::from_utf8(attr.value.borrow())?.to_owned(),
                 b"FixtureTypeID" => fixture_type_id = std::str::from_utf8(attr.value.borrow())?.try_into()?,
                 b"Thumbnail" => thumbnail = Some(std::str::from_utf8(attr.value.borrow())?.to_owned()),
-                b"RefFT" => ref_ft = Some(std::str::from_utf8(attr.value.borrow())?.try_into()?),
+                b"RefFT" => {
+                    ref_ft = Some(std::str::from_utf8(attr.value.borrow())?.try_into()?);
+                }
                 _ => {}
             }
         }
@@ -80,6 +82,12 @@ impl DeparseSingle for FixtureType {
         }
         if fixture_type_id.is_empty() {
             return Err(GdtfError::RequiredValueNotFoundError("FixtureTypeId not found in FixtureType".to_string()));
+        }
+
+        if ref_ft.is_some() {
+            if ref_ft.as_ref().unwrap().is_empty() {
+                ref_ft = None;
+            }
         }
 
         let mut buf: Vec<u8> = Vec::new();
@@ -124,7 +132,7 @@ impl DeparseSingle for FixtureType {
         "FixtureType".to_string()
     }
     #[cfg(test)]
-    fn is_single_eq(&self, other: &Self) -> bool {
+    fn is_single_eq_no_log(&self, other: &Self) -> bool {
         self.name == other.name &&
             self.short_name == other.short_name &&
             self.long_name == other.long_name &&
@@ -133,7 +141,7 @@ impl DeparseSingle for FixtureType {
             self.fixture_type_id == other.fixture_type_id &&
             self.thumbnail == other.thumbnail &&
             self.ref_ft == other.ref_ft &&
-            AttributeDefinitions::is_single_eq(&self.attribute_definitions, &other.attribute_definitions)
+            AttributeDefinitions::is_single_eq_log(&self.attribute_definitions, &other.attribute_definitions)
     }
 }
 

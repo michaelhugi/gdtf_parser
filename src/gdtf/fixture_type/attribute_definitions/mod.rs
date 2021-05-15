@@ -67,7 +67,7 @@ impl DeparseSingle for AttributeDefinitions {
     }
 
     #[cfg(test)]
-    fn is_single_eq(&self, other: &Self) -> bool {
+    fn is_single_eq_no_log(&self, other: &Self) -> bool {
         FeatureGroup::is_vec_eq(&self.feature_groups, &other.feature_groups) &&
             Attribute::is_vec_eq(&self.attributes, &other.attributes) &&
             ActivationGroup::is_vec_eq(&self.activation_groups, &other.activation_groups)

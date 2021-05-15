@@ -85,7 +85,7 @@ impl DeparseSingle for FeatureGroup {
         "FeatureGroup".to_string()
     }
     #[cfg(test)]
-    fn is_single_eq(&self, other: &Self) -> bool {
+    fn is_single_eq_no_log(&self, other: &Self) -> bool {
         self.name == other.name &&
             self.pretty == other.pretty &&
             self.features.len() == other.features.len() &&
