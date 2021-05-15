@@ -131,4 +131,9 @@ mod tests {
     fn test_sgm() {
         crate::testdata::sgm_light_at_g_7_spot_at_rev_a::expect().test_with_result(Path::new("test/SGM_Light@G-7_Spot@Rev_A.gdtf").try_into());
     }
+
+    #[test]
+    fn test_acme() {
+        crate::testdata::acme_at_acme_ae_610_beam_at_acme_ae_610_beam::expect().test_with_result(Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf").try_into());
+    }
 }
