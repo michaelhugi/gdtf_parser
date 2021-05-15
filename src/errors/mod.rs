@@ -6,7 +6,8 @@ use std::str::Utf8Error;
 pub enum GdtfError {
     Utf8Error(Utf8Error),
     QuickXMLError(quick_xml::Error),
-    RequiredValueNotFoundError(String)
+    RequiredValueNotFoundError(String),
+    ColorCIENotValidError(String)
 }
 
 
