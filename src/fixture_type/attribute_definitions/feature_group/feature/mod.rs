@@ -1,4 +1,3 @@
-use std::borrow::Borrow;
 use std::convert::TryInto;
 
 use quick_xml::events::BytesStart;
@@ -25,9 +24,7 @@ impl DeparseSingle for Feature {
             let attr = attr?;
             match attr.key {
                 b"Name" => {
-                    return Ok(Feature {
-                        name: std::str::from_utf8(attr.value.borrow())?.try_into()?
-                    });
+                    return Ok(Feature { name: Self::attr_to_name(&attr)? });
                 }
                 _ => {}
             }
@@ -55,8 +52,8 @@ impl DeparseSingle for Feature {
 mod tests {
     use std::convert::TryInto;
 
-    use crate::utils::deparse::DeparseSingle;
     use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
+    use crate::utils::deparse::DeparseSingle;
 
     #[test]
     fn test_feature() {

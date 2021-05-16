@@ -1,4 +1,3 @@
-use std::borrow::Borrow;
 use std::convert::TryInto;
 
 use quick_xml::events::BytesStart;
@@ -26,7 +25,7 @@ impl DeparseSingle for ActivationGroup {
             match attr.key {
                 b"Name" => {
                     return Ok(ActivationGroup {
-                        name: std::str::from_utf8(attr.value.borrow())?.try_into()?
+                        name: Self::attr_to_name(&attr)?
                     });
                 }
                 _ => {}
@@ -65,8 +64,8 @@ impl DeparseVec for ActivationGroup {
 mod tests {
     use std::convert::TryInto;
 
-    use crate::utils::deparse::DeparseSingle;
     use crate::fixture_type::attribute_definitions::activation_group::ActivationGroup;
+    use crate::utils::deparse::DeparseSingle;
 
     #[test]
     fn test_activation_group() {

@@ -1,12 +1,9 @@
-use std::borrow::Borrow;
-use std::convert::TryInto;
-
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
+use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::errors::GdtfError;
-use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
 use crate::utils::units::name::Name;
 
 pub mod feature;
@@ -32,12 +29,8 @@ impl DeparseSingle for FeatureGroup {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => {
-                    name = std::str::from_utf8(attr.value.borrow())?.try_into()?;
-                }
-                b"Pretty" => {
-                    pretty = std::str::from_utf8(attr.value.borrow())?.to_owned();
-                }
+                b"Name" => name = Self::attr_to_name(&attr)?,
+                b"Pretty" => pretty = Self::attr_to_string(&attr)?,
                 _ => {}
             }
         }
@@ -49,8 +42,7 @@ impl DeparseSingle for FeatureGroup {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"Feature" {
-                        let feature = Feature::single_from_event(reader, e)?;
-                        features.push(feature);
+                        features.push(Feature::single_from_event(reader, e)?);
                     } else {
                         tree_down += 1;
                     }
@@ -106,9 +98,9 @@ impl DeparseVec for FeatureGroup {
 mod tests {
     use std::convert::TryInto;
 
-    use crate::utils::deparse::{DeparseSingle, DeparseVec};
     use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
+    use crate::utils::deparse::{DeparseSingle, DeparseVec};
 
     #[test]
     fn test_feature_group_no_child() {

@@ -1,9 +1,9 @@
 use std::error::Error;
 use std::fmt;
+use std::num::{ParseFloatError, ParseIntError};
 use std::str::Utf8Error;
 
 use zip::result::ZipError;
-use std::num::ParseIntError;
 
 #[derive(Debug)]
 pub enum GdtfError {
@@ -15,12 +15,20 @@ pub enum GdtfError {
     DMXAddressNotValidError(String),
     FileReadError(std::io::Error),
     ZipError(ZipError),
-    ParseIntError(ParseIntError)
+    ParseIntError(ParseIntError),
+    ParseFloatError(ParseFloatError),
+    DMXValueNotValidError(String),
 }
 
-impl From<ParseIntError> for GdtfError{
+impl From<ParseIntError> for GdtfError {
     fn from(e: ParseIntError) -> Self {
         GdtfError::ParseIntError(e)
+    }
+}
+
+impl From<ParseFloatError> for GdtfError {
+    fn from(e: ParseFloatError) -> Self {
+        GdtfError::ParseFloatError(e)
     }
 }
 

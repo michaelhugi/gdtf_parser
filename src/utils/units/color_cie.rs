@@ -21,15 +21,15 @@ impl TryFrom<&str> for ColorCIE {
     type Error = GdtfError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let split: Vec<&str> = value.split(",").collect();
-        if split.len() != 3 {
+        let value: Vec<&str> = value.split(",").collect();
+        if value.len() != 3 {
             return Err(GdtfError::ColorCIENotValidError("The ColorCIE must contain three comma separated values".to_string()));
         }
         Ok(
             ColorCIE {
-                x: f32::from_str(split[0]).or_else(|_| { return Err(GdtfError::ColorCIENotValidError("First argument of ColorCIE not valid".to_string())); })?,
-                y: f32::from_str(split[1]).or_else(|_| { return Err(GdtfError::ColorCIENotValidError("Second argument of ColorCIE not valid".to_string())); })?,
-                Y: f32::from_str(split[2]).or_else(|_| { return Err(GdtfError::ColorCIENotValidError("Third argument of ColorCIE not valid".to_string())); })?,
+                x: f32::from_str(value[0]).or_else(|_| { return Err(GdtfError::ColorCIENotValidError("First argument of ColorCIE not valid".to_string())); })?,
+                y: f32::from_str(value[1]).or_else(|_| { return Err(GdtfError::ColorCIENotValidError("Second argument of ColorCIE not valid".to_string())); })?,
+                Y: f32::from_str(value[2]).or_else(|_| { return Err(GdtfError::ColorCIENotValidError("Third argument of ColorCIE not valid".to_string())); })?,
             }
         )
     }

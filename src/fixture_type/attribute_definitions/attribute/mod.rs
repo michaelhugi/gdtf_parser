@@ -1,4 +1,3 @@
-use std::borrow::Borrow;
 use std::convert::TryInto;
 
 use quick_xml::events::BytesStart;
@@ -40,26 +39,17 @@ impl DeparseSingle for Attribute {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = std::str::from_utf8(attr.value.borrow())?.try_into()?,
-                b"Pretty" => pretty = std::str::from_utf8(attr.value.borrow())?.to_owned(),
-                b"ActivationGroup" => activation_group = Some(std::str::from_utf8(attr.value.borrow())?.to_owned()),
-                b"Feature" => feature = std::str::from_utf8(attr.value.borrow())?.to_owned(),
-                b"MainAttribute" => main_attribute = Some(std::str::from_utf8(attr.value.borrow())?.to_owned()),
-                b"PhysicalUnit" => physical_unit = std::str::from_utf8(attr.value.borrow())?.into(),
-                b"Color" => color = Some(std::str::from_utf8(attr.value.borrow())?.try_into()?),
+                b"Name" => name = Self::attr_to_name(&attr)?,
+                b"Pretty" => pretty = Self::attr_to_string(&attr)?,
+                b"ActivationGroup" => activation_group = Self::attr_to_string_option(&attr)?,
+                b"Feature" => feature = Self::attr_to_string(&attr)?,
+                b"MainAttribute" => main_attribute = Self::attr_to_string_option(&attr)?,
+                b"PhysicalUnit" => physical_unit = Self::attr_to_str(&attr)?.into(),
+                b"Color" => color = match Self::attr_to_str_option(&attr)? {
+                    None => None,
+                    Some(v) => Some(v.try_into()?)
+                },
                 _ => {}
-            }
-        }
-
-        if activation_group.is_some() {
-            if activation_group.as_ref().unwrap() == "" {
-                activation_group = None;
-            }
-        }
-
-        if main_attribute.is_some() {
-            if main_attribute.as_ref().unwrap() == "" {
-                main_attribute = None;
             }
         }
 
@@ -107,8 +97,8 @@ impl DeparseVec for Attribute {
 mod tests {
     use std::convert::TryInto;
 
-    use crate::utils::deparse::DeparseSingle;
     use crate::fixture_type::attribute_definitions::attribute::Attribute;
+    use crate::utils::deparse::DeparseSingle;
     use crate::utils::units::color_cie::ColorCIE;
     use crate::utils::units::physical_unit::PhysicalUnit;
 

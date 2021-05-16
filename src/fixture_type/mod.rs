@@ -1,18 +1,20 @@
-use std::borrow::Borrow;
+//! Holds the GDTF FixtureType and it's children
 use std::convert::TryInto;
 
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
+use crate::fixture_type::attribute_definitions::AttributeDefinitions;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXMLError;
-use crate::fixture_type::attribute_definitions::AttributeDefinitions;
 use crate::utils::units::guid::GUID;
 use crate::utils::units::name::Name;
 
 pub mod attribute_definitions;
+pub mod dmx_mode;
 
+///The FixtureType node is the starting point of the description of the fixture type
 #[derive(Debug)]
 pub struct FixtureType {
     ///Name of the fixture type.
@@ -33,6 +35,22 @@ pub struct FixtureType {
     pub ref_ft: Option<GUID>,
     ///This section defines all attributes that are used in the fixture type.
     pub attribute_definitions: AttributeDefinitions,
+    //Defines the physical or virtual color wheels, gobo wheels, media server content and others.
+    // pub wheels: Option<Wheels>,
+    //Contains additional physical descriptions.
+    // pub physical_descriptions: Option<PhysicalDescriptions>,
+    //Contains models of physically separated parts of the device.
+    // pub models: Option<Models>,
+    //Describes physically separated parts of the device.
+    //pub geometries: Geometries,
+    //Contains descriptions of the DMX modes.
+    //pub dmx_modes: Vec<DMXModes>,
+    //Describe the history of the fixture type.
+    //pub revisions: Option<Revisions>,
+    //Is used to transfer user - defined and fixture type specific presets to other show files.
+    //pub ft_presets: Option<FTPresets>,
+    //Specifies supported protocols.
+    //pub protocols: Option<Protocols>,
 }
 
 
@@ -56,16 +74,18 @@ impl DeparseSingle for FixtureType {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = std::str::from_utf8(attr.value.borrow())?.try_into()?,
-                b"ShortName" => short_name = std::str::from_utf8(attr.value.borrow())?.to_owned(),
-                b"LongName" => long_name = std::str::from_utf8(attr.value.borrow())?.to_owned(),
-                b"Manufacturer" => manufacturer = std::str::from_utf8(attr.value.borrow())?.to_owned(),
-                b"Description" => description = std::str::from_utf8(attr.value.borrow())?.to_owned(),
-                b"FixtureTypeID" => fixture_type_id = std::str::from_utf8(attr.value.borrow())?.try_into()?,
-                b"Thumbnail" => thumbnail = Some(std::str::from_utf8(attr.value.borrow())?.to_owned()),
-                b"RefFT" => {
-                    ref_ft = Some(std::str::from_utf8(attr.value.borrow())?.try_into()?);
-                }
+                b"Name" => name = Self::attr_to_name(&attr)?,
+                b"ShortName" => short_name = Self::attr_to_string(&attr)?,
+                b"LongName" => long_name = Self::attr_to_string(&attr)?,
+                b"Manufacturer" => manufacturer = Self::attr_to_string(&attr)?,
+                b"Description" => description = Self::attr_to_string(&attr)?,
+                b"FixtureTypeID" => fixture_type_id = Self::attr_to_str(&attr)?.try_into()?,
+                b"Thumbnail" => thumbnail = Self::attr_to_string_option(&attr)?,
+                b"RefFT" => ref_ft = match Self::attr_to_str_option(&attr)? {
+                    None => { None }
+                    Some(v) => { Some(v.try_into()?) }
+                },
+
                 _ => {}
             }
         }
@@ -73,26 +93,9 @@ impl DeparseSingle for FixtureType {
         if name.is_empty() {
             return Err(GdtfError::RequiredValueNotFoundError("Name not found in FixtureType".to_string()));
         }
-        if short_name == "" {
-            return Err(GdtfError::RequiredValueNotFoundError("ShortName not found in FixtureType".to_string()));
-        }
-        if long_name == "" {
-            return Err(GdtfError::RequiredValueNotFoundError("LongName not found in FixtureType".to_string()));
-        }
-        if manufacturer == "" {
-            return Err(GdtfError::RequiredValueNotFoundError("Manufacturer not found in FixtureType".to_string()));
-        }
-        if description == "" {
-            return Err(GdtfError::RequiredValueNotFoundError("Description not found in FixtureType".to_string()));
-        }
+
         if fixture_type_id.is_empty() {
             return Err(GdtfError::RequiredValueNotFoundError("FixtureTypeId not found in FixtureType".to_string()));
-        }
-
-        if ref_ft.is_some() {
-            if ref_ft.as_ref().unwrap().is_empty() {
-                ref_ft = None;
-            }
         }
 
         let mut buf: Vec<u8> = Vec::new();
@@ -155,13 +158,13 @@ impl DeparseSingle for FixtureType {
 mod tests {
     use std::convert::TryInto;
 
-    use crate::utils::deparse::DeparseSingle;
     use crate::fixture_type::attribute_definitions::activation_group::ActivationGroup;
     use crate::fixture_type::attribute_definitions::attribute::Attribute;
     use crate::fixture_type::attribute_definitions::AttributeDefinitions;
     use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
     use crate::fixture_type::FixtureType;
+    use crate::utils::deparse::DeparseSingle;
     use crate::utils::units::physical_unit::PhysicalUnit;
 
     #[test]
