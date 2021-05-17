@@ -11,9 +11,9 @@ pub mod feature;
 
 #[derive(Debug)]
 pub struct FeatureGroup {
-    pub(crate) name: Name,
-    pub(crate) pretty: String,
-    pub(crate) features: Vec<Feature>,
+    pub name: Name,
+    pub pretty: String,
+    pub features: Vec<Feature>,
 }
 
 impl DeparseSingle for FeatureGroup {
