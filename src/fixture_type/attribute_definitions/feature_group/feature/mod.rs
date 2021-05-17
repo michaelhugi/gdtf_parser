@@ -6,6 +6,7 @@ use quick_xml::Reader;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
+use crate::utils::deparse;
 
 #[derive(Debug)]
 pub struct Feature {
@@ -24,7 +25,7 @@ impl DeparseSingle for Feature {
             let attr = attr?;
             match attr.key {
                 b"Name" => {
-                    return Ok(Feature { name: Self::attr_to_name(&attr)? });
+                    return Ok(Feature { name: deparse::attr_to_name(&attr)? });
                 }
                 _ => {}
             }

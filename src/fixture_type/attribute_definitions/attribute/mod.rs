@@ -8,6 +8,7 @@ use crate::utils::errors::GdtfError;
 use crate::utils::units::color_cie::ColorCIE;
 use crate::utils::units::name::Name;
 use crate::utils::units::physical_unit::PhysicalUnit;
+use crate::utils::deparse;
 
 ///Describes a singular mutual exclusive control function
 #[derive(Debug)]
@@ -39,13 +40,13 @@ impl DeparseSingle for Attribute {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = Self::attr_to_name(&attr)?,
-                b"Pretty" => pretty = Self::attr_to_string(&attr)?,
-                b"ActivationGroup" => activation_group = Self::attr_to_string_option(&attr)?,
-                b"Feature" => feature = Self::attr_to_string(&attr)?,
-                b"MainAttribute" => main_attribute = Self::attr_to_string_option(&attr)?,
-                b"PhysicalUnit" => physical_unit = Self::attr_to_str(&attr)?.into(),
-                b"Color" => color = match Self::attr_to_str_option(&attr)? {
+                b"Name" => name = deparse::attr_to_name(&attr)?,
+                b"Pretty" => pretty = deparse::attr_to_string(&attr)?,
+                b"ActivationGroup" => activation_group = deparse::attr_to_string_option(&attr)?,
+                b"Feature" => feature = deparse::attr_to_string(&attr)?,
+                b"MainAttribute" => main_attribute = deparse::attr_to_string_option(&attr)?,
+                b"PhysicalUnit" => physical_unit = deparse::attr_to_str(&attr)?.into(),
+                b"Color" => color = match deparse::attr_to_str_option(&attr)? {
                     None => None,
                     Some(v) => Some(v.try_into()?)
                 },

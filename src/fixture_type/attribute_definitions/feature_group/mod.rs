@@ -5,6 +5,7 @@ use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
+use crate::utils::deparse;
 
 pub mod feature;
 
@@ -29,8 +30,8 @@ impl DeparseSingle for FeatureGroup {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = Self::attr_to_name(&attr)?,
-                b"Pretty" => pretty = Self::attr_to_string(&attr)?,
+                b"Name" => name = deparse::attr_to_name(&attr)?,
+                b"Pretty" => pretty = deparse::attr_to_string(&attr)?,
                 _ => {}
             }
         }

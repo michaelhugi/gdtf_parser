@@ -11,15 +11,11 @@ pub struct Node {
     value: String,
 }
 
-impl Node {
-    pub fn new() -> Node {
+impl Default for Node{
+    fn default() -> Self {
         Node {
             value: String::new()
         }
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.value == ""
     }
 }
 

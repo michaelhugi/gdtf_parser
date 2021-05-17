@@ -3,6 +3,7 @@ use std::convert::TryInto;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
+use crate::utils::deparse;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::dmx_value::DMXValue;
@@ -29,11 +30,11 @@ impl DeparseSingle for ChannelSet {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = Self::attr_to_name(&attr)?,
-                b"DMXFrom" => dmx_from = Self::attr_to_str(&attr)?.try_into()?,
-                b"PhysicalFrom" => physical_from = Self::attr_to_f32_option(&attr)?,
-                b"PhysicalTo" => physical_to = Self::attr_to_f32_option(&attr)?,
-                b"WheelSlotIndex" => wheel_slot_index = Self::attr_to_u8_option(&attr)?,
+                b"Name" => name = deparse::attr_to_name(&attr)?,
+                b"DMXFrom" => dmx_from = deparse::attr_to_str(&attr)?.try_into()?,
+                b"PhysicalFrom" => physical_from = deparse::attr_to_f32_option(&attr)?,
+                b"PhysicalTo" => physical_to = deparse::attr_to_f32_option(&attr)?,
+                b"WheelSlotIndex" => wheel_slot_index = deparse::attr_to_u8_option(&attr)?,
                 _ => {}
             }
         }

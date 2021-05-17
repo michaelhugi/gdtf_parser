@@ -10,7 +10,7 @@ use quick_xml::Reader;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
 
-pub trait DeparseSingle: std::fmt::Debug {
+pub(crate) trait DeparseSingle: std::fmt::Debug {
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         if !Self::is_single_event_name(&e.name()) {
@@ -122,59 +122,10 @@ pub trait DeparseSingle: std::fmt::Debug {
         }
         true
     }
-
-
-    fn attr_to_str<'a>(attr: &'a Attribute) -> Result<&'a str, GdtfError> {
-        Ok(std::str::from_utf8(attr.value.borrow())?)
-    }
-
-    fn attr_to_f32(attr: &Attribute) -> Result<f32, GdtfError> {
-        Ok(f32::from_str(Self::attr_to_str(attr)?)?)
-    }
-
-    fn attr_to_f32_option(attr: &Attribute) -> Result<Option<f32>, GdtfError> {
-        match Self::attr_to_str(attr)? {
-            "" => { Ok(None) }
-            v => { Ok(Some(f32::from_str(v)?)) }
-        }
-    }
-
-
-    fn attr_to_string(attr: &Attribute) -> Result<String, GdtfError> {
-        Ok(Self::attr_to_str(attr)?.to_owned())
-    }
-
-    fn attr_to_string_option(attr: &Attribute) -> Result<Option<String>, GdtfError> {
-        match Self::attr_to_str(attr)? {
-            "" => { Ok(None) }
-            v => { Ok(Some(v.to_owned())) }
-        }
-    }
-
-    fn attr_to_name(attr: &Attribute) -> Result<Name, GdtfError> {
-        Ok(Self::attr_to_str(attr)?.try_into()?)
-    }
-
-    fn attr_to_str_option<'a>(attr: &'a Attribute) -> Result<Option<&'a str>, GdtfError> {
-        match Self::attr_to_str(attr)? {
-            "" => { Ok(None) }
-            v => { Ok(Some(v)) }
-        }
-    }
-
-    fn attr_to_u8(attr: &Attribute) -> Result<u8, GdtfError> {
-        Ok(u8::from_str(Self::attr_to_str(attr)?)?)
-    }
-    fn attr_to_u8_option(attr: &Attribute) -> Result<Option<u8>, GdtfError> {
-        match Self::attr_to_str(attr)? {
-            "" => { Ok(None) }
-            v => { Ok(Some(u8::from_str(v)?)) }
-        }
-    }
 }
 
 
-pub trait DeparseVec: DeparseSingle {
+pub(crate) trait DeparseVec: DeparseSingle {
     fn vec_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Vec<Self>, GdtfError> where
         Self: Sized {
         if !Self::is_group_event_name(&e.name()) {
@@ -255,5 +206,50 @@ pub trait DeparseVec: DeparseSingle {
         let two = Self::vec_from_xml(xml);
         let two = two.expect(&format!("Testing {} for list raised an unexpected error", Self::group_event_name())[..]);
         assert!(Self::is_vec_eq(&one, &two));
+    }
+}
+
+
+pub(crate) fn attr_to_str<'a>(attr: &'a Attribute) -> Result<&'a str, GdtfError> {
+    Ok(std::str::from_utf8(attr.value.borrow())?)
+}
+
+pub(crate) fn attr_to_f32(attr: &Attribute) -> Result<f32, GdtfError> {
+    Ok(f32::from_str(attr_to_str(attr)?)?)
+}
+
+pub(crate) fn attr_to_f32_option(attr: &Attribute) -> Result<Option<f32>, GdtfError> {
+    match attr_to_str(attr)? {
+        "" => { Ok(None) }
+        v => { Ok(Some(f32::from_str(v)?)) }
+    }
+}
+
+pub(crate) fn attr_to_string(attr: &Attribute) -> Result<String, GdtfError> {
+    Ok(attr_to_str(attr)?.to_owned())
+}
+
+pub(crate) fn attr_to_string_option(attr: &Attribute) -> Result<Option<String>, GdtfError> {
+    match attr_to_str(attr)? {
+        "" => { Ok(None) }
+        v => { Ok(Some(v.to_owned())) }
+    }
+}
+
+pub(crate) fn attr_to_name(attr: &Attribute) -> Result<Name, GdtfError> {
+    Ok(attr_to_str(attr)?.try_into()?)
+}
+
+pub(crate) fn attr_to_str_option<'a>(attr: &'a Attribute) -> Result<Option<&'a str>, GdtfError> {
+    match attr_to_str(attr)? {
+        "" => { Ok(None) }
+        v => { Ok(Some(v)) }
+    }
+}
+
+pub(crate) fn attr_to_u8_option(attr: &Attribute) -> Result<Option<u8>, GdtfError> {
+    match attr_to_str(attr)? {
+        "" => { Ok(None) }
+        v => { Ok(Some(u8::from_str(v)?)) }
     }
 }

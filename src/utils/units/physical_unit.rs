@@ -49,29 +49,30 @@ pub enum PhysicalUnit {
 
 impl From<&str> for PhysicalUnit {
     fn from(s: &str) -> Self {
+        use PhysicalUnit::*;
         match s {
-            "Percent" => PhysicalUnit::Percent,
-            "Length" => PhysicalUnit::Length,
-            "Mass" => PhysicalUnit::Mass,
-            "Time" => PhysicalUnit::Time,
-            "Temperature" => PhysicalUnit::Temperature,
-            "LuminousIntensity" => PhysicalUnit::LuminousIntensity,
-            "Angle" => PhysicalUnit::Angle,
-            "Force" => PhysicalUnit::Force,
-            "Frequency" => PhysicalUnit::Frequency,
-            "Current" => PhysicalUnit::Current,
-            "Voltage" => PhysicalUnit::Voltage,
-            "Power" => PhysicalUnit::Power,
-            "Energy" => PhysicalUnit::Energy,
-            "Area" => PhysicalUnit::Area,
-            "Volume" => PhysicalUnit::Volume,
-            "Speed" => PhysicalUnit::Speed,
-            "Acceleration" => PhysicalUnit::Acceleration,
-            "AngularSpeed" => PhysicalUnit::AngularSpeed,
-            "AngularAccc" => PhysicalUnit::AngularAccc,
-            "WaveLength" => PhysicalUnit::WaveLength,
-            "ColorComponent" => PhysicalUnit::ColorComponent,
-            _ => PhysicalUnit::None
+            "Percent" => Percent,
+            "Length" => Length,
+            "Mass" => Mass,
+            "Time" => Time,
+            "Temperature" => Temperature,
+            "LuminousIntensity" => LuminousIntensity,
+            "Angle" => Angle,
+            "Force" => Force,
+            "Frequency" => Frequency,
+            "Current" => Current,
+            "Voltage" => Voltage,
+            "Power" => Power,
+            "Energy" => Energy,
+            "Area" => Area,
+            "Volume" => Volume,
+            "Speed" => Speed,
+            "Acceleration" => Acceleration,
+            "AngularSpeed" => AngularSpeed,
+            "AngularAccc" => AngularAccc,
+            "WaveLength" => WaveLength,
+            "ColorComponent" => ColorComponent,
+            _ => None
         }
     }
 }
@@ -79,136 +80,137 @@ impl From<&str> for PhysicalUnit {
 #[cfg(test)]
 impl PartialEq for PhysicalUnit {
     fn eq(&self, other: &Self) -> bool {
+        use PhysicalUnit::*;
         match self {
-            PhysicalUnit::None => {
+            None => {
                 match other {
-                    PhysicalUnit::None => true,
+                    None => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Percent => {
+            Percent => {
                 match other {
-                    PhysicalUnit::Percent => true,
+                    Percent => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Length => {
+            Length => {
                 match other {
-                    PhysicalUnit::Length => true,
+                    Length => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Mass => {
+            Mass => {
                 match other {
-                    PhysicalUnit::Mass => true,
+                    Mass => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Time => {
+            Time => {
                 match other {
-                    PhysicalUnit::Time => true,
+                    Time => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Temperature => {
+            Temperature => {
                 match other {
-                    PhysicalUnit::Temperature => true,
+                    Temperature => true,
                     _ => false
                 }
             }
-            PhysicalUnit::LuminousIntensity => {
+            LuminousIntensity => {
                 match other {
-                    PhysicalUnit::LuminousIntensity => true,
+                    LuminousIntensity => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Angle => {
+            Angle => {
                 match other {
-                    PhysicalUnit::Angle => true,
+                    Angle => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Force => {
+            Force => {
                 match other {
-                    PhysicalUnit::Force => true,
+                    Force => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Frequency => {
+            Frequency => {
                 match other {
-                    PhysicalUnit::Frequency => true,
+                    Frequency => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Current => {
+            Current => {
                 match other {
-                    PhysicalUnit::Current => true,
+                    Current => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Voltage => {
+            Voltage => {
                 match other {
-                    PhysicalUnit::Voltage => true,
+                    Voltage => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Power => {
+            Power => {
                 match other {
-                    PhysicalUnit::Power => true,
+                    Power => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Energy => {
+            Energy => {
                 match other {
-                    PhysicalUnit::Energy => true,
+                    Energy => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Area => {
+            Area => {
                 match other {
-                    PhysicalUnit::Area => true,
+                    Area => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Volume => {
+            Volume => {
                 match other {
-                    PhysicalUnit::Volume => true,
+                    Volume => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Speed => {
+            Speed => {
                 match other {
-                    PhysicalUnit::Speed => true,
+                    Speed => true,
                     _ => false
                 }
             }
-            PhysicalUnit::Acceleration => {
+            Acceleration => {
                 match other {
-                    PhysicalUnit::Acceleration => true,
+                    Acceleration => true,
                     _ => false
                 }
             }
-            PhysicalUnit::AngularSpeed => {
+            AngularSpeed => {
                 match other {
-                    PhysicalUnit::AngularSpeed => true,
+                    AngularSpeed => true,
                     _ => false
                 }
             }
-            PhysicalUnit::AngularAccc => {
+            AngularAccc => {
                 match other {
-                    PhysicalUnit::AngularAccc => true,
+                    AngularAccc => true,
                     _ => false
                 }
             }
-            PhysicalUnit::WaveLength => {
+            WaveLength => {
                 match other {
-                    PhysicalUnit::WaveLength => true,
+                    WaveLength => true,
                     _ => false
                 }
             }
-            PhysicalUnit::ColorComponent => {
+            ColorComponent => {
                 match other {
-                    PhysicalUnit::ColorComponent => true,
+                    ColorComponent => true,
                     _ => false
                 }
             }
@@ -218,29 +220,30 @@ impl PartialEq for PhysicalUnit {
 
 impl Display for PhysicalUnit {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        use PhysicalUnit::*;
         match self {
-            PhysicalUnit::None => write!(f, "None"),
-            PhysicalUnit::Percent => write!(f, "Percent"),
-            PhysicalUnit::Length => write!(f, "Length (m)"),
-            PhysicalUnit::Mass => write!(f, "Mass (kg)"),
-            PhysicalUnit::Time => write!(f, "Time (s)"),
-            PhysicalUnit::Temperature => write!(f, "Temperature (K)"),
-            PhysicalUnit::LuminousIntensity => write!(f, "LuminousIntensity (cd)"),
-            PhysicalUnit::Angle => write!(f, "Angle (degree)"),
-            PhysicalUnit::Force => write!(f, "Force (N)"),
-            PhysicalUnit::Frequency => write!(f, "Frequency (Hz)"),
-            PhysicalUnit::Current => write!(f, "Current (A)"),
-            PhysicalUnit::Voltage => write!(f, "Voltage (V)"),
-            PhysicalUnit::Power => write!(f, "Power (W)"),
-            PhysicalUnit::Energy => write!(f, "Energy (J)"),
-            PhysicalUnit::Area => write!(f, "Area (m2)"),
-            PhysicalUnit::Volume => write!(f, "Volume (m3)"),
-            PhysicalUnit::Speed => write!(f, "Speed (m / s)"),
-            PhysicalUnit::Acceleration => write!(f, "Acceleration (m / s2)"),
-            PhysicalUnit::AngularSpeed => write!(f, "AngularSpeed (degree / s)"),
-            PhysicalUnit::AngularAccc => write!(f, "AngularAccc (degree / s2"),
-            PhysicalUnit::WaveLength => write!(f, "WaveLength (nm)"),
-            PhysicalUnit::ColorComponent => write!(f, "ColorComponent"),
+            None => write!(f, "None"),
+            Percent => write!(f, "Percent"),
+            Length => write!(f, "Length (m)"),
+            Mass => write!(f, "Mass (kg)"),
+            Time => write!(f, "Time (s)"),
+            Temperature => write!(f, "Temperature (K)"),
+            LuminousIntensity => write!(f, "LuminousIntensity (cd)"),
+            Angle => write!(f, "Angle (degree)"),
+            Force => write!(f, "Force (N)"),
+            Frequency => write!(f, "Frequency (Hz)"),
+            Current => write!(f, "Current (A)"),
+            Voltage => write!(f, "Voltage (V)"),
+            Power => write!(f, "Power (W)"),
+            Energy => write!(f, "Energy (J)"),
+            Area => write!(f, "Area (m2)"),
+            Volume => write!(f, "Volume (m3)"),
+            Speed => write!(f, "Speed (m / s)"),
+            Acceleration => write!(f, "Acceleration (m / s2)"),
+            AngularSpeed => write!(f, "AngularSpeed (degree / s)"),
+            AngularAccc => write!(f, "AngularAccc (degree / s2"),
+            WaveLength => write!(f, "WaveLength (nm)"),
+            ColorComponent => write!(f, "ColorComponent"),
         }
     }
 }

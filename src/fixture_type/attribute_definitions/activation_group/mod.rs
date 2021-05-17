@@ -6,6 +6,7 @@ use quick_xml::Reader;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
+use crate::utils::deparse;
 
 #[derive(Debug)]
 pub struct ActivationGroup {
@@ -25,7 +26,7 @@ impl DeparseSingle for ActivationGroup {
             match attr.key {
                 b"Name" => {
                     return Ok(ActivationGroup {
-                        name: Self::attr_to_name(&attr)?
+                        name: deparse::attr_to_name(&attr)?
                     });
                 }
                 _ => {}

@@ -7,3 +7,5 @@ pub mod data_version;
 pub mod date;
 pub mod dmx_value;
 pub mod node;
+pub mod snap;
+pub mod master;

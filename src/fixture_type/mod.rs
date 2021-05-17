@@ -5,6 +5,7 @@ use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
 use crate::fixture_type::attribute_definitions::AttributeDefinitions;
+use crate::utils::deparse;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXMLError;
@@ -74,14 +75,14 @@ impl DeparseSingle for FixtureType {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = Self::attr_to_name(&attr)?,
-                b"ShortName" => short_name = Self::attr_to_string(&attr)?,
-                b"LongName" => long_name = Self::attr_to_string(&attr)?,
-                b"Manufacturer" => manufacturer = Self::attr_to_string(&attr)?,
-                b"Description" => description = Self::attr_to_string(&attr)?,
-                b"FixtureTypeID" => fixture_type_id = Self::attr_to_str(&attr)?.try_into()?,
-                b"Thumbnail" => thumbnail = Self::attr_to_string_option(&attr)?,
-                b"RefFT" => ref_ft = match Self::attr_to_str_option(&attr)? {
+                b"Name" => name = deparse::attr_to_name(&attr)?,
+                b"ShortName" => short_name = deparse::attr_to_string(&attr)?,
+                b"LongName" => long_name = deparse::attr_to_string(&attr)?,
+                b"Manufacturer" => manufacturer = deparse::attr_to_string(&attr)?,
+                b"Description" => description = deparse::attr_to_string(&attr)?,
+                b"FixtureTypeID" => fixture_type_id = deparse::attr_to_str(&attr)?.try_into()?,
+                b"Thumbnail" => thumbnail = deparse::attr_to_string_option(&attr)?,
+                b"RefFT" => ref_ft = match deparse::attr_to_str_option(&attr)? {
                     None => { None }
                     Some(v) => { Some(v.try_into()?) }
                 },

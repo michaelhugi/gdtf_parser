@@ -5,4 +5,4 @@ pub mod testdata;
 pub mod errors;
 #[cfg(test)]
 pub mod doc;
-pub mod deparse;
+pub(crate) mod deparse;
