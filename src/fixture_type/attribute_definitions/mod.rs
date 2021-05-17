@@ -1,12 +1,12 @@
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
-use crate::utils::deparse::{DeparseSingle, DeparseVec};
-use crate::utils::errors::GdtfError;
-use crate::utils::errors::GdtfError::QuickXMLError;
 use crate::fixture_type::attribute_definitions::activation_group::ActivationGroup;
 use crate::fixture_type::attribute_definitions::attribute::Attribute;
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
+use crate::utils::deparse::{DeparseSingle, DeparseVec};
+use crate::utils::errors::GdtfError;
+use crate::utils::errors::GdtfError::QuickXMLError;
 
 pub mod feature_group;
 pub mod attribute;
@@ -40,7 +40,7 @@ impl DeparseSingle for AttributeDefinitions {
                         b"FeatureGroups" => feature_groups = FeatureGroup::vec_from_event(reader, e)?,
                         b"Attributes" => attributes = Attribute::vec_from_event(reader, e)?,
                         b"ActivationGroups" => activation_groups = ActivationGroup::vec_from_event(reader, e)?,
-                        _ => {}
+                        _ => { tree_down += 1; }
                     }
                 }
                 Ok(Event::End(_)) => {
@@ -82,12 +82,12 @@ impl DeparseSingle for AttributeDefinitions {
 mod tests {
     use std::convert::TryInto;
 
-    use crate::utils::deparse::DeparseSingle;
     use crate::fixture_type::attribute_definitions::activation_group::ActivationGroup;
     use crate::fixture_type::attribute_definitions::attribute::Attribute;
     use crate::fixture_type::attribute_definitions::AttributeDefinitions;
     use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
+    use crate::utils::deparse::DeparseSingle;
     use crate::utils::units::physical_unit::PhysicalUnit;
 
     #[test]
