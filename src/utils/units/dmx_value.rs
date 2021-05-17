@@ -17,8 +17,8 @@ pub struct DMXValue {
     pub is_byte_shifting: bool,
 }
 
-impl DMXValue {
-    pub fn new() -> Self {
+impl Default for DMXValue{
+    fn default() -> Self {
         Self {
             initial_value: 0,
             n: 1,
@@ -91,7 +91,6 @@ mod tests {
 
     #[test]
     fn test_valid_3() {
-        DMXValue::try_from("23/2s").unwrap();
         assert_eq!(
             DMXValue { initial_value: 23, n: 2, is_byte_shifting: true },
             DMXValue::try_from("23/2s").unwrap()

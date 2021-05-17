@@ -13,7 +13,7 @@ use crate::utils::units::name::Name;
 use crate::utils::units::node::Node;
 use crate::utils::deparse;
 
-mod channel_set;
+pub mod channel_set;
 
 ///The Fixture Type Attribute is assinged to a Channel Function and defines the function of its DMX Range
 #[derive(Debug)]
@@ -56,11 +56,11 @@ pub struct ChannelFunction {
 impl DeparseSingle for ChannelFunction {
     fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
-        let mut name: Name = Name::new();
+        let mut name: Name = Name::default();
         let mut attribute: Node = Node::default();
         let mut original_attribute: String = String::new();
-        let mut dmx_from: DMXValue = DMXValue::new();
-        let mut default: DMXValue = DMXValue::new();
+        let mut dmx_from: DMXValue = DMXValue::default();
+        let mut default: DMXValue = DMXValue::default();
         let mut physical_from: f32 = 0.;
         let mut physical_to: f32 = 0.;
         let mut real_fade: f32 = 0.;
@@ -75,45 +75,45 @@ impl DeparseSingle for ChannelFunction {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = deparse::attr_to_name(&attr)?,
-                b"Attribute" => attribute = match deparse::attr_to_str_option(&attr)? {
+                b"Name" => name = deparse::attr_try_to_name(&attr)?,
+                b"Attribute" => attribute = match deparse::attr_to_str_option(&attr) {
                     None => Node::default(),
+                    Some(v) => v.into()
+                },
+                b"OriginalAttribute" => original_attribute = deparse::attr_to_string(&attr),
+                b"DMXFrom" => dmx_from = match deparse::attr_to_str_option(&attr) {
+                    None => DMXValue::default(),
                     Some(v) => v.try_into()?
                 },
-                b"OriginalAttribute" => original_attribute = deparse::attr_to_string(&attr)?,
-                b"DMXFrom" => dmx_from = match deparse::attr_to_str_option(&attr)? {
-                    None => DMXValue::new(),
+                b"Default" => default = match deparse::attr_to_str_option(&attr) {
+                    None => DMXValue::default(),
                     Some(v) => v.try_into()?
                 },
-                b"Default" => default = match deparse::attr_to_str_option(&attr)? {
-                    None => DMXValue::new(),
-                    Some(v) => v.try_into()?
+                b"PhysicalFrom" => physical_from = deparse::attr_to_f32(&attr),
+                b"PhysicalTo" => physical_to = deparse::attr_to_f32(&attr),
+                b"RealFade" => real_fade = deparse::attr_to_f32(&attr),
+                b"RealAcceleration" => real_acceleration = deparse::attr_to_f32(&attr),
+                b"Wheel" => wheel = match deparse::attr_to_str_option(&attr) {
+                    None => None,
+                    Some(v) => Some(v.into())
                 },
-                b"PhysicalFrom" => physical_from = deparse::attr_to_f32(&attr)?,
-                b"PhysicalTo" => physical_to = deparse::attr_to_f32(&attr)?,
-                b"RealFade" => real_fade = deparse::attr_to_f32(&attr)?,
-                b"RealAcceleration" => real_acceleration = deparse::attr_to_f32(&attr)?,
-                b"Wheel" => wheel = match deparse::attr_to_str_option(&attr)? {
+                b"Emitter" => emitter = match deparse::attr_to_str_option(&attr) {
+                    None => None,
+                    Some(v) => Some(v.into())
+                },
+                b"Filter" => filter = match deparse::attr_to_str_option(&attr) {
+                    None => None,
+                    Some(v) => Some(v.into())
+                },
+                b"ModeMaster" => mode_master = match deparse::attr_to_str_option(&attr) {
+                    None => None,
+                    Some(v) => Some(v.into())
+                },
+                b"ModeFrom" => mode_from = match deparse::attr_to_str_option(&attr) {
                     None => None,
                     Some(v) => Some(v.try_into()?)
                 },
-                b"Emitter" => emitter = match deparse::attr_to_str_option(&attr)? {
-                    None => None,
-                    Some(v) => Some(v.try_into()?)
-                },
-                b"Filter" => filter = match deparse::attr_to_str_option(&attr)? {
-                    None => None,
-                    Some(v) => Some(v.try_into()?)
-                },
-                b"ModeMaster" => mode_master = match deparse::attr_to_str_option(&attr)? {
-                    None => None,
-                    Some(v) => Some(v.try_into()?)
-                },
-                b"ModeFrom" => mode_from = match deparse::attr_to_str_option(&attr)? {
-                    None => None,
-                    Some(v) => Some(v.try_into()?)
-                },
-                b"ModeTo" => mode_to = match deparse::attr_to_str_option(&attr)? {
+                b"ModeTo" => mode_to = match deparse::attr_to_str_option(&attr) {
                     None => None,
                     Some(v) => Some(v.try_into()?)
                 },

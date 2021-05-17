@@ -26,7 +26,7 @@ impl DeparseSingle for ActivationGroup {
             match attr.key {
                 b"Name" => {
                     return Ok(ActivationGroup {
-                        name: deparse::attr_to_name(&attr)?
+                        name: deparse::attr_try_to_name(&attr)?
                     });
                 }
                 _ => {}

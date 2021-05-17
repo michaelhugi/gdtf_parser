@@ -1,17 +1,14 @@
 //! Module for the unit Node used in GDTF
-use std::convert::TryFrom;
 use std::fmt::{Display, Formatter};
-
-use crate::utils::errors::GdtfError;
 
 ///Node representation used in GDTF
 #[derive(Debug)]
 pub struct Node {
     ///The string value of the name
-    value: String,
+    pub value: String,
 }
 
-impl Default for Node{
+impl Default for Node {
     fn default() -> Self {
         Node {
             value: String::new()
@@ -25,11 +22,9 @@ impl Display for Node {
     }
 }
 
-impl TryFrom<&str> for Node {
-    type Error = GdtfError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        Ok(Node { value: String::from(s) })
+impl From<&str> for Node {
+    fn from(s: &str) -> Self {
+        Self { value: String::from(s) }
     }
 }
 

@@ -5,6 +5,7 @@ use std::convert::TryInto;
 use crate::fixture_type::FixtureType;
 
 pub mod attribute_definitions;
+pub mod dmx_mode;
 
 pub fn expect() -> FixtureType {
     FixtureType {
@@ -17,5 +18,6 @@ pub fn expect() -> FixtureType {
         thumbnail: Some("AE-610 BEAM".to_string()),
         manufacturer: "ACME".to_string(),
         ref_ft: Some("8F54E11C-4C91-11E9-80BC-F1DFE217E634".try_into().unwrap()),
+        dmx_modes:dmx_mode::expect()
     }
 }

@@ -210,46 +210,50 @@ pub(crate) trait DeparseVec: DeparseSingle {
 }
 
 
-pub(crate) fn attr_to_str<'a>(attr: &'a Attribute) -> Result<&'a str, GdtfError> {
+pub(crate) fn attr_to_str<'a>(attr: &'a Attribute) -> &'a str {
+    std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| "")
+}
+
+pub(crate) fn attr_try_to_str<'a>(attr: &'a Attribute) -> Result<&'a str, GdtfError> {
     Ok(std::str::from_utf8(attr.value.borrow())?)
 }
 
-pub(crate) fn attr_to_f32(attr: &Attribute) -> Result<f32, GdtfError> {
-    Ok(f32::from_str(attr_to_str(attr)?)?)
+pub(crate) fn attr_to_f32(attr: &Attribute) -> f32 {
+    f32::from_str(attr_try_to_str(attr).unwrap_or_else(|_| "")).unwrap_or_else(|_| 0.)
 }
 
-pub(crate) fn attr_to_f32_option(attr: &Attribute) -> Result<Option<f32>, GdtfError> {
-    match attr_to_str(attr)? {
-        "" => { Ok(None) }
-        v => { Ok(Some(f32::from_str(v)?)) }
+pub(crate) fn attr_to_f32_option(attr: &Attribute) -> Option<f32> {
+    match f32::from_str(attr_try_to_str(attr).unwrap_or_else(|_| "")) {
+        Ok(f) => Some(f),
+        Err(_) => None
     }
 }
 
-pub(crate) fn attr_to_string(attr: &Attribute) -> Result<String, GdtfError> {
-    Ok(attr_to_str(attr)?.to_owned())
-}
-
-pub(crate) fn attr_to_string_option(attr: &Attribute) -> Result<Option<String>, GdtfError> {
-    match attr_to_str(attr)? {
-        "" => { Ok(None) }
-        v => { Ok(Some(v.to_owned())) }
+pub(crate) fn attr_to_string_option(attr: &Attribute) -> Option<String> {
+    match attr_try_to_str(attr).unwrap_or_else(|_| "") {
+        "" => None,
+        s => Some(s.to_owned())
     }
 }
 
-pub(crate) fn attr_to_name(attr: &Attribute) -> Result<Name, GdtfError> {
-    Ok(attr_to_str(attr)?.try_into()?)
+pub(crate) fn attr_to_string(attr: &Attribute) -> String {
+    attr_try_to_str(attr).unwrap_or_else(|_| "").to_owned()
 }
 
-pub(crate) fn attr_to_str_option<'a>(attr: &'a Attribute) -> Result<Option<&'a str>, GdtfError> {
-    match attr_to_str(attr)? {
-        "" => { Ok(None) }
-        v => { Ok(Some(v)) }
+pub(crate) fn attr_try_to_name(attr: &Attribute) -> Result<Name, GdtfError> {
+    Ok(attr_to_str(attr).try_into()?)
+}
+
+pub(crate) fn attr_to_str_option<'a>(attr: &'a Attribute) -> Option<&'a str> {
+    match attr_try_to_str(attr).unwrap_or_else(|_| "") {
+        "" => None,
+        s => Some(s)
     }
 }
 
-pub(crate) fn attr_to_u8_option(attr: &Attribute) -> Result<Option<u8>, GdtfError> {
-    match attr_to_str(attr)? {
-        "" => { Ok(None) }
-        v => { Ok(Some(u8::from_str(v)?)) }
+pub(crate) fn attr_to_u8_option(attr: &Attribute) -> Option<u8> {
+    match u8::from_str(attr_try_to_str(attr).unwrap_or_else(|_| "")) {
+        Ok(f) => Some(f),
+        Err(_) => None
     }
 }

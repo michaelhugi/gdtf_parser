@@ -25,13 +25,13 @@ impl DeparseSingle for FeatureGroup {
 
     fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
-        let mut name = Name::new();
+        let mut name = Name::default();
         let mut pretty = String::new();
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = deparse::attr_to_name(&attr)?,
-                b"Pretty" => pretty = deparse::attr_to_string(&attr)?,
+                b"Name" => name = deparse::attr_try_to_name(&attr)?,
+                b"Pretty" => pretty = deparse::attr_to_string(&attr),
                 _ => {}
             }
         }

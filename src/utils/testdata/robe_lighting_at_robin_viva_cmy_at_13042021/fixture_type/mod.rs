@@ -5,6 +5,7 @@ use std::convert::TryInto;
 use crate::fixture_type::FixtureType;
 
 pub mod attribute_definitions;
+pub mod dmx_mode;
 
 pub fn expect() -> FixtureType {
     FixtureType {
@@ -17,5 +18,6 @@ pub fn expect() -> FixtureType {
         thumbnail: Some("thumbnail".to_string()),
         manufacturer: "Robe Lighting".to_string(),
         ref_ft: None,
+        dmx_modes: dmx_mode::expect(),
     }
 }

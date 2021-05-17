@@ -25,7 +25,7 @@ impl DeparseSingle for Feature {
             let attr = attr?;
             match attr.key {
                 b"Name" => {
-                    return Ok(Feature { name: deparse::attr_to_name(&attr)? });
+                    return Ok(Feature { name: deparse::attr_try_to_name(&attr)? });
                 }
                 _ => {}
             }

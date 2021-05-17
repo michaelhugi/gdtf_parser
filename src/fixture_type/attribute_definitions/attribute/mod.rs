@@ -29,7 +29,7 @@ impl DeparseSingle for Attribute {
     }
     fn single_from_event_unchecked(_reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
-        let mut name = Name::new();
+        let mut name = Name::default();
         let mut pretty = String::new();
         let mut activation_group = None;
         let mut feature = String::new();
@@ -40,13 +40,13 @@ impl DeparseSingle for Attribute {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = deparse::attr_to_name(&attr)?,
-                b"Pretty" => pretty = deparse::attr_to_string(&attr)?,
-                b"ActivationGroup" => activation_group = deparse::attr_to_string_option(&attr)?,
-                b"Feature" => feature = deparse::attr_to_string(&attr)?,
-                b"MainAttribute" => main_attribute = deparse::attr_to_string_option(&attr)?,
-                b"PhysicalUnit" => physical_unit = deparse::attr_to_str(&attr)?.into(),
-                b"Color" => color = match deparse::attr_to_str_option(&attr)? {
+                b"Name" => name = deparse::attr_try_to_name(&attr)?,
+                b"Pretty" => pretty = deparse::attr_to_string(&attr),
+                b"ActivationGroup" => activation_group = deparse::attr_to_string_option(&attr),
+                b"Feature" => feature = deparse::attr_to_string(&attr),
+                b"MainAttribute" => main_attribute = deparse::attr_to_string_option(&attr),
+                b"PhysicalUnit" => physical_unit = deparse::attr_to_str(&attr).into(),
+                b"Color" => color = match deparse::attr_to_str_option(&attr) {
                     None => None,
                     Some(v) => Some(v.try_into()?)
                 },

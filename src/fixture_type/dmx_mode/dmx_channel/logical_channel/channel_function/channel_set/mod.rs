@@ -30,11 +30,11 @@ impl DeparseSingle for ChannelSet {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = deparse::attr_to_name(&attr)?,
-                b"DMXFrom" => dmx_from = deparse::attr_to_str(&attr)?.try_into()?,
-                b"PhysicalFrom" => physical_from = deparse::attr_to_f32_option(&attr)?,
-                b"PhysicalTo" => physical_to = deparse::attr_to_f32_option(&attr)?,
-                b"WheelSlotIndex" => wheel_slot_index = deparse::attr_to_u8_option(&attr)?,
+                b"Name" => name = deparse::attr_try_to_name(&attr)?,
+                b"DMXFrom" => dmx_from = deparse::attr_to_str(&attr).try_into()?,
+                b"PhysicalFrom" => physical_from = deparse::attr_to_f32_option(&attr),
+                b"PhysicalTo" => physical_to = deparse::attr_to_f32_option(&attr),
+                b"WheelSlotIndex" => wheel_slot_index = deparse::attr_to_u8_option(&attr),
                 _ => {}
             }
         }
@@ -132,14 +132,6 @@ mod tests {
     #[test]
     fn test_invald() {
         match ChannelSet::single_from_xml(r#"<ChnnelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#) {
-            Ok(_) => { panic!("test_invalid should return an error"); }
-            Err(_) => {}
-        }
-    }
-
-    #[test]
-    fn test_invald_2() {
-        match ChannelSet::single_from_xml(r#"<ChannelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="invalid" PhysicalFrom="" PhysicalTo=""/>"#) {
             Ok(_) => { panic!("test_invalid should return an error"); }
             Err(_) => {}
         }

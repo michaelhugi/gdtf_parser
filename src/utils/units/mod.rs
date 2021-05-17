@@ -9,3 +9,6 @@ pub mod dmx_value;
 pub mod node;
 pub mod snap;
 pub mod master;
+pub mod dmx_break;
+pub mod offset;
+pub mod highlight;

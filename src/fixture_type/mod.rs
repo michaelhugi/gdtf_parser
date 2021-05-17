@@ -5,8 +5,9 @@ use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
 use crate::fixture_type::attribute_definitions::AttributeDefinitions;
+use crate::fixture_type::dmx_mode::DMXMode;
 use crate::utils::deparse;
-use crate::utils::deparse::DeparseSingle;
+use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXMLError;
 use crate::utils::units::guid::GUID;
@@ -44,8 +45,8 @@ pub struct FixtureType {
     // pub models: Option<Models>,
     //Describes physically separated parts of the device.
     //pub geometries: Geometries,
-    //Contains descriptions of the DMX modes.
-    //pub dmx_modes: Vec<DMXModes>,
+    ///Contains descriptions of the DMX modes.
+    pub dmx_modes: Vec<DMXMode>,
     //Describe the history of the fixture type.
     //pub revisions: Option<Revisions>,
     //Is used to transfer user - defined and fixture type specific presets to other show files.
@@ -63,26 +64,26 @@ impl DeparseSingle for FixtureType {
 
     fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
-        let mut name = Name::new();
+        let mut name = Name::default();
         let mut short_name = String::new();
         let mut long_name = String::new();
         let mut manufacturer = String::new();
         let mut description = String::new();
-        let mut fixture_type_id = GUID::new();
+        let mut fixture_type_id = GUID::default();
         let mut thumbnail = None;
         let mut ref_ft: Option<GUID> = None;
 
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = deparse::attr_to_name(&attr)?,
-                b"ShortName" => short_name = deparse::attr_to_string(&attr)?,
-                b"LongName" => long_name = deparse::attr_to_string(&attr)?,
-                b"Manufacturer" => manufacturer = deparse::attr_to_string(&attr)?,
-                b"Description" => description = deparse::attr_to_string(&attr)?,
-                b"FixtureTypeID" => fixture_type_id = deparse::attr_to_str(&attr)?.try_into()?,
-                b"Thumbnail" => thumbnail = deparse::attr_to_string_option(&attr)?,
-                b"RefFT" => ref_ft = match deparse::attr_to_str_option(&attr)? {
+                b"Name" => name = deparse::attr_try_to_name(&attr)?,
+                b"ShortName" => short_name = deparse::attr_to_string(&attr),
+                b"LongName" => long_name = deparse::attr_to_string(&attr),
+                b"Manufacturer" => manufacturer = deparse::attr_to_string(&attr),
+                b"Description" => description = deparse::attr_to_string(&attr),
+                b"FixtureTypeID" => fixture_type_id = deparse::attr_to_str(&attr).try_into()?,
+                b"Thumbnail" => thumbnail = deparse::attr_to_string_option(&attr),
+                b"RefFT" => ref_ft = match deparse::attr_to_str_option(&attr) {
                     None => { None }
                     Some(v) => { Some(v.try_into()?) }
                 },
@@ -91,21 +92,16 @@ impl DeparseSingle for FixtureType {
             }
         }
 
-        if name.is_empty() {
-            return Err(GdtfError::RequiredValueNotFoundError("Name not found in FixtureType".to_string()));
-        }
-
-        if fixture_type_id.is_empty() {
-            return Err(GdtfError::RequiredValueNotFoundError("FixtureTypeId not found in FixtureType".to_string()));
-        }
-
         let mut buf: Vec<u8> = Vec::new();
         let mut attribute_definitions: Option<AttributeDefinitions> = None;
+        let mut dmx_modes: Option<Vec<DMXMode>> = None;
         loop {
             match reader.read_event(&mut buf) {
                 Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
-                    if e.name() == b"AttributeDefinitions" {
-                        attribute_definitions = Some(AttributeDefinitions::single_from_event(reader, e)?);
+                    match e.name() {
+                        b"AttributeDefinitions" => attribute_definitions = Some(AttributeDefinitions::single_from_event(reader, e)?),
+                        b"DMXModes" => dmx_modes = Some(DMXMode::vec_from_event(reader, e)?),
+                        _ => {}
                     }
                 }
                 Ok(Event::Eof) | Ok(Event::End(_)) => {
@@ -120,6 +116,12 @@ impl DeparseSingle for FixtureType {
         if attribute_definitions.is_none() {
             return Err(GdtfError::RequiredValueNotFoundError("AttributeDefinitions not found in FixtureType".to_string()));
         }
+        let attribute_definitions = attribute_definitions.unwrap();
+        if dmx_modes.is_none() {
+            return Err(GdtfError::RequiredValueNotFoundError("Dmx Modes not found".to_string()));
+        }
+        let dmx_modes = dmx_modes.unwrap();
+
         Ok(Self {
             name,
             short_name,
@@ -129,7 +131,8 @@ impl DeparseSingle for FixtureType {
             fixture_type_id,
             thumbnail,
             ref_ft,
-            attribute_definitions: attribute_definitions.unwrap(),
+            dmx_modes,
+            attribute_definitions,
         })
     }
 
@@ -200,6 +203,7 @@ mod tests {
                     color: None,
                 }],
             },
+            dmx_modes: vec![]
         }.test(
             r#"
         <FixtureType Description="ACME AE-610 BEAM" FixtureTypeID="E62F2ECF-2A08-491D-BEEC-F5C491B89784" LongName="ACME AE 610 BEAM" Manufacturer="ACME" Name="ACME AE-610 BEAM" RefFT="8F54E11C-4C91-11E9-80BC-F1DFE217E634" ShortName="ACME AE 610 BEAM" Thumbnail="AE-610 BEAM">
@@ -215,6 +219,7 @@ mod tests {
                 <Attributes>
                     <Attribute ActivationGroup="PanTilt" Feature="Position.PanTilt" Name="Pan" PhysicalUnit="Angle" Pretty="P"/>
                 </Attributes>
+                <DMXModes></DMXModes>
             </AttributeDefinitions>
     "#)
     }

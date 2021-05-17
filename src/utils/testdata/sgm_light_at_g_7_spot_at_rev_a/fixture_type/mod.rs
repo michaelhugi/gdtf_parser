@@ -6,6 +6,7 @@ use std::convert::TryInto;
 use crate::fixture_type::FixtureType;
 
 pub mod attribute_definitions;
+pub mod dmx_mode;
 
 pub fn expect() -> FixtureType {
     //<FixtureType CanHaveChildren="Yes" >
@@ -20,5 +21,6 @@ pub fn expect() -> FixtureType {
         thumbnail: Some("G-7_RAL_black_small".to_string()),
         manufacturer: "SGM Light".to_string(),
         ref_ft: None,
+        dmx_modes: dmx_mode::expect(),
     }
 }

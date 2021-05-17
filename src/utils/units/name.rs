@@ -8,18 +8,12 @@ use crate::utils::errors::GdtfError;
 #[derive(Debug)]
 pub struct Name {
     ///The string value of the name
-    name: String,
+    pub name: String,
 }
 
-impl Name {
-    pub fn new() -> Name {
-        Name {
-            name: String::new()
-        }
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.name == ""
+impl Default for Name {
+    fn default() -> Self {
+        Self { name: String::new() }
     }
 }
 

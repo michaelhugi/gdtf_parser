@@ -11,14 +11,9 @@ pub struct GUID {
     value: String,
 }
 
-impl GUID {
-    pub fn new() -> GUID {
-        GUID {
-            value: String::new()
-        }
-    }
-    pub fn is_empty(&self) -> bool {
-        self.value == ""
+impl Default for GUID {
+    fn default() -> Self {
+        Self { value: String::new() }
     }
 }
 
