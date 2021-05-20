@@ -20,6 +20,6 @@ pub fn expect() -> FixtureType {
         thumbnail: Some("P12 dunkel".to_string()),
         manufacturer: "JB-Lighting".to_string(),
         ref_ft: None,
-        dmx_modes: dmx_mode::expect(),
+        dmx_modes: vec![]
     }
 }

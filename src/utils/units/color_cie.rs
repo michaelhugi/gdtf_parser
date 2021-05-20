@@ -1,7 +1,10 @@
 //! Module for the unit ColorCIE used in GDTF
-use std::convert::TryFrom;
+use std::borrow::Borrow;
+use std::convert::{TryFrom, TryInto};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
+
+use quick_xml::events::attributes::Attribute;
 
 use crate::utils::errors::GdtfError;
 
@@ -15,6 +18,14 @@ pub struct ColorCIE {
     pub y: f32,
     ///Y for color representation xyY 1931
     pub Y: f32,
+}
+
+impl TryFrom<Attribute<'_>> for ColorCIE {
+    type Error = GdtfError;
+
+    fn try_from(attr: Attribute<'_>) -> Result<Self, Self::Error> {
+        Ok(std::str::from_utf8(attr.value.borrow())?.try_into()?)
+    }
 }
 
 impl TryFrom<&str> for ColorCIE {

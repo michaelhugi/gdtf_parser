@@ -95,16 +95,26 @@ impl DeparseSingle for FixtureType {
         let mut buf: Vec<u8> = Vec::new();
         let mut attribute_definitions: Option<AttributeDefinitions> = None;
         let mut dmx_modes: Option<Vec<DMXMode>> = None;
+        let mut tree_down = 0;
         loop {
             match reader.read_event(&mut buf) {
                 Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
+                    let s = std::str::from_utf8(e.name())?;
+                    println!("Naaaame {}", s);
                     match e.name() {
                         b"AttributeDefinitions" => attribute_definitions = Some(AttributeDefinitions::single_from_event(reader, e)?),
-                        b"DMXModes" => dmx_modes = Some(DMXMode::vec_from_event(reader, e)?),
-                        _ => {}
+                        b"DMXModes" => {
+                            println!("Naaaame DMXModes 2");
+                            dmx_modes = Some(DMXMode::vec_from_event(reader, e)?);
+                        }
+                        _ => tree_down += 1
                     }
                 }
-                Ok(Event::Eof) | Ok(Event::End(_)) => {
+                Ok(Event::End(_)) => {
+                    tree_down -= 1;
+                    if tree_down <= 0 { break; }
+                }
+                Ok(Event::Eof) => {
                     break;
                 }
                 Err(e) => return Err(QuickXMLError(e)),
@@ -203,7 +213,7 @@ mod tests {
                     color: None,
                 }],
             },
-            dmx_modes: vec![]
+            dmx_modes: vec![],
         }.test(
             r#"
         <FixtureType Description="ACME AE-610 BEAM" FixtureTypeID="E62F2ECF-2A08-491D-BEEC-F5C491B89784" LongName="ACME AE 610 BEAM" Manufacturer="ACME" Name="ACME AE-610 BEAM" RefFT="8F54E11C-4C91-11E9-80BC-F1DFE217E634" ShortName="ACME AE 610 BEAM" Thumbnail="AE-610 BEAM">
@@ -219,8 +229,18 @@ mod tests {
                 <Attributes>
                     <Attribute ActivationGroup="PanTilt" Feature="Position.PanTilt" Name="Pan" PhysicalUnit="Angle" Pretty="P"/>
                 </Attributes>
-                <DMXModes></DMXModes>
             </AttributeDefinitions>
+            <DMXModes>
+                <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
+                    <DMXChannels>
+                        <DMXChannel DMXBreak="Overwrite" Default="32768/2" Geometry="Yoke" Highlight="None" Offset="1,2">
+                    </DMXChannel>
+                    <DMXChannel DMXBreak="1" Default="32767/2" Geometry="Head" Highlight="None" Offset="3,4">
+                    </DMXChannel>
+                    </DMXChannels>
+                </DMXMode>
+            </DMXModes>
+        </FixtureType>
     "#)
     }
 }

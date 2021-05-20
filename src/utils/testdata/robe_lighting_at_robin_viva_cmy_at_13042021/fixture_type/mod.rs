@@ -18,6 +18,6 @@ pub fn expect() -> FixtureType {
         thumbnail: Some("thumbnail".to_string()),
         manufacturer: "Robe Lighting".to_string(),
         ref_ft: None,
-        dmx_modes: dmx_mode::expect(),
+        dmx_modes: vec![]
     }
 }

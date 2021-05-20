@@ -10,25 +10,22 @@ use quick_xml::Reader;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
 
-pub(crate) trait DeparseSingle: std::fmt::Debug {
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
-        Self: Sized {
+pub(crate) trait DeparseSingle: std::fmt::Debug + Sized {
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> {
         if !Self::is_single_event_name(&e.name()) {
             panic!("Wrong event passed for reading {}", Self::single_event_name());
         }
         Self::single_from_event_unchecked(reader, e)
     }
 
-    fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
-        Self: Sized;
+    fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> ;
 
     fn is_single_event_name(event_name: &[u8]) -> bool;
 
     fn single_event_name() -> String;
 
     #[cfg(test)]
-    fn single_from_reader(reader: &mut Reader<&[u8]>) -> Result<Self, GdtfError> where
-        Self: Sized {
+    fn single_from_reader(reader: &mut Reader<&[u8]>) -> Result<Self, GdtfError> {
         reader.trim_text(true);
 
         let mut buf: Vec<u8> = Vec::new();
@@ -58,8 +55,7 @@ pub(crate) trait DeparseSingle: std::fmt::Debug {
         Err(GdtfError::RequiredValueNotFoundError(format!("Could not find {}", Self::single_event_name())))
     }
     #[cfg(test)]
-    fn single_from_xml(xml: &str) -> Result<Self, GdtfError>
-        where Self: Sized {
+    fn single_from_xml(xml: &str) -> Result<Self, GdtfError> {
         let mut reader = Reader::from_str(xml);
         Self::single_from_reader(&mut reader)
     }
@@ -77,12 +73,12 @@ pub(crate) trait DeparseSingle: std::fmt::Debug {
     fn is_single_eq_no_log(&self, other: &Self) -> bool;
 
     #[cfg(test)]
-    fn test(&self, xml: &str) where Self: Sized {
+    fn test(&self, xml: &str) {
         self.test_with_result(Self::single_from_xml(xml));
     }
 
     #[cfg(test)]
-    fn test_with_result(&self, other: Result<Self, GdtfError>) where Self: Sized {
+    fn test_with_result(&self, other: Result<Self, GdtfError>)  {
         let other = other.expect(&format!("Unexpected error in test of {}", Self::single_event_name())[..]);
         if !self.is_single_eq_no_log(&other) {
             println!("Gdtf Files in test were not equal: \n {:?} \n {:?}", self, other);
@@ -96,7 +92,7 @@ pub(crate) trait DeparseSingle: std::fmt::Debug {
     fn is_same_item_identifier(&self, compare: &Self) -> bool;
 
     #[cfg(test)]
-    fn is_vec_eq(one: &Vec<Self>, two: &Vec<Self>) -> bool where Self: Sized {
+    fn is_vec_eq(one: &Vec<Self>, two: &Vec<Self>) -> bool  {
         if one.len() != two.len() {
             println!("Testing {} for vec returned not the same amount of items", Self::single_event_name());
             return false;

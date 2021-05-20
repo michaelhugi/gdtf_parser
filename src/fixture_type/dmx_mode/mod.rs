@@ -18,11 +18,11 @@ pub mod dmx_channel;
 #[derive(Debug)]
 pub struct DMXMode {
     ///The unique name of the DMX mode
-    name: Name,
+    pub name: Name,
     ///Name of the first geometry in the device; Only top level geometries are allowed to be linked.
-    geometry: Name,
+    pub geometry: Name,
     ///Description of all DMX channels used in the mode
-    dmx_channels: Vec<DMXChannel>,
+    pub     dmx_channels: Vec<DMXChannel>,
 
     //TODO relations
 

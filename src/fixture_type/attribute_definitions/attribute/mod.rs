@@ -4,11 +4,11 @@ use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
+use crate::utils::deparse;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::color_cie::ColorCIE;
 use crate::utils::units::name::Name;
 use crate::utils::units::physical_unit::PhysicalUnit;
-use crate::utils::deparse;
 
 ///Describes a singular mutual exclusive control function
 #[derive(Debug)]
@@ -46,9 +46,9 @@ impl DeparseSingle for Attribute {
                 b"Feature" => feature = deparse::attr_to_string(&attr),
                 b"MainAttribute" => main_attribute = deparse::attr_to_string_option(&attr),
                 b"PhysicalUnit" => physical_unit = deparse::attr_to_str(&attr).into(),
-                b"Color" => color = match deparse::attr_to_str_option(&attr) {
-                    None => None,
-                    Some(v) => Some(v.try_into()?)
+                b"Color" => color = match attr.try_into() {
+                    Err(_) => None,
+                    Ok(v) => Some(v)
                 },
                 _ => {}
             }
