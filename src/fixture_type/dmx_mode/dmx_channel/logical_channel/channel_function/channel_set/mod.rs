@@ -21,7 +21,7 @@ pub struct ChannelSet {
 impl DeparseSingle for ChannelSet {
     fn single_from_event_unchecked(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
-        let mut name: Name = "".try_into().unwrap();
+        let mut name: Name = Default::default();
         let mut dmx_from: DMXValue = "1/1".try_into().unwrap();
         let mut physical_from: Option<f32> = None;
         let mut physical_to: Option<f32> = None;
@@ -30,7 +30,7 @@ impl DeparseSingle for ChannelSet {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = deparse::attr_try_to_name(&attr)?,
+                b"Name" => name = attr.into(),
                 b"DMXFrom" => dmx_from = deparse::attr_to_str(&attr).try_into()?,
                 b"PhysicalFrom" => physical_from = deparse::attr_to_f32_option(&attr),
                 b"PhysicalTo" => physical_to = deparse::attr_to_f32_option(&attr),

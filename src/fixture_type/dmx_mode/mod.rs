@@ -1,13 +1,8 @@
 //!This section is describes all DMX modes of the device
-
-
-use std::convert::TryInto;
-
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::DMXChannel;
-use crate::utils::deparse;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
@@ -22,7 +17,7 @@ pub struct DMXMode {
     ///Name of the first geometry in the device; Only top level geometries are allowed to be linked.
     pub geometry: Name,
     ///Description of all DMX channels used in the mode
-    pub     dmx_channels: Vec<DMXChannel>,
+    pub dmx_channels: Vec<DMXChannel>,
 
     //TODO relations
 
@@ -39,8 +34,8 @@ impl DeparseSingle for DMXMode {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = deparse::attr_to_str(&attr).try_into()?,
-                b"Geometry" => geometry = deparse::attr_to_str(&attr).try_into()?,
+                b"Name" => name = attr.into(),
+                b"Geometry" => geometry = attr.into(),
                 _ => {}
             }
         }
@@ -125,8 +120,8 @@ mod tests {
     #[test]
     fn test_normal() {
         DMXMode {
-            name: Name { name: "Mode 1 12 DMX".to_string() },
-            geometry: Name { name: "Base".to_string() },
+            name: Name::Name("Mode 1 12 DMX".to_string()),
+            geometry: Name::Name("Base".to_string()),
             dmx_channels: vec![
                 DMXChannel {
                     dmx_break: DMXBreak::Overwrite,

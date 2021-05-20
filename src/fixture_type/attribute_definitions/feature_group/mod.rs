@@ -3,9 +3,9 @@ use quick_xml::Reader;
 
 use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
+use crate::utils::deparse;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
-use crate::utils::deparse;
 
 pub mod feature;
 
@@ -25,12 +25,12 @@ impl DeparseSingle for FeatureGroup {
 
     fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
-        let mut name = Name::default();
+        let mut name = Default::default();
         let mut pretty = String::new();
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = deparse::attr_try_to_name(&attr)?,
+                b"Name" => name = attr.into(),
                 b"Pretty" => pretty = deparse::attr_to_string(&attr),
                 _ => {}
             }

@@ -6,12 +6,12 @@ use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
+use crate::utils::deparse;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::dmx_value::DMXValue;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::Node;
-use crate::utils::deparse;
 
 pub mod channel_set;
 
@@ -56,7 +56,7 @@ pub struct ChannelFunction {
 impl DeparseSingle for ChannelFunction {
     fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
-        let mut name: Name = Name::default();
+        let mut name: Name = Default::default();
         let mut attribute: Node = Node::default();
         let mut original_attribute: String = String::new();
         let mut dmx_from: DMXValue = DMXValue::default();
@@ -75,7 +75,7 @@ impl DeparseSingle for ChannelFunction {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = deparse::attr_try_to_name(&attr)?,
+                b"Name" => name = attr.into(),
                 b"Attribute" => attribute = match deparse::attr_to_str_option(&attr) {
                     None => Node::default(),
                     Some(v) => v.into()

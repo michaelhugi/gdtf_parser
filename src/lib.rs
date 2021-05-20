@@ -60,7 +60,6 @@
 //! ```
 //!
 //!
-use std::borrow::Borrow;
 use std::convert::TryFrom;
 use std::fs::File;
 use std::io::Read;
@@ -91,7 +90,7 @@ impl DeparseSingle for GDTF {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"DataVersion" => data_version = std::str::from_utf8(attr.value.borrow())?.into(),
+                b"DataVersion" => data_version = attr.into(),
                 _ => {}
             }
         }

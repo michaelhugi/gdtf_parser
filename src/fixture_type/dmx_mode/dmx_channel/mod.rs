@@ -1,6 +1,4 @@
 //!Holds the DMXChannel and it's children
-use std::convert::TryInto;
-
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
@@ -40,7 +38,7 @@ impl DeparseSingle for DMXChannel {
         let mut offset = Offset::default();
         let mut initial_function = Node::default();
         let mut highlight = Highlight::default();
-        let mut geometry = Name::default();
+        let mut geometry = Default::default();
         let mut logical_channels: Vec<LogicalChannel> = Vec::new();
 
         for attr in e.attributes().into_iter() {
@@ -50,7 +48,7 @@ impl DeparseSingle for DMXChannel {
                 b"Offset" => offset = deparse::attr_to_str(&attr).into(),
                 b"InitialFunction" => initial_function = deparse::attr_to_str(&attr).into(),
                 b"Highlight" => highlight = deparse::attr_to_str(&attr).into(),
-                b"Geometry" => geometry = deparse::attr_to_str(&attr).try_into()?,
+                b"Geometry" => geometry = attr.into(),
                 _ => {}
             }
         }
@@ -149,7 +147,7 @@ mod tests {
                 n: 1,
                 is_byte_shifting: false,
             }),
-            geometry: Name { name: "Beam".to_string() },
+            geometry: Name::Name("Beam".to_string()),
             logical_channels: vec![
                 LogicalChannel {
                     attribute: Node { value: "Shutter1".to_string() },
@@ -180,7 +178,7 @@ mod tests {
                 n: 1,
                 is_byte_shifting: false,
             }),
-            geometry: Name { name: "Beam".to_string() },
+            geometry: Name::Name("Beam".to_string()),
             logical_channels: vec![
                 LogicalChannel {
                     attribute: Node { value: "Shutter1".to_string() },
@@ -211,7 +209,7 @@ mod tests {
                 n: 1,
                 is_byte_shifting: false,
             }),
-            geometry: Name { name: "Beam".to_string() },
+            geometry: Name::Name("Beam".to_string()),
             logical_channels: vec![
                 LogicalChannel {
                     attribute: Node { value: "Shutter1".to_string() },
@@ -238,7 +236,7 @@ mod tests {
             offset: Offset::None,
             initial_function: Node { value: "".to_string() },
             highlight: Highlight::None,
-            geometry: Name { name: "".to_string() },
+            geometry: Name::Empty,
             logical_channels: vec![
                 LogicalChannel {
                     attribute: Node { value: "Shutter1".to_string() },
@@ -274,7 +272,7 @@ mod tests {
             offset: Offset::None,
             initial_function: Node { value: "".to_string() },
             highlight: Highlight::None,
-            geometry: Name { name: "".to_string() },
+            geometry: Name::Empty,
             logical_channels: vec![],
         }.test(
             r#"

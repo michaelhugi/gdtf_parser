@@ -1,12 +1,9 @@
-use std::convert::TryInto;
-
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
-use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
-use crate::utils::deparse;
+use crate::utils::errors::GdtfError;
 
 #[derive(Debug)]
 pub struct ActivationGroup {
@@ -26,14 +23,14 @@ impl DeparseSingle for ActivationGroup {
             match attr.key {
                 b"Name" => {
                     return Ok(ActivationGroup {
-                        name: deparse::attr_try_to_name(&attr)?
+                        name: attr.into()
                     });
                 }
                 _ => {}
             }
         }
         return Ok(ActivationGroup {
-            name: "".try_into()?
+            name: Default::default()
         });
     }
 

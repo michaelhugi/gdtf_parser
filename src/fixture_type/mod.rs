@@ -99,12 +99,9 @@ impl DeparseSingle for FixtureType {
         loop {
             match reader.read_event(&mut buf) {
                 Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
-                    let s = std::str::from_utf8(e.name())?;
-                    println!("Naaaame {}", s);
                     match e.name() {
                         b"AttributeDefinitions" => attribute_definitions = Some(AttributeDefinitions::single_from_event(reader, e)?),
                         b"DMXModes" => {
-                            println!("Naaaame DMXModes 2");
                             dmx_modes = Some(DMXMode::vec_from_event(reader, e)?);
                         }
                         _ => tree_down += 1

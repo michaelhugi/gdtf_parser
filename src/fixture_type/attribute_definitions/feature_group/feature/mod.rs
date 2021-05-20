@@ -1,12 +1,9 @@
-use std::convert::TryInto;
-
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
 use crate::utils::deparse::DeparseSingle;
-use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
-use crate::utils::deparse;
+use crate::utils::errors::GdtfError;
 
 #[derive(Debug)]
 pub struct Feature {
@@ -25,13 +22,13 @@ impl DeparseSingle for Feature {
             let attr = attr?;
             match attr.key {
                 b"Name" => {
-                    return Ok(Feature { name: deparse::attr_try_to_name(&attr)? });
+                    return Ok(Feature { name: attr.into() });
                 }
                 _ => {}
             }
         }
         return Ok(Feature {
-            name: "".try_into()?
+            name: Default::default()
         });
     }
 

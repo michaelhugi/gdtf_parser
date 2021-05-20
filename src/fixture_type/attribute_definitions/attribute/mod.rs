@@ -29,7 +29,7 @@ impl DeparseSingle for Attribute {
     }
     fn single_from_event_unchecked(_reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
-        let mut name = Name::default();
+        let mut name = Default::default();
         let mut pretty = String::new();
         let mut activation_group = None;
         let mut feature = String::new();
@@ -40,16 +40,13 @@ impl DeparseSingle for Attribute {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = deparse::attr_try_to_name(&attr)?,
+                b"Name" => name = attr.into(),
                 b"Pretty" => pretty = deparse::attr_to_string(&attr),
                 b"ActivationGroup" => activation_group = deparse::attr_to_string_option(&attr),
                 b"Feature" => feature = deparse::attr_to_string(&attr),
                 b"MainAttribute" => main_attribute = deparse::attr_to_string_option(&attr),
                 b"PhysicalUnit" => physical_unit = deparse::attr_to_str(&attr).into(),
-                b"Color" => color = match attr.try_into() {
-                    Err(_) => None,
-                    Ok(v) => Some(v)
-                },
+                b"Color" => color = attr.try_into().ok(),
                 _ => {}
             }
         }

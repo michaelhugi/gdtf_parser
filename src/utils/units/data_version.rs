@@ -1,5 +1,8 @@
 //! Module for the unit DataVersion used in GDTF
+use std::borrow::Borrow;
 use std::fmt::{Display, Formatter};
+
+use quick_xml::events::attributes::Attribute;
 
 ///The DataVersion attribute defines the minimal version of compatibility. The Version format is “Major.Minor”, where major and minor is Uint with size 1 byte
 #[derive(Debug)]
@@ -22,57 +25,32 @@ impl Display for DataVersion {
     }
 }
 
-impl From<&str> for DataVersion {
-    fn from(value: &str) -> Self {
+///Deparses Version from Attribute safely. In case of error it will return Unknown
+impl From<Attribute<'_>> for DataVersion {
+    ///Deparses Version from Attribute safely. In case of error it will return Unknown
+    fn from(attr: Attribute) -> Self {
+        let value = std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| "");
         let mut value = value.split('.');
-        match value.next() {
-            Some(major) => {
-                match major.parse::<i32>() {
-                    Ok(major) => {
-                        match value.next() {
-                            Some(minor) => {
-                                match minor.parse::<i32>() {
-                                    Ok(minor) => {
-                                        match major {
-                                            1 => {
-                                                match minor {
-                                                    0 => DataVersion::Version1_0,
-                                                    1 => DataVersion::Version1_1,
-                                                    _ => DataVersion::Unknown
-                                                }
-                                            }
-                                            _ => DataVersion::Unknown
-                                        }
-                                    }
-                                    _ => DataVersion::Unknown
-                                }
-                            }
-                            _ => DataVersion::Unknown
-                        }
-                    }
-                    _ => DataVersion::Unknown
-                }
-            }
-            _ => DataVersion::Unknown
+        let major = value.next().unwrap_or_else(|| "").parse::<i32>().unwrap_or_else(|_| -1);
+        let minor = value.next().unwrap_or_else(|| "").parse::<i32>().unwrap_or_else(|_| -1);
+        if value.next().is_some() { return DataVersion::Unknown; }
+
+        match (major, minor) {
+            (1, 0) => DataVersion::Version1_0,
+            (1, 1) => DataVersion::Version1_1,
+            (_, _) => DataVersion::Unknown
         }
     }
 }
 
+///Compares two versions. Returns false in case one is Unknown no matter if the other is unknown
 impl PartialEq for DataVersion {
     fn eq(&self, other: &Self) -> bool {
+        use DataVersion::*;
         match self {
-            DataVersion::Version1_0 => match other {
-                DataVersion::Version1_0 => true,
-                _ => false
-            }
-            DataVersion::Version1_1 => match other {
-                DataVersion::Version1_1 => true,
-                _ => false
-            }
-            DataVersion::Unknown => match other {
-                DataVersion::Unknown => true,
-                _ => false
-            }
+            Version1_0 => if let Version1_0 = other { true } else { false }
+            Version1_1 => if let Version1_1 = other { true } else { false }
+            Unknown => false
         }
     }
 }
@@ -80,32 +58,153 @@ impl PartialEq for DataVersion {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
+    use crate::utils::testdata;
     use crate::utils::units::data_version::DataVersion;
 
     #[test]
-    fn test_valid_1_0() {
+    fn test_parse_attr_from_1_0_owned() {
         assert_eq!(
             DataVersion::Version1_0,
-            DataVersion::try_from("1.0").unwrap()
+            testdata::to_attr_owned(b"1.0").into()
         );
     }
 
     #[test]
-    fn test_valid_1_1() {
+    fn test_parse_attr_from_1_0_borrowed() {
+        assert_eq!(
+            DataVersion::Version1_0,
+            testdata::to_attr_borrowed(b"1.0").into()
+        );
+    }
+
+    #[test]
+    fn test_parse_attr_from_1_1_owned() {
         assert_eq!(
             DataVersion::Version1_1,
-            DataVersion::try_from("1.1").unwrap()
+            testdata::to_attr_owned(b"1.1").into()
         );
     }
 
     #[test]
-    fn test_invalid() {
+    fn test_parse_attr_from_1_1_borrowed() {
         assert_eq!(
-            DataVersion::Unknown,
-            DataVersion::try_from("something invalid").unwrap()
+            DataVersion::Version1_1,
+            testdata::to_attr_borrowed(b"1.1").into()
         );
+    }
+
+    #[test]
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_1_owned() {
+        if let DataVersion::Unknown = testdata::to_attr_owned(b"something invalid").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
+    }
+
+    #[test]
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_1_borrowed() {
+        if let DataVersion::Unknown = testdata::to_attr_borrowed(b"something invalid").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
+    }
+
+    #[test]
+    //Test must be rewritten to 1.3 after 1.2 is introduced
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_2_owned() {
+        if let DataVersion::Unknown = testdata::to_attr_owned(b"1.2").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
+    }
+
+    #[test]
+    //Test must be rewritten to 1.3 after 1.2 is introduced
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_2_borrowed() {
+        if let DataVersion::Unknown = testdata::to_attr_borrowed(b"1.2").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
+    }
+
+    #[test]
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_3_owned() {
+        if let DataVersion::Unknown = testdata::to_attr_owned(b"1.1.2").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
+    }
+
+    #[test]
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_3_borrowed() {
+        if let DataVersion::Unknown = testdata::to_attr_borrowed(b"1.1.2").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
+    }
+
+    #[test]
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_4_owned() {
+        if let DataVersion::Unknown = testdata::to_attr_owned(b"1.1.").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
+    }
+
+    #[test]
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_4_borrowed() {
+        if let DataVersion::Unknown = testdata::to_attr_borrowed(b"1.1.").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
+    }
+
+    #[test]
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_5_owned() {
+        if let DataVersion::Unknown = testdata::to_attr_owned(b".1.1").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
+    }
+
+    #[test]
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_5_borrowed() {
+        if let DataVersion::Unknown = testdata::to_attr_borrowed(b".1.1").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
+    }
+
+    #[test]
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_6_owned() {
+        if let DataVersion::Unknown = testdata::to_attr_owned(b".1").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
+    }
+
+    #[test]
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_6_borrowed() {
+        if let DataVersion::Unknown = testdata::to_attr_borrowed(b".1").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
+    }
+
+    #[test]
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_7_owned() {
+        if let DataVersion::Unknown = testdata::to_attr_owned(b"1.").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
+    }
+
+    #[test]
+    //partial eq can't be used in case one is unknown
+    fn test_parse_attr_invalid_7_borrowed() {
+        if let DataVersion::Unknown = testdata::to_attr_borrowed(b"1.").into() {} else {
+            panic!("Invalid Version not returned as Unknown");
+        }
     }
 
     #[test]
@@ -121,5 +220,30 @@ mod tests {
     #[test]
     fn test_display_1_1() {
         assert_eq!(format!("{}", DataVersion::Version1_1), "1.1");
+    }
+
+    #[test]
+    fn test_partial_eq_1_1() {
+        assert_eq!(DataVersion::Version1_1, DataVersion::Version1_1)
+    }
+
+    #[test]
+    fn test_partial_eq_1_0() {
+        assert_eq!(DataVersion::Version1_0, DataVersion::Version1_0)
+    }
+
+    #[test]
+    fn test_partial_eq_unknown() {
+        assert_ne!(DataVersion::Unknown, DataVersion::Unknown)
+    }
+
+    #[test]
+    fn test_partial_ne_1_1() {
+        assert_ne!(DataVersion::Version1_1, DataVersion::Version1_0)
+    }
+
+    #[test]
+    fn test_partial_ne_1_0() {
+        assert_ne!(DataVersion::Version1_0, DataVersion::Unknown)
     }
 }
