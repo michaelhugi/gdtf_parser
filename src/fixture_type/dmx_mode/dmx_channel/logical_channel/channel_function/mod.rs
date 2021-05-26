@@ -11,7 +11,11 @@ use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::dmx_value::DMXValue;
 use crate::utils::units::name::Name;
-use crate::utils::units::node::Node;
+use crate::utils::units::node::node_channel_function_attribute::NodeChannelFunctionAttribute;
+use crate::utils::units::node::node_channel_function_emitter::NodeChannelFunctionEmitter;
+use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;
+use crate::utils::units::node::node_channel_function_mode_master::NodeChannelFunctionModeMaster;
+use crate::utils::units::node::node_channel_function_wheel::NodeChannelFunctionWheel;
 
 pub mod channel_set;
 
@@ -20,8 +24,8 @@ pub mod channel_set;
 pub struct ChannelFunction {
     ///Unique name; Default value: Name of attribute and number of channel function.
     pub name: Name,
-    ///Link to attribute; Starting point is the attributes node. Default value: “NoFeature”.
-    pub attribute: Node,
+    ///Link to attribute; Starting point is the attributes node_2. Default value: “NoFeature”.
+    pub attribute: NodeChannelFunctionAttribute,
     ///The manufacturer’s original name of the attribute; Default: empty
     pub original_attribute: String,
     ///Start DMX value; The end DMX value is calculated as a DMXFrom of the next channel function – 1 or the maximum value of the DMX channel. Default value: "0/1".
@@ -37,13 +41,13 @@ pub struct ChannelFunction {
     ///Time in seconds to accelerate from stop to maximum velocity; Default value: 0
     pub real_acceleration: f32,
     ///Optional link to wheel; Starting point: Wheel Collect
-    pub wheel: Option<Node>,
+    pub wheel: NodeChannelFunctionWheel,
     ///Optional link to emitter in the physical description; Starting point: Emitter Collect
-    pub emitter: Option<Node>,
+    pub emitter: NodeChannelFunctionEmitter,
     ///Optional link to filter in the physical description; Starting point: Filter Collect
-    pub filter: Option<Node>,
+    pub filter: NodeChannelFunctionFilter,
     ///Link to DMX Channel or Channel Function; Starting point DMX mode
-    pub mode_master: Option<Node>,
+    pub mode_master: NodeChannelFunctionModeMaster,
     ///Only used together with ModeMaster; DMX start value; Default value: 0/1
     pub mode_from: Option<DMXValue>,
     ///Only used together with ModeMaster; DMX end value; Default value: 0/1
@@ -68,7 +72,7 @@ impl DeparseSingle for ChannelFunction {
     fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
-        let mut attribute: Node = Node::default();
+        let mut attribute: NodeChannelFunctionAttribute = Default::default();
         let mut original_attribute: String = String::new();
         let mut dmx_from: DMXValue = DEFAULT_DMX_FROM;
         let mut default: DMXValue = DEFAULT_DMX_DEFAULT;
@@ -76,10 +80,10 @@ impl DeparseSingle for ChannelFunction {
         let mut physical_to: f32 = 0.;
         let mut real_fade: f32 = 0.;
         let mut real_acceleration: f32 = 0.;
-        let mut wheel: Option<Node> = None;
-        let mut emitter: Option<Node> = None;
-        let mut filter: Option<Node> = None;
-        let mut mode_master: Option<Node> = None;
+        let mut wheel: NodeChannelFunctionWheel = Default::default();
+        let mut emitter: NodeChannelFunctionEmitter = Default::default();
+        let mut filter: NodeChannelFunctionFilter = Default::default();
+        let mut mode_master: NodeChannelFunctionModeMaster = Default::default();
         let mut mode_from: Option<DMXValue> = None;
         let mut mode_to: Option<DMXValue> = None;
         let mut channel_sets: Vec<ChannelSet> = vec![];
@@ -87,10 +91,7 @@ impl DeparseSingle for ChannelFunction {
             let attr = attr?;
             match attr.key {
                 b"Name" => name = attr.into(),
-                b"Attribute" => attribute = match deparse::attr_to_str_option(&attr) {
-                    None => Node::default(),
-                    Some(v) => v.into()
-                },
+                b"Attribute" => attribute = attr.into(),
                 b"OriginalAttribute" => original_attribute = deparse::attr_to_string(&attr),
                 b"DMXFrom" => dmx_from = attr.try_into().unwrap_or_else(|_| DEFAULT_DMX_FROM),
                 b"Default" => default = attr.try_into().unwrap_or_else(|_| DEFAULT_DMX_DEFAULT),
@@ -98,22 +99,10 @@ impl DeparseSingle for ChannelFunction {
                 b"PhysicalTo" => physical_to = deparse::attr_to_f32(&attr),
                 b"RealFade" => real_fade = deparse::attr_to_f32(&attr),
                 b"RealAcceleration" => real_acceleration = deparse::attr_to_f32(&attr),
-                b"Wheel" => wheel = match deparse::attr_to_str_option(&attr) {
-                    None => None,
-                    Some(v) => Some(v.into())
-                },
-                b"Emitter" => emitter = match deparse::attr_to_str_option(&attr) {
-                    None => None,
-                    Some(v) => Some(v.into())
-                },
-                b"Filter" => filter = match deparse::attr_to_str_option(&attr) {
-                    None => None,
-                    Some(v) => Some(v.into())
-                },
-                b"ModeMaster" => mode_master = match deparse::attr_to_str_option(&attr) {
-                    None => None,
-                    Some(v) => Some(v.into())
-                },
+                b"Wheel" => wheel = attr.into(),
+                b"Emitter" => emitter = attr.into(),
+                b"Filter" => filter = attr.into(),
+                b"ModeMaster" => mode_master = attr.into(),
                 b"ModeFrom" => mode_from = match deparse::attr_to_str_option(&attr) {
                     None => None,
                     Some(v) => Some(v.try_into()?)
@@ -215,6 +204,10 @@ mod tests {
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
     use crate::utils::deparse::DeparseSingle;
+    use crate::utils::units::node::node_channel_function_emitter::NodeChannelFunctionEmitter;
+    use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;
+    use crate::utils::units::node::node_channel_function_mode_master::NodeChannelFunctionModeMaster;
+    use crate::utils::units::node::node_channel_function_wheel::NodeChannelFunctionWheel;
 
     #[test]
     fn test_normal() {
@@ -228,10 +221,10 @@ mod tests {
             physical_to: 1.000000,
             real_fade: 0.000000,
             real_acceleration: 0.000000,
-            wheel: None,
-            emitter: None,
-            filter: Some("Magenta".try_into().unwrap()),
-            mode_master: Some("Base_ColorMacro1".try_into().unwrap()),
+            wheel: NodeChannelFunctionWheel(None),
+            emitter: NodeChannelFunctionEmitter(None),
+            filter: NodeChannelFunctionFilter(Some("Magenta".try_into().unwrap())),
+            mode_master: NodeChannelFunctionModeMaster(Some("Base_ColorMacro1".try_into().unwrap())),
             mode_from: Some("0/1".try_into().unwrap()),
             mode_to: Some("0/1".try_into().unwrap()),
             channel_sets: vec![
@@ -279,10 +272,10 @@ mod tests {
             physical_to: 1.000000,
             real_fade: 3.000000,
             real_acceleration: 4.001000,
-            wheel: Some("Wheel1".try_into().unwrap()),
-            emitter: Some("Emitter1".try_into().unwrap()),
-            filter: Some("Magenta".try_into().unwrap()),
-            mode_master: Some("Base_ColorMacro1".try_into().unwrap()),
+            wheel: NodeChannelFunctionWheel(Some("Wheel1".try_into().unwrap())),
+            emitter: NodeChannelFunctionEmitter(Some("Emitter1".try_into().unwrap())),
+            filter: NodeChannelFunctionFilter(Some("Magenta".try_into().unwrap())),
+            mode_master: NodeChannelFunctionModeMaster(Some("Base_ColorMacro1".try_into().unwrap())),
             mode_from: Some("0/1".try_into().unwrap()),
             mode_to: Some("0/1".try_into().unwrap()),
             channel_sets: vec![],
@@ -305,10 +298,10 @@ mod tests {
             physical_to: 1.000000,
             real_fade: 3.000000,
             real_acceleration: 4.001000,
-            wheel: None,
-            emitter: None,
-            filter: None,
-            mode_master: None,
+            wheel: NodeChannelFunctionWheel(None),
+            emitter: NodeChannelFunctionEmitter(None),
+            filter: NodeChannelFunctionFilter(None),
+            mode_master: NodeChannelFunctionModeMaster(None),
             mode_from: None,
             mode_to: None,
             channel_sets: vec![],
@@ -331,10 +324,10 @@ mod tests {
             physical_to: 1.000000,
             real_fade: 3.000000,
             real_acceleration: 4.001000,
-            wheel: None,
-            emitter: None,
-            filter: None,
-            mode_master: None,
+            wheel: NodeChannelFunctionWheel(None),
+            emitter: NodeChannelFunctionEmitter(None),
+            filter: NodeChannelFunctionFilter(None),
+            mode_master: NodeChannelFunctionModeMaster(None),
             mode_from: None,
             mode_to: None,
             channel_sets: vec![],

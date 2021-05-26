@@ -7,7 +7,7 @@ use crate::utils::deparse;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::master::Master;
-use crate::utils::units::node::{Node, NodeStartingPoint};
+use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
 use crate::utils::units::snap::Snap;
 
 pub mod channel_function;
@@ -16,7 +16,7 @@ pub mod channel_function;
 #[derive(Debug)]
 pub struct LogicalChannel {
     ///Link to the attribute; The starting point is the Attribute Collect
-    pub attribute: Node,
+    pub attribute: NodeLogicalChannelAttribute,
     ///If snap is enabled, the logical channel will not fade between values. Instead, it will jump directly to the new value.; Value: “Yes”, “No”, “On”, “Off”. Default value: “No”
     pub snap: Snap,
     ///Defines if all the subordinate channel functions react to a Group Control defined by the control system. Values: “None”, “Grand”, “Group”; Default value: “None”.
@@ -32,7 +32,7 @@ pub struct LogicalChannel {
 impl DeparseSingle for LogicalChannel {
     fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
-        let mut attribute: Node = Node::default();
+        let mut attribute: NodeLogicalChannelAttribute = Default::default();
         let mut snap: Snap = Snap::default();
         let mut master: Master = Master::default();
         let mut mib_fade: f32 = 0.;
@@ -42,7 +42,7 @@ impl DeparseSingle for LogicalChannel {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Attribute" => attribute = (attr, NodeStartingPoint::ATTRIBUTE_COLLECT).into(),
+                b"Attribute" => attribute = attr.into(),
                 b"Snap" => snap = deparse::attr_to_str(&attr).into(),
                 b"Master" => master = deparse::attr_to_str(&attr).into(),
                 b"MibFade" => mib_fade = deparse::attr_to_f32(&attr),
@@ -119,13 +119,16 @@ mod tests {
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
     use crate::utils::deparse::DeparseSingle;
     use crate::utils::units::master::Master;
-    use crate::utils::units::node::NodeStartingPoint;
+    use crate::utils::units::node::node_channel_function_emitter::NodeChannelFunctionEmitter;
+    use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;
+    use crate::utils::units::node::node_channel_function_mode_master::NodeChannelFunctionModeMaster;
+    use crate::utils::units::node::node_channel_function_wheel::NodeChannelFunctionWheel;
     use crate::utils::units::snap::Snap;
 
     #[test]
     fn test_normal() {
         LogicalChannel {
-            attribute: ("ColorSub_M", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap(),
+            attribute: "ColorSub_M".try_into().unwrap(),
             snap: Snap::Yes,
             master: Master::Grand,
             mib_fade: 0.1,
@@ -133,7 +136,7 @@ mod tests {
             channel_functions: vec![
                 ChannelFunction {
                     name: "Magenta".try_into().unwrap(),
-                    attribute: ("ColorSub_M", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap(),
+                    attribute: "ColorSub_M".try_into().unwrap(),
                     original_attribute: "".to_string(),
                     dmx_from: "0/1".try_into().unwrap(),
                     default: "0/1".try_into().unwrap(),
@@ -141,17 +144,17 @@ mod tests {
                     physical_to: 1.0,
                     real_fade: 0.0,
                     real_acceleration: 0.0,
-                    wheel: None,
-                    emitter: None,
-                    filter: Some(("Magenta", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap()),
-                    mode_master: Some(("Base_ColorMacro1", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap()),
+                    wheel: NodeChannelFunctionWheel(None),
+                    emitter: NodeChannelFunctionEmitter(None),
+                    filter: NodeChannelFunctionFilter(Some("Magenta".try_into().unwrap())),
+                    mode_master: NodeChannelFunctionModeMaster(Some("Base_ColorMacro1".try_into().unwrap())),
                     mode_from: Some("0/1".try_into().unwrap()),
                     mode_to: Some("0/1".try_into().unwrap()),
                     channel_sets: vec![],
                 },
                 ChannelFunction {
                     name: "NoFeature".try_into().unwrap(),
-                    attribute: ("NoFeature", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap(),
+                    attribute: "NoFeature".try_into().unwrap(),
                     original_attribute: "".to_string(),
                     dmx_from: "0/1".try_into().unwrap(),
                     default: "0/1".try_into().unwrap(),
@@ -159,10 +162,10 @@ mod tests {
                     physical_to: 1.0,
                     real_fade: 0.0,
                     real_acceleration: 0.0,
-                    wheel: None,
-                    emitter: None,
-                    filter: None,
-                    mode_master: Some(("Base_ColorMacro1", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap()),
+                    wheel: NodeChannelFunctionWheel(None),
+                    emitter: NodeChannelFunctionEmitter(None),
+                    filter: NodeChannelFunctionFilter(None),
+                    mode_master: NodeChannelFunctionModeMaster(Some("Base_ColorMacro1".try_into().unwrap())),
                     mode_from: Some("1/1".try_into().unwrap()),
                     mode_to: Some("255/1".try_into().unwrap()),
                     channel_sets: vec![],
@@ -181,7 +184,7 @@ mod tests {
     #[test]
     fn test_min() {
         LogicalChannel {
-            attribute: ("", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap(),
+            attribute: "".try_into().unwrap(),
             snap: Snap::No,
             master: Master::None,
             mib_fade: 0.0,
@@ -189,7 +192,7 @@ mod tests {
             channel_functions: vec![
                 ChannelFunction {
                     name: "Magenta".try_into().unwrap(),
-                    attribute: ("ColorSub_M", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap(),
+                    attribute: "ColorSub_M".try_into().unwrap(),
                     original_attribute: "".to_string(),
                     dmx_from: "0/1".try_into().unwrap(),
                     default: "0/1".try_into().unwrap(),
@@ -197,17 +200,17 @@ mod tests {
                     physical_to: 1.0,
                     real_fade: 0.0,
                     real_acceleration: 0.0,
-                    wheel: None,
-                    emitter: None,
-                    filter: Some(("Magenta", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap()),
-                    mode_master: Some(("Base_ColorMacro1", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap()),
+                    wheel: NodeChannelFunctionWheel(None),
+                    emitter: NodeChannelFunctionEmitter(None),
+                    filter: NodeChannelFunctionFilter(Some("Magenta".try_into().unwrap())),
+                    mode_master: NodeChannelFunctionModeMaster(Some("Base_ColorMacro1".try_into().unwrap())),
                     mode_from: Some("0/1".try_into().unwrap()),
                     mode_to: Some("0/1".try_into().unwrap()),
                     channel_sets: vec![],
                 },
                 ChannelFunction {
                     name: "NoFeature".try_into().unwrap(),
-                    attribute: ("NoFeature", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap(),
+                    attribute: "NoFeature".try_into().unwrap(),
                     original_attribute: "".to_string(),
                     dmx_from: "0/1".try_into().unwrap(),
                     default: "0/1".try_into().unwrap(),
@@ -215,10 +218,10 @@ mod tests {
                     physical_to: 1.0,
                     real_fade: 0.0,
                     real_acceleration: 0.0,
-                    wheel: None,
-                    emitter: None,
-                    filter: None,
-                    mode_master: Some(("Base_ColorMacro1", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap()),
+                    wheel: NodeChannelFunctionWheel(None),
+                    emitter: NodeChannelFunctionEmitter(None),
+                    filter: NodeChannelFunctionFilter(None),
+                    mode_master: NodeChannelFunctionModeMaster(Some("Base_ColorMacro1".try_into().unwrap())),
                     mode_from: Some("1/1".try_into().unwrap()),
                     mode_to: Some("255/1".try_into().unwrap()),
                     channel_sets: vec![],

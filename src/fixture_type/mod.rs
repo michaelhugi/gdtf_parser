@@ -14,7 +14,7 @@ use crate::utils::units::name::Name;
 pub mod attribute_definitions;
 pub mod dmx_mode;
 
-///The FixtureType node is the starting point of the description of the fixture type
+///The FixtureType node_2 is the starting point of the description of the fixture type
 #[derive(Debug)]
 pub struct FixtureType {
     ///Name of the fixture type.
