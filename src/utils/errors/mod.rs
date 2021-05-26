@@ -4,6 +4,8 @@ use std::num::{ParseFloatError, ParseIntError};
 use std::str::Utf8Error;
 
 use zip::result::ZipError;
+
+use crate::utils::units::guid::GDTFGUIDError;
 use crate::utils::units::name::GDTFNameError;
 
 #[derive(Debug)]
@@ -19,7 +21,8 @@ pub enum GdtfError {
     ParseIntError(ParseIntError),
     ParseFloatError(ParseFloatError),
     DMXValueNotValidError(String),
-    NameError(GDTFNameError)
+    NameError(GDTFNameError),
+    GUIDError(GDTFGUIDError),
 }
 
 impl From<ParseIntError> for GdtfError {
@@ -34,15 +37,21 @@ impl From<ParseFloatError> for GdtfError {
     }
 }
 
-impl From<GDTFNameError> for GdtfError{
+impl From<GDTFNameError> for GdtfError {
     fn from(e: GDTFNameError) -> Self {
-       GdtfError::NameError(e)
+        GdtfError::NameError(e)
     }
 }
 
 impl fmt::Display for GdtfError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "something went terribly wrong")
+    }
+}
+
+impl From<GDTFGUIDError> for GdtfError {
+    fn from(e: GDTFGUIDError) -> Self {
+        GdtfError::GUIDError(e)
     }
 }
 
