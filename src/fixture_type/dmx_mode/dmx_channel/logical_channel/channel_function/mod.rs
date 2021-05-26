@@ -52,6 +52,17 @@ pub struct ChannelFunction {
     pub channel_sets: Vec<ChannelSet>,
 }
 
+const DEFAULT_DMX_FROM: DMXValue = DMXValue {
+    initial_value: 0,
+    n: 1,
+    is_byte_shifting: false,
+};
+
+const DEFAULT_DMX_DEFAULT: DMXValue = DMXValue {
+    initial_value: 0,
+    n: 1,
+    is_byte_shifting: false,
+};
 
 impl DeparseSingle for ChannelFunction {
     fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
@@ -59,8 +70,8 @@ impl DeparseSingle for ChannelFunction {
         let mut name: Name = Default::default();
         let mut attribute: Node = Node::default();
         let mut original_attribute: String = String::new();
-        let mut dmx_from: DMXValue = DMXValue::default();
-        let mut default: DMXValue = DMXValue::default();
+        let mut dmx_from: DMXValue = DEFAULT_DMX_FROM;
+        let mut default: DMXValue = DEFAULT_DMX_DEFAULT;
         let mut physical_from: f32 = 0.;
         let mut physical_to: f32 = 0.;
         let mut real_fade: f32 = 0.;
@@ -81,14 +92,8 @@ impl DeparseSingle for ChannelFunction {
                     Some(v) => v.into()
                 },
                 b"OriginalAttribute" => original_attribute = deparse::attr_to_string(&attr),
-                b"DMXFrom" => dmx_from = match deparse::attr_to_str_option(&attr) {
-                    None => DMXValue::default(),
-                    Some(v) => v.try_into()?
-                },
-                b"Default" => default = match deparse::attr_to_str_option(&attr) {
-                    None => DMXValue::default(),
-                    Some(v) => v.try_into()?
-                },
+                b"DMXFrom" => dmx_from = attr.try_into().unwrap_or_else(|_| DEFAULT_DMX_FROM),
+                b"Default" => default = attr.try_into().unwrap_or_else(|_| DEFAULT_DMX_DEFAULT),
                 b"PhysicalFrom" => physical_from = deparse::attr_to_f32(&attr),
                 b"PhysicalTo" => physical_to = deparse::attr_to_f32(&attr),
                 b"RealFade" => real_fade = deparse::attr_to_f32(&attr),

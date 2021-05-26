@@ -7,7 +7,7 @@ use crate::utils::deparse;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::master::Master;
-use crate::utils::units::node::Node;
+use crate::utils::units::node::{Node, NodeStartingPoint};
 use crate::utils::units::snap::Snap;
 
 pub mod channel_function;
@@ -42,7 +42,7 @@ impl DeparseSingle for LogicalChannel {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Attribute" => attribute = deparse::attr_to_str(&attr).into(),
+                b"Attribute" => attribute = (attr, NodeStartingPoint::ATTRIBUTE_COLLECT).into(),
                 b"Snap" => snap = deparse::attr_to_str(&attr).into(),
                 b"Master" => master = deparse::attr_to_str(&attr).into(),
                 b"MibFade" => mib_fade = deparse::attr_to_f32(&attr),
@@ -119,12 +119,13 @@ mod tests {
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
     use crate::utils::deparse::DeparseSingle;
     use crate::utils::units::master::Master;
+    use crate::utils::units::node::NodeStartingPoint;
     use crate::utils::units::snap::Snap;
 
     #[test]
     fn test_normal() {
         LogicalChannel {
-            attribute: "ColorSub_M".try_into().unwrap(),
+            attribute: ("ColorSub_M", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap(),
             snap: Snap::Yes,
             master: Master::Grand,
             mib_fade: 0.1,
@@ -132,7 +133,7 @@ mod tests {
             channel_functions: vec![
                 ChannelFunction {
                     name: "Magenta".try_into().unwrap(),
-                    attribute: "ColorSub_M".try_into().unwrap(),
+                    attribute: ("ColorSub_M", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap(),
                     original_attribute: "".to_string(),
                     dmx_from: "0/1".try_into().unwrap(),
                     default: "0/1".try_into().unwrap(),
@@ -142,15 +143,15 @@ mod tests {
                     real_acceleration: 0.0,
                     wheel: None,
                     emitter: None,
-                    filter: Some("Magenta".try_into().unwrap()),
-                    mode_master: Some("Base_ColorMacro1".try_into().unwrap()),
+                    filter: Some(("Magenta", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap()),
+                    mode_master: Some(("Base_ColorMacro1", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap()),
                     mode_from: Some("0/1".try_into().unwrap()),
                     mode_to: Some("0/1".try_into().unwrap()),
                     channel_sets: vec![],
                 },
                 ChannelFunction {
                     name: "NoFeature".try_into().unwrap(),
-                    attribute: "NoFeature".try_into().unwrap(),
+                    attribute: ("NoFeature", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap(),
                     original_attribute: "".to_string(),
                     dmx_from: "0/1".try_into().unwrap(),
                     default: "0/1".try_into().unwrap(),
@@ -161,7 +162,7 @@ mod tests {
                     wheel: None,
                     emitter: None,
                     filter: None,
-                    mode_master: Some("Base_ColorMacro1".try_into().unwrap()),
+                    mode_master: Some(("Base_ColorMacro1", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap()),
                     mode_from: Some("1/1".try_into().unwrap()),
                     mode_to: Some("255/1".try_into().unwrap()),
                     channel_sets: vec![],
@@ -180,7 +181,7 @@ mod tests {
     #[test]
     fn test_min() {
         LogicalChannel {
-            attribute: "".try_into().unwrap(),
+            attribute: ("", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap(),
             snap: Snap::No,
             master: Master::None,
             mib_fade: 0.0,
@@ -188,7 +189,7 @@ mod tests {
             channel_functions: vec![
                 ChannelFunction {
                     name: "Magenta".try_into().unwrap(),
-                    attribute: "ColorSub_M".try_into().unwrap(),
+                    attribute: ("ColorSub_M", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap(),
                     original_attribute: "".to_string(),
                     dmx_from: "0/1".try_into().unwrap(),
                     default: "0/1".try_into().unwrap(),
@@ -198,15 +199,15 @@ mod tests {
                     real_acceleration: 0.0,
                     wheel: None,
                     emitter: None,
-                    filter: Some("Magenta".try_into().unwrap()),
-                    mode_master: Some("Base_ColorMacro1".try_into().unwrap()),
+                    filter: Some(("Magenta", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap()),
+                    mode_master: Some(("Base_ColorMacro1", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap()),
                     mode_from: Some("0/1".try_into().unwrap()),
                     mode_to: Some("0/1".try_into().unwrap()),
                     channel_sets: vec![],
                 },
                 ChannelFunction {
                     name: "NoFeature".try_into().unwrap(),
-                    attribute: "NoFeature".try_into().unwrap(),
+                    attribute: ("NoFeature", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap(),
                     original_attribute: "".to_string(),
                     dmx_from: "0/1".try_into().unwrap(),
                     default: "0/1".try_into().unwrap(),
@@ -217,7 +218,7 @@ mod tests {
                     wheel: None,
                     emitter: None,
                     filter: None,
-                    mode_master: Some("Base_ColorMacro1".try_into().unwrap()),
+                    mode_master: Some(("Base_ColorMacro1", NodeStartingPoint::ATTRIBUTE_COLLECT).try_into().unwrap()),
                     mode_from: Some("1/1".try_into().unwrap()),
                     mode_to: Some("255/1".try_into().unwrap()),
                     channel_sets: vec![],

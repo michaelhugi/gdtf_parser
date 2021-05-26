@@ -20,7 +20,7 @@ pub struct ColorCIE {
     pub Y: f32,
 }
 
-
+///Parses an attribute directly into ColorCIE
 impl TryFrom<Attribute<'_>> for ColorCIE {
     type Error = GDTFColorCIEError;
     fn try_from(attr: Attribute<'_>) -> Result<Self, Self::Error> {
@@ -28,6 +28,7 @@ impl TryFrom<Attribute<'_>> for ColorCIE {
     }
 }
 
+///Parses a str from GDTF xml to ColorCIE
 impl TryFrom<&str> for ColorCIE {
     type Error = GDTFColorCIEError;
 
@@ -35,13 +36,13 @@ impl TryFrom<&str> for ColorCIE {
         use GDTFColorCIEError::*;
         let value: Vec<&str> = value.split(",").collect();
         if value.len() != 3 {
-            return Err(MalformatError("ColorCIE format must be \"floatx, floaty, floatY\"".to_string()));
+            return Err(MalformatError);
         }
         Ok(
             ColorCIE {
-                x: f32::from_str(value[0]).or_else(|_| { return Err(MalformatError("First argument of ColorCIE not valid".to_string())); })?,
-                y: f32::from_str(value[1]).or_else(|_| { return Err(MalformatError("Second argument of ColorCIE not valid".to_string())); })?,
-                Y: f32::from_str(value[2]).or_else(|_| { return Err(MalformatError("Third argument of ColorCIE not valid".to_string())); })?,
+                x: f32::from_str(value[0]).or_else(|_| { return Err(MalformatError); })?,
+                y: f32::from_str(value[1]).or_else(|_| { return Err(MalformatError); })?,
+                Y: f32::from_str(value[2]).or_else(|_| { return Err(MalformatError); })?,
             }
         )
     }
@@ -70,7 +71,7 @@ pub enum GDTFColorCIEError {
     ///Error when passed argument was not UTF8
     Utf8Error(std::str::Utf8Error),
     //Error when format of string was not x,y,Y
-    MalformatError(String),
+    MalformatError,
 }
 
 impl From<std::str::Utf8Error> for GDTFColorCIEError {
@@ -84,7 +85,7 @@ impl fmt::Display for GDTFColorCIEError {
         use GDTFColorCIEError::*;
         match self {
             Utf8Error(_) => write!(f, "ColorCIE Error. Utf8 Error"),
-            MalformatError(s) => write!(f, "ColorCIE Error: {}", s)
+            MalformatError => write!(f, "ColorCIE must be formatted floatx, floaty, floatY")
         }
     }
 }

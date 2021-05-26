@@ -117,168 +117,68 @@ mod tests {
     use crate::utils::units::name::Name;
 
     #[test]
-    fn test_invalid_char_low() {
-        if Name::try_from(std::str::from_utf8(&[19]).unwrap()).is_ok() {
-            panic!("Deparsing Name from string allowed invalid char");
-        }
-    }
-
-    #[test]
-    fn test_invalid_char_high() {
-        if Name::try_from("{").is_ok() {
-            panic!("Deparsing Name from string allowed invalid char");
-        }
-    }
-
-    #[test]
-    fn test_valid_char_high() {
-        Name::try_from("z").unwrap();
-    }
-
-    #[test]
-    fn test_valid_char_low() {
-        Name::try_from(" ").unwrap();
-    }
-
-    #[test]
-    fn test_parse_from_str_empty() {
-        assert_eq!(
-            Name::Empty,
-            Name::try_from("").unwrap()
-        );
-    }
-
-    #[test]
-    fn test_parse_from_str_space() {
-        assert_eq!(
-            Name::Name(" ".to_string()),
-            Name::try_from(" ").unwrap()
-        );
-    }
-
-    #[test]
-    fn test_parse_from_str_double_space() {
-        assert_eq!(
-            Name::Name("  ".to_string()),
-            Name::try_from("  ").unwrap()
-        );
-    }
-
-    #[test]
-    fn test_parse_from_str_valid() {
-        assert_eq!(
-            Name::Name("Some Name".to_string()),
-            Name::try_from("Some Name").unwrap()
-        );
-    }
-
-    #[test]
-    fn test_parse_from_str_invalid() {
-        if Name::try_from("Some {Name").is_ok() {
-            panic!("Parsing from invalid str was allowed but shouldn't be")
-        }
-    }
-
-    #[test]
-    fn test_parse_valid_attr_borrowed() {
-        assert_eq!(
-            Name::Name("My Name".to_string()),
-            testdata::to_attr_borrowed(b"My Name").try_into().unwrap()
-        );
-    }
-
-    #[test]
-    fn test_parse_valid_attr_owned() {
-        assert_eq!(
-            Name::Name("My Name".to_string()),
-            testdata::to_attr_owned(b"My Name").try_into().unwrap()
-        );
-    }
-
-    #[test]
-    ///Invalid Chars are allowed from GDTF to application because Rust can handle it
-    fn test_parse_invalid_attr_owned() {
-        assert_eq!(
-            Name::Name("My N{ame".to_string()),
-            testdata::to_attr_owned(b"My N{ame").into()
-        );
-    }
-
-    #[test]
-    ///Invalid Chars are allowed from GDTF to application because Rust can handle it
-    fn test_parse_invalid_attr_borrowed() {
-        assert_eq!(
-            Name::Name("My N{ame".to_string()),
-            testdata::to_attr_borrowed(b"My N{ame").into()
-        );
+    fn test_default() {
+        assert_eq!(Name::Empty, Default::default());
     }
 
     #[test]
     fn test_display() {
         assert_eq!(format!("{}", Name::Name("My Name".to_string())), "My Name");
+        assert_eq!(format!("{}", Name::Name("Something else".to_string())), "Something else");
+        assert_eq!(format!("{}", Name::Empty), "");
     }
 
     #[test]
-    fn test_parse_empty_attr_owned() {
-        assert_eq!(
-            Name::Empty,
-            testdata::to_attr_owned(b"").try_into().unwrap()
-        );
+    fn test_try_from_str() {
+        //Name has restricted set of valid chars
+        assert!(Name::try_from(std::str::from_utf8(&[19]).unwrap()).is_err());
+        //Name has restricted set of valid chars
+        assert!(Name::try_from("{").is_err());
+        //Name has restricted set of valid chars
+        assert!(Name::try_from("Some {Name").is_err());
+        assert_eq!(Name::Empty, "".try_into().unwrap());
+        assert_eq!(Name::Name(" ".to_string()), " ".try_into().unwrap());
+        assert_eq!(Name::Name("  ".to_string()), "  ".try_into().unwrap());
+        assert_eq!(Name::Name("Some Name".to_string()), "Some Name".try_into().unwrap());
+        assert_eq!(Name::Name("Some Other Name".to_string()), "Some Other Name".try_into().unwrap());
+        assert_eq!(Name::Name("  Some  Name  ".to_string()), "  Some  Name  ".try_into().unwrap());
     }
 
     #[test]
-    fn test_parse_empty_attr_borrowed() {
-        assert_eq!(
-            Name::Empty,
-            testdata::to_attr_borrowed(b"").try_into().unwrap()
-        );
+    fn test_from_attr_borrowed() {
+        //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
+        assert_eq!(Name::Name("{".to_string()), testdata::to_attr_borrowed(b"{").into());
+        //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
+        assert_eq!(Name::Name("Some {Name".to_string()), testdata::to_attr_borrowed(b"Some {Name").into());
+        assert_eq!(Name::Empty, testdata::to_attr_borrowed(b"").into());
+        assert_eq!(Name::Name(" ".to_string()), testdata::to_attr_borrowed(b" ").into());
+        assert_eq!(Name::Name("  ".to_string()), testdata::to_attr_borrowed(b"  ").into());
+        assert_eq!(Name::Name("Some Name".to_string()), testdata::to_attr_borrowed(b"Some Name").into());
+        assert_eq!(Name::Name("Some Other Name".to_string()), testdata::to_attr_borrowed(b"Some Other Name").into());
+        assert_eq!(Name::Name("  Some  Name  ".to_string()), testdata::to_attr_borrowed(b"  Some  Name  ").into());
     }
 
     #[test]
-    fn test_parse_space_attr_owned() {
-        assert_eq!(
-            Name::Name(" ".to_string()),
-            testdata::to_attr_owned(b" ").try_into().unwrap()
-        );
+    fn test_from_attr_owned() {
+        //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
+        assert_eq!(Name::Name("{".to_string()), testdata::to_attr_owned(b"{").into());
+        //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
+        assert_eq!(Name::Name("Some {Name".to_string()), testdata::to_attr_owned(b"Some {Name").into());
+        assert_eq!(Name::Empty, testdata::to_attr_owned(b"").into());
+        assert_eq!(Name::Name(" ".to_string()), testdata::to_attr_owned(b" ").into());
+        assert_eq!(Name::Name("  ".to_string()), testdata::to_attr_owned(b"  ").into());
+        assert_eq!(Name::Name("Some Name".to_string()), testdata::to_attr_owned(b"Some Name").into());
+        assert_eq!(Name::Name("Some Other Name".to_string()), testdata::to_attr_owned(b"Some Other Name").into());
+        assert_eq!(Name::Name("  Some  Name  ".to_string()), testdata::to_attr_owned(b"  Some  Name  ").into());
     }
 
     #[test]
-    fn test_parse_space_attr_borrowed() {
-        assert_eq!(
-            Name::Name(" ".to_string()),
-            testdata::to_attr_borrowed(b" ").try_into().unwrap()
-        );
-    }
-
-    #[test]
-    fn test_parse_doublespace_attr_owned() {
-        assert_eq!(
-            Name::Name("  ".to_string()),
-            testdata::to_attr_owned(b"  ").try_into().unwrap()
-        );
-    }
-
-    #[test]
-    fn test_parse_doublespace_attr_borrowed() {
-        assert_eq!(
-            Name::Name("  ".to_string()),
-            testdata::to_attr_borrowed(b"  ").try_into().unwrap()
-        );
-    }
-
-    #[test]
-    fn test_parse_with_empty_attr_owned() {
-        assert_eq!(
-            Name::Name(" My Name ".to_string()),
-            testdata::to_attr_owned(b" My Name ").try_into().unwrap()
-        );
-    }
-
-    #[test]
-    fn test_parse_with_empty_attr_borrowed() {
-        assert_eq!(
-            Name::Name(" My Name ".to_string()),
-            testdata::to_attr_borrowed(b" My Name ").try_into().unwrap()
-        );
+    fn test_partial_eq() {
+        assert_eq!(Name::Empty, Name::Empty);
+        assert_eq!(Name::Name("Hello".to_string()), Name::Name("Hello".to_string()));
+        assert_eq!(Name::Name("MyName".to_string()), Name::Name("MyName".to_string()));
+        assert_ne!(Name::Name("Hello".to_string()), Name::Empty);
+        assert_ne!(Name::Empty, Name::Name("Hello".to_string()));
+        assert_ne!(Name::Name("Hello".to_string()), Name::Name("MyName".to_string()));
     }
 }
