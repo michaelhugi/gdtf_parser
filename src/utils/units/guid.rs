@@ -1,8 +1,11 @@
 //! Module for the unit GUID used in GDTF
+use std::borrow::Borrow;
 use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::fmt;
+
+use quick_xml::events::attributes::Attribute;
 
 /// Char - represented as u8 for matching
 const CHAR_MINUS_AS_U8: u8 = 0x2D;
@@ -121,6 +124,19 @@ impl TryFrom<&str> for GUID {
         bytes[0] = pop_last_byte(&mut s)?;
 
         return Ok(GUID::GUID(bytes));
+    }
+}
+
+///Reads the GUID from an attribute of xml. In case of an error this method will return an Empty GUID
+impl From<Attribute<'_>> for GUID {
+    fn from(attr: Attribute<'_>) -> Self {
+        match std::str::from_utf8(attr.value.borrow()) {
+            Ok(v) => match Self::try_from(v) {
+                Ok(guid) => guid,
+                Err(_) => GUID::Empty
+            }
+            Err(_) => GUID::Empty
+        }
     }
 }
 
@@ -361,6 +377,7 @@ fn hexcharbytes_to_byte(c1: u8, c2: u8) -> Result<u8, GDTFGUIDError> {
 }
 
 #[derive(Debug)]
+/// Error that occures if the format of GUID is wrong e.q. not XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 pub struct GDTFGUIDError {}
 
 impl Display for GDTFGUIDError {
@@ -375,6 +392,7 @@ impl Error for GDTFGUIDError {}
 mod tests {
     use std::convert::TryFrom;
 
+    use crate::utils::testdata;
     use crate::utils::units::guid::{get_lower_halfbyte, get_upper_halfbyte, GUID, halfbyte_to_hexcharbyte, hexcharbyte_to_halfbyte, hexcharbytes_to_byte, is_byte_one_at_index, join_two_halfbytes, shift_byte_lower_to_upper, split_into_two_halfbytes};
 
     #[test]
@@ -596,6 +614,55 @@ mod tests {
             GUID::try_from("308EA87D-7164-42DE-8106-A6D273F57A51").unwrap()
         );
     }
+
+    #[test]
+    fn test_from_attr_valid_borrowed() {
+        assert_eq!(
+            GUID::GUID([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
+            testdata::to_attr_borrowed(b"308EA87D-7164-42DE-8106-A6D273F57A51").into()
+        );
+    }
+
+    #[test]
+    fn test_from_attr_valid_owned() {
+        assert_eq!(
+            GUID::GUID([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
+            testdata::to_attr_owned(b"308EA87D-7164-42DE-8106-A6D273F57A51").into()
+        );
+    }
+
+    #[test]
+    fn test_from_attr_empty_borrowed() {
+        //Can't use partialEq because Empty will return false all the time
+        if let GUID::Empty = GUID::from(testdata::to_attr_borrowed(b"")) {} else {
+            panic!("\"\" to GUID should return Empty");
+        }
+    }
+
+    #[test]
+    fn test_from_attr_empty_owned() {
+        //Can't use partialEq because Empty will return false all the time
+        if let GUID::Empty = GUID::from(testdata::to_attr_owned(b"")) {} else {
+            panic!("\"\" to GUID should return Empty");
+        }
+    }
+
+    #[test]
+    fn test_from_attr_invalid_borrowed() {
+        //Can't use partialEq because Empty will return false all the time
+        if let GUID::Empty = GUID::from(testdata::to_attr_borrowed(b"something invalid")) {} else {
+            panic!("\"\" to GUID should return Empty");
+        }
+    }
+
+    #[test]
+    fn test_from_attr_invalid_owned() {
+        //Can't use partialEq because Empty will return false all the time
+        if let GUID::Empty = GUID::from(testdata::to_attr_owned(b"something invalid")) {} else {
+            panic!("\"\" to GUID should return Empty");
+        }
+    }
+
 
     #[test]
     fn test_try_from_str_empty() {
