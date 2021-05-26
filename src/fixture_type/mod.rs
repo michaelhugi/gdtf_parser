@@ -1,6 +1,4 @@
 //! Holds the GDTF FixtureType and it's children
-use std::convert::TryInto;
-
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
@@ -81,11 +79,11 @@ impl DeparseSingle for FixtureType {
                 b"LongName" => long_name = deparse::attr_to_string(&attr),
                 b"Manufacturer" => manufacturer = deparse::attr_to_string(&attr),
                 b"Description" => description = deparse::attr_to_string(&attr),
-                b"FixtureTypeID" => fixture_type_id = deparse::attr_to_str(&attr).try_into()?,
+                b"FixtureTypeID" => fixture_type_id = attr.into(),
                 b"Thumbnail" => thumbnail = deparse::attr_to_string_option(&attr),
-                b"RefFT" => ref_ft = match deparse::attr_to_str_option(&attr) {
-                    None => { None }
-                    Some(v) => { Some(v.try_into()?) }
+                b"RefFT" => ref_ft = match GUID::from(attr) {
+                    GUID::GUID(guid) => Some(GUID::GUID(guid)),
+                    GUID::Empty => None
                 },
 
                 _ => {}
