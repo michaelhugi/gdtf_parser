@@ -5,9 +5,10 @@ use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
 
+#[cfg(test)]
+use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::node::{GDTFNodeError, Node};
 use crate::utils::units::node::node_option::NodeOption;
-use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
 
 #[derive(Debug)]
 ///Node used in LogicalChannel.attribute. Link to the channel function that will be activated by default for this DMXChannel;
@@ -19,11 +20,14 @@ impl From<Attribute<'_>> for NodeLogicalChannelAttribute {
         NodeLogicalChannelAttribute(Self::read_option_from_attr(attr))
     }
 }
-impl AssertEqAllowEmpty for NodeLogicalChannelAttribute {
+
+#[cfg(test)]
+impl PartialEqAllowEmpty for NodeLogicalChannelAttribute {
     fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
         Self::is_eq_allow_option(&self.0, &other.0)
     }
 }
+
 ///Parses a str directly to a Node. This function will not allow invalid chars due to GDTF specs.
 impl TryFrom<&str> for NodeLogicalChannelAttribute {
     type Error = GDTFNodeError;

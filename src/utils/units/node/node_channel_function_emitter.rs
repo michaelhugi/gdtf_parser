@@ -4,8 +4,8 @@ use std::fmt::{Display, Formatter};
 use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
-
-use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::node::{GDTFNodeError, Node};
 use crate::utils::units::node::node_option::NodeOption;
 
@@ -13,8 +13,8 @@ use crate::utils::units::node::node_option::NodeOption;
 ///Node used in ChannelFunction.emitter. Optional link to emitter in the physical description; Starting point: Emitter Collect
 pub struct NodeChannelFunctionEmitter(pub Option<Node>);
 
-
-impl AssertEqAllowEmpty for NodeChannelFunctionEmitter {
+#[cfg(test)]
+impl PartialEqAllowEmpty for NodeChannelFunctionEmitter {
     fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
         Self::is_eq_allow_option(&self.0, &other.0)
     }

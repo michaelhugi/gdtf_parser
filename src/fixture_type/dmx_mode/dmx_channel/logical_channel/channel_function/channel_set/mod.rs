@@ -6,7 +6,10 @@ use quick_xml::Reader;
 use crate::utils::deparse;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::units::dmx_value::DMXValue;
 use crate::utils::units::name::Name;
 
@@ -57,14 +60,10 @@ impl DeparseSingle for ChannelSet {
     fn single_event_name() -> String {
         "ChannelSet".to_string()
     }
-
-    #[cfg(test)]
-    fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name.is_eq_allow_empty_no_log(&compare.name)
-    }
 }
 
-impl AssertEqAllowEmpty for ChannelSet {
+#[cfg(test)]
+impl PartialEqAllowEmpty for ChannelSet {
     fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
         self.name.is_eq_allow_empty(&other.name) &&
             self.dmx_from == other.dmx_from &&
@@ -75,11 +74,18 @@ impl AssertEqAllowEmpty for ChannelSet {
 }
 
 #[cfg(test)]
+impl TestDeparseSingle for ChannelSet {
+    fn is_same_item_identifier(&self, compare: &Self) -> bool {
+        self.name.is_eq_allow_empty_no_log(&compare.name)
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use std::convert::TryInto;
 
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
-    use crate::utils::deparse::DeparseSingle;
+    use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::units::dmx_value::DMXValue;
 
     #[test]

@@ -73,7 +73,6 @@ impl From<Attribute<'_>> for Node {
     }
 }
 
-#[cfg(test)]
 impl PartialEq for Node {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0

@@ -1,10 +1,8 @@
 #![cfg(test)]
-//! PartialEq for comparing structs or enums that will behave differently to PartialEq when no content is in the struct or enum
 
 use std::fmt::Debug;
 
-///Will perform an assert_eq! on traits and enums but not panic if both are empty what may be a different behaviour to PartialEq where empty options may return false in any case
-pub trait AssertEqAllowEmpty: Debug {
+pub trait PartialEqAllowEmpty: Debug {
     fn assert_eq_allow_empty(&self, other: &Self) {
         if !self.is_eq_allow_empty(other) {
             panic!("assert_eq_allow_empty paniced! \n left: {:?} \n right: {:?}", self, other)
@@ -26,7 +24,7 @@ pub trait AssertEqAllowEmpty: Debug {
     }
 
 
-    fn is_eq_allow_empty_no_log(&self, other: &Self) ->bool;
+    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool;
 
     fn is_eq_allow_option<T: PartialEq>(left: &Option<T>, right: &Option<T>) -> bool {
         match left {
@@ -34,15 +32,16 @@ pub trait AssertEqAllowEmpty: Debug {
             Some(left) => if let Some(right) = right { right == left } else { false }
         }
     }
-
 }
+
+
 
 #[cfg(test)]
 mod tests {
     use std::fmt::{Display, Formatter};
     use std::fmt;
 
-    use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
+    use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
 
     #[derive(Debug, PartialEq)]
     struct Teststruct(Option<String>);
@@ -56,7 +55,7 @@ mod tests {
         }
     }
 
-    impl AssertEqAllowEmpty for Teststruct {
+    impl PartialEqAllowEmpty for Teststruct {
         fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
             Self::is_eq_allow_option(&self.0, &other.0)
         }

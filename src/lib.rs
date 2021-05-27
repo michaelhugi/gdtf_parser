@@ -71,7 +71,10 @@ use quick_xml::Reader;
 use crate::fixture_type::FixtureType;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::units::data_version::DataVersion;
 
 pub mod fixture_type;
@@ -137,17 +140,20 @@ impl DeparseSingle for GDTF {
     fn single_event_name() -> String {
         "GDTF".to_string()
     }
-
-    #[cfg(test)]
-    fn is_same_item_identifier(&self, _: &Self) -> bool {
-        false
-    }
 }
 
-impl AssertEqAllowEmpty for GDTF {
+#[cfg(test)]
+impl PartialEqAllowEmpty for GDTF {
     fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
         self.data_version == other.data_version &&
             self.fixture_type.is_eq_allow_empty(&other.fixture_type)
+    }
+}
+
+#[cfg(test)]
+impl TestDeparseSingle for GDTF {
+    fn is_same_item_identifier(&self, _: &Self) -> bool {
+        false
     }
 }
 
@@ -196,7 +202,7 @@ mod tests {
     use std::convert::TryInto;
     use std::path::Path;
 
-    use crate::utils::deparse::DeparseSingle;
+    use crate::utils::deparse::TestDeparseSingle;
 
     #[test]
     fn test_acme() {

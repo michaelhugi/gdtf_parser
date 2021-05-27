@@ -6,7 +6,10 @@ use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_functio
 use crate::utils::deparse;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::units::master::Master;
 use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
 use crate::utils::units::snap::Snap;
@@ -96,14 +99,10 @@ impl DeparseSingle for LogicalChannel {
     fn single_event_name() -> String {
         "LogicalChannel".to_string()
     }
-
-    #[cfg(test)]
-    fn is_same_item_identifier(&self, other: &Self) -> bool {
-        self.is_eq_allow_empty(other)
-    }
 }
 
-impl AssertEqAllowEmpty for LogicalChannel {
+#[cfg(test)]
+impl PartialEqAllowEmpty for LogicalChannel {
     fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
         self.attribute.is_eq_allow_empty(&other.attribute) &&
             self.snap == other.snap &&
@@ -115,12 +114,19 @@ impl AssertEqAllowEmpty for LogicalChannel {
 }
 
 #[cfg(test)]
+impl TestDeparseSingle for LogicalChannel {
+    fn is_same_item_identifier(&self, other: &Self) -> bool {
+        self.is_eq_allow_empty(other)
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use std::convert::TryInto;
 
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
-    use crate::utils::deparse::DeparseSingle;
+    use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::units::master::Master;
     use crate::utils::units::node::node_channel_function_emitter::NodeChannelFunctionEmitter;
     use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;

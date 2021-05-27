@@ -6,7 +6,8 @@ use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
 
-use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::node::{GDTFNodeError, Node};
 
 #[derive(Debug)]
@@ -18,7 +19,8 @@ pub enum NodeChannelFunctionAttribute {
     NoFeature,
 }
 
-impl AssertEqAllowEmpty for NodeChannelFunctionAttribute {
+#[cfg(test)]
+impl PartialEqAllowEmpty for NodeChannelFunctionAttribute {
     fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
         use NodeChannelFunctionAttribute::*;
         match self {
@@ -27,6 +29,7 @@ impl AssertEqAllowEmpty for NodeChannelFunctionAttribute {
         }
     }
 }
+
 
 #[cfg(test)]
 ///used because partial_eq will return false for NoFeature
@@ -138,7 +141,6 @@ mod tests {
 
     #[test]
     fn test_partial_eq() {
-
         assert_ne!(
             NodeChannelFunctionAttribute::NoFeature,
             NodeChannelFunctionAttribute::NoFeature

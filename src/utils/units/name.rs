@@ -6,8 +6,8 @@ use std::fmt::{Display, Formatter};
 use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
-
-use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
 
 ///Name representation used in GDTF
 #[derive(Debug)]
@@ -93,7 +93,6 @@ impl Name {
     }
 }
 
-#[cfg(test)]
 impl PartialEq for Name {
     fn eq(&self, other: &Self) -> bool {
         match self {
@@ -107,8 +106,8 @@ impl PartialEq for Name {
     }
 }
 
-
-impl AssertEqAllowEmpty for Name {
+#[cfg(test)]
+impl PartialEqAllowEmpty for Name {
     fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
         use self::Name::*;
         match self {
@@ -122,7 +121,7 @@ impl AssertEqAllowEmpty for Name {
 mod tests {
     use std::convert::{TryFrom, TryInto};
 
-    use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
+    use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
     use crate::utils::testdata;
     use crate::utils::units::name::Name;
 

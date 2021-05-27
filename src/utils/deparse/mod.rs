@@ -8,17 +8,49 @@ use quick_xml::events::Event;
 use quick_xml::Reader;
 
 use crate::utils::errors::GdtfError;
-use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
 use crate::utils::units::name::Name;
+#[cfg(test)]
+use std::fmt::Debug;
+#[cfg(test)]
+use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
 
-pub(crate) trait DeparseSingle: std::fmt::Debug + Sized + AssertEqAllowEmpty {
+pub(crate) trait DeparseSingle: std::fmt::Debug + Sized {
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError>;
 
     fn is_single_event_name(event_name: &[u8]) -> bool;
 
     fn single_event_name() -> String;
+}
 
-    #[cfg(test)]
+#[cfg(test)]
+pub(crate) trait TestDeparseSingle: Debug + Sized + PartialEqAllowEmpty + DeparseSingle {
+    fn is_vec_eq(one: &Vec<Self>, two: &Vec<Self>) -> bool {
+        if one.len() != two.len() {
+            println!("Testing {} for vec returned not the same amount of items", Self::single_event_name());
+            return false;
+        }
+        for o in one.iter() {
+            let mut t = o.clone();
+            let mut item_found = false;
+
+            for tw in two.iter() {
+                if o.is_same_item_identifier(tw) {
+                    t = tw;
+                    item_found = true;
+                }
+            }
+            if !item_found {
+                println!("Did not find {} that corresponds to \n{:?}", Self::single_event_name(), o);
+                return false;
+            }
+
+            if !o.is_eq_allow_empty(t) {
+                return false;
+            }
+        }
+        true
+    }
+
     fn single_from_reader(reader: &mut Reader<&[u8]>) -> Result<Self, GdtfError> {
         reader.trim_text(true);
 
@@ -49,55 +81,21 @@ pub(crate) trait DeparseSingle: std::fmt::Debug + Sized + AssertEqAllowEmpty {
         Err(GdtfError::RequiredValueNotFoundError(format!("Could not find {}", Self::single_event_name())))
     }
 
-    #[cfg(test)]
     fn single_from_xml(xml: &str) -> Result<Self, GdtfError> {
         let mut reader = Reader::from_str(xml);
         Self::single_from_reader(&mut reader)
     }
-
-    #[cfg(test)]
     fn test(&self, xml: &str) {
         self.test_with_result(Self::single_from_xml(xml));
     }
 
-    #[cfg(test)]
     fn test_with_result(&self, other: Result<Self, GdtfError>) {
         let other = other.expect(&format!("Unexpected error in test of {}", Self::single_event_name())[..]);
         self.assert_eq_allow_empty(&other);
     }
 
-    #[cfg(test)]
     fn is_same_item_identifier(&self, compare: &Self) -> bool;
-
-    #[cfg(test)]
-    fn is_vec_eq(one: &Vec<Self>, two: &Vec<Self>) -> bool {
-        if one.len() != two.len() {
-            println!("Testing {} for vec returned not the same amount of items", Self::single_event_name());
-            return false;
-        }
-        for o in one.iter() {
-            let mut t = o.clone();
-            let mut item_found = false;
-
-            for tw in two.iter() {
-                if o.is_same_item_identifier(tw) {
-                    t = tw;
-                    item_found = true;
-                }
-            }
-            if !item_found {
-                println!("Did not find {} that corresponds to \n{:?}", Self::single_event_name(), o);
-                return false;
-            }
-
-            if !o.is_eq_allow_empty(t) {
-                return false;
-            }
-        }
-        true
-    }
 }
-
 
 pub(crate) trait DeparseVec: DeparseSingle {
     fn vec_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Vec<Self>, GdtfError> where
@@ -138,7 +136,11 @@ pub(crate) trait DeparseVec: DeparseSingle {
 
     fn group_event_name() -> String;
 
-    #[cfg(test)]
+
+}
+
+#[cfg(test)]
+pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
     fn vec_from_reader(reader: &mut Reader<&[u8]>) -> Result<Vec<Self>, GdtfError> where
         Self: Sized {
         reader.trim_text(true);
@@ -169,20 +171,19 @@ pub(crate) trait DeparseVec: DeparseSingle {
         }
         Err(GdtfError::RequiredValueNotFoundError(format!("Could not find {}", Self::single_event_name())))
     }
-    #[cfg(test)]
+
     fn vec_from_xml(xml: &str) -> Result<Vec<Self>, GdtfError>
         where Self: Sized {
         let mut reader = Reader::from_str(xml);
         Self::vec_from_reader(&mut reader)
     }
-    #[cfg(test)]
+
     fn test_group(one: Vec<Self>, xml: &str) where Self: Sized {
         let two = Self::vec_from_xml(xml);
         let two = two.expect(&format!("Testing {} for list raised an unexpected error", Self::group_event_name())[..]);
         assert!(Self::is_vec_eq(&one, &two));
     }
 }
-
 
 pub(crate) fn attr_to_str<'a>(attr: &'a Attribute) -> &'a str {
     std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| "")

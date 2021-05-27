@@ -7,7 +7,10 @@ use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXMLError;
-use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::deparse::TestDeparseSingle;
 
 pub mod feature_group;
 pub mod attribute;
@@ -23,10 +26,6 @@ pub struct AttributeDefinitions {
 
 
 impl DeparseSingle for AttributeDefinitions {
-    #[cfg(test)]
-    fn is_same_item_identifier(&self, _: &Self) -> bool {
-        false
-    }
     fn single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut buf: Vec<u8> = Vec::new();
@@ -72,11 +71,19 @@ impl DeparseSingle for AttributeDefinitions {
     }
 }
 
-impl AssertEqAllowEmpty for AttributeDefinitions {
+#[cfg(test)]
+impl PartialEqAllowEmpty for AttributeDefinitions {
     fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
         FeatureGroup::is_vec_eq(&self.feature_groups, &other.feature_groups) &&
             Attribute::is_vec_eq(&self.attributes, &other.attributes) &&
             ActivationGroup::is_vec_eq(&self.activation_groups, &other.activation_groups)
+    }
+}
+
+#[cfg(test)]
+impl TestDeparseSingle for AttributeDefinitions {
+    fn is_same_item_identifier(&self, _: &Self) -> bool {
+        false
     }
 }
 
@@ -89,7 +96,7 @@ mod tests {
     use crate::fixture_type::attribute_definitions::AttributeDefinitions;
     use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
-    use crate::utils::deparse::DeparseSingle;
+    use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::units::physical_unit::PhysicalUnit;
 
     #[test]

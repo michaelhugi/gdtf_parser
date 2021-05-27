@@ -6,7 +6,10 @@ use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
 use crate::utils::deparse;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::errors::GdtfError;
-use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::units::dmx_break::DMXBreak;
 use crate::utils::units::highlight::Highlight;
 use crate::utils::units::name::Name;
@@ -98,14 +101,10 @@ impl DeparseSingle for DMXChannel {
     fn single_event_name() -> String {
         "DMXChannel".to_string()
     }
-
-    #[cfg(test)]
-    fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.is_eq_allow_empty(compare)
-    }
 }
 
-impl AssertEqAllowEmpty for DMXChannel {
+#[cfg(test)]
+impl PartialEqAllowEmpty for DMXChannel {
     fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
         self.dmx_break == other.dmx_break &&
             self.offset == other.offset &&
@@ -113,6 +112,13 @@ impl AssertEqAllowEmpty for DMXChannel {
             self.highlight == other.highlight &&
             self.geometry.is_eq_allow_empty(&other.geometry) &&
             LogicalChannel::is_vec_eq(&self.logical_channels, &other.logical_channels)
+    }
+}
+
+#[cfg(test)]
+impl TestDeparseSingle for DMXChannel {
+    fn is_same_item_identifier(&self, compare: &Self) -> bool {
+        self.is_eq_allow_empty(compare)
     }
 }
 
@@ -132,7 +138,7 @@ mod tests {
 
     use crate::fixture_type::dmx_mode::dmx_channel::DMXChannel;
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
-    use crate::utils::deparse::DeparseSingle;
+    use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::units::dmx_break::DMXBreak;
     use crate::utils::units::dmx_value::DMXValue;
     use crate::utils::units::highlight::Highlight;

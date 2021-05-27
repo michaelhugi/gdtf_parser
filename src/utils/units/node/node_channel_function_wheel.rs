@@ -5,9 +5,10 @@ use std::fmt::{Display, Formatter};
 
 use quick_xml::events::attributes::Attribute;
 
+#[cfg(test)]
+use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::node::{GDTFNodeError, Node};
 use crate::utils::units::node::node_option::NodeOption;
-use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
 
 #[derive(Debug)]
 ///Node used in ChannelFunction.wheel. Optional link to wheel; Starting point: Wheel Collect
@@ -19,11 +20,14 @@ impl From<Attribute<'_>> for NodeChannelFunctionWheel {
         NodeChannelFunctionWheel(Self::read_option_from_attr(attr))
     }
 }
-impl AssertEqAllowEmpty for NodeChannelFunctionWheel {
+
+#[cfg(test)]
+impl PartialEqAllowEmpty for NodeChannelFunctionWheel {
     fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
         Self::is_eq_allow_option(&self.0, &other.0)
     }
 }
+
 ///Parses a str directly to a Node. This function will not allow invalid chars due to GDTF specs.
 impl TryFrom<&str> for NodeChannelFunctionWheel {
     type Error = GDTFNodeError;

@@ -6,7 +6,6 @@ use quick_xml::events::attributes::Attribute;
 
 use crate::utils::units::node::{fmt, GDTFNodeError, Node};
 
-#[cfg(test)]
 pub trait NodeOption: Display {
     fn get_node_option(&self) -> &Option<Node>;
 

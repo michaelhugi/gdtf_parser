@@ -8,7 +8,10 @@ use crate::utils::deparse;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXMLError;
-use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
+#[cfg(test)]
+use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::units::guid::GUID;
 use crate::utils::units::name::Name;
 
@@ -56,11 +59,6 @@ pub struct FixtureType {
 
 
 impl DeparseSingle for FixtureType {
-    #[cfg(test)]
-    fn is_same_item_identifier(&self, _: &Self) -> bool {
-        false
-    }
-
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut name = Name::default();
@@ -151,7 +149,8 @@ impl DeparseSingle for FixtureType {
     }
 }
 
-impl AssertEqAllowEmpty for FixtureType {
+#[cfg(test)]
+impl PartialEqAllowEmpty for FixtureType {
     fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
         self.name.is_eq_allow_empty(&other.name) &&
             self.short_name == other.short_name &&
@@ -166,6 +165,13 @@ impl AssertEqAllowEmpty for FixtureType {
 }
 
 #[cfg(test)]
+impl TestDeparseSingle for FixtureType {
+    fn is_same_item_identifier(&self, _: &Self) -> bool {
+        false
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use std::convert::TryInto;
 
@@ -175,7 +181,7 @@ mod tests {
     use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
     use crate::fixture_type::FixtureType;
-    use crate::utils::deparse::DeparseSingle;
+    use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::units::physical_unit::PhysicalUnit;
 
     #[test]
