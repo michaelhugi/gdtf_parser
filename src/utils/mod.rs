@@ -6,3 +6,5 @@ pub mod errors;
 #[cfg(test)]
 pub mod doc;
 pub(crate) mod deparse;
+#[cfg(test)]
+pub mod test;

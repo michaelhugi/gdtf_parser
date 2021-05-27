@@ -2,8 +2,9 @@ use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
-use crate::utils::units::name::Name;
 use crate::utils::errors::GdtfError;
+use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
+use crate::utils::units::name::Name;
 
 #[derive(Debug)]
 pub struct ActivationGroup {
@@ -14,9 +15,9 @@ pub struct ActivationGroup {
 impl DeparseSingle for ActivationGroup {
     #[cfg(test)]
     fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name == compare.name
+        self.name.is_eq_allow_empty_no_log(&compare.name)
     }
-    fn single_from_event_unchecked(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    fn single_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
@@ -41,9 +42,11 @@ impl DeparseSingle for ActivationGroup {
     fn single_event_name() -> String {
         "ActivationGroup".to_string()
     }
-    #[cfg(test)]
-    fn is_single_eq_no_log(&self, other: &Self) -> bool {
-        self.name == other.name
+}
+
+impl AssertEqAllowEmpty for ActivationGroup {
+    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+        self.name.is_eq_allow_empty(&other.name)
     }
 }
 

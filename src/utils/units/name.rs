@@ -7,6 +7,8 @@ use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
 
+use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
+
 ///Name representation used in GDTF
 #[derive(Debug)]
 pub enum Name {
@@ -100,11 +102,18 @@ impl PartialEq for Name {
             } else {
                 false
             },
-            Name::Empty => if let Name::Empty = other {
-                true
-            } else {
-                false
-            }
+            Name::Empty => false
+        }
+    }
+}
+
+
+impl AssertEqAllowEmpty for Name {
+    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+        use self::Name::*;
+        match self {
+            Empty => if let Empty = other { true } else { false },
+            Name(left) => if let Name(right) = other { left == right } else { false }
         }
     }
 }
@@ -113,12 +122,13 @@ impl PartialEq for Name {
 mod tests {
     use std::convert::{TryFrom, TryInto};
 
+    use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
     use crate::utils::testdata;
     use crate::utils::units::name::Name;
 
     #[test]
     fn test_default() {
-        assert_eq!(Name::Empty, Default::default());
+        Name::Empty.assert_eq_allow_empty(&Default::default());
     }
 
     #[test]
@@ -136,7 +146,7 @@ mod tests {
         assert!(Name::try_from("{").is_err());
         //Name has restricted set of valid chars
         assert!(Name::try_from("Some {Name").is_err());
-        assert_eq!(Name::Empty, "".try_into().unwrap());
+        Name::Empty.assert_eq_allow_empty(&"".try_into().unwrap());
         assert_eq!(Name::Name(" ".to_string()), " ".try_into().unwrap());
         assert_eq!(Name::Name("  ".to_string()), "  ".try_into().unwrap());
         assert_eq!(Name::Name("Some Name".to_string()), "Some Name".try_into().unwrap());
@@ -150,7 +160,7 @@ mod tests {
         assert_eq!(Name::Name("{".to_string()), testdata::to_attr_borrowed(b"{").into());
         //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
         assert_eq!(Name::Name("Some {Name".to_string()), testdata::to_attr_borrowed(b"Some {Name").into());
-        assert_eq!(Name::Empty, testdata::to_attr_borrowed(b"").into());
+        Name::Empty.assert_eq_allow_empty(&testdata::to_attr_borrowed(b"").into());
         assert_eq!(Name::Name(" ".to_string()), testdata::to_attr_borrowed(b" ").into());
         assert_eq!(Name::Name("  ".to_string()), testdata::to_attr_borrowed(b"  ").into());
         assert_eq!(Name::Name("Some Name".to_string()), testdata::to_attr_borrowed(b"Some Name").into());
@@ -164,7 +174,7 @@ mod tests {
         assert_eq!(Name::Name("{".to_string()), testdata::to_attr_owned(b"{").into());
         //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
         assert_eq!(Name::Name("Some {Name".to_string()), testdata::to_attr_owned(b"Some {Name").into());
-        assert_eq!(Name::Empty, testdata::to_attr_owned(b"").into());
+        Name::Empty.assert_eq_allow_empty(&testdata::to_attr_owned(b"").into());
         assert_eq!(Name::Name(" ".to_string()), testdata::to_attr_owned(b" ").into());
         assert_eq!(Name::Name("  ".to_string()), testdata::to_attr_owned(b"  ").into());
         assert_eq!(Name::Name("Some Name".to_string()), testdata::to_attr_owned(b"Some Name").into());
@@ -174,7 +184,17 @@ mod tests {
 
     #[test]
     fn test_partial_eq() {
-        assert_eq!(Name::Empty, Name::Empty);
+        assert_ne!(Name::Empty, Name::Empty);
+        assert_eq!(Name::Name("Hello".to_string()), Name::Name("Hello".to_string()));
+        assert_eq!(Name::Name("MyName".to_string()), Name::Name("MyName".to_string()));
+        assert_ne!(Name::Name("Hello".to_string()), Name::Empty);
+        assert_ne!(Name::Empty, Name::Name("Hello".to_string()));
+        assert_ne!(Name::Name("Hello".to_string()), Name::Name("MyName".to_string()));
+    }
+
+    #[test]
+    fn test_partial_eq_including_none() {
+        assert_ne!(Name::Empty, Name::Empty);
         assert_eq!(Name::Name("Hello".to_string()), Name::Name("Hello".to_string()));
         assert_eq!(Name::Name("MyName".to_string()), Name::Name("MyName".to_string()));
         assert_ne!(Name::Name("Hello".to_string()), Name::Empty);

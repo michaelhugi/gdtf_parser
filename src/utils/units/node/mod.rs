@@ -16,6 +16,7 @@ pub mod node_channel_function_wheel;
 pub mod node_channel_function_emitter;
 pub mod node_channel_function_filter;
 pub mod node_channel_function_mode_master;
+pub mod node_option;
 
 ///Node representation used in GDTF. A Node is a link to another xml node
 #[derive(Debug)]
@@ -61,7 +62,7 @@ impl From<Attribute<'_>> for Node {
             Ok(val) => {
                 let mut v = vec![];
                 for val in val.split(".").into_iter() {
-                    if (val != "") {
+                    if val != "" {
                         v.push(Name::Name(val.to_string()));
                     }
                 }
@@ -97,18 +98,7 @@ impl From<GDTFNameError> for GDTFNodeError {
 
 impl Error for GDTFNodeError {}
 
-#[cfg(test)]
-pub trait NodeOption: Display {
-    fn get_node_option(&self) -> &Option<Node>;
 
-    ///Needed to compare none values even when partial_eq returns false
-    fn assert_eq(&self, other: &Self) {
-        match self.get_node_option() {
-            None => if let None = other.get_node_option() {} else { panic!(format!("left: None\n right: {}", other.get_node_option().as_ref().unwrap())) }
-            Some(v1) => if let Some(v2) = other.get_node_option() { assert_eq!(v1, v2); } else { panic!(format!("left: {}\n right: None", v1)) }
-        }
-    }
-}
 
 
 #[cfg(test)]

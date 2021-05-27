@@ -8,6 +8,7 @@ use crate::utils::deparse;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXMLError;
+use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
 use crate::utils::units::guid::GUID;
 use crate::utils::units::name::Name;
 
@@ -60,7 +61,7 @@ impl DeparseSingle for FixtureType {
         false
     }
 
-    fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut name = Name::default();
         let mut short_name = String::new();
@@ -148,9 +149,11 @@ impl DeparseSingle for FixtureType {
     fn single_event_name() -> String {
         "FixtureType".to_string()
     }
-    #[cfg(test)]
-    fn is_single_eq_no_log(&self, other: &Self) -> bool {
-        self.name == other.name &&
+}
+
+impl AssertEqAllowEmpty for FixtureType {
+    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+        self.name.is_eq_allow_empty(&other.name) &&
             self.short_name == other.short_name &&
             self.long_name == other.long_name &&
             self.manufacturer == other.manufacturer &&
@@ -158,10 +161,9 @@ impl DeparseSingle for FixtureType {
             self.fixture_type_id == other.fixture_type_id &&
             self.thumbnail == other.thumbnail &&
             self.ref_ft == other.ref_ft &&
-            AttributeDefinitions::is_single_eq_log(&self.attribute_definitions, &other.attribute_definitions)
+            self.attribute_definitions.is_eq_allow_empty(&other.attribute_definitions)
     }
 }
-
 
 #[cfg(test)]
 mod tests {

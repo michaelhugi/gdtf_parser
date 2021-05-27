@@ -6,10 +6,11 @@ use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
 use crate::utils::deparse;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::errors::GdtfError;
+use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
 use crate::utils::units::dmx_break::DMXBreak;
 use crate::utils::units::highlight::Highlight;
 use crate::utils::units::name::Name;
-use crate::utils::units::node::node_dmx_channel_initial_function::NodeDmxChannelInitialFunction;
+use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
 use crate::utils::units::offset::Offset;
 
 pub mod logical_channel;
@@ -22,7 +23,7 @@ pub struct DMXChannel {
     ///Relative addresses of the current DMX channel from highest to least significant
     pub offset: Offset,
     ///Link to the channel function that will be activated by default for this DMXChannel;
-    pub initial_function: NodeDmxChannelInitialFunction,
+    pub initial_function: NodeLogicalChannelAttribute,
     ///Highlight value for current channel; Special value: “None”. Default value: “None”.
     pub highlight: Highlight,
     ///Name of the geometry the current channel controls.
@@ -32,11 +33,11 @@ pub struct DMXChannel {
 }
 
 impl DeparseSingle for DMXChannel {
-    fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut dmx_break = DMXBreak::default();
         let mut offset = Offset::default();
-        let mut initial_function: NodeDmxChannelInitialFunction = Default::default();
+        let mut initial_function: NodeLogicalChannelAttribute = Default::default();
         let mut highlight = Highlight::default();
         let mut geometry = Default::default();
         let mut logical_channels: Vec<LogicalChannel> = Vec::new();
@@ -97,18 +98,21 @@ impl DeparseSingle for DMXChannel {
     fn single_event_name() -> String {
         "DMXChannel".to_string()
     }
-    #[cfg(test)]
-    fn is_single_eq_no_log(&self, other: &Self) -> bool {
-        self.dmx_break == other.dmx_break &&
-            self.offset == other.offset &&
-            self.initial_function == other.initial_function &&
-            self.highlight == other.highlight &&
-            self.geometry == other.geometry &&
-            LogicalChannel::is_vec_eq(&self.logical_channels, &other.logical_channels)
-    }
+
     #[cfg(test)]
     fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.is_single_eq_no_log(compare)
+        self.is_eq_allow_empty(compare)
+    }
+}
+
+impl AssertEqAllowEmpty for DMXChannel {
+    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+        self.dmx_break == other.dmx_break &&
+            self.offset == other.offset &&
+            self.initial_function.is_eq_allow_empty(&other.initial_function) &&
+            self.highlight == other.highlight &&
+            self.geometry.is_eq_allow_empty(&other.geometry) &&
+            LogicalChannel::is_vec_eq(&self.logical_channels, &other.logical_channels)
     }
 }
 
@@ -135,7 +139,6 @@ mod tests {
     use crate::utils::units::master::Master;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::Node;
-    use crate::utils::units::node::node_dmx_channel_initial_function::NodeDmxChannelInitialFunction;
     use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
     use crate::utils::units::offset::Offset;
     use crate::utils::units::snap::Snap;
@@ -145,7 +148,7 @@ mod tests {
         DMXChannel {
             dmx_break: DMXBreak::Value(1),
             offset: Offset::Value(vec![1]),
-            initial_function: NodeDmxChannelInitialFunction { tree: Node(vec!["Beam_Shutter1".try_into().unwrap(), "Shutter1".try_into().unwrap(), "Open".try_into().unwrap()]) },
+            initial_function: NodeLogicalChannelAttribute(Some(Node(vec!["Beam_Shutter1".try_into().unwrap(), "Shutter1".try_into().unwrap(), "Open".try_into().unwrap()]))),
             highlight: Highlight::Value(DMXValue {
                 initial_value: 8,
                 n: 1,
@@ -154,7 +157,7 @@ mod tests {
             geometry: Name::Name("Beam".to_string()),
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute { tree: Node { 0: vec!["Shutter1".try_into().unwrap()] } },
+                    attribute: NodeLogicalChannelAttribute(Some(Node { 0: vec!["Shutter1".try_into().unwrap()] })),
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -176,7 +179,7 @@ mod tests {
         DMXChannel {
             dmx_break: DMXBreak::Value(2),
             offset: Offset::Value(vec![1, 2]),
-            initial_function: NodeDmxChannelInitialFunction { tree: Node { 0: vec![Name::Name("Beam_Shutter1".to_string()), Name::Name("Shutter1".to_string()), Name::Name("Open".to_string())] } },
+            initial_function: NodeLogicalChannelAttribute(Some(Node { 0: vec![Name::Name("Beam_Shutter1".to_string()), Name::Name("Shutter1".to_string()), Name::Name("Open".to_string())] })),
             highlight: Highlight::Value(DMXValue {
                 initial_value: 8,
                 n: 1,
@@ -185,7 +188,7 @@ mod tests {
             geometry: Name::Name("Beam".to_string()),
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute { tree: Node { 0: vec!["Shutter1".try_into().unwrap()] } },
+                    attribute: NodeLogicalChannelAttribute(Some(Node { 0: vec!["Shutter1".try_into().unwrap()] })),
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -207,7 +210,9 @@ mod tests {
         DMXChannel {
             dmx_break: DMXBreak::Overwrite,
             offset: Offset::Value(vec![1, 2]),
-            initial_function: NodeDmxChannelInitialFunction { tree: Node { 0: vec![Name::Name("Beam_Shutter1".to_string()), Name::Name("Shutter1".to_string()), Name::Name("Open".to_string())] } },
+            initial_function: NodeLogicalChannelAttribute(Some(Node {
+                0: vec![Name::Name("Beam_Shutter1".to_string()), Name::Name("Shutter1".to_string()), Name::Name("Open".to_string())]
+            })),
             highlight: Highlight::Value(DMXValue {
                 initial_value: 8,
                 n: 1,
@@ -216,7 +221,7 @@ mod tests {
             geometry: Name::Name("Beam".to_string()),
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute { tree: Node { 0: vec![Name::Name("Shutter1".to_string())] } },
+                    attribute: NodeLogicalChannelAttribute(Some(Node { 0: vec![Name::Name("Shutter1".to_string())] })),
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -238,12 +243,12 @@ mod tests {
         DMXChannel {
             dmx_break: DMXBreak::Value(1),
             offset: Offset::None,
-            initial_function: NodeDmxChannelInitialFunction { tree: Node { 0: vec![Name::Empty] } },
+            initial_function: NodeLogicalChannelAttribute(None),
             highlight: Highlight::None,
             geometry: Name::Empty,
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute { tree: Node { 0: vec![Name::Name("Shutter1".to_string())] } },
+                    attribute: NodeLogicalChannelAttribute(Some(Node { 0: vec![Name::Name("Shutter1".to_string())] })),
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -251,7 +256,7 @@ mod tests {
                     channel_functions: vec![],
                 },
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute { tree: Node { 0: vec![Name::Name("Shutter1".to_string())] } },
+                    attribute: NodeLogicalChannelAttribute(Some(Node { 0: vec![Name::Name("Shutter1".to_string())] })),
                     snap: Snap::Yes,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -274,7 +279,7 @@ mod tests {
         DMXChannel {
             dmx_break: DMXBreak::Value(1),
             offset: Offset::None,
-            initial_function: NodeDmxChannelInitialFunction { tree: Node { 0: vec![Name::Empty] } },
+            initial_function: NodeLogicalChannelAttribute(None),
             highlight: Highlight::None,
             geometry: Name::Empty,
             logical_channels: vec![],

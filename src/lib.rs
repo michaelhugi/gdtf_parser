@@ -71,6 +71,7 @@ use quick_xml::Reader;
 use crate::fixture_type::FixtureType;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
+use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
 use crate::utils::units::data_version::DataVersion;
 
 pub mod fixture_type;
@@ -84,7 +85,7 @@ pub struct GDTF {
 }
 
 impl DeparseSingle for GDTF {
-    fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut data_version = DataVersion::Unknown;
         for attr in e.attributes().into_iter() {
@@ -136,17 +137,19 @@ impl DeparseSingle for GDTF {
     fn single_event_name() -> String {
         "GDTF".to_string()
     }
-    #[cfg(test)]
-    fn is_single_eq_no_log(&self, other: &Self) -> bool {
-        self.data_version == other.data_version &&
-            FixtureType::is_single_eq_log(&self.fixture_type, &other.fixture_type)
-    }
+
     #[cfg(test)]
     fn is_same_item_identifier(&self, _: &Self) -> bool {
         false
     }
 }
 
+impl AssertEqAllowEmpty for GDTF {
+    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+        self.data_version == other.data_version &&
+            self.fixture_type.is_eq_allow_empty(&other.fixture_type)
+    }
+}
 
 impl TryFrom<&Path> for GDTF {
     type Error = GdtfError;

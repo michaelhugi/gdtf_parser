@@ -6,6 +6,7 @@ use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_functio
 use crate::utils::deparse;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
+use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
 use crate::utils::units::master::Master;
 use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
 use crate::utils::units::snap::Snap;
@@ -30,7 +31,7 @@ pub struct LogicalChannel {
 }
 
 impl DeparseSingle for LogicalChannel {
-    fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut attribute: NodeLogicalChannelAttribute = Default::default();
         let mut snap: Snap = Snap::default();
@@ -95,21 +96,23 @@ impl DeparseSingle for LogicalChannel {
     fn single_event_name() -> String {
         "LogicalChannel".to_string()
     }
+
     #[cfg(test)]
-    fn is_single_eq_no_log(&self, other: &Self) -> bool {
-        self.attribute == other.attribute &&
+    fn is_same_item_identifier(&self, other: &Self) -> bool {
+        self.is_eq_allow_empty(other)
+    }
+}
+
+impl AssertEqAllowEmpty for LogicalChannel {
+    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+        self.attribute.is_eq_allow_empty(&other.attribute) &&
             self.snap == other.snap &&
             self.master == other.master &&
             self.mib_fade == other.mib_fade &&
             self.dmx_change_time_limit == other.dmx_change_time_limit &&
             ChannelFunction::is_vec_eq(&self.channel_functions, &other.channel_functions)
     }
-    #[cfg(test)]
-    fn is_same_item_identifier(&self, other: &Self) -> bool {
-        self.is_single_eq_no_log(other)
-    }
 }
-
 
 #[cfg(test)]
 mod tests {

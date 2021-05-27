@@ -5,6 +5,7 @@ use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::deparse;
 use crate::utils::errors::GdtfError;
+use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
 use crate::utils::units::name::Name;
 
 pub mod feature;
@@ -20,10 +21,10 @@ pub struct FeatureGroup {
 impl DeparseSingle for FeatureGroup {
     #[cfg(test)]
     fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name == compare.name
+        self.name.is_eq_allow_empty_no_log(&compare.name)
     }
 
-    fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut name = Default::default();
         let mut pretty = String::new();
@@ -76,11 +77,12 @@ impl DeparseSingle for FeatureGroup {
     fn single_event_name() -> String {
         "FeatureGroup".to_string()
     }
-    #[cfg(test)]
-    fn is_single_eq_no_log(&self, other: &Self) -> bool {
-        self.name == other.name &&
+}
+
+impl AssertEqAllowEmpty for FeatureGroup {
+    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+        self.name.is_eq_allow_empty(&other.name) &&
             self.pretty == other.pretty &&
-            self.features.len() == other.features.len() &&
             Feature::is_vec_eq(&self.features, &other.features)
     }
 }

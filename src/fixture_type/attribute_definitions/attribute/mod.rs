@@ -6,6 +6,7 @@ use quick_xml::Reader;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::deparse;
 use crate::utils::errors::GdtfError;
+use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
 use crate::utils::units::color_cie::ColorCIE;
 use crate::utils::units::name::Name;
 use crate::utils::units::physical_unit::PhysicalUnit;
@@ -25,9 +26,9 @@ pub struct Attribute {
 impl DeparseSingle for Attribute {
     #[cfg(test)]
     fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name == compare.name
+        self.name.is_eq_allow_empty_no_log(&compare.name)
     }
-    fn single_from_event_unchecked(_reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    fn single_from_event(_reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut name = Default::default();
         let mut pretty = String::new();
@@ -69,10 +70,11 @@ impl DeparseSingle for Attribute {
     fn single_event_name() -> String {
         "Attribute".to_string()
     }
+}
 
-    #[cfg(test)]
-    fn is_single_eq_no_log(&self, other: &Self) -> bool {
-        self.name == other.name &&
+impl AssertEqAllowEmpty for Attribute {
+    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+        self.name.is_eq_allow_empty(&other.name) &&
             self.pretty == other.pretty &&
             self.activation_group.as_deref() == other.activation_group.as_deref() &&
             self.main_attribute.as_deref() == other.main_attribute.as_deref() &&

@@ -9,6 +9,7 @@ use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_functio
 use crate::utils::deparse;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
+use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
 use crate::utils::units::dmx_value::DMXValue;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::node_channel_function_attribute::NodeChannelFunctionAttribute;
@@ -69,7 +70,7 @@ const DEFAULT_DMX_DEFAULT: DMXValue = DMXValue {
 };
 
 impl DeparseSingle for ChannelFunction {
-    fn single_from_event_unchecked(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut attribute: NodeChannelFunctionAttribute = Default::default();
@@ -171,9 +172,15 @@ impl DeparseSingle for ChannelFunction {
     }
 
     #[cfg(test)]
-    fn is_single_eq_no_log(&self, other: &Self) -> bool {
-        self.name == other.name &&
-            self.attribute == other.attribute &&
+    fn is_same_item_identifier(&self, compare: &Self) -> bool {
+        self.name.is_eq_allow_empty_no_log(&compare.name)
+    }
+}
+
+impl AssertEqAllowEmpty for ChannelFunction {
+    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+        self.name.is_eq_allow_empty(&other.name) &&
+            self.attribute.is_eq_allow_empty(&other.attribute) &&
             self.original_attribute == other.original_attribute &&
             self.dmx_from == other.dmx_from &&
             self.default == other.default &&
@@ -181,18 +188,13 @@ impl DeparseSingle for ChannelFunction {
             self.physical_to == other.physical_to &&
             self.real_fade == other.real_fade &&
             self.real_acceleration == other.real_acceleration &&
-            self.wheel == other.wheel &&
-            self.emitter == other.emitter &&
-            self.filter == other.filter &&
-            self.mode_master == other.mode_master &&
+            self.wheel.is_eq_allow_empty(&other.wheel) &&
+            self.emitter.is_eq_allow_empty(&other.emitter) &&
+            self.filter.is_eq_allow_empty(&other.filter) &&
+            self.mode_master.is_eq_allow_empty(&other.mode_master) &&
             self.mode_from == other.mode_from &&
             self.mode_to == other.mode_to &&
             ChannelSet::is_vec_eq(&self.channel_sets, &other.channel_sets)
-    }
-
-    #[cfg(test)]
-    fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name == compare.name
     }
 }
 

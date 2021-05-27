@@ -6,6 +6,7 @@ use quick_xml::Reader;
 use crate::utils::deparse;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
+use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
 use crate::utils::units::dmx_value::DMXValue;
 use crate::utils::units::name::Name;
 
@@ -19,7 +20,7 @@ pub struct ChannelSet {
 }
 
 impl DeparseSingle for ChannelSet {
-    fn single_from_event_unchecked(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    fn single_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut dmx_from: DMXValue = "1/1".try_into().unwrap();
@@ -58,20 +59,20 @@ impl DeparseSingle for ChannelSet {
     }
 
     #[cfg(test)]
-    fn is_single_eq_no_log(&self, compare: &Self) -> bool {
-        self.name == compare.name &&
-            self.dmx_from == compare.dmx_from &&
-            self.physical_from == compare.physical_from &&
-            self.physical_to == compare.physical_to &&
-            self.wheel_slot_index == compare.wheel_slot_index
-    }
-
-    #[cfg(test)]
     fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name == compare.name
+        self.name.is_eq_allow_empty_no_log(&compare.name)
     }
 }
 
+impl AssertEqAllowEmpty for ChannelSet {
+    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+        self.name.is_eq_allow_empty(&other.name) &&
+            self.dmx_from == other.dmx_from &&
+            self.physical_from == other.physical_from &&
+            self.physical_to == other.physical_to &&
+            self.wheel_slot_index == other.wheel_slot_index
+    }
+}
 
 #[cfg(test)]
 mod tests {

@@ -1,13 +1,12 @@
 //!Module for Node used in ChannelFunction.attribute
 use std::borrow::Borrow;
 use std::convert::{TryFrom, TryInto};
-use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::fmt;
-use std::str::Utf8Error;
 
 use quick_xml::events::attributes::Attribute;
 
+use crate::utils::test::assert_eq_allow_empty::AssertEqAllowEmpty;
 use crate::utils::units::node::{GDTFNodeError, Node};
 
 #[derive(Debug)]
@@ -19,6 +18,16 @@ pub enum NodeChannelFunctionAttribute {
     NoFeature,
 }
 
+impl AssertEqAllowEmpty for NodeChannelFunctionAttribute {
+    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+        use NodeChannelFunctionAttribute::*;
+        match self {
+            Node(val1) => if let Node(val2) = other { val1 == val2 } else { false }
+            NoFeature => if let NoFeature = other { true } else { false }
+        }
+    }
+}
+
 #[cfg(test)]
 ///used because partial_eq will return false for NoFeature
 impl NodeChannelFunctionAttribute {
@@ -26,8 +35,8 @@ impl NodeChannelFunctionAttribute {
     fn assert_eq(&self, other: &Self) {
         use NodeChannelFunctionAttribute::*;
         match self {
-            NoFeature => if let NoFeature = other {} else { panic!(format!("left: NoFeature\n right: {}", other)) }
-            Node(v1) => if let Node(v2) = other { assert_eq!(v1, v2); } else { panic!(format!("left: {}\n right: NoFeature", v1)) }
+            NoFeature => if let NoFeature = other {} else { panic!("left: NoFeature\n right: {}", other) }
+            Node(v1) => if let Node(v2) = other { assert_eq!(v1, v2); } else { panic!("left: {}\n right: NoFeature", v1) }
         }
     }
 }
@@ -129,6 +138,7 @@ mod tests {
 
     #[test]
     fn test_partial_eq() {
+
         assert_ne!(
             NodeChannelFunctionAttribute::NoFeature,
             NodeChannelFunctionAttribute::NoFeature
@@ -141,7 +151,7 @@ mod tests {
             NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into().unwrap()])),
             NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into().unwrap()]))
         );
-        assert_eq!(
+        assert_ne!(
             NodeChannelFunctionAttribute::Node(Node(vec!["".try_into().unwrap()])),
             NodeChannelFunctionAttribute::Node(Node(vec!["".try_into().unwrap()]))
         );
