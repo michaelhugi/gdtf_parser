@@ -73,7 +73,7 @@ impl DeparseSingle for AttributeDefinitions {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for AttributeDefinitions {
-    fn is_eq_allow_empty_impl(&self, other: &Self,log:bool) -> bool {
+    fn is_eq_allow_empty_impl(&self, other: &Self, _: bool) -> bool {
         FeatureGroup::is_vec_eq_unordered(&self.feature_groups, &other.feature_groups) &&
             Attribute::is_vec_eq_unordered(&self.attributes, &other.attributes) &&
             ActivationGroup::is_vec_eq_unordered(&self.activation_groups, &other.activation_groups)

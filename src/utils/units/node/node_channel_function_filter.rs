@@ -1,7 +1,5 @@
 //!Module for Node used in ChannelFunction.Filter
 use std::convert::TryFrom;
-use std::fmt::{Display, Formatter};
-use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
 
@@ -24,7 +22,7 @@ impl From<Attribute<'_>> for NodeChannelFunctionFilter {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for NodeChannelFunctionFilter {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+    fn is_eq_allow_empty_impl(&self, other: &Self, _: bool) -> bool {
         Self::is_eq_allow_option(&self.0, &other.0)
     }
 }

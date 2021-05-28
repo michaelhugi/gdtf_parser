@@ -78,13 +78,12 @@ pub trait PartialEqAllowEmpty: Debug {
 #[cfg(test)]
 mod tests {
     use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
-    use crate::utils::units::snap::Snap::No;
 
     #[derive(Debug, PartialEq)]
     struct TeststructOption(Option<String>);
 
     impl PartialEqAllowEmpty for TeststructOption {
-        fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+        fn is_eq_allow_empty_impl(&self, other: &Self, _: bool) -> bool {
             Self::is_eq_allow_option(&self.0, &other.0)
         }
     }

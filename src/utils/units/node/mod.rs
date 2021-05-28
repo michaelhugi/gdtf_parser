@@ -6,7 +6,7 @@ use std::fmt::{Display, Formatter};
 use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
-
+#[cfg(test)]
 use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::name::{GDTFNameError, Name};
 
@@ -87,7 +87,7 @@ impl PartialEq for Node {
         self.0 == other.0
     }
 }
-
+#[cfg(test)]
 impl PartialEqAllowEmpty for Node {
     fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
         Self::is_vec_eq_ordered(&self.0, &other.0, log)
@@ -210,7 +210,7 @@ mod tests {
         assert!(!Node(vec![]).is_eq_allow_empty(&Node(vec!["One".try_into()?, "Two".try_into()?]), false));
         assert!(!Node(vec!["One".try_into()?, "Two".try_into()?]).is_eq_allow_empty(&Node(vec![]), false));
         assert!(!Node(vec!["One".try_into()?, "Two".try_into()?]).is_eq_allow_empty(&Node(vec!["Two".try_into()?, "One".try_into()?]), false));
-        assert!(!Node(vec!["One".try_into()?, "Two".try_into()?]).is_eq_allow_empty(&Node(vec!["One".try_into()?]), false), true);
+        assert!(!Node(vec!["One".try_into()?, "Two".try_into()?]).is_eq_allow_empty(&Node(vec!["One".try_into()?]), false));
         assert!(!Node(vec![Name::Name("".to_string()), "Two".try_into()?]).is_eq_allow_empty(&Node(vec![Name::Empty, "Two".try_into()?]), false));
         assert!(!Node(vec!["One".try_into()?, Name::Name("".to_string())]).is_eq_allow_empty(&Node(vec!["One".try_into()?, Name::Empty]), false));
 

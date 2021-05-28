@@ -1,7 +1,5 @@
 //!Module for Node used in LogicalChannel.attribute
 use std::convert::TryFrom;
-use std::fmt::{Display, Formatter};
-use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
 
@@ -24,7 +22,7 @@ impl From<Attribute<'_>> for NodeLogicalChannelAttribute {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for NodeLogicalChannelAttribute {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+    fn is_eq_allow_empty_impl(&self, other: &Self, _: bool) -> bool {
         Self::is_eq_allow_option(&self.0, &other.0)
     }
 }
@@ -65,7 +63,6 @@ mod tests {
     use crate::utils::units::name::Name;
     use crate::utils::units::node::Node;
     use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
-    use crate::utils::units::node::node_option::NodeOption;
 
     #[test]
     fn test_from_attr_borrowed() -> Result<(), GdtfError> {

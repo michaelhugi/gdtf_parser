@@ -1,11 +1,8 @@
 use std::borrow::Borrow;
 use std::convert::TryInto;
-use std::fmt::{Display, Formatter};
 
 use quick_xml::events::attributes::Attribute;
-
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
-use crate::utils::units::node::{fmt, GDTFNodeError, Node};
+use crate::utils::units::node::{GDTFNodeError, Node};
 
 pub trait NodeOption {
     fn read_option_from_attr(attr: Attribute<'_>) -> Option<Node> {
@@ -31,10 +28,7 @@ pub trait NodeOption {
 
 #[cfg(test)]
 mod tests {
-    use quick_xml::events::BytesStart;
-    use quick_xml::Reader;
 
-    use crate::utils::deparse::DeparseSingle;
     use crate::utils::errors::GdtfError;
     use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
     use crate::utils::units::node::Node;
@@ -46,7 +40,7 @@ mod tests {
     impl NodeOption for TestNodeOption {}
 
     impl PartialEqAllowEmpty for TestNodeOption {
-        fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+        fn is_eq_allow_empty_impl(&self, other: &Self, _: bool) -> bool {
             Self::is_eq_allow_option(&self.0, &other.0)
         }
     }
