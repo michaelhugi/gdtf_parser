@@ -8,11 +8,11 @@ use quick_xml::Reader;
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
 use crate::utils::deparse;
 use crate::utils::deparse::DeparseSingle;
-use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
+use crate::utils::errors::GdtfError;
+#[cfg(test)]
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::dmx_value::DMXValue;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::node_channel_function_attribute::NodeChannelFunctionAttribute;
@@ -177,9 +177,9 @@ impl DeparseSingle for ChannelFunction {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for ChannelFunction {
-    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
-        self.name.is_eq_allow_empty(&other.name) &&
-            self.attribute.is_eq_allow_empty(&other.attribute) &&
+    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+        self.name.is_eq_allow_empty(&other.name, log) &&
+            self.attribute.is_eq_allow_empty(&other.attribute, log) &&
             self.original_attribute == other.original_attribute &&
             self.dmx_from == other.dmx_from &&
             self.default == other.default &&
@@ -187,20 +187,20 @@ impl PartialEqAllowEmpty for ChannelFunction {
             self.physical_to == other.physical_to &&
             self.real_fade == other.real_fade &&
             self.real_acceleration == other.real_acceleration &&
-            self.wheel.is_eq_allow_empty(&other.wheel) &&
-            self.emitter.is_eq_allow_empty(&other.emitter) &&
-            self.filter.is_eq_allow_empty(&other.filter) &&
-            self.mode_master.is_eq_allow_empty(&other.mode_master) &&
+            self.wheel.is_eq_allow_empty(&other.wheel, log) &&
+            self.emitter.is_eq_allow_empty(&other.emitter, log) &&
+            self.filter.is_eq_allow_empty(&other.filter, log) &&
+            self.mode_master.is_eq_allow_empty(&other.mode_master, log) &&
             self.mode_from == other.mode_from &&
             self.mode_to == other.mode_to &&
-            ChannelSet::is_vec_eq(&self.channel_sets, &other.channel_sets)
+            ChannelSet::is_vec_eq_unordered(&self.channel_sets, &other.channel_sets)
     }
 }
 
 #[cfg(test)]
 impl TestDeparseSingle for ChannelFunction {
     fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name.is_eq_allow_empty_no_log(&compare.name)
+        self.name.is_eq_allow_empty(&compare.name, false)
     }
 }
 

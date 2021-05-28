@@ -7,4 +7,5 @@ pub mod errors;
 pub mod doc;
 pub(crate) mod deparse;
 #[cfg(test)]
-pub mod test;
+pub mod partial_eq_allow_empty;
+pub mod partial_eq_option;

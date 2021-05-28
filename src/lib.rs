@@ -1,3 +1,4 @@
+#![feature(backtrace)]
 //! A fast and well tested GDTF-parser
 //!
 //! **gdtf-parser is in pre-release state. Any breaking changes may be implemented without further notice!**
@@ -70,11 +71,11 @@ use quick_xml::Reader;
 
 use crate::fixture_type::FixtureType;
 use crate::utils::deparse::DeparseSingle;
-use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
+use crate::utils::errors::GdtfError;
+#[cfg(test)]
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::data_version::DataVersion;
 
 pub mod fixture_type;
@@ -144,9 +145,9 @@ impl DeparseSingle for GDTF {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for GDTF {
-    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+    fn is_eq_allow_empty_impl(&self, other: &Self,log:bool) -> bool {
         self.data_version == other.data_version &&
-            self.fixture_type.is_eq_allow_empty(&other.fixture_type)
+            self.fixture_type.is_eq_allow_empty(&other.fixture_type, log)
     }
 }
 

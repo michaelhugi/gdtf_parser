@@ -5,11 +5,11 @@ use quick_xml::Reader;
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
 use crate::utils::deparse;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
-use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
+use crate::utils::errors::GdtfError;
+#[cfg(test)]
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::dmx_break::DMXBreak;
 use crate::utils::units::highlight::Highlight;
 use crate::utils::units::name::Name;
@@ -105,30 +105,26 @@ impl DeparseSingle for DMXChannel {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for DMXChannel {
-    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
         self.dmx_break == other.dmx_break &&
             self.offset == other.offset &&
-            self.initial_function.is_eq_allow_empty(&other.initial_function) &&
+            self.initial_function.is_eq_allow_empty(&other.initial_function, log) &&
             self.highlight == other.highlight &&
-            self.geometry.is_eq_allow_empty(&other.geometry) &&
-            LogicalChannel::is_vec_eq(&self.logical_channels, &other.logical_channels)
+            self.geometry.is_eq_allow_empty(&other.geometry, log) &&
+            LogicalChannel::is_vec_eq_unordered(&self.logical_channels, &other.logical_channels)
     }
 }
 
 #[cfg(test)]
 impl TestDeparseSingle for DMXChannel {
     fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.is_eq_allow_empty(compare)
+        self.is_eq_allow_empty(compare, false)
     }
 }
 
 impl DeparseVec for DMXChannel {
     fn is_group_event_name(event_name: &[u8]) -> bool {
         event_name == b"DMXChannels"
-    }
-
-    fn group_event_name() -> String {
-        "DMXChannels".to_string()
     }
 }
 

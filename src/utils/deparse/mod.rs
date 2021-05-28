@@ -1,5 +1,7 @@
 use std::borrow::Borrow;
 use std::convert::TryInto;
+#[cfg(test)]
+use std::fmt::Debug;
 use std::str::FromStr;
 
 use quick_xml::events::attributes::Attribute;
@@ -8,11 +10,9 @@ use quick_xml::events::Event;
 use quick_xml::Reader;
 
 use crate::utils::errors::GdtfError;
+#[cfg(test)]
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::name::Name;
-#[cfg(test)]
-use std::fmt::Debug;
-#[cfg(test)]
-use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
 
 pub(crate) trait DeparseSingle: std::fmt::Debug + Sized {
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError>;
@@ -24,33 +24,6 @@ pub(crate) trait DeparseSingle: std::fmt::Debug + Sized {
 
 #[cfg(test)]
 pub(crate) trait TestDeparseSingle: Debug + Sized + PartialEqAllowEmpty + DeparseSingle {
-    fn is_vec_eq(one: &Vec<Self>, two: &Vec<Self>) -> bool {
-        if one.len() != two.len() {
-            println!("Testing {} for vec returned not the same amount of items", Self::single_event_name());
-            return false;
-        }
-        for o in one.iter() {
-            let mut t = o.clone();
-            let mut item_found = false;
-
-            for tw in two.iter() {
-                if o.is_same_item_identifier(tw) {
-                    t = tw;
-                    item_found = true;
-                }
-            }
-            if !item_found {
-                println!("Did not find {} that corresponds to \n{:?}", Self::single_event_name(), o);
-                return false;
-            }
-
-            if !o.is_eq_allow_empty(t) {
-                return false;
-            }
-        }
-        true
-    }
-
     fn single_from_reader(reader: &mut Reader<&[u8]>) -> Result<Self, GdtfError> {
         reader.trim_text(true);
 
@@ -91,17 +64,45 @@ pub(crate) trait TestDeparseSingle: Debug + Sized + PartialEqAllowEmpty + Depars
 
     fn test_with_result(&self, other: Result<Self, GdtfError>) {
         let other = other.expect(&format!("Unexpected error in test of {}", Self::single_event_name())[..]);
-        self.assert_eq_allow_empty(&other);
+        self.assert_eq_allow_empty(&other,true);
     }
 
     fn is_same_item_identifier(&self, compare: &Self) -> bool;
+
+    ///Says if two vecs have the same items compared with PartialEqAllowEmpty where the order does not matter
+    fn is_vec_eq_unordered(one: &Vec<Self>, two: &Vec<Self>) -> bool {
+        if one.len() != two.len() {
+            println!("Testing {} for is_vec_eq_unordered returned not the same amount of items", std::any::type_name::<Self>());
+            return false;
+        }
+        for one in &mut one.iter() {
+            let mut t = one.clone();
+            let mut item_found = false;
+
+            for tw in two.iter() {
+                if one.is_same_item_identifier(tw) {
+                    t = tw;
+                    item_found = true;
+                }
+            }
+            if !item_found {
+                println!("Did not find {} that corresponds to \n{:?}", Self::single_event_name(), one);
+                return false;
+            }
+
+            if !one.is_eq_allow_empty(t, true) {
+                return false;
+            }
+        }
+        true
+    }
 }
 
 pub(crate) trait DeparseVec: DeparseSingle {
     fn vec_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Vec<Self>, GdtfError> where
         Self: Sized {
         if !Self::is_group_event_name(&e.name()) {
-            panic!("Wrong event passed for reading {}", Self::group_event_name());
+            panic!("Wrong event passed for reading {}", std::any::type_name::<Self>());
         }
 
         let mut buf: Vec<u8> = Vec::new();
@@ -133,10 +134,6 @@ pub(crate) trait DeparseVec: DeparseSingle {
 
 
     fn is_group_event_name(event_name: &[u8]) -> bool;
-
-    fn group_event_name() -> String;
-
-
 }
 
 #[cfg(test)]
@@ -180,8 +177,8 @@ pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
 
     fn test_group(one: Vec<Self>, xml: &str) where Self: Sized {
         let two = Self::vec_from_xml(xml);
-        let two = two.expect(&format!("Testing {} for list raised an unexpected error", Self::group_event_name())[..]);
-        assert!(Self::is_vec_eq(&one, &two));
+        let two = two.expect(&format!("Testing {} for list raised an unexpected error", std::any::type_name::<Self>())[..]);
+        assert!(Self::is_vec_eq_unordered(&one, &two));
     }
 }
 

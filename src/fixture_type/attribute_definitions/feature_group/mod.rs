@@ -8,7 +8,7 @@ use crate::utils::deparse;
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 #[cfg(test)]
-use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseVec;
 use crate::utils::units::name::Name;
@@ -81,17 +81,17 @@ impl DeparseSingle for FeatureGroup {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for FeatureGroup {
-    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
-        self.name.is_eq_allow_empty(&other.name) &&
+    fn is_eq_allow_empty_impl(&self, other: &Self,log:bool) -> bool {
+        self.name.is_eq_allow_empty(&other.name,log) &&
             self.pretty == other.pretty &&
-            Feature::is_vec_eq(&self.features, &other.features)
+            Feature::is_vec_eq_unordered(&self.features, &other.features)
     }
 }
 
 #[cfg(test)]
 impl TestDeparseSingle for FeatureGroup {
     fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name.is_eq_allow_empty_no_log(&compare.name)
+        self.name.is_eq_allow_empty(&compare.name,false)
     }
 }
 
@@ -103,9 +103,6 @@ impl DeparseVec for FeatureGroup {
         event_name == b"FeatureGroups"
     }
 
-    fn group_event_name() -> String {
-        "FeatureGroups".to_string()
-    }
 }
 
 #[cfg(test)]

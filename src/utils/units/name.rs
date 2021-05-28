@@ -7,7 +7,7 @@ use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
 #[cfg(test)]
-use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 
 ///Name representation used in GDTF
 #[derive(Debug)]
@@ -108,7 +108,7 @@ impl PartialEq for Name {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for Name {
-    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
+    fn is_eq_allow_empty_impl(&self, other: &Self,log:bool) -> bool {
         use self::Name::*;
         match self {
             Empty => if let Empty = other { true } else { false },
@@ -121,13 +121,13 @@ impl PartialEqAllowEmpty for Name {
 mod tests {
     use std::convert::{TryFrom, TryInto};
 
-    use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
+    use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
     use crate::utils::testdata;
     use crate::utils::units::name::Name;
 
     #[test]
     fn test_default() {
-        Name::Empty.assert_eq_allow_empty(&Default::default());
+        Name::Empty.assert_eq_allow_empty(&Default::default(),true);
     }
 
     #[test]
@@ -145,7 +145,7 @@ mod tests {
         assert!(Name::try_from("{").is_err());
         //Name has restricted set of valid chars
         assert!(Name::try_from("Some {Name").is_err());
-        Name::Empty.assert_eq_allow_empty(&"".try_into().unwrap());
+        Name::Empty.assert_eq_allow_empty(&"".try_into().unwrap(),true);
         assert_eq!(Name::Name(" ".to_string()), " ".try_into().unwrap());
         assert_eq!(Name::Name("  ".to_string()), "  ".try_into().unwrap());
         assert_eq!(Name::Name("Some Name".to_string()), "Some Name".try_into().unwrap());
@@ -159,7 +159,7 @@ mod tests {
         assert_eq!(Name::Name("{".to_string()), testdata::to_attr_borrowed(b"{").into());
         //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
         assert_eq!(Name::Name("Some {Name".to_string()), testdata::to_attr_borrowed(b"Some {Name").into());
-        Name::Empty.assert_eq_allow_empty(&testdata::to_attr_borrowed(b"").into());
+        Name::Empty.assert_eq_allow_empty(&testdata::to_attr_borrowed(b"").into(),true);
         assert_eq!(Name::Name(" ".to_string()), testdata::to_attr_borrowed(b" ").into());
         assert_eq!(Name::Name("  ".to_string()), testdata::to_attr_borrowed(b"  ").into());
         assert_eq!(Name::Name("Some Name".to_string()), testdata::to_attr_borrowed(b"Some Name").into());
@@ -173,7 +173,7 @@ mod tests {
         assert_eq!(Name::Name("{".to_string()), testdata::to_attr_owned(b"{").into());
         //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
         assert_eq!(Name::Name("Some {Name".to_string()), testdata::to_attr_owned(b"Some {Name").into());
-        Name::Empty.assert_eq_allow_empty(&testdata::to_attr_owned(b"").into());
+        Name::Empty.assert_eq_allow_empty(&testdata::to_attr_owned(b"").into(),true);
         assert_eq!(Name::Name(" ".to_string()), testdata::to_attr_owned(b" ").into());
         assert_eq!(Name::Name("  ".to_string()), testdata::to_attr_owned(b"  ").into());
         assert_eq!(Name::Name("Some Name".to_string()), testdata::to_attr_owned(b"Some Name").into());

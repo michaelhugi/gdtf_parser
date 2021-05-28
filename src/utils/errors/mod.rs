@@ -8,6 +8,7 @@ use zip::result::ZipError;
 use crate::utils::units::dmx_value::GDTFDmxValueError;
 use crate::utils::units::guid::GDTFGUIDError;
 use crate::utils::units::name::GDTFNameError;
+use crate::utils::units::node::GDTFNodeError;
 
 #[derive(Debug)]
 pub enum GdtfError {
@@ -24,6 +25,7 @@ pub enum GdtfError {
     NameError(GDTFNameError),
     GUIDError(GDTFGUIDError),
     GDTFDmxValueError(GDTFDmxValueError),
+    GDTFNodeError(GDTFNodeError),
 }
 
 impl From<ParseIntError> for GdtfError {
@@ -48,6 +50,10 @@ impl From<GDTFDmxValueError> for GdtfError {
     fn from(e: GDTFDmxValueError) -> Self {
         GdtfError::GDTFDmxValueError(e)
     }
+}
+
+impl From<GDTFNodeError> for GdtfError {
+    fn from(e: GDTFNodeError) -> Self { GdtfError::GDTFNodeError(e) }
 }
 
 impl fmt::Display for GdtfError {

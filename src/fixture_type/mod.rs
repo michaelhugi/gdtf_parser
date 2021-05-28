@@ -9,7 +9,7 @@ use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXMLError;
 #[cfg(test)]
-use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::units::guid::GUID;
@@ -151,8 +151,8 @@ impl DeparseSingle for FixtureType {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for FixtureType {
-    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
-        self.name.is_eq_allow_empty(&other.name) &&
+    fn is_eq_allow_empty_impl(&self, other: &Self,log:bool) -> bool {
+        self.name.is_eq_allow_empty(&other.name,log) &&
             self.short_name == other.short_name &&
             self.long_name == other.long_name &&
             self.manufacturer == other.manufacturer &&
@@ -160,7 +160,7 @@ impl PartialEqAllowEmpty for FixtureType {
             self.fixture_type_id == other.fixture_type_id &&
             self.thumbnail == other.thumbnail &&
             self.ref_ft == other.ref_ft &&
-            self.attribute_definitions.is_eq_allow_empty(&other.attribute_definitions)
+            self.attribute_definitions.is_eq_allow_empty(&other.attribute_definitions,log)
     }
 }
 

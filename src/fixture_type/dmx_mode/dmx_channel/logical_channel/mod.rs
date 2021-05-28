@@ -5,11 +5,11 @@ use quick_xml::Reader;
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
 use crate::utils::deparse;
 use crate::utils::deparse::DeparseSingle;
-use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
+use crate::utils::errors::GdtfError;
+#[cfg(test)]
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::master::Master;
 use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
 use crate::utils::units::snap::Snap;
@@ -103,20 +103,20 @@ impl DeparseSingle for LogicalChannel {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for LogicalChannel {
-    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
-        self.attribute.is_eq_allow_empty(&other.attribute) &&
+    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+        self.attribute.is_eq_allow_empty(&other.attribute, log) &&
             self.snap == other.snap &&
             self.master == other.master &&
             self.mib_fade == other.mib_fade &&
             self.dmx_change_time_limit == other.dmx_change_time_limit &&
-            ChannelFunction::is_vec_eq(&self.channel_functions, &other.channel_functions)
+            ChannelFunction::is_vec_eq_unordered(&self.channel_functions, &other.channel_functions)
     }
 }
 
 #[cfg(test)]
 impl TestDeparseSingle for LogicalChannel {
     fn is_same_item_identifier(&self, other: &Self) -> bool {
-        self.is_eq_allow_empty(other)
+        self.is_eq_allow_empty(other, false)
     }
 }
 

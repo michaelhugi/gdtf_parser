@@ -5,11 +5,11 @@ use quick_xml::Reader;
 
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::deparse;
-use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
+use crate::utils::errors::GdtfError;
+#[cfg(test)]
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::color_cie::ColorCIE;
 use crate::utils::units::name::Name;
 use crate::utils::units::physical_unit::PhysicalUnit;
@@ -73,8 +73,8 @@ impl DeparseSingle for Attribute {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for Attribute {
-    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
-        self.name.is_eq_allow_empty(&other.name) &&
+    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+        self.name.is_eq_allow_empty(&other.name, log) &&
             self.pretty == other.pretty &&
             self.activation_group.as_deref() == other.activation_group.as_deref() &&
             self.main_attribute.as_deref() == other.main_attribute.as_deref() &&
@@ -86,17 +86,13 @@ impl PartialEqAllowEmpty for Attribute {
 #[cfg(test)]
 impl TestDeparseSingle for Attribute {
     fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name.is_eq_allow_empty_no_log(&compare.name)
+        self.name.is_eq_allow_empty(&compare.name, false)
     }
 }
 
 impl DeparseVec for Attribute {
     fn is_group_event_name(event_name: &[u8]) -> bool {
         event_name == b"Attributes"
-    }
-
-    fn group_event_name() -> String {
-        "Attributes".to_string()
     }
 }
 

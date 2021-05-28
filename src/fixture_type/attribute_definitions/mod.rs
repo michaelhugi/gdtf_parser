@@ -5,12 +5,12 @@ use crate::fixture_type::attribute_definitions::activation_group::ActivationGrou
 use crate::fixture_type::attribute_definitions::attribute::Attribute;
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
+#[cfg(test)]
+use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXMLError;
 #[cfg(test)]
-use crate::utils::test::partial_eq_allow_empty::PartialEqAllowEmpty;
-#[cfg(test)]
-use crate::utils::deparse::TestDeparseSingle;
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 
 pub mod feature_group;
 pub mod attribute;
@@ -73,10 +73,10 @@ impl DeparseSingle for AttributeDefinitions {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for AttributeDefinitions {
-    fn is_eq_allow_empty_no_log(&self, other: &Self) -> bool {
-        FeatureGroup::is_vec_eq(&self.feature_groups, &other.feature_groups) &&
-            Attribute::is_vec_eq(&self.attributes, &other.attributes) &&
-            ActivationGroup::is_vec_eq(&self.activation_groups, &other.activation_groups)
+    fn is_eq_allow_empty_impl(&self, other: &Self,log:bool) -> bool {
+        FeatureGroup::is_vec_eq_unordered(&self.feature_groups, &other.feature_groups) &&
+            Attribute::is_vec_eq_unordered(&self.attributes, &other.attributes) &&
+            ActivationGroup::is_vec_eq_unordered(&self.activation_groups, &other.activation_groups)
     }
 }
 

@@ -4,26 +4,10 @@ use std::fmt::{Display, Formatter};
 
 use quick_xml::events::attributes::Attribute;
 
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::node::{fmt, GDTFNodeError, Node};
 
-pub trait NodeOption: Display {
-    fn get_node_option(&self) -> &Option<Node>;
-
-    ///Needed to compare none values even when partial_eq returns false
-    fn assert_eq_including_none(&self, other: &Self) {
-        match self.get_node_option() {
-            None => if let None = other.get_node_option() {} else { panic!("left: None\n right: {}", other.get_node_option().as_ref().unwrap()) }
-            Some(v1) => if let Some(v2) = other.get_node_option() { assert_eq!(v1, v2); } else { panic!("left: {}\n right: None", v1) }
-        }
-    }
-
-    fn eq_exluding_none(&self, other: &Self) -> bool {
-        match &self.get_node_option() {
-            None => false,
-            Some(v1) => if let Some(v2) = &other.get_node_option() { v1 == v2 } else { false }
-        }
-    }
-
+pub trait NodeOption {
     fn read_option_from_attr(attr: Attribute<'_>) -> Option<Node> {
         let value = match std::str::from_utf8(attr.value.borrow()) {
             Ok(s) => s,
@@ -43,11 +27,42 @@ pub trait NodeOption: Display {
             Ok(Some(value.try_into()?))
         }
     }
+}
 
-    fn fmt_option(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match &self.get_node_option() {
-            None => write!(f, ""),
-            Some(val) => write!(f, "{}", val)
+#[cfg(test)]
+mod tests {
+    use quick_xml::events::BytesStart;
+    use quick_xml::Reader;
+
+    use crate::utils::deparse::DeparseSingle;
+    use crate::utils::errors::GdtfError;
+    use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
+    use crate::utils::units::node::Node;
+    use crate::utils::units::node::node_option::NodeOption;
+
+    #[derive(Debug)]
+    struct TestNodeOption(Option<Node>);
+
+    impl NodeOption for TestNodeOption {}
+
+    impl PartialEqAllowEmpty for TestNodeOption {
+        fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+            Self::is_eq_allow_option(&self.0, &other.0)
         }
     }
+
+    #[test]
+    fn test_try_read_from_str() -> Result<(), GdtfError> {
+        TestNodeOption(None).assert_eq_allow_empty(&TestNodeOption(TestNodeOption::try_read_from_str("")?), true);
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_option_from_attr_owned() -> Result<(), GdtfError> {
+        Ok(())
+    }
+
+
+    #[test]
+    fn test_fmt_option() -> Result<(), GdtfError> { Ok(()) }
 }
