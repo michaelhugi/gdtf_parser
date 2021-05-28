@@ -2,11 +2,14 @@
 use std::borrow::Borrow;
 use std::convert::{TryFrom, TryInto};
 use std::error::Error;
-use std::fmt::Debug;
 use std::fmt;
+use std::fmt::Debug;
 use std::str::FromStr;
 
 use quick_xml::events::attributes::Attribute;
+
+#[cfg(test)]
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 
 ///CIE color representation xyY 1931 used in GDTF
 #[derive(Debug)]
@@ -49,9 +52,8 @@ impl TryFrom<&str> for ColorCIE {
 }
 
 #[cfg(test)]
-///Only used for testing to check if variables are same
-impl PartialEq for ColorCIE {
-    fn eq(&self, other: &Self) -> bool {
+impl PartialEqAllowEmpty for ColorCIE {
+    fn is_eq_allow_empty_impl(&self, other: &Self, _: bool) -> bool {
         self.x == other.x && self.y == other.y && self.Y == other.Y
     }
 }
@@ -88,120 +90,40 @@ impl Error for GDTFColorCIEError {}
 mod tests {
     use std::convert::{TryFrom, TryInto};
 
+    use crate::utils::errors::GdtfError;
+    use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
     use crate::utils::testdata;
     use crate::utils::units::color_cie::ColorCIE;
 
     #[test]
-    fn test_parse_valid_str() {
-        assert_eq!(
-            ColorCIE { x: 234.2, y: 123.123, Y: 123. },
-            ColorCIE::try_from("234.2,123.123,123.000").unwrap()
-        );
+    fn test_try_from_str() -> Result<(), GdtfError> {
+        ColorCIE { x: 234.2, y: 123.123, Y: 123. }.assert_eq_allow_empty(&ColorCIE::try_from("234.2,123.123,123.000")?, true);
+        assert!(ColorCIE::try_from("something invalid").is_err());
+        Ok(())
     }
 
     #[test]
-    fn test_parse_valid_attr_borrowed() {
-        assert_eq!(
-            ColorCIE { x: 234.2, y: 123.123, Y: 123. },
-            testdata::to_attr_borrowed(b"234.2,123.123,123.000").try_into().unwrap()
-        );
+    fn test_try_from_attr_borrowed() -> Result<(), GdtfError> {
+        ColorCIE { x: 234.2, y: 123.123, Y: 123. }.assert_eq_allow_empty(&testdata::to_attr_borrowed(b"234.2,123.123,123.000").try_into()?, true);
+        assert!(ColorCIE::try_from(testdata::to_attr_borrowed(b"Something invalid")).is_err());
+        Ok(())
     }
 
     #[test]
-    fn test_parse_valid_attr_owned() {
-        assert_eq!(
-            ColorCIE { x: 234.2, y: 123.123, Y: 123. },
-            testdata::to_attr_owned(b"234.2,123.123,123.000").try_into().unwrap()
-        );
+    fn test_try_from_attr_owned() -> Result<(), GdtfError> {
+        ColorCIE { x: 234.2, y: 123.123, Y: 123. }.assert_eq_allow_empty(&testdata::to_attr_owned(b"234.2,123.123,123.000").try_into()?, true);
+        assert!(ColorCIE::try_from(testdata::to_attr_owned(b"Something invalid")).is_err());
+        Ok(())
     }
 
-    #[test]
-    fn test_parse_invalid_str() {
-        if ColorCIE::try_from("something invalid").is_ok() {
-            panic!("test_invalid should return an error");
-        }
-    }
-
-    #[test]
-    fn test_parse_invalid_attr_owned() {
-        if ColorCIE::try_from(testdata::to_attr_owned(b"Something invalid")).is_ok() {
-            panic!("test_invalid should return an error");
-        }
-    }
-
-    #[test]
-    fn test_parse_invalid_attr_borrowed() {
-        if ColorCIE::try_from(testdata::to_attr_owned(b"Something invalid")).is_ok() {
-            panic!("test_invalid should return an error");
-        }
-    }
-
-    #[test]
-    fn test_partial_eq_x() {
-        let left = ColorCIE {
-            x: 1.0,
-            y: 1.0,
-            Y: 1.0,
-        };
-        let right = ColorCIE {
-            x: 2.0,
-            y: 1.0,
-            Y: 1.0,
-        };
-        if left == right {
-            panic!("The PartialEq of ColorCIE is broken");
-        }
-    }
-
-    #[test]
-    fn test_partial_eq_y() {
-        let left = ColorCIE {
-            x: 1.0,
-            y: 2.0,
-            Y: 1.0,
-        };
-        let right = ColorCIE {
-            x: 1.0,
-            y: 1.0,
-            Y: 1.0,
-        };
-        if left == right {
-            panic!("The PartialEq of ColorCIE is broken");
-        }
-    }
 
     #[test]
     #[allow(non_snake_case)]
-    fn test_partial_eq_Y() {
-        let left = ColorCIE {
-            x: 1.0,
-            y: 1.0,
-            Y: 2.0,
-        };
-        let right = ColorCIE {
-            x: 1.0,
-            y: 1.0,
-            Y: 1.0,
-        };
-        if left == right {
-            panic!("The PartialEq of ColorCIE is broken");
-        }
-    }
-
-    #[test]
-    fn test_partial_eq_valid() {
-        let left = ColorCIE {
-            x: 0.0,
-            y: 1.0,
-            Y: 2.0,
-        };
-        let right = ColorCIE {
-            x: 0.0,
-            y: 1.0,
-            Y: 2.0,
-        };
-        if left != right {
-            panic!("The PartialEq of ColorCIE is broken");
-        }
+    fn test_partial_eq_allow_empty() -> Result<(), GdtfError> {
+        assert!(!ColorCIE::try_from("1.0,1.0,1.0")?.is_eq_allow_empty(&ColorCIE::try_from("2.0,1.0,1.0")?, false));
+        assert!(!ColorCIE::try_from("1.0,1.0,1.0")?.is_eq_allow_empty(&ColorCIE::try_from("1.0,2.0,1.0")?, false));
+        assert!(!ColorCIE::try_from("1.0,1.0,1.0")?.is_eq_allow_empty(&ColorCIE::try_from("1.0,1.0,2.0")?, false));
+        assert!(ColorCIE::try_from("1.0,1.0,1.0")?.is_eq_allow_empty(&ColorCIE::try_from("1.0,1.0,1.0")?, true));
+        Ok(())
     }
 }

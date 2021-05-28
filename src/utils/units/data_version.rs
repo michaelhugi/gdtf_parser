@@ -1,8 +1,10 @@
 //! Module for the unit DataVersion used in GDTF
 use std::borrow::Borrow;
 
-
 use quick_xml::events::attributes::Attribute;
+
+#[cfg(test)]
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 
 ///The DataVersion attribute defines the minimal version of compatibility. The Version format is “Major.Minor”, where major and minor is Uint with size 1 byte
 #[derive(Debug)]
@@ -46,180 +48,54 @@ impl PartialEq for DataVersion {
     }
 }
 
+#[cfg(test)]
+impl PartialEqAllowEmpty for DataVersion {
+    fn is_eq_allow_empty_impl(&self, other: &Self, _: bool) -> bool {
+        use DataVersion::*;
+        match self {
+            Version1_0 => if let Version1_0 = other { true } else { false }
+            Version1_1 => if let Version1_1 = other { true } else { false }
+            Unknown => if let Unknown = other { true } else { false }
+        }
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
+    use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
     use crate::utils::testdata;
     use crate::utils::units::data_version::DataVersion;
 
     #[test]
-    fn test_parse_attr_from_1_0_owned() {
-        assert_eq!(
-            DataVersion::Version1_0,
-            testdata::to_attr_owned(b"1.0").into()
-        );
+    fn test_from_attr_owned() {
+        DataVersion::Version1_0.assert_eq_allow_empty(&testdata::to_attr_owned(b"1.0").into(), true);
+        DataVersion::Version1_1.assert_eq_allow_empty(&testdata::to_attr_owned(b"1.1").into(), true);
+        //Test must be rewritten when 1.2 is introduced
+        DataVersion::Unknown.assert_eq_allow_empty(&testdata::to_attr_owned(b"1.2").into(), true);
+        DataVersion::Unknown.assert_eq_allow_empty(&testdata::to_attr_owned(b"something invalid").into(), true);
+        DataVersion::Unknown.assert_eq_allow_empty(&testdata::to_attr_owned(b"1.1.2").into(), true);
+        DataVersion::Unknown.assert_eq_allow_empty(&testdata::to_attr_owned(b"1.1.").into(), true);
+        DataVersion::Unknown.assert_eq_allow_empty(&testdata::to_attr_owned(b".1.1").into(), true);
+        DataVersion::Unknown.assert_eq_allow_empty(&testdata::to_attr_owned(b".1").into(), true);
+        DataVersion::Unknown.assert_eq_allow_empty(&testdata::to_attr_owned(b"1.").into(), true);
     }
 
     #[test]
-    fn test_parse_attr_from_1_0_borrowed() {
-        assert_eq!(
-            DataVersion::Version1_0,
-            testdata::to_attr_borrowed(b"1.0").into()
-        );
+    fn test_partial_eq() {
+        assert_eq!(DataVersion::Version1_1, DataVersion::Version1_1);
+        assert_eq!(DataVersion::Version1_0, DataVersion::Version1_0);
+        assert_ne!(DataVersion::Unknown, DataVersion::Unknown);
+        assert_ne!(DataVersion::Version1_1, DataVersion::Version1_0);
+        assert_ne!(DataVersion::Version1_0, DataVersion::Unknown);
     }
 
     #[test]
-    fn test_parse_attr_from_1_1_owned() {
-        assert_eq!(
-            DataVersion::Version1_1,
-            testdata::to_attr_owned(b"1.1").into()
-        );
-    }
-
-    #[test]
-    fn test_parse_attr_from_1_1_borrowed() {
-        assert_eq!(
-            DataVersion::Version1_1,
-            testdata::to_attr_borrowed(b"1.1").into()
-        );
-    }
-
-    #[test]
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_1_owned() {
-        if let DataVersion::Unknown = testdata::to_attr_owned(b"something invalid").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_1_borrowed() {
-        if let DataVersion::Unknown = testdata::to_attr_borrowed(b"something invalid").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    //Test must be rewritten to 1.3 after 1.2 is introduced
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_2_owned() {
-        if let DataVersion::Unknown = testdata::to_attr_owned(b"1.2").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    //Test must be rewritten to 1.3 after 1.2 is introduced
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_2_borrowed() {
-        if let DataVersion::Unknown = testdata::to_attr_borrowed(b"1.2").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_3_owned() {
-        if let DataVersion::Unknown = testdata::to_attr_owned(b"1.1.2").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_3_borrowed() {
-        if let DataVersion::Unknown = testdata::to_attr_borrowed(b"1.1.2").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_4_owned() {
-        if let DataVersion::Unknown = testdata::to_attr_owned(b"1.1.").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_4_borrowed() {
-        if let DataVersion::Unknown = testdata::to_attr_borrowed(b"1.1.").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_5_owned() {
-        if let DataVersion::Unknown = testdata::to_attr_owned(b".1.1").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_5_borrowed() {
-        if let DataVersion::Unknown = testdata::to_attr_borrowed(b".1.1").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_6_owned() {
-        if let DataVersion::Unknown = testdata::to_attr_owned(b".1").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_6_borrowed() {
-        if let DataVersion::Unknown = testdata::to_attr_borrowed(b".1").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_7_owned() {
-        if let DataVersion::Unknown = testdata::to_attr_owned(b"1.").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    //partial eq can't be used in case one is unknown
-    fn test_parse_attr_invalid_7_borrowed() {
-        if let DataVersion::Unknown = testdata::to_attr_borrowed(b"1.").into() {} else {
-            panic!("Invalid Version not returned as Unknown");
-        }
-    }
-
-    #[test]
-    fn test_partial_eq_1_1() {
-        assert_eq!(DataVersion::Version1_1, DataVersion::Version1_1)
-    }
-
-    #[test]
-    fn test_partial_eq_1_0() {
-        assert_eq!(DataVersion::Version1_0, DataVersion::Version1_0)
-    }
-
-    #[test]
-    fn test_partial_eq_unknown() {
-        assert_ne!(DataVersion::Unknown, DataVersion::Unknown)
-    }
-
-    #[test]
-    fn test_partial_ne_1_1() {
-        assert_ne!(DataVersion::Version1_1, DataVersion::Version1_0)
-    }
-
-    #[test]
-    fn test_partial_ne_1_0() {
-        assert_ne!(DataVersion::Version1_0, DataVersion::Unknown)
+    fn test_partial_eq_allow_empty() {
+        DataVersion::Version1_1.assert_eq_allow_empty(&DataVersion::Version1_1, true);
+        DataVersion::Version1_0.assert_eq_allow_empty(&DataVersion::Version1_0, true);
+        DataVersion::Unknown.assert_eq_allow_empty(&DataVersion::Unknown, true);
+        DataVersion::Version1_1.assert_ne_allow_empty(&DataVersion::Version1_0);
+        DataVersion::Version1_0.assert_ne_allow_empty(&DataVersion::Unknown);
     }
 }

@@ -1,3 +1,4 @@
+//TODO check
 //! Module for the unit Snap for LogicalChannel used in GDTF
 
 

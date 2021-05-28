@@ -1,3 +1,4 @@
+//TODO check
 //! Module for the unit DMXValue used in GDTF
 use std::borrow::Borrow;
 use std::convert::{TryFrom, TryInto};

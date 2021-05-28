@@ -79,7 +79,7 @@ impl PartialEqAllowEmpty for Attribute {
             self.activation_group.as_deref() == other.activation_group.as_deref() &&
             self.main_attribute.as_deref() == other.main_attribute.as_deref() &&
             self.physical_unit == other.physical_unit &&
-            self.color == other.color
+            Self::is_eq_allow_option_allow_empty(&self.color, &other.color, log)
     }
 }
 

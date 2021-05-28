@@ -1,3 +1,4 @@
+//TODO check
 //! Module for the unit Offset used for DMXChannel used in GDTF
 
 

@@ -2,12 +2,11 @@
 use std::borrow::Borrow;
 use std::convert::{TryFrom, TryInto};
 use std::error::Error;
-
+use std::fmt::{Display, Formatter};
 use std::num::ParseIntError;
 use std::str::{FromStr, Utf8Error};
 
 use quick_xml::events::attributes::Attribute;
-use std::fmt::{Display, Formatter};
 
 ///Date representation used in GDTF
 #[derive(Debug)]
@@ -106,7 +105,7 @@ mod tests {
     use crate::utils::units::date::Date;
 
     #[test]
-    fn test_try_from_str_valid() {
+    fn test_try_from_str() {
         assert_eq!(
             Date { year: 2021, month: 5, day: 16, hour: 17, minute: 41, second: 12 },
             "2021-05-16T17:41:12".try_into().unwrap()
@@ -115,10 +114,6 @@ mod tests {
             Date { year: 2022, month: 2, day: 8, hour: 17, minute: 12, second: 12 },
             "2022-02-08T17:12:12".try_into().unwrap()
         );
-    }
-
-    #[test]
-    fn test_try_from_str_invalid() {
         assert!(Date::try_from("2021-05/16T17:41:12").is_err());
         assert!(Date::try_from("something invalid").is_err());
         assert!(Date::try_from("2021-05-1617:41:12").is_err());
@@ -130,7 +125,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_attr_owned_valid() {
+    fn test_try_from_attr_owned() {
         assert_eq!(
             Date { year: 2021, month: 5, day: 16, hour: 17, minute: 41, second: 12 },
             testdata::to_attr_owned(b"2021-05-16T17:41:12").try_into().unwrap()
@@ -139,10 +134,6 @@ mod tests {
             Date { year: 2022, month: 2, day: 8, hour: 17, minute: 12, second: 12 },
             testdata::to_attr_owned(b"2022-02-08T17:12:12").try_into().unwrap()
         );
-    }
-
-    #[test]
-    fn test_try_from_attr_owned_invalid() {
         assert!(Date::try_from(testdata::to_attr_owned(b"2021-05/16T17:41:12")).is_err());
         assert!(Date::try_from(testdata::to_attr_owned(b"something invalid")).is_err());
         assert!(Date::try_from(testdata::to_attr_owned(b"2021-05-1617:41:12")).is_err());
@@ -153,8 +144,9 @@ mod tests {
         assert!(Date::try_from(testdata::to_attr_owned(b"2021-05-16T1741:12")).is_err());
     }
 
+
     #[test]
-    fn test_try_from_attr_borrowed_valid() {
+    fn test_try_from_attr_borrowed() {
         assert_eq!(
             Date { year: 2021, month: 5, day: 16, hour: 17, minute: 41, second: 12 },
             testdata::to_attr_borrowed(b"2021-05-16T17:41:12").try_into().unwrap()
@@ -163,10 +155,6 @@ mod tests {
             Date { year: 2022, month: 2, day: 8, hour: 17, minute: 12, second: 12 },
             testdata::to_attr_borrowed(b"2022-02-08T17:12:12").try_into().unwrap()
         );
-    }
-
-    #[test]
-    fn test_try_from_attr_borrowed_invalid() {
         assert!(Date::try_from(testdata::to_attr_borrowed(b"2021-05/16T17:41:12")).is_err());
         assert!(Date::try_from(testdata::to_attr_borrowed(b"something invalid")).is_err());
         assert!(Date::try_from(testdata::to_attr_borrowed(b"2021-05-1617:41:12")).is_err());

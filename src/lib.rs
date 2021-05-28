@@ -144,7 +144,7 @@ impl DeparseSingle for GDTF {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for GDTF {
-    fn is_eq_allow_empty_impl(&self, other: &Self,log:bool) -> bool {
+    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
         self.data_version == other.data_version &&
             self.fixture_type.is_eq_allow_empty(&other.fixture_type, log)
     }
@@ -199,9 +199,12 @@ impl TryFrom<&Path> for GDTF {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
+    use std::{thread, time};
+    use std::convert::{TryFrom, TryInto};
     use std::path::Path;
+    use std::time::Duration;
 
+    use crate::GDTF;
     use crate::utils::deparse::TestDeparseSingle;
 
     #[test]
@@ -222,5 +225,22 @@ mod tests {
     #[test]
     fn test_sgm() {
         crate::utils::testdata::sgm_light_at_g_7_spot_at_rev_a::expect().test_with_result(Path::new("test/SGM_Light@G-7_Spot@Rev_A.gdtf").try_into());
+    }
+
+    #[test]
+    fn test_time() {
+        thread::sleep(Duration::from_secs(1));
+        let now = time::Instant::now();
+        let _ = GDTF::try_from(Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf")).unwrap();
+        println!("Deparsing Acme takes {:?}", now.elapsed());
+        let now = time::Instant::now();
+        let _ = GDTF::try_from(Path::new("test/JB-Lighting@P12_Spot_HP@V_1.15.gdtf")).unwrap();
+        println!("Deparsing JB takes {:?}", now.elapsed());
+        let now = time::Instant::now();
+        let _ = GDTF::try_from(Path::new("test/Robe_Lighting@Robin_Viva_CMY@13042021.gdtf")).unwrap();
+        println!("Deparsing Robe takes {:?}", now.elapsed());
+        let now = time::Instant::now();
+        let _ = GDTF::try_from(Path::new("test/SGM_Light@G-7_Spot@Rev_A.gdtf")).unwrap();
+        println!("Deparsing SGM takes {:?}", now.elapsed());
     }
 }

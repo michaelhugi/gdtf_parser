@@ -5,6 +5,7 @@ use std::str::Utf8Error;
 
 use zip::result::ZipError;
 
+use crate::utils::units::color_cie::GDTFColorCIEError;
 use crate::utils::units::dmx_value::GDTFDmxValueError;
 use crate::utils::units::guid::GDTFGUIDError;
 use crate::utils::units::name::GDTFNameError;
@@ -26,6 +27,13 @@ pub enum GdtfError {
     GUIDError(GDTFGUIDError),
     GDTFDmxValueError(GDTFDmxValueError),
     GDTFNodeError(GDTFNodeError),
+    GDTFColorCIEError(GDTFColorCIEError),
+}
+
+impl From<GDTFColorCIEError> for GdtfError {
+    fn from(e: GDTFColorCIEError) -> Self {
+        GdtfError::GDTFColorCIEError(e)
+    }
 }
 
 impl From<ParseIntError> for GdtfError {
