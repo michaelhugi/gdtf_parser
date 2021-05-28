@@ -127,6 +127,7 @@ mod tests {
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
     use crate::utils::deparse::TestDeparseSingle;
+    use crate::utils::errors::GdtfError;
     use crate::utils::units::master::Master;
     use crate::utils::units::node::node_channel_function_emitter::NodeChannelFunctionEmitter;
     use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;
@@ -135,7 +136,7 @@ mod tests {
     use crate::utils::units::snap::Snap;
 
     #[test]
-    fn test_normal() {
+    fn test_normal() -> Result<(), GdtfError> {
         LogicalChannel {
             attribute: "ColorSub_M".try_into().unwrap(),
             snap: Snap::Yes,
@@ -153,10 +154,10 @@ mod tests {
                     physical_to: 1.0,
                     real_fade: 0.0,
                     real_acceleration: 0.0,
-                    wheel: NodeChannelFunctionWheel(None),
-                    emitter: NodeChannelFunctionEmitter(None),
-                    filter: NodeChannelFunctionFilter(Some("Magenta".try_into().unwrap())),
-                    mode_master: NodeChannelFunctionModeMaster(Some("Base_ColorMacro1".try_into().unwrap())),
+                    wheel: NodeChannelFunctionWheel::none(),
+                    emitter: NodeChannelFunctionEmitter::none(),
+                    filter: NodeChannelFunctionFilter::new_s("Magenta")?,
+                    mode_master: NodeChannelFunctionModeMaster::new_s("Base_ColorMacro1")?,
                     mode_from: Some("0/1".try_into().unwrap()),
                     mode_to: Some("0/1".try_into().unwrap()),
                     channel_sets: vec![],
@@ -171,10 +172,10 @@ mod tests {
                     physical_to: 1.0,
                     real_fade: 0.0,
                     real_acceleration: 0.0,
-                    wheel: NodeChannelFunctionWheel(None),
-                    emitter: NodeChannelFunctionEmitter(None),
-                    filter: NodeChannelFunctionFilter(None),
-                    mode_master: NodeChannelFunctionModeMaster(Some("Base_ColorMacro1".try_into().unwrap())),
+                    wheel: NodeChannelFunctionWheel::none(),
+                    emitter: NodeChannelFunctionEmitter::none(),
+                    filter: NodeChannelFunctionFilter::none(),
+                    mode_master: NodeChannelFunctionModeMaster::new_s("Base_ColorMacro1")?,
                     mode_from: Some("1/1".try_into().unwrap()),
                     mode_to: Some("255/1".try_into().unwrap()),
                     channel_sets: vec![],
@@ -187,11 +188,12 @@ mod tests {
               </ChannelFunction>
               <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Default="0/1" ModeFrom="1/1" ModeMaster="Base_ColorMacro1" ModeTo="255/1" Name="NoFeature" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
             </LogicalChannel>
-            "#)
+            "#);
+        Ok(())
     }
 
     #[test]
-    fn test_min() {
+    fn test_min() -> Result<(), GdtfError> {
         LogicalChannel {
             attribute: "".try_into().unwrap(),
             snap: Snap::No,
@@ -209,10 +211,10 @@ mod tests {
                     physical_to: 1.0,
                     real_fade: 0.0,
                     real_acceleration: 0.0,
-                    wheel: NodeChannelFunctionWheel(None),
-                    emitter: NodeChannelFunctionEmitter(None),
-                    filter: NodeChannelFunctionFilter(Some("Magenta".try_into().unwrap())),
-                    mode_master: NodeChannelFunctionModeMaster(Some("Base_ColorMacro1".try_into().unwrap())),
+                    wheel: NodeChannelFunctionWheel::none(),
+                    emitter: NodeChannelFunctionEmitter::none(),
+                    filter: NodeChannelFunctionFilter::new_s("Magenta")?,
+                    mode_master: NodeChannelFunctionModeMaster::new_s("Base_ColorMacro1")?,
                     mode_from: Some("0/1".try_into().unwrap()),
                     mode_to: Some("0/1".try_into().unwrap()),
                     channel_sets: vec![],
@@ -227,10 +229,10 @@ mod tests {
                     physical_to: 1.0,
                     real_fade: 0.0,
                     real_acceleration: 0.0,
-                    wheel: NodeChannelFunctionWheel(None),
-                    emitter: NodeChannelFunctionEmitter(None),
-                    filter: NodeChannelFunctionFilter(None),
-                    mode_master: NodeChannelFunctionModeMaster(Some("Base_ColorMacro1".try_into().unwrap())),
+                    wheel: NodeChannelFunctionWheel::none(),
+                    emitter: NodeChannelFunctionEmitter::none(),
+                    filter: NodeChannelFunctionFilter::none(),
+                    mode_master: NodeChannelFunctionModeMaster::new_s("Base_ColorMacro1")?,
                     mode_from: Some("1/1".try_into().unwrap()),
                     mode_to: Some("255/1".try_into().unwrap()),
                     channel_sets: vec![],
@@ -243,6 +245,7 @@ mod tests {
               </ChannelFunction>
               <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Default="0/1" ModeFrom="1/1" ModeMaster="Base_ColorMacro1" ModeTo="255/1" Name="NoFeature" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
             </LogicalChannel>
-            "#)
+            "#);
+        Ok(())
     }
 }

@@ -1,8 +1,6 @@
 //!Module for Node used in ChannelFunction.attribute
 use std::borrow::Borrow;
 use std::convert::{TryFrom, TryInto};
-use std::fmt::{Display, Formatter};
-use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
 
@@ -46,6 +44,34 @@ impl From<Attribute<'_>> for NodeChannelFunctionAttribute {
     }
 }
 
+
+impl NodeChannelFunctionAttribute {
+    ///Creates a new instance with names, where names are checked if they are valid for GDTF
+    pub fn new(names: Vec<&str>) -> Result<Self, GDTFNodeError> {
+        Ok(Self::Node(Node::new(names)?))
+    }
+
+    ///Creates a new instance with one name, where name is checked if it's valid for GDTF
+    pub fn new_s(names: &str) -> Result<Self, GDTFNodeError> {
+        Ok(Self::Node(Node::new_s(names)?))
+    }
+    #[cfg(test)]
+    ///Creates a new instance with names, where names are not checked if they are valid for GDTF
+    pub(crate) fn new_unchecked(names: Vec<&str>) -> Self {
+        Self::Node(Node::new_unchecked(names))
+    }
+    #[cfg(test)]
+    ///Creates a new instance with one name, where name is checked if it's valid for GDTF
+    pub(crate) fn new_unchecked_s(name: &str) -> Self {
+        Self::Node(Node::new_unchecked_s(name))
+    }
+
+    ///Creates a new instance with None content
+    pub fn no_feature() -> Self {
+        Self::NoFeature
+    }
+}
+
 ///Parses a string to a Node
 impl TryFrom<&str> for NodeChannelFunctionAttribute {
     type Error = GDTFNodeError;
@@ -78,19 +104,11 @@ impl Default for NodeChannelFunctionAttribute {
     }
 }
 
-///Displays NoFeature or the path to the node in format Name.Name.Name
-impl Display for NodeChannelFunctionAttribute {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            NodeChannelFunctionAttribute::Node(node) => write!(f, "{}", node),
-            NodeChannelFunctionAttribute::NoFeature => write!(f, "NoFeature")
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::convert::{TryFrom, TryInto};
+
+    use NodeChannelFunctionAttribute as T;
 
     use crate::utils::errors::GdtfError;
     use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
@@ -100,27 +118,70 @@ mod tests {
     use crate::utils::units::node::node_channel_function_attribute::NodeChannelFunctionAttribute;
 
     #[test]
+    fn test_new() -> Result<(), GdtfError> {
+        T::Node(Node(vec![Name::new("test")?])).assert_eq_allow_empty(&T::new(vec!["test"])?, true);
+        T::Node(Node(vec![Name::new("test")?, Name::new("other")?])).assert_eq_allow_empty(&T::new(vec!["test", "other"])?, true);
+        T::Node(Node(vec![Name::new("")?])).assert_eq_allow_empty(&T::new(vec![""])?, true);
+        T::Node(Node(vec![])).assert_eq_allow_empty(&T::new(vec![])?, true);
+        assert!(T::new(vec!["asdf{"]).is_err());
+        assert!(T::new(vec!["test", "asdf{"]).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_new_s() -> Result<(), GdtfError> {
+        T::Node(Node(vec![Name::new("test")?])).assert_eq_allow_empty(&T::new_s("test")?, true);
+        T::Node(Node(vec![Name::new("")?])).assert_eq_allow_empty(&T::new_s("")?, true);
+        T::Node(Node(vec![])).assert_eq_allow_empty(&T::new(vec![])?, true);
+        assert!(T::new_s("asdf{").is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_new_unchecked() -> Result<(), GdtfError> {
+        T::Node(Node(vec![Name::new("test")?])).assert_eq_allow_empty(&T::new_unchecked(vec!["test"]), true);
+        T::Node(Node(vec![Name::new("test")?, Name::new("other")?])).assert_eq_allow_empty(&T::new_unchecked(vec!["test", "other"]), true);
+        T::Node(Node(vec![Name::new("")?])).assert_eq_allow_empty(&T::new_unchecked(vec![""]), true);
+        T::Node(Node(vec![])).assert_eq_allow_empty(&T::new_unchecked(vec![]), true);
+        T::Node(Node(vec![Name::new_unchecked("asdf{")])).assert_eq_allow_empty(&T::new_unchecked(vec!["asdf{"]), true);
+        T::Node(Node(vec![Name::new("test")?, Name::new_unchecked("asdf{")])).assert_eq_allow_empty(&T::new_unchecked(vec!["test", "asdf{"]), true);
+        Ok(())
+    }
+
+    #[test]
+    fn test_new_unchecked_s() -> Result<(), GdtfError> {
+        T::Node(Node(vec![Name::new("test")?])).assert_eq_allow_empty(&T::new_unchecked_s("test"), true);
+        T::Node(Node(vec![Name::new("")?])).assert_eq_allow_empty(&T::new_unchecked_s(""), true);
+        T::Node(Node(vec![Name::new_unchecked("asdf{")])).assert_eq_allow_empty(&T::new_unchecked_s("asdf{"), true);
+        Ok(())
+    }
+
+    #[test]
+    fn test_none() {
+        T::NoFeature.assert_eq_allow_empty(&T::no_feature(), true);
+    }
+
+    #[test]
     fn test_assert_eq_allow_empty() -> Result<(), GdtfError> {
-        use NodeChannelFunctionAttribute as T;
         assert!(T::NoFeature.is_eq_allow_empty(&T::NoFeature, true));
         assert!(T::Node(Node(vec![])).is_eq_allow_empty(&T::Node(Node(vec![])), true));
         assert!(T::Node(Node(vec!["One".try_into()?])).is_eq_allow_empty(&T::Node(Node(vec!["One".try_into()?])), true));
         assert!(T::Node(Node(vec!["".try_into()?])).is_eq_allow_empty(&T::Node(Node(vec!["".try_into()?])), true));
         assert!(T::Node(Node(vec!["One".try_into()?, "Two".try_into()?])).is_eq_allow_empty(&T::Node(Node(vec!["One".try_into()?, "Two".try_into()?])), true));
-        assert!(T::Node(Node(vec![Name::Name("".to_string()), "Two".try_into()?])).is_eq_allow_empty(&T::Node(Node(vec![Name::Name("".to_string()), "Two".try_into()?])), true));
-        assert!(T::Node(Node(vec!["One".try_into()?, Name::Name("".to_string())])).is_eq_allow_empty(&T::Node(Node(vec!["One".try_into()?, Name::Name("".to_string())])), true));
-        assert!(T::Node(Node(vec!["One".try_into()?, Name::Empty])).is_eq_allow_empty(&T::Node(Node(vec!["One".try_into()?, Name::Empty])), true));
+        assert!(T::Node(Node(vec![Name::new("")?, "Two".try_into()?])).is_eq_allow_empty(&T::Node(Node(vec![Name::new("")?, "Two".try_into()?])), true));
+        assert!(T::Node(Node(vec!["One".try_into()?, Name::new("")?])).is_eq_allow_empty(&T::Node(Node(vec!["One".try_into()?, Name::new("")?])), true));
+        assert!(T::Node(Node(vec!["One".try_into()?, Name::new("")?])).is_eq_allow_empty(&T::Node(Node(vec!["One".try_into()?, Name::new("")?])), true));
 
 
         assert!(!T::NoFeature.is_eq_allow_empty(&T::Node(Node(vec![])), false));
-        assert!(!T::NoFeature.is_eq_allow_empty(&T::Node(Node(vec![Name::Name("".to_string())])), false));
-        assert!(!T::NoFeature.is_eq_allow_empty(&T::Node(Node(vec![Name::Empty])), false));
+        assert!(!T::NoFeature.is_eq_allow_empty(&T::Node(Node(vec![Name::new("")?])), false));
+        assert!(!T::NoFeature.is_eq_allow_empty(&T::Node(Node(vec![Name::new("")?])), false));
         assert!(!T::NoFeature.is_eq_allow_empty(&T::Node(Node(vec!["one".try_into()?])), false));
         assert!(!T::NoFeature.is_eq_allow_empty(&T::Node(Node(vec!["one".try_into()?, "two".try_into()?])), false));
 
         assert!(!T::Node(Node(vec![])).is_eq_allow_empty(&T::NoFeature, false));
-        assert!(!T::Node(Node(vec![Name::Name("".to_string())])).is_eq_allow_empty(&T::NoFeature, false));
-        assert!(!T::Node(Node(vec![Name::Empty])).is_eq_allow_empty(&T::NoFeature, false));
+        assert!(!T::Node(Node(vec![Name::new("")?])).is_eq_allow_empty(&T::NoFeature, false));
+        assert!(!T::Node(Node(vec![Name::new("")?])).is_eq_allow_empty(&T::NoFeature, false));
         assert!(!T::Node(Node(vec!["one".try_into()?])).is_eq_allow_empty(&T::NoFeature, false));
         assert!(!T::Node(Node(vec!["one".try_into()?, "two".try_into()?])).is_eq_allow_empty(&T::NoFeature, false));
         assert!(!T::Node(Node(vec!["one".try_into()?, "two".try_into()?])).is_eq_allow_empty(&T::Node(Node(vec!["two".try_into()?, "one".try_into()?])), false));
@@ -129,39 +190,39 @@ mod tests {
         assert!(!T::Node(Node(vec!["one".try_into()?, "two".try_into()?])).is_eq_allow_empty(&T::Node(Node(vec!["one".try_into()?, "two2".try_into()?])), false));
         assert!(!T::Node(Node(vec!["one".try_into()?, "two".try_into()?])).is_eq_allow_empty(&T::Node(Node(vec!["one2".try_into()?, "two".try_into()?])), false));
         assert!(!T::Node(Node(vec!["one".try_into()?, "two".try_into()?])).is_eq_allow_empty(&T::Node(Node(vec!["".try_into()?, "two".try_into()?])), false));
-        assert!(!T::Node(Node(vec!["one".try_into()?, "two".try_into()?])).is_eq_allow_empty(&T::Node(Node(vec![Name::Empty, "two".try_into()?])), false));
-        assert!(!T::Node(Node(vec!["one".try_into()?, "two".try_into()?])).is_eq_allow_empty(&T::Node(Node(vec!["one".try_into()?, Name::Empty])), false));
+        assert!(!T::Node(Node(vec!["one".try_into()?, "two".try_into()?])).is_eq_allow_empty(&T::Node(Node(vec![Name::new("")?, "two".try_into()?])), false));
+        assert!(!T::Node(Node(vec!["one".try_into()?, "two".try_into()?])).is_eq_allow_empty(&T::Node(Node(vec!["one".try_into()?, Name::new("")?])), false));
         Ok(())
     }
 
     #[test]
     fn test_from_attr_borrowed() -> Result<(), GdtfError> {
-        NodeChannelFunctionAttribute::NoFeature.assert_eq_allow_empty(&testdata::to_attr_borrowed(b"NoFeature").into(), true);
-        NodeChannelFunctionAttribute::NoFeature.assert_eq_allow_empty(&testdata::to_attr_borrowed(b"").into(), true);
-        NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One").into(), true);
-        NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?, "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One.Two").into(), true);
-        NodeChannelFunctionAttribute::Node(Node(vec![Name::Name("Some{Invalid".to_string()), "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"Some{Invalid.Two").into(), true);
-        NodeChannelFunctionAttribute::Node(Node(vec![Name::Name("Some{Invalid".to_string()), Name::Name("T{wo".to_string())])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"Some{Invalid.T{wo").into(), true);
+        T::NoFeature.assert_eq_allow_empty(&testdata::to_attr_borrowed(b"NoFeature").into(), true);
+        T::NoFeature.assert_eq_allow_empty(&testdata::to_attr_borrowed(b"").into(), true);
+        T::Node(Node(vec!["One".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One").into(), true);
+        T::Node(Node(vec!["One".try_into()?, "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One.Two").into(), true);
+        T::Node(Node(vec![Name::new_unchecked("Some{Invalid"), "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"Some{Invalid.Two").into(), true);
+        T::Node(Node(vec![Name::new_unchecked("Some{Invalid"), Name::new_unchecked("T{wo")])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"Some{Invalid.T{wo").into(), true);
         Ok(())
     }
 
     #[test]
     fn test_from_attr_owned() -> Result<(), GdtfError> {
-        NodeChannelFunctionAttribute::NoFeature.assert_eq_allow_empty(&testdata::to_attr_owned(b"NoFeature").into(), true);
-        NodeChannelFunctionAttribute::NoFeature.assert_eq_allow_empty(&testdata::to_attr_owned(b"").into(), true);
-        NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_owned(b"One").into(), true);
-        NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?, "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_owned(b"One.Two").into(), true);
-        NodeChannelFunctionAttribute::Node(Node(vec![Name::Name("Some{Invalid".to_string()), "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_owned(b"Some{Invalid.Two").into(), true);
-        NodeChannelFunctionAttribute::Node(Node(vec![Name::Name("Some{Invalid".to_string()), Name::Name("T{wo".to_string())])).assert_eq_allow_empty(&testdata::to_attr_owned(b"Some{Invalid.T{wo").into(), true);
+        T::NoFeature.assert_eq_allow_empty(&testdata::to_attr_owned(b"NoFeature").into(), true);
+        T::NoFeature.assert_eq_allow_empty(&testdata::to_attr_owned(b"").into(), true);
+        T::Node(Node(vec!["One".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_owned(b"One").into(), true);
+        T::Node(Node(vec!["One".try_into()?, "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_owned(b"One.Two").into(), true);
+        T::Node(Node(vec![Name::new_unchecked("Some{Invalid"), "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_owned(b"Some{Invalid.Two").into(), true);
+        T::Node(Node(vec![Name::new_unchecked("Some{Invalid"), Name::new_unchecked("T{wo")])).assert_eq_allow_empty(&testdata::to_attr_owned(b"Some{Invalid.T{wo").into(), true);
         Ok(())
     }
 
     #[test]
     fn test_try_from_str() -> Result<(), GdtfError> {
-        NodeChannelFunctionAttribute::NoFeature.assert_eq_allow_empty(&"NoFeature".try_into()?, true);
-        NodeChannelFunctionAttribute::NoFeature.assert_eq_allow_empty(&"".try_into()?, true);
-        NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?])).assert_eq_allow_empty(&"One".try_into()?, true);
-        NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?, "Two".try_into()?])).assert_eq_allow_empty(&"One.Two".try_into()?, true);
+        T::NoFeature.assert_eq_allow_empty(&"NoFeature".try_into()?, true);
+        T::NoFeature.assert_eq_allow_empty(&"".try_into()?, true);
+        T::Node(Node(vec!["One".try_into()?])).assert_eq_allow_empty(&"One".try_into()?, true);
+        T::Node(Node(vec!["One".try_into()?, "Two".try_into()?])).assert_eq_allow_empty(&"One.Two".try_into()?, true);
         assert!(NodeChannelFunctionAttribute::try_from("Some{Invalid").is_err());
         Ok(())
     }
@@ -169,71 +230,62 @@ mod tests {
     #[test]
     fn test_partial_eq() -> Result<(), GdtfError> {
         assert_ne!(
-            NodeChannelFunctionAttribute::NoFeature,
-            NodeChannelFunctionAttribute::NoFeature
+            T::NoFeature,
+            T::NoFeature
         );
         assert_eq!(
-            NodeChannelFunctionAttribute::Node(Node(vec![])),
-            NodeChannelFunctionAttribute::Node(Node(vec![]))
+            T::Node(Node(vec![])),
+            T::Node(Node(vec![]))
         );
         assert_eq!(
-            NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?])),
-            NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?]))
+            T::Node(Node(vec!["One".try_into()?])),
+            T::Node(Node(vec!["One".try_into()?]))
         );
         assert_ne!(
-            NodeChannelFunctionAttribute::Node(Node(vec!["".try_into()?])),
-            NodeChannelFunctionAttribute::Node(Node(vec!["".try_into()?]))
+            T::Node(Node(vec!["".try_into()?])),
+            T::Node(Node(vec!["".try_into()?]))
         );
         assert_eq!(
-            NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?, "Two".try_into()?])),
-            NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?, "Two".try_into()?]))
+            T::Node(Node(vec!["One".try_into()?, "Two".try_into()?])),
+            T::Node(Node(vec!["One".try_into()?, "Two".try_into()?]))
         );
         assert_ne!(
-            NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?, "Two".try_into()?])),
-            NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?]))
+            T::Node(Node(vec!["One".try_into()?, "Two".try_into()?])),
+            T::Node(Node(vec!["One".try_into()?]))
         );
         assert_ne!(
-            NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?])),
-            NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?, "Two".try_into()?]))
+            T::Node(Node(vec!["One".try_into()?])),
+            T::Node(Node(vec!["One".try_into()?, "Two".try_into()?]))
         );
         assert_ne!(
-            NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?])),
-            NodeChannelFunctionAttribute::NoFeature
+            T::Node(Node(vec!["One".try_into()?])),
+            T::NoFeature
         );
         assert_ne!(
-            NodeChannelFunctionAttribute::NoFeature,
-            NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?]))
+            T::NoFeature,
+            T::Node(Node(vec!["One".try_into()?]))
         );
         assert_ne!(
-            NodeChannelFunctionAttribute::NoFeature,
-            NodeChannelFunctionAttribute::Node(Node(vec!["".try_into()?]))
+            T::NoFeature,
+            T::Node(Node(vec!["".try_into()?]))
         );
         assert_ne!(
-            NodeChannelFunctionAttribute::Node(Node(vec!["".try_into()?])),
-            NodeChannelFunctionAttribute::NoFeature
+            T::Node(Node(vec!["".try_into()?])),
+            T::NoFeature
         );
         assert_ne!(
-            NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?, "Two2".try_into()?])),
-            NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?, "Two".try_into()?]))
+            T::Node(Node(vec!["One".try_into()?, "Two2".try_into()?])),
+            T::Node(Node(vec!["One".try_into()?, "Two".try_into()?]))
         );
         assert_ne!(
-            NodeChannelFunctionAttribute::Node(Node(vec!["One2".try_into()?, "Two".try_into()?])),
-            NodeChannelFunctionAttribute::Node(Node(vec!["One".try_into()?, "Two".try_into()?]))
+            T::Node(Node(vec!["One2".try_into()?, "Two".try_into()?])),
+            T::Node(Node(vec!["One".try_into()?, "Two".try_into()?]))
         );
         Ok(())
     }
 
     #[test]
     fn test_default() {
-        NodeChannelFunctionAttribute::NoFeature.assert_eq_allow_empty(&Default::default(), true)
-    }
-
-    #[test]
-    fn test_display() -> Result<(), GdtfError> {
-        assert_eq!(format!("{}", NodeChannelFunctionAttribute::Node(Node(vec!["One2".try_into()?, "Two".try_into()?]))), "One2.Two");
-        assert_eq!(format!("{}", NodeChannelFunctionAttribute::Node(Node(vec!["One2".try_into()?]))), "One2");
-        assert_eq!(format!("{}", NodeChannelFunctionAttribute::Node(Node(vec!["".try_into()?]))), "");
-        assert_eq!(format!("{}", NodeChannelFunctionAttribute::NoFeature), "NoFeature");
-        Ok(())
+        T::NoFeature.assert_eq_allow_empty(&Default::default(), true);
     }
 }

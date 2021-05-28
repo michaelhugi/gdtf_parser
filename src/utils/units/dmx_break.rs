@@ -2,7 +2,7 @@
 
 
 use std::borrow::Borrow;
-use std::fmt::{Display, Formatter};
+
 use std::str::FromStr;
 
 use quick_xml::events::attributes::Attribute;
@@ -64,18 +64,6 @@ impl PartialEq for DMXBreak {
     }
 }
 
-///Displays the DMXBreak value or Overwrite if it's overwrite
-impl Display for DMXBreak {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        use DMXBreak::*;
-        match self {
-            Value(x) => write!(f, "{}", x),
-            Overwrite => write!(f, "Overwrite")
-        }
-    }
-}
-
-
 #[cfg(test)]
 mod tests {
     use crate::utils::testdata;
@@ -132,12 +120,5 @@ mod tests {
         assert_eq!(DMXBreak::default(), testdata::to_attr_borrowed(b"").into());
         assert_eq!(DMXBreak::default(), testdata::to_attr_borrowed(b"a3").into());
         assert_eq!(DMXBreak::default(), testdata::to_attr_borrowed(b"Overwritee").into());
-    }
-
-    #[test]
-    fn test_display() {
-        assert_eq!(format!("{}", DMXBreak::Value(12)), "12");
-        assert_eq!(format!("{}", DMXBreak::Value(1)), "1");
-        assert_eq!(format!("{}", DMXBreak::Overwrite), "Overwrite");
     }
 }

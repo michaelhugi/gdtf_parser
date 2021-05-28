@@ -1,7 +1,7 @@
 //! Module for the unit Offset used for DMXChannel used in GDTF
 
 
-use std::fmt::{Display, Formatter};
+
 use std::str::FromStr;
 
 ///Offset used for DMXChannel in GDTF
@@ -52,24 +52,6 @@ impl PartialEq for Offset {
         }
     }
 }
-
-impl Display for Offset {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        use Offset::*;
-        match self {
-            Value(x) => {
-                let mut s = String::new();
-                for v in x {
-                    s = format!("{},{}", s, v);
-                }
-                let s = if s.len() > 0 { &s[1..s.len()] } else { &"None" };
-                write!(f, "{}", s)
-            }
-            None => write!(f, "None")
-        }
-    }
-}
-
 
 #[cfg(test)]
 mod tests {
@@ -142,23 +124,4 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_display() {
-        assert_eq!(format!("{}", Offset::Value(vec![12])), "12");
-    }
-
-    #[test]
-    fn test_display_2() {
-        assert_eq!(format!("{}", Offset::Value(vec![1, 12])), "1,12");
-    }
-
-    #[test]
-    fn test_display_3() {
-        assert_eq!(format!("{}", Offset::None), "None");
-    }
-
-    #[test]
-    fn test_display_4() {
-        assert_eq!(format!("{}", Offset::Value(vec![])), "None");
-    }
 }

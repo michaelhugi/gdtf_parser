@@ -1,5 +1,5 @@
 //! Module for the unit Snap for LogicalChannel used in GDTF
-use std::fmt::{Display, Formatter};
+
 
 ///Snap representation for logicalChannel used in GDTF
 #[derive(Debug)]
@@ -62,19 +62,6 @@ impl PartialEq for Snap {
     }
 }
 
-impl Display for Snap {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        use Snap::*;
-        match self {
-            No => write!(f, "No"),
-            Yes => write!(f, "Yes"),
-            On => write!(f, "On"),
-            Off => write!(f, "Off"),
-        }
-    }
-}
-
-
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
@@ -112,10 +99,5 @@ mod tests {
             Snap::No,
             Snap::try_from("").unwrap()
         );
-    }
-
-    #[test]
-    fn test_display() {
-        assert_eq!(format!("{}", Snap::Yes), "Yes");
     }
 }

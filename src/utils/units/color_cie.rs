@@ -2,7 +2,7 @@
 use std::borrow::Borrow;
 use std::convert::{TryFrom, TryInto};
 use std::error::Error;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::Debug;
 use std::fmt;
 use std::str::FromStr;
 
@@ -55,15 +55,6 @@ impl PartialEq for ColorCIE {
         self.x == other.x && self.y == other.y && self.Y == other.Y
     }
 }
-
-///Displays ColorCIE in format x,y,Y
-impl Display for ColorCIE {
-    ///Displays ColorCIE in format x,y,Y
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{},{},{}", self.x, self.y, self.Y)
-    }
-}
-
 
 #[derive(Debug)]
 ///Error when ColorCIE could not be parsed
@@ -143,11 +134,6 @@ mod tests {
         if ColorCIE::try_from(testdata::to_attr_owned(b"Something invalid")).is_ok() {
             panic!("test_invalid should return an error");
         }
-    }
-
-    #[test]
-    fn test_display() {
-        assert_eq!(format!("{}", ColorCIE { x: 234.2, y: 123.123, Y: 123. }), "234.2,123.123,123");
     }
 
     #[test]

@@ -31,7 +31,7 @@
     let gdtf: Result<GDTF, GdtfError> = GDTF::try_from(path);
         match gdtf {
             Ok(gdtf) => {
-                println!("The fixture's name is {} from the manufacturer {}.\n GDTF version is {}", gdtf.fixture_type.name, gdtf.fixture_type.manufacturer, gdtf.data_version)
+                println!("The fixture's name is {:?} from the manufacturer {:?}.\n GDTF version is {:?}", gdtf.fixture_type.name, gdtf.fixture_type.manufacturer, gdtf.data_version)
             }
             Err(_) => panic!("Some error occured during parsing gdtf"),
         }
@@ -54,7 +54,7 @@
      let gdtf: Result<GDTF, GdtfError> = path.try_into();
      match gdtf {
          Ok(gdtf) => {
-             println!("The fixture's name is {} from the manufacturer {}.\n GDTF version is {}", gdtf.fixture_type.name, gdtf.fixture_type.manufacturer, gdtf.data_version)
+             println!("The fixture's name is {:?} from the manufacturer {:?}.\n GDTF version is {:?}", gdtf.fixture_type.name, gdtf.fixture_type.manufacturer, gdtf.data_version)
          }
          Err(_) => panic!("Some error occured during parsing gdtf"),
      }

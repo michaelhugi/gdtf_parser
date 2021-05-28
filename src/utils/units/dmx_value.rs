@@ -2,10 +2,11 @@
 use std::borrow::Borrow;
 use std::convert::{TryFrom, TryInto};
 use std::error::Error;
-use std::fmt::{Display, Formatter};
+
 use std::str::{FromStr, Utf8Error};
 
 use quick_xml::events::attributes::Attribute;
+use std::fmt::{Display, Formatter};
 
 ///DMXValue used in GDTF
 #[derive(Debug)]
@@ -73,17 +74,6 @@ impl From<Utf8Error> for GDTFDmxValueError {
 impl PartialEq for DMXValue {
     fn eq(&self, other: &Self) -> bool {
         self.is_byte_shifting == other.is_byte_shifting && self.initial_value == other.initial_value && self.n == other.n
-    }
-}
-
-///Displays the DMXValue in format Uint/n or Uint/ns
-impl Display for DMXValue {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        if self.is_byte_shifting {
-            write!(f, "{}/{}s", self.initial_value, self.n)
-        } else {
-            write!(f, "{}/{}", self.initial_value, self.n)
-        }
     }
 }
 
@@ -194,12 +184,6 @@ mod tests {
         assert!(DMXValue::try_from(testdata::to_attr_borrowed(b"-1/-3s")).is_err());
         assert!(DMXValue::try_from(testdata::to_attr_borrowed(b"1/-3")).is_err());
         assert!(DMXValue::try_from(testdata::to_attr_borrowed(b"1/-3s")).is_err());
-    }
-
-    #[test]
-    fn test_display() {
-        assert_eq!(format!("{}", DMXValue { initial_value: 23, n: 2, is_byte_shifting: true }), "23/2s");
-        assert_eq!(format!("{}", DMXValue { initial_value: 23, n: 2, is_byte_shifting: false }), "23/2");
     }
 
     #[test]

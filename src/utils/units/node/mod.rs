@@ -2,10 +2,11 @@
 use std::borrow::Borrow;
 use std::convert::{TryFrom, TryInto};
 use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::fmt::{Display, Formatter};
 
 use quick_xml::events::attributes::Attribute;
+
 #[cfg(test)]
 use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::name::{GDTFNameError, Name};
@@ -21,26 +22,44 @@ pub mod node_option;
 
 ///Node representation used in GDTF. A Node is a link to another xml node
 #[derive(Debug)]
-pub struct Node(pub Vec<Name>);
-
-
-///Displays the tree of the node_2 without starting point
-impl Display for Node {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut s = "".to_string();
-        for s2 in self.0.iter() {
-            s = format!("{}.{}", s, s2);
-        }
-        let s = &s[1..];
-        write!(f, "{}", s)
-    }
-}
+pub struct Node(Vec<Name>);
 
 impl Default for Node {
     fn default() -> Self {
         Node(vec![])
     }
 }
+
+impl Node {
+    ///creates a new Node from vec of names (&str) where names are checked for validity defined by GDTF
+    pub fn new(names: Vec<&str>) -> Result<Self, GDTFNodeError> {
+        let mut ns = vec![];
+        for name in names.iter() {
+            ns.push(Name::new(name)?)
+        }
+        Ok(Self(ns))
+    }
+
+    ///creates a new Node from single name (&str) where name is checked for validity defined by GDTF
+    pub fn new_s(name: &str) -> Result<Self, GDTFNodeError> {
+        Ok(Self(vec![Name::new(name)?]))
+    }
+    #[cfg(test)]
+    ///creates a new Node from vec of names (&str) where names are not checked for validity defined by GDTF
+    pub(crate) fn new_unchecked(names: Vec<&str>) -> Self {
+        let mut ns = vec![];
+        for name in names.iter() {
+            ns.push(Name::new_unchecked(name))
+        }
+        Self(ns)
+    }
+    #[cfg(test)]
+    ///creates a new Node from single name (&str) where name is not checked for validity defined by GDTF
+    pub(crate) fn new_unchecked_s(name: &str) -> Self {
+        Self(vec![Name::new_unchecked(name)])
+    }
+}
+
 
 ///Parses a tuple of str and the starting point to a node_2, where str is in format Name.Name.Name...
 impl TryFrom<&str> for Node {
@@ -69,11 +88,7 @@ impl From<Attribute<'_>> for Node {
                 }
                 let mut v = vec![];
                 for val in val.split(".").into_iter() {
-                    if val != "" {
-                        v.push(Name::Name(val.to_string()));
-                    } else {
-                        v.push(Name::Empty);
-                    }
+                    v.push(Name::new_unchecked(val));
                 }
                 Node(v)
             }
@@ -87,6 +102,7 @@ impl PartialEq for Node {
         self.0 == other.0
     }
 }
+
 #[cfg(test)]
 impl PartialEqAllowEmpty for Node {
     fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
@@ -124,15 +140,40 @@ mod tests {
     use crate::utils::units::node::Node;
 
     #[test]
-    fn test_display() -> Result<(), GdtfError> {
-        assert_eq!(
-            format!("{}", Node(vec!["One".try_into()?, "Two".try_into()?, "Three".try_into()?, "Four".try_into()?, "Five".try_into()?])),
-            "One.Two.Three.Four.Five"
-        );
-        assert_eq!(
-            format!("{}", Node(vec!["One".try_into()?])),
-            "One"
-        );
+    fn test_new() -> Result<(), GdtfError> {
+        Node(vec![Name::new("one")?]).assert_eq_allow_empty(&Node::new(vec!["one"]).unwrap(), true);
+        Node(vec![Name::new("one")?, Name::new("two")?]).assert_eq_allow_empty(&Node::new(vec!["one", "two"]).unwrap(), true);
+        Node(vec![Name::new("")?, Name::new("two")?]).assert_eq_allow_empty(&Node::new(vec!["", "two"]).unwrap(), true);
+        Node(vec![]).assert_eq_allow_empty(&Node::new(vec![]).unwrap(), true);
+        assert!(Node::new(vec!["asdf{"]).is_err());
+        assert!(Node::new(vec!["some", "asdf{"]).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_new_s() -> Result<(), GdtfError> {
+        Node(vec![Name::new("one")?]).assert_eq_allow_empty(&Node::new_s("one").unwrap(), true);
+        Node(vec![Name::new("")?]).assert_eq_allow_empty(&Node::new_s("").unwrap(), true);
+        assert!(Node::new_s("asdf{").is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_new_unchecked() -> Result<(), GdtfError> {
+        Node(vec![Name::new("one")?]).assert_eq_allow_empty(&Node::new_unchecked(vec!["one"]), true);
+        Node(vec![Name::new("one")?, Name::new("two")?]).assert_eq_allow_empty(&Node::new_unchecked(vec!["one", "two"]), true);
+        Node(vec![Name::new("")?, Name::new("two")?]).assert_eq_allow_empty(&Node::new_unchecked(vec!["", "two"]), true);
+        Node(vec![]).assert_eq_allow_empty(&Node::new_unchecked(vec![]), true);
+        Node(vec![Name::new_unchecked("asdf{")]).assert_eq_allow_empty(&Node::new_unchecked(vec!["asdf{"]), true);
+        Node(vec![Name::new("one")?, Name::new_unchecked("asdf{")]).assert_eq_allow_empty(&Node::new_unchecked(vec!["one", "asdf{"]), true);
+        Ok(())
+    }
+
+    #[test]
+    fn test_new_unchecked_s() -> Result<(), GdtfError> {
+        Node(vec![Name::new("one")?]).assert_eq_allow_empty(&Node::new_unchecked_s("one"), true);
+        Node(vec![Name::new("")?]).assert_eq_allow_empty(&Node::new_unchecked_s(""), true);
+        Node(vec![Name::new_unchecked("asdf{")]).assert_eq_allow_empty(&Node::new_unchecked_s("asdf{"), true);
         Ok(())
     }
 
@@ -146,9 +187,9 @@ mod tests {
         Node(vec!["One".try_into()?]).assert_eq_allow_empty(&"One".try_into()?, true);
         Node(vec!["One".try_into()?, "Two".try_into()?]).assert_eq_allow_empty(&"One.Two".try_into()?, true);
         Node(vec!["One".try_into()?, "Two".try_into()?, "Three".try_into()?]).assert_eq_allow_empty(&"One.Two.Three".try_into()?, true);
-        Node(vec!["One".try_into()?, Name::Empty, "Three".try_into()?]).assert_eq_allow_empty(&"One..Three".try_into()?, true);
+        Node(vec!["One".try_into()?, Name::new("")?, "Three".try_into()?]).assert_eq_allow_empty(&"One..Three".try_into()?, true);
         Node(vec![]).assert_eq_allow_empty(&"".try_into()?, true);
-        Node(vec![Name::Empty, Name::Empty]).assert_eq_allow_empty(&".".try_into()?, true);
+        Node(vec![Name::new("")?, Name::new("")?]).assert_eq_allow_empty(&".".try_into()?, true);
         assert!(Node::try_from("One{Name").is_err());
         assert!(Node::try_from("One.Two{Name").is_err());
         Ok(())
@@ -159,12 +200,12 @@ mod tests {
         Node(vec!["One".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One").into(), true);
         Node(vec!["One".try_into()?, "Two".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One.Two").into(), true);
         Node(vec!["One".try_into()?, "Two".try_into()?, "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One.Two.Three").into(), true);
-        Node(vec!["One".try_into()?, Name::Empty, "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One..Three").into(), true);
+        Node(vec!["One".try_into()?, Name::new("")?, "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One..Three").into(), true);
         Node(vec![]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"").into(), true);
-        Node(vec![Name::Empty, Name::Empty]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b".").into(), true);
-        Node(vec![Name::Name("On{e".to_string()), "Two".try_into()?, "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"On{e.Two.Three").into(), true);
-        Node(vec![Name::Name("On{e".to_string()), Name::Name("Tw{o".to_string()), "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"On{e.Tw{o.Three").into(), true);
-        Node(vec![Name::Name("On{e".to_string())]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"On{e").into(), true);
+        Node(vec![Name::new("")?, Name::new("")?]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b".").into(), true);
+        Node(vec![Name::new_unchecked("On{e"), "Two".try_into()?, "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"On{e.Two.Three").into(), true);
+        Node(vec![Name::new_unchecked("On{e"), Name::new_unchecked("Tw{o"), "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"On{e.Tw{o.Three").into(), true);
+        Node(vec![Name::new_unchecked("On{e")]).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"On{e").into(), true);
         Ok(())
     }
 
@@ -173,47 +214,41 @@ mod tests {
         Node(vec!["One".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_owned(b"One").into(), true);
         Node(vec!["One".try_into()?, "Two".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_owned(b"One.Two").into(), true);
         Node(vec!["One".try_into()?, "Two".try_into()?, "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_owned(b"One.Two.Three").into(), true);
-        Node(vec!["One".try_into()?, Name::Empty, "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_owned(b"One..Three").into(), true);
+        Node(vec!["One".try_into()?, Name::new("")?, "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_owned(b"One..Three").into(), true);
         Node(vec![]).assert_eq_allow_empty(&testdata::to_attr_owned(b"").into(), true);
-        Node(vec![Name::Empty, Name::Empty]).assert_eq_allow_empty(&testdata::to_attr_owned(b".").into(), true);
-        Node(vec![Name::Name("On{e".to_string()), "Two".try_into()?, "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_owned(b"On{e.Two.Three").into(), true);
-        Node(vec![Name::Name("On{e".to_string()), Name::Name("Tw{o".to_string()), "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_owned(b"On{e.Tw{o.Three").into(), true);
-        Node(vec![Name::Name("On{e".to_string())]).assert_eq_allow_empty(&testdata::to_attr_owned(b"On{e").into(), true);
+        Node(vec![Name::new("")?, Name::new("")?]).assert_eq_allow_empty(&testdata::to_attr_owned(b".").into(), true);
+        Node(vec![Name::new_unchecked("On{e"), "Two".try_into()?, "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_owned(b"On{e.Two.Three").into(), true);
+        Node(vec![Name::new_unchecked("On{e"), Name::new_unchecked("Tw{o"), "Three".try_into()?]).assert_eq_allow_empty(&testdata::to_attr_owned(b"On{e.Tw{o.Three").into(), true);
+        Node(vec![Name::new_unchecked("On{e")]).assert_eq_allow_empty(&testdata::to_attr_owned(b"On{e").into(), true);
         Ok(())
     }
 
     #[test]
     fn test_partial_eq() -> Result<(), GdtfError> {
-        assert_eq!(Node(vec![]), Node(vec![]));
-        assert_eq!(Node(vec!["One".try_into()?]), Node(vec!["One".try_into()?]));
-        assert_eq!(Node(vec!["One".try_into()?, "Two".try_into()?]), Node(vec!["One".try_into()?, "Two".try_into()?]));
-        assert_ne!(Node(vec![]), Node(vec!["One".try_into()?, "Two".try_into()?]));
-        assert_ne!(Node(vec!["One".try_into()?, "Two".try_into()?]), Node(vec![]));
-        assert_ne!(Node(vec!["One".try_into()?, "Two".try_into()?]), Node(vec!["Two".try_into()?, "One".try_into()?]));
-        assert_ne!(Node(vec!["One".try_into()?, "Two".try_into()?]), Node(vec!["One".try_into()?]));
-        assert_ne!(Node(vec![Name::Empty]), Node(vec![Name::Empty]));
-        assert_ne!(Node(vec!["One".try_into()?, Name::Empty]), Node(vec!["One".try_into()?, Name::Empty]));
+        assert_eq!(Node::new(vec![])?, Node::new(vec![])?);
+        assert_eq!(Node::new(vec!["One"])?, Node::new(vec!["One"])?);
+        assert_eq!(Node::new(vec!["One", "Two"])?, Node::new(vec!["One", "Two"])?);
+        assert_ne!(Node::new(vec![])?, Node::new(vec!["One", "Two"])?);
+        assert_ne!(Node::new(vec!["One", "Two"])?, Node::new(vec![])?);
+        assert_ne!(Node::new(vec!["One", "Two"])?, Node::new(vec!["Two", "One"])?);
+        assert_ne!(Node::new(vec!["One", "Two"])?, Node::new(vec!["One"])?);
+        assert_ne!(Node::new(vec![""])?, Node::new(vec![""])?);
+        assert_ne!(Node::new(vec!["One", ""])?, Node::new(vec!["One", ""])?);
         Ok(())
     }
 
     #[test]
     fn test_partial_eq_allow_empty() -> Result<(), GdtfError> {
-        Node(vec![]).assert_eq_allow_empty(&Node(vec![]), true);
+        Node::new(vec![])?.assert_eq_allow_empty(&Node::new(vec![])?, true);
+        Node::new(vec!["One"])?.assert_eq_allow_empty(&Node::new(vec!["One"])?, true);
+        Node::new(vec!["One", "Two"])?.assert_eq_allow_empty(&Node::new(vec!["One", "Two"])?, true);
+        Node::new(vec![""])?.assert_eq_allow_empty(&Node::new(vec![""])?, true);
+        Node::new(vec!["One", ""])?.assert_eq_allow_empty(&Node::new(vec!["One", ""])?, true);
 
-        Node(vec!["One".try_into()?]).assert_eq_allow_empty(&Node(vec!["One".try_into()?]), true);
-
-        Node(vec!["One".try_into()?, "Two".try_into()?]).assert_eq_allow_empty(&Node(vec!["One".try_into()?, "Two".try_into()?]), true);
-
-        Node(vec![Name::Empty]).assert_eq_allow_empty(&Node(vec![Name::Empty]), true);
-        Node(vec!["One".try_into()?, Name::Empty]).assert_eq_allow_empty(&Node(vec!["One".try_into()?, Name::Empty]), true);
-
-        assert!(!Node(vec![]).is_eq_allow_empty(&Node(vec!["One".try_into()?, "Two".try_into()?]), false));
-        assert!(!Node(vec!["One".try_into()?, "Two".try_into()?]).is_eq_allow_empty(&Node(vec![]), false));
-        assert!(!Node(vec!["One".try_into()?, "Two".try_into()?]).is_eq_allow_empty(&Node(vec!["Two".try_into()?, "One".try_into()?]), false));
-        assert!(!Node(vec!["One".try_into()?, "Two".try_into()?]).is_eq_allow_empty(&Node(vec!["One".try_into()?]), false));
-        assert!(!Node(vec![Name::Name("".to_string()), "Two".try_into()?]).is_eq_allow_empty(&Node(vec![Name::Empty, "Two".try_into()?]), false));
-        assert!(!Node(vec!["One".try_into()?, Name::Name("".to_string())]).is_eq_allow_empty(&Node(vec!["One".try_into()?, Name::Empty]), false));
-
+        assert!(!Node::new(vec![])?.is_eq_allow_empty(&Node::new(vec!["One", "Two"])?, false));
+        assert!(!Node::new(vec!["One", "Two"])?.is_eq_allow_empty(&Node::new(vec![])?, false));
+        assert!(!Node::new(vec!["One", "Two"])?.is_eq_allow_empty(&Node::new(vec!["Two", "One"])?, false));
+        assert!(!Node::new(vec!["One", "Two"])?.is_eq_allow_empty(&Node::new(vec!["One"])?, false));
 
         Ok(())
     }

@@ -3,7 +3,7 @@
 
 use std::borrow::Borrow;
 use std::convert::TryFrom;
-use std::fmt::{Display, Formatter};
+
 
 use quick_xml::events::attributes::Attribute;
 
@@ -68,18 +68,6 @@ impl PartialEq for Highlight {
         }
     }
 }
-
-///Displays the highlight value or None
-impl Display for Highlight {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        use Highlight::*;
-        match self {
-            Value(x) => write!(f, "{}", x),
-            None => write!(f, "None")
-        }
-    }
-}
-
 
 #[cfg(test)]
 mod tests {
@@ -198,22 +186,6 @@ mod tests {
             Highlight::default(),
             testdata::to_attr_borrowed(b"something else").into()
         );
-    }
-
-
-    #[test]
-    fn test_display() {
-        assert_eq!(format!("{}", Highlight::Value(DMXValue {
-            initial_value: 12,
-            n: 3,
-            is_byte_shifting: false,
-        })), "12/3");
-        assert_eq!(format!("{}", Highlight::Value(DMXValue {
-            initial_value: 12,
-            n: 3,
-            is_byte_shifting: true,
-        })), "12/3s");
-        assert_eq!(format!("{}", Highlight::None), "None");
     }
 
     #[test]

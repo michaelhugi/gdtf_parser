@@ -1,6 +1,6 @@
 //! Module for the unit Master for LogicalChannel used in GDTF
 use std::borrow::Borrow;
-use std::fmt::{Display, Formatter};
+
 
 use quick_xml::events::attributes::Attribute;
 
@@ -54,18 +54,6 @@ impl PartialEq for Master {
     }
 }
 
-///Displays the Master
-impl Display for Master {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        use Master::*;
-        match self {
-            None => write!(f, "None"),
-            Grand => write!(f, "Grand"),
-            Group => write!(f, "Group"),
-        }
-    }
-}
-
 
 #[cfg(test)]
 mod tests {
@@ -99,13 +87,6 @@ mod tests {
         assert_eq!(Master::Group, testdata::to_attr_borrowed(b"Group").into());
         assert_eq!(Master::None, testdata::to_attr_borrowed(b"None").into());
         assert_eq!(Master::default(), testdata::to_attr_borrowed(b"Something else").into());
-    }
-
-    #[test]
-    fn test_display() {
-        assert_eq!(format!("{}", Master::Grand), "Grand");
-        assert_eq!(format!("{}", Master::Group), "Group");
-        assert_eq!(format!("{}", Master::None), "None");
     }
 
     #[test]

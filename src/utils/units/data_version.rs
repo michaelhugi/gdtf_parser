@@ -1,6 +1,6 @@
 //! Module for the unit DataVersion used in GDTF
 use std::borrow::Borrow;
-use std::fmt::{Display, Formatter};
+
 
 use quick_xml::events::attributes::Attribute;
 
@@ -15,15 +15,6 @@ pub enum DataVersion {
     Unknown,
 }
 
-impl Display for DataVersion {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            DataVersion::Version1_0 => write!(f, "1.0"),
-            DataVersion::Version1_1 => write!(f, "1.1"),
-            DataVersion::Unknown => write!(f, "Unknown"),
-        }
-    }
-}
 
 ///Deparses Version from Attribute safely. In case of error it will return Unknown
 impl From<Attribute<'_>> for DataVersion {
@@ -205,21 +196,6 @@ mod tests {
         if let DataVersion::Unknown = testdata::to_attr_borrowed(b"1.").into() {} else {
             panic!("Invalid Version not returned as Unknown");
         }
-    }
-
-    #[test]
-    fn test_display_unknown() {
-        assert_eq!(format!("{}", DataVersion::Unknown), "Unknown");
-    }
-
-    #[test]
-    fn test_display_1_0() {
-        assert_eq!(format!("{}", DataVersion::Version1_0), "1.0");
-    }
-
-    #[test]
-    fn test_display_1_1() {
-        assert_eq!(format!("{}", DataVersion::Version1_1), "1.1");
     }
 
     #[test]

@@ -116,16 +116,17 @@ mod tests {
     use crate::fixture_type::dmx_mode::dmx_channel::DMXChannel;
     use crate::fixture_type::dmx_mode::DMXMode;
     use crate::utils::deparse::TestDeparseSingle;
+    use crate::utils::errors::GdtfError;
     use crate::utils::units::dmx_break::DMXBreak;
     use crate::utils::units::highlight::Highlight;
     use crate::utils::units::name::Name;
     use crate::utils::units::offset::Offset;
 
     #[test]
-    fn test_normal() {
+    fn test_normal() -> Result<(), GdtfError> {
         DMXMode {
-            name: Name::Name("Mode 1 12 DMX".to_string()),
-            geometry: Name::Name("Base".to_string()),
+            name: Name::new("Mode 1 12 DMX")?,
+            geometry: Name::new("Base")?,
             dmx_channels: vec![
                 DMXChannel {
                     dmx_break: DMXBreak::Overwrite,
@@ -155,5 +156,6 @@ mod tests {
        </DMXMode>
             "#
         );
+        Ok(())
     }
 }

@@ -1,5 +1,5 @@
 //! Module for the unit PhysicalUnit used in GDTF
-use std::fmt::{Display, Formatter};
+
 
 ///Physical Unit representation used in GDTF
 #[derive(Debug)]
@@ -218,37 +218,6 @@ impl PartialEq for PhysicalUnit {
     }
 }
 
-impl Display for PhysicalUnit {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        use PhysicalUnit::*;
-        match self {
-            None => write!(f, "None"),
-            Percent => write!(f, "Percent"),
-            Length => write!(f, "Length (m)"),
-            Mass => write!(f, "Mass (kg)"),
-            Time => write!(f, "Time (s)"),
-            Temperature => write!(f, "Temperature (K)"),
-            LuminousIntensity => write!(f, "LuminousIntensity (cd)"),
-            Angle => write!(f, "Angle (degree)"),
-            Force => write!(f, "Force (N)"),
-            Frequency => write!(f, "Frequency (Hz)"),
-            Current => write!(f, "Current (A)"),
-            Voltage => write!(f, "Voltage (V)"),
-            Power => write!(f, "Power (W)"),
-            Energy => write!(f, "Energy (J)"),
-            Area => write!(f, "Area (m2)"),
-            Volume => write!(f, "Volume (m3)"),
-            Speed => write!(f, "Speed (m / s)"),
-            Acceleration => write!(f, "Acceleration (m / s2)"),
-            AngularSpeed => write!(f, "AngularSpeed (degree / s)"),
-            AngularAccc => write!(f, "AngularAccc (degree / s2"),
-            WaveLength => write!(f, "WaveLength (nm)"),
-            ColorComponent => write!(f, "ColorComponent"),
-        }
-    }
-}
-
-
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
@@ -288,8 +257,4 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_display() {
-        assert_eq!(format!("{}", PhysicalUnit::Area), "Area (m2)");
-    }
 }

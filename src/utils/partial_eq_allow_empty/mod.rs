@@ -1,8 +1,10 @@
 #![cfg(test)]
 
 //! A lot of PartialEq implementations will return false in this crate in case both have no content (either Option or another Enum). This module contains a trait that will handle this cases for testing comparison
-use std::backtrace::Backtrace;
+
 use std::fmt::Debug;
+
+use backtrace::Backtrace;
 
 ///Checks if two structs or enums are equal and has some additional method for testing. This is in addition to PartialEq because a lot of implementations of PartialEq will return false in case some content is empty (Option or other Enum) because this is more useful when implementing the crate to a project.
 pub trait PartialEqAllowEmpty: Debug {
@@ -23,7 +25,7 @@ pub trait PartialEqAllowEmpty: Debug {
     fn is_eq_allow_empty(&self, other: &Self, log: bool) -> bool {
         let out = self.is_eq_allow_empty_impl(&other, log);
         if !out && log {
-            let bt = Backtrace::capture();
+            let bt = Backtrace::new();
             println!("\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\nStructs were not equal\n----------------------------------------------------------------------------- \n-----------------------------------------------------------------------------\nleft: {:?} \nright: {:?}\n\n{:#?}\n\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n-----\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n", &self, &other, bt);
         }
         out
@@ -32,24 +34,51 @@ pub trait PartialEqAllowEmpty: Debug {
     fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool;
 
     ///Compares if two optionsif they the same no matter if they have content or not and panics if they aren't.
-    fn assert_eq_allow_option<T: PartialEq + Debug>(left: &Option<T>, right: &Option<T>) {
-        if !Self::is_eq_allow_option(left, right) {
+    fn assert_eq_allow_option<T: PartialEq + Debug>(left: &Option<T>, right: &Option<T>, log: bool) {
+        if !Self::is_eq_allow_option(left, right, log) {
             panic!("assert_eq_allow_empty! \n left: {:?} \n right: {:?}", left, right)
         }
     }
 
     ///The same as assert_eq_allow_option but panics if they are equal.
     fn assert_ne_allow_option<T: PartialEq + Debug>(left: &Option<T>, right: &Option<T>) {
-        if Self::is_eq_allow_option(left, right) {
+        if Self::is_eq_allow_option(left, right, false) {
             panic!("assert_ne_allow_empty! \n left: {:?} \n right: {:?}", left, right)
         }
     }
 
     ///Helper method for easier implementation of the trait if two options are compared. Can be used in is_eq_allow_empty_impl if needed.
-    fn is_eq_allow_option<T: PartialEq>(left: &Option<T>, right: &Option<T>) -> bool {
+    fn is_eq_allow_option<T: PartialEq + Debug>(left: &Option<T>, right: &Option<T>, log: bool) -> bool {
+        match left {
+            None => if let None = right { true } else {
+                if log {
+                    let bt = Backtrace::new();
+                    println!("\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\nStructs were not equal\n----------------------------------------------------------------------------- \n-----------------------------------------------------------------------------\nleft: None \nright: {:?}\n\n{:#?}\n\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n-----\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n", &right, bt);
+                }
+                false
+            },
+            Some(left) => if let Some(right) = right {
+                let output = right == left;
+                if !output && log {
+                    let bt = Backtrace::new();
+                    println!("\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\nStructs were not equal\n----------------------------------------------------------------------------- \n-----------------------------------------------------------------------------\nleft: {:?} \nright: {:?}\n\n{:#?}\n\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n-----\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n", &left, &right, bt);
+                }
+                output
+            } else {
+                if log {
+                    let bt = Backtrace::new();
+                    println!("\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\nStructs were not equal\n----------------------------------------------------------------------------- \n-----------------------------------------------------------------------------\nleft: {:?} \nright: None\n\n{:#?}\n\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n-----\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n", &left, bt);
+                }
+                false
+            }
+        }
+    }
+
+    ///Helper method for easier implementation of the trait if two options are compared. Can be used in is_eq_allow_empty_impl if needed and respects if underlying
+    fn is_eq_allow_option_allow_empty<T: PartialEqAllowEmpty>(left: &Option<T>, right: &Option<T>, log: bool) -> bool {
         match left {
             None => if let None = right { true } else { false },
-            Some(left) => if let Some(right) = right { right == left } else { false }
+            Some(left) => if let Some(right) = right { right.is_eq_allow_empty(left, log) } else { false }
         }
     }
 
@@ -78,13 +107,14 @@ pub trait PartialEqAllowEmpty: Debug {
 #[cfg(test)]
 mod tests {
     use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
+    use crate::utils::units::node::Node;
 
     #[derive(Debug, PartialEq)]
     struct TeststructOption(Option<String>);
 
     impl PartialEqAllowEmpty for TeststructOption {
-        fn is_eq_allow_empty_impl(&self, other: &Self, _: bool) -> bool {
-            Self::is_eq_allow_option(&self.0, &other.0)
+        fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+            Self::is_eq_allow_option(&self.0, &other.0, log)
         }
     }
 
@@ -182,55 +212,55 @@ mod tests {
     #[test]
     fn test_assert_eq_allow_option() {
         let none: Option<&str> = None;
-        TeststructOption::assert_eq_allow_option(&none, &none);
-        TeststructOption::assert_eq_allow_option(&Some("test"), &Some("test"));
-        TeststructOption::assert_eq_allow_option(&Some(""), &Some(""));
+        TeststructOption::assert_eq_allow_option(&none, &none, true);
+        TeststructOption::assert_eq_allow_option(&Some("test"), &Some("test"), true);
+        TeststructOption::assert_eq_allow_option(&Some(""), &Some(""), true);
     }
 
     #[test]
     #[should_panic]
     fn test_assert_eq_allow_option_panic_1() {
         let none: Option<&str> = None;
-        TeststructOption::assert_eq_allow_option(&none, &Some(""));
+        TeststructOption::assert_eq_allow_option(&none, &Some(""), false);
     }
 
     #[test]
     #[should_panic]
     fn test_assert_eq_allow_option_panic_2() {
         let none: Option<&str> = None;
-        TeststructOption::assert_eq_allow_option(&none, &Some("test"));
+        TeststructOption::assert_eq_allow_option(&none, &Some("test"), false);
     }
 
     #[test]
     #[should_panic]
     fn test_assert_eq_allow_option_panic_3() {
         let none: Option<&str> = None;
-        TeststructOption::assert_eq_allow_option(&Some(""), &none);
+        TeststructOption::assert_eq_allow_option(&Some(""), &none, false);
     }
 
     #[test]
     #[should_panic]
     fn test_assert_eq_allow_option_panic_4() {
         let none: Option<&str> = None;
-        TeststructOption::assert_eq_allow_option(&Some("test"), &none);
+        TeststructOption::assert_eq_allow_option(&Some("test"), &none, false);
     }
 
     #[test]
     #[should_panic]
     fn test_assert_eq_allow_option_panic_5() {
-        TeststructOption::assert_eq_allow_option(&Some("test"), &Some("test2"));
+        TeststructOption::assert_eq_allow_option(&Some("test"), &Some("test2"), false);
     }
 
     #[test]
     #[should_panic]
     fn test_assert_eq_allow_option_panic_6() {
-        TeststructOption::assert_eq_allow_option(&Some(""), &Some("test2"));
+        TeststructOption::assert_eq_allow_option(&Some(""), &Some("test2"), false);
     }
 
     #[test]
     #[should_panic]
     fn test_assert_eq_allow_option_panic_7() {
-        TeststructOption::assert_eq_allow_option(&Some("test"), &Some(""));
+        TeststructOption::assert_eq_allow_option(&Some("test"), &Some(""), false);
     }
 
     #[test]
@@ -267,15 +297,30 @@ mod tests {
     #[test]
     fn test_is_eq_allow_option() {
         let none: Option<&str> = None;
-        assert!(TeststructOption::is_eq_allow_option(&none, &none));
-        assert!(TeststructOption::is_eq_allow_option(&Some("test"), &Some("test")));
-        assert!(TeststructOption::is_eq_allow_option(&Some(""), &Some("")));
-        assert!(!TeststructOption::is_eq_allow_option(&none, &Some("")));
-        assert!(!TeststructOption::is_eq_allow_option(&none, &Some("test")));
-        assert!(!TeststructOption::is_eq_allow_option(&Some(""), &none));
-        assert!(!TeststructOption::is_eq_allow_option(&Some("test"), &none));
-        assert!(!TeststructOption::is_eq_allow_option(&Some(""), &Some("test")));
-        assert!(!TeststructOption::is_eq_allow_option(&Some("test"), &Some("")));
-        assert!(!TeststructOption::is_eq_allow_option(&Some("test"), &Some("other")));
+        assert!(TeststructOption::is_eq_allow_option(&none, &none, true));
+        assert!(TeststructOption::is_eq_allow_option(&Some("test"), &Some("test"), true));
+        assert!(TeststructOption::is_eq_allow_option(&Some(""), &Some(""), true));
+        assert!(!TeststructOption::is_eq_allow_option(&none, &Some(""), false));
+        assert!(!TeststructOption::is_eq_allow_option(&none, &Some("test"), false));
+        assert!(!TeststructOption::is_eq_allow_option(&Some(""), &none, false));
+        assert!(!TeststructOption::is_eq_allow_option(&Some("test"), &none, false));
+        assert!(!TeststructOption::is_eq_allow_option(&Some(""), &Some("test"), false));
+        assert!(!TeststructOption::is_eq_allow_option(&Some("test"), &Some(""), false));
+        assert!(!TeststructOption::is_eq_allow_option(&Some("test"), &Some("other"), false));
+    }
+
+    #[test]
+    fn test_is_eq_allow_option_allow_empty() {
+        let none: Option<Node> = None;
+        assert!(TeststructOption::is_eq_allow_option_allow_empty(&none, &none, true));
+        assert!(TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("test")), &Some(Node::new_unchecked_s("test")), true));
+        assert!(TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("")), &Some(Node::new_unchecked_s("")), true));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&none, &Some(Node::new_unchecked_s("")), false));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&none, &Some(Node::new_unchecked_s("test")), false));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("")), &none, false));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("test")), &none, false));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("")), &Some(Node::new_unchecked_s("test")), false));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("test")), &Some(Node::new_unchecked_s("")), false));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("test")), &Some(Node::new_unchecked_s("other")), false));
     }
 }

@@ -2,7 +2,7 @@
 use std::borrow::Borrow;
 use std::convert::TryFrom;
 use std::error::Error;
-use std::fmt::{Display, Formatter};
+
 use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
@@ -12,39 +12,29 @@ use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 
 ///Name representation used in GDTF
 #[derive(Debug)]
-pub enum Name {
-    ///The string value of the name
-    Name(String),
-    ///Variant of empty string
-    Empty,
-}
+pub struct Name(String);
 
 ///Default is an empty Name
 impl Default for Name {
     ///Default is an empty Name
     fn default() -> Self {
-        Name::Empty
+        Name("".to_string())
     }
 }
 
-///Writes just the string for the name
-impl Display for Name {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Name::Name(name) => write!(f, "{}", name),
-            Name::Empty => write!(f, "")
-        }
+impl Name {
+    ///Creates an new_unchecked name with any given char allowed
+    pub(crate) fn new_unchecked(name: &str) -> Self {
+        Self(name.to_string())
     }
 }
+
 
 ///Deparses Name from Attribute safely. In case of error it will return default. It will also allow not valid chars from GDTF-Spec because Rust can handle it!
 impl From<Attribute<'_>> for Name {
     ///Depares Name safely from Attribute. In case of error it returns default. It will also allow not valid chars from GDTF-Spec because Rust can handle it!
     fn from(attr: Attribute) -> Self {
-        match std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| "") {
-            "" => Name::Empty,
-            value => Name::Name(String::from(value))
-        }
+        Name::new_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| ""))
     }
 }
 
@@ -69,15 +59,18 @@ impl TryFrom<&str> for Name {
     type Error = GDTFNameError;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
-        Self::validate_chars(s)?;
-        match s {
-            "" => Ok(Name::Empty),
-            s => Ok(Name::Name(String::from(s)))
-        }
+        Self::new(s)
     }
 }
 
 impl Name {
+    ///Creates a new instance of name. Only chars to GDTF Spec are allowed
+    pub fn new(name: &str) -> Result<Self, GDTFNameError> {
+        Self::validate_chars(name)?;
+        Ok(Self(name.to_string()))
+    }
+
+
     fn validate_chars(s: &str) -> Result<(), GDTFNameError> {
         for char in s.chars() {
             let char = char as u8;
@@ -96,13 +89,10 @@ impl Name {
 
 impl PartialEq for Name {
     fn eq(&self, other: &Self) -> bool {
-        match self {
-            Name::Name(left) => if let Name::Name(right) = other {
-                left == right
-            } else {
-                false
-            },
-            Name::Empty => false
+        if self.0 == "" || other.0 == "" {
+            false
+        } else {
+            self.0 == other.0
         }
     }
 }
@@ -110,11 +100,7 @@ impl PartialEq for Name {
 #[cfg(test)]
 impl PartialEqAllowEmpty for Name {
     fn is_eq_allow_empty_impl(&self, other: &Self, _: bool) -> bool {
-        use self::Name::*;
-        match self {
-            Empty => if let Empty = other { true } else { false },
-            Name(left) => if let Name(right) = other { left == right } else { false }
-        }
+        self.0 == other.0
     }
 }
 
@@ -122,83 +108,99 @@ impl PartialEqAllowEmpty for Name {
 mod tests {
     use std::convert::{TryFrom, TryInto};
 
+    use crate::utils::errors::GdtfError;
     use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
     use crate::utils::testdata;
-    use crate::utils::units::name::Name;
+    use crate::utils::units::name::{GDTFNameError, Name};
 
     #[test]
-    fn test_default() {
-        Name::Empty.assert_eq_allow_empty(&Default::default(), true);
+    fn test_default() -> Result<(), GdtfError> {
+        Name::new("")?.assert_eq_allow_empty(&Default::default(), true);
+        Ok(())
     }
 
     #[test]
-    fn test_display() {
-        assert_eq!(format!("{}", Name::Name("My Name".to_string())), "My Name");
-        assert_eq!(format!("{}", Name::Name("Something else".to_string())), "Something else");
-        assert_eq!(format!("{}", Name::Empty), "");
+    fn test_new() -> Result<(), GDTFNameError> {
+        Name::new("test")?.assert_eq_allow_empty(&Name::new("test")?, true);
+        Name::new("")?.assert_eq_allow_empty(&Name::new("")?, true);
+        assert!(Name::new("asd{").is_err());
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_str() {
+    fn test_new_unchecked() -> Result<(), GDTFNameError> {
+        Name("test".to_string()).assert_eq_allow_empty(&Name::new_unchecked("test"), true);
+        Name("".to_string()).assert_eq_allow_empty(&Name::new_unchecked(""), true);
+        Name("asd{".to_string()).assert_eq_allow_empty(&Name::new_unchecked("asd{"), true);
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_from_str() -> Result<(), GdtfError> {
         //Name has restricted set of valid chars
         assert!(Name::try_from(std::str::from_utf8(&[19]).unwrap()).is_err());
         //Name has restricted set of valid chars
         assert!(Name::try_from("{").is_err());
         //Name has restricted set of valid chars
         assert!(Name::try_from("Some {Name").is_err());
-        Name::Empty.assert_eq_allow_empty(&"".try_into().unwrap(), true);
-        assert_eq!(Name::Name(" ".to_string()), " ".try_into().unwrap());
-        assert_eq!(Name::Name("  ".to_string()), "  ".try_into().unwrap());
-        assert_eq!(Name::Name("Some Name".to_string()), "Some Name".try_into().unwrap());
-        assert_eq!(Name::Name("Some Other Name".to_string()), "Some Other Name".try_into().unwrap());
-        assert_eq!(Name::Name("  Some  Name  ".to_string()), "  Some  Name  ".try_into().unwrap());
+        Name::new("")?.assert_eq_allow_empty(&"".try_into().unwrap(), true);
+        assert_eq!(Name::new(" ")?, " ".try_into().unwrap());
+        assert_eq!(Name::new("  ")?, "  ".try_into().unwrap());
+        assert_eq!(Name::new("Some Name")?, "Some Name".try_into().unwrap());
+        assert_eq!(Name::new("Some Other Name")?, "Some Other Name".try_into().unwrap());
+        assert_eq!(Name::new("  Some  Name  ")?, "  Some  Name  ".try_into().unwrap());
+        Ok(())
     }
 
     #[test]
-    fn test_from_attr_borrowed() {
+    fn test_from_attr_borrowed() -> Result<(), GdtfError> {
         //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
-        assert_eq!(Name::Name("{".to_string()), testdata::to_attr_borrowed(b"{").into());
+        assert_eq!(Name::new_unchecked("{"), testdata::to_attr_borrowed(b"{").into());
         //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
-        assert_eq!(Name::Name("Some {Name".to_string()), testdata::to_attr_borrowed(b"Some {Name").into());
-        Name::Empty.assert_eq_allow_empty(&testdata::to_attr_borrowed(b"").into(), true);
-        assert_eq!(Name::Name(" ".to_string()), testdata::to_attr_borrowed(b" ").into());
-        assert_eq!(Name::Name("  ".to_string()), testdata::to_attr_borrowed(b"  ").into());
-        assert_eq!(Name::Name("Some Name".to_string()), testdata::to_attr_borrowed(b"Some Name").into());
-        assert_eq!(Name::Name("Some Other Name".to_string()), testdata::to_attr_borrowed(b"Some Other Name").into());
-        assert_eq!(Name::Name("  Some  Name  ".to_string()), testdata::to_attr_borrowed(b"  Some  Name  ").into());
+        assert_eq!(Name::new_unchecked("Some {Name"), testdata::to_attr_borrowed(b"Some {Name").into());
+        Name::new("")?.assert_eq_allow_empty(&testdata::to_attr_borrowed(b"").into(), true);
+        assert_eq!(Name::new(" ")?, testdata::to_attr_borrowed(b" ").into());
+        assert_eq!(Name::new("  ")?, testdata::to_attr_borrowed(b"  ").into());
+        assert_eq!(Name::new("Some Name")?, testdata::to_attr_borrowed(b"Some Name").into());
+        assert_eq!(Name::new("Some Other Name")?, testdata::to_attr_borrowed(b"Some Other Name").into());
+        assert_eq!(Name::new("  Some  Name  ")?, testdata::to_attr_borrowed(b"  Some  Name  ").into());
+        Ok(())
     }
 
     #[test]
-    fn test_from_attr_owned() {
+    fn test_from_attr_owned() -> Result<(), GdtfError> {
         //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
-        assert_eq!(Name::Name("{".to_string()), testdata::to_attr_owned(b"{").into());
+        assert_eq!(Name::new_unchecked("{"), testdata::to_attr_owned(b"{").into());
         //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
-        assert_eq!(Name::Name("Some {Name".to_string()), testdata::to_attr_owned(b"Some {Name").into());
-        Name::Empty.assert_eq_allow_empty(&testdata::to_attr_owned(b"").into(), true);
-        assert_eq!(Name::Name(" ".to_string()), testdata::to_attr_owned(b" ").into());
-        assert_eq!(Name::Name("  ".to_string()), testdata::to_attr_owned(b"  ").into());
-        assert_eq!(Name::Name("Some Name".to_string()), testdata::to_attr_owned(b"Some Name").into());
-        assert_eq!(Name::Name("Some Other Name".to_string()), testdata::to_attr_owned(b"Some Other Name").into());
-        assert_eq!(Name::Name("  Some  Name  ".to_string()), testdata::to_attr_owned(b"  Some  Name  ").into());
+        assert_eq!(Name::new_unchecked("Some {Name"), testdata::to_attr_owned(b"Some {Name").into());
+        Name::new("")?.assert_eq_allow_empty(&testdata::to_attr_owned(b"").into(), true);
+        assert_eq!(Name::new(" ")?, testdata::to_attr_owned(b" ").into());
+        assert_eq!(Name::new("  ")?, testdata::to_attr_owned(b"  ").into());
+        assert_eq!(Name::new("Some Name")?, testdata::to_attr_owned(b"Some Name").into());
+        assert_eq!(Name::new("Some Other Name")?, testdata::to_attr_owned(b"Some Other Name").into());
+        assert_eq!(Name::new("  Some  Name  ")?, testdata::to_attr_owned(b"  Some  Name  ").into());
+        Ok(())
     }
 
     #[test]
-    fn test_partial_eq() {
-        assert_ne!(Name::Empty, Name::Empty);
-        assert_eq!(Name::Name("Hello".to_string()), Name::Name("Hello".to_string()));
-        assert_eq!(Name::Name("MyName".to_string()), Name::Name("MyName".to_string()));
-        assert_ne!(Name::Name("Hello".to_string()), Name::Empty);
-        assert_ne!(Name::Empty, Name::Name("Hello".to_string()));
-        assert_ne!(Name::Name("Hello".to_string()), Name::Name("MyName".to_string()));
+    fn test_partial_eq() -> Result<(), GdtfError> {
+        assert_ne!(Name::new("")?, Name::new("")?);
+        assert_eq!(Name::new("Hello")?, Name::new("Hello")?);
+        assert_eq!(Name::new("MyName")?, Name::new("MyName")?);
+        assert_ne!(Name::new("Hello")?, Name::new("")?);
+        assert_ne!(Name::new("")?, Name::new("Hello")?);
+        assert_ne!(Name::new("Hello")?, Name::new("MyName")?);
+        Ok(())
     }
 
     #[test]
-    fn test_partial_eq_including_none() {
-        assert_ne!(Name::Empty, Name::Empty);
-        assert_eq!(Name::Name("Hello".to_string()), Name::Name("Hello".to_string()));
-        assert_eq!(Name::Name("MyName".to_string()), Name::Name("MyName".to_string()));
-        assert_ne!(Name::Name("Hello".to_string()), Name::Empty);
-        assert_ne!(Name::Empty, Name::Name("Hello".to_string()));
-        assert_ne!(Name::Name("Hello".to_string()), Name::Name("MyName".to_string()));
+    fn test_partial_eq_allow_empty() -> Result<(), GdtfError> {
+        Name::new("")?.assert_eq_allow_empty(&Name::new("")?, true);
+        Name::new("Hello")?.assert_eq_allow_empty(&Name::new("Hello")?, true);
+        Name::new("MyName")?.assert_eq_allow_empty(&Name::new("MyName")?, true);
+        Name::new("Hello")?.assert_ne_allow_empty(&Name::new("")?);
+        Name::new("")?.assert_ne_allow_empty(&Name::new("Hello")?);
+        Name::new("Hello")?.assert_ne_allow_empty(&Name::new("MyName")?);
+        Ok(())
     }
 }

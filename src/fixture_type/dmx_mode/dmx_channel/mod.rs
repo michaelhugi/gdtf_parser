@@ -130,36 +130,34 @@ impl DeparseVec for DMXChannel {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
     use crate::fixture_type::dmx_mode::dmx_channel::DMXChannel;
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
     use crate::utils::deparse::TestDeparseSingle;
+    use crate::utils::errors::GdtfError;
     use crate::utils::units::dmx_break::DMXBreak;
     use crate::utils::units::dmx_value::DMXValue;
     use crate::utils::units::highlight::Highlight;
     use crate::utils::units::master::Master;
     use crate::utils::units::name::Name;
-    use crate::utils::units::node::Node;
     use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
     use crate::utils::units::offset::Offset;
     use crate::utils::units::snap::Snap;
 
     #[test]
-    fn test_normal() {
+    fn test_normal() -> Result<(), GdtfError> {
         DMXChannel {
             dmx_break: DMXBreak::Value(1),
             offset: Offset::Value(vec![1]),
-            initial_function: NodeLogicalChannelAttribute(Some(Node(vec!["Beam_Shutter1".try_into().unwrap(), "Shutter1".try_into().unwrap(), "Open".try_into().unwrap()]))),
+            initial_function: NodeLogicalChannelAttribute::new(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
             highlight: Highlight::Value(DMXValue {
                 initial_value: 8,
                 n: 1,
                 is_byte_shifting: false,
             }),
-            geometry: Name::Name("Beam".to_string()),
+            geometry: Name::new("Beam")?,
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute(Some(Node { 0: vec!["Shutter1".try_into().unwrap()] })),
+                    attribute: NodeLogicalChannelAttribute::new_s("Shutter1")?,
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -174,23 +172,24 @@ mod tests {
             </DMXChannel>
             "#
         );
+        Ok(())
     }
 
     #[test]
-    fn test_normal_2() {
+    fn test_normal_2() -> Result<(), GdtfError> {
         DMXChannel {
             dmx_break: DMXBreak::Value(2),
             offset: Offset::Value(vec![1, 2]),
-            initial_function: NodeLogicalChannelAttribute(Some(Node { 0: vec![Name::Name("Beam_Shutter1".to_string()), Name::Name("Shutter1".to_string()), Name::Name("Open".to_string())] })),
+            initial_function: NodeLogicalChannelAttribute::new(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
             highlight: Highlight::Value(DMXValue {
                 initial_value: 8,
                 n: 1,
                 is_byte_shifting: false,
             }),
-            geometry: Name::Name("Beam".to_string()),
+            geometry: Name::new("Beam")?,
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute(Some(Node { 0: vec!["Shutter1".try_into().unwrap()] })),
+                    attribute: NodeLogicalChannelAttribute::new_s("Shutter1")?,
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -205,25 +204,24 @@ mod tests {
             </DMXChannel>
             "#
         );
+        Ok(())
     }
 
     #[test]
-    fn test_normal_3() {
+    fn test_normal_3() -> Result<(), GdtfError> {
         DMXChannel {
             dmx_break: DMXBreak::Overwrite,
             offset: Offset::Value(vec![1, 2]),
-            initial_function: NodeLogicalChannelAttribute(Some(Node {
-                0: vec![Name::Name("Beam_Shutter1".to_string()), Name::Name("Shutter1".to_string()), Name::Name("Open".to_string())]
-            })),
+            initial_function: NodeLogicalChannelAttribute::new(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
             highlight: Highlight::Value(DMXValue {
                 initial_value: 8,
                 n: 1,
                 is_byte_shifting: false,
             }),
-            geometry: Name::Name("Beam".to_string()),
+            geometry: Name::new("Beam")?,
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute(Some(Node { 0: vec![Name::Name("Shutter1".to_string())] })),
+                    attribute: NodeLogicalChannelAttribute::new_s("Shutter1")?,
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -238,19 +236,20 @@ mod tests {
             </DMXChannel>
             "#
         );
+        Ok(())
     }
 
     #[test]
-    fn test_min() {
+    fn test_min() -> Result<(), GdtfError> {
         DMXChannel {
             dmx_break: DMXBreak::Value(1),
             offset: Offset::None,
-            initial_function: NodeLogicalChannelAttribute(None),
+            initial_function: NodeLogicalChannelAttribute::none(),
             highlight: Highlight::None,
-            geometry: Name::Empty,
+            geometry: Name::new("")?,
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute(Some(Node { 0: vec![Name::Name("Shutter1".to_string())] })),
+                    attribute: NodeLogicalChannelAttribute::new(vec!["Shutter1"])?,
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -258,7 +257,7 @@ mod tests {
                     channel_functions: vec![],
                 },
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute(Some(Node { 0: vec![Name::Name("Shutter1".to_string())] })),
+                    attribute: NodeLogicalChannelAttribute::new(vec!["Shutter1"])?,
                     snap: Snap::Yes,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -274,16 +273,17 @@ mod tests {
             </DMXChannel>
             "#
         );
+        Ok(())
     }
 
     #[test]
-    fn test_faulty() {
+    fn test_faulty() -> Result<(), GdtfError> {
         DMXChannel {
             dmx_break: DMXBreak::Value(1),
             offset: Offset::None,
-            initial_function: NodeLogicalChannelAttribute(None),
+            initial_function: NodeLogicalChannelAttribute::none(),
             highlight: Highlight::None,
-            geometry: Name::Empty,
+            geometry: Name::new("")?,
             logical_channels: vec![],
         }.test(
             r#"
@@ -291,5 +291,6 @@ mod tests {
             </DMXChannel>
             "#
         );
+        Ok(())
     }
 }

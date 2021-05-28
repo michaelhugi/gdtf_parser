@@ -2,6 +2,7 @@ use std::borrow::Borrow;
 use std::convert::TryInto;
 
 use quick_xml::events::attributes::Attribute;
+
 use crate::utils::units::node::{GDTFNodeError, Node};
 
 pub trait NodeOption {
@@ -28,7 +29,6 @@ pub trait NodeOption {
 
 #[cfg(test)]
 mod tests {
-
     use crate::utils::errors::GdtfError;
     use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
     use crate::utils::units::node::Node;
@@ -40,8 +40,8 @@ mod tests {
     impl NodeOption for TestNodeOption {}
 
     impl PartialEqAllowEmpty for TestNodeOption {
-        fn is_eq_allow_empty_impl(&self, other: &Self, _: bool) -> bool {
-            Self::is_eq_allow_option(&self.0, &other.0)
+        fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+            Self::is_eq_allow_option(&self.0, &other.0, log)
         }
     }
 

@@ -2,11 +2,12 @@
 use std::borrow::Borrow;
 use std::convert::{TryFrom, TryInto};
 use std::error::Error;
-use std::fmt::{Display, Formatter};
+
 use std::num::ParseIntError;
 use std::str::{FromStr, Utf8Error};
 
 use quick_xml::events::attributes::Attribute;
+use std::fmt::{Display, Formatter};
 
 ///Date representation used in GDTF
 #[derive(Debug)]
@@ -69,13 +70,6 @@ impl PartialEq for Date {
             self.hour == other.hour &&
             self.minute == other.minute &&
             self.second == other.second
-    }
-}
-
-///Displays date in format yyyy-mm-ddThh:mm:ss
-impl Display for Date {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}", self.year, self.month, self.day, self.hour, self.minute, self.second)
     }
 }
 
@@ -181,13 +175,6 @@ mod tests {
         assert!(Date::try_from(testdata::to_attr_borrowed(b"")).is_err());
         assert!(Date::try_from(testdata::to_attr_borrowed(b"2021-05-16T17:4112")).is_err());
         assert!(Date::try_from(testdata::to_attr_borrowed(b"2021-05-16T1741:12")).is_err());
-    }
-
-
-    #[test]
-    fn test_display() {
-        assert_eq!(format!("{}", Date { year: 2021, month: 5, day: 16, hour: 17, minute: 41, second: 12 }), "2021-05-16T17:41:12");
-        assert_eq!(format!("{}", Date { year: 2, month: 5, day: 3, hour: 1, minute: 4, second: 07 }), "0002-05-03T01:04:07");
     }
 
     #[test]
