@@ -550,7 +550,7 @@ pub enum AttributeName {
 ///Default is an Empty user defined name
 impl Default for AttributeName {
     fn default() -> Self {
-        AttributeName::from_str_empty_on_error("")
+        AttributeName::new_unchecked("")
     }
 }
 
@@ -846,7 +846,8 @@ impl PartialEq for AttributeName {
 }
 
 impl AttributeName {
-    fn from_str_empty_on_error(value: &str) -> Self {
+    ///Creates an new_unchecked name. If a char is not allowed by GDTF spec it will return a UserDefined("")
+    pub(crate) fn new_unchecked(value: &str) -> Self {
         use AttributeName::*;
         match value {
             "Dimmer" => Dimmer,
@@ -1233,6 +1234,12 @@ impl AttributeName {
             }
         }
     }
+
+    ///Creates a new instance of name. Only chars to GDTF Spec are allowed
+    pub fn new(name: &str) -> Result<Self, GDTFNameError> {
+        Name::validate_chars(name)?;
+        Ok(Self::new_unchecked(name))
+    }
 }
 
 ///Checks if the string is valid for name chars defined in GDTF-Spec and parses to AttributeName if yes
@@ -1240,8 +1247,7 @@ impl TryFrom<&str> for AttributeName {
     type Error = GDTFNameError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Name::validate_chars(value)?;
-        Ok(AttributeName::from_str_empty_on_error(value))
+        Ok(AttributeName::new(value)?)
     }
 }
 
@@ -1249,7 +1255,7 @@ impl TryFrom<&str> for AttributeName {
 impl From<Attribute<'_>> for AttributeName {
     ///Depares Name safely from Attribute. In case of error it returns default. It will also allow not valid chars from GDTF-Spec because Rust can handle it!
     fn from(attr: Attribute) -> Self {
-        AttributeName::from_str_empty_on_error(std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| ""))
+        AttributeName::new_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| ""))
     }
 }
 
@@ -2291,6 +2297,28 @@ mod tests {
 
         assert_eq!(UserDefined(Name::new_unchecked("something{invalid")), testdata::to_attr_borrowed(b"something{invalid").into());
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_new() -> Result<(), GdtfError> {
+        AttributeName::Effects_n_(2).is_eq_allow_empty(&AttributeName::new("Effects2")?, true);
+        AttributeName::Control_n_(3).is_eq_allow_empty(&AttributeName::new("Control3")?, true);
+        AttributeName::Dimmer.is_eq_allow_empty(&AttributeName::new("Dimmer")?, true);
+        AttributeName::UserDefined(Name::new("")?).is_eq_allow_empty(&AttributeName::new("")?, true);
+        AttributeName::UserDefined(Name::new("Something weird")?).is_eq_allow_empty(&AttributeName::new("Something weird")?, true);
+        assert!(Name::new("asdf{").is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_new_unchecked() -> Result<(), GdtfError> {
+        AttributeName::Effects_n_(2).is_eq_allow_empty(&AttributeName::new_unchecked("Effects2"), true);
+        AttributeName::Control_n_(3).is_eq_allow_empty(&AttributeName::new_unchecked("Control3"), true);
+        AttributeName::Dimmer.is_eq_allow_empty(&AttributeName::new_unchecked("Dimmer"), true);
+        AttributeName::UserDefined(Name::new("")?).is_eq_allow_empty(&AttributeName::new_unchecked(""), true);
+        AttributeName::UserDefined(Name::new("Something weird")?).is_eq_allow_empty(&AttributeName::new_unchecked("Something weird"), true);
+        AttributeName::UserDefined(Name::new_unchecked("asdf{")).is_eq_allow_empty(&AttributeName::new_unchecked("asdf{"), true);
         Ok(())
     }
 }

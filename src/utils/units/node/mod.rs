@@ -30,6 +30,40 @@ impl Default for Node {
     }
 }
 
+pub trait NodeHelper: PartialEqAllowEmpty {
+    ///Creates a vec of Names from a vec of str where names are checked for validity defined by GDTF
+    fn strs_to_names(names: Vec<&str>) -> Result<Vec<Name>, GDTFNodeError> {
+        let mut ns = vec![];
+        for name in names.iter() {
+            ns.push(Name::new(name)?)
+        }
+        Ok(ns)
+    }
+
+    ///creates a vec of Names from single name (&str) where name is checked for validity defined by GDTF
+    fn str_to_names(name: &str) -> Result<Vec<Name>, GDTFNodeError> {
+        Ok(vec![Name::new(name)?])
+    }
+
+    #[cfg(test)]
+    ///creates a new vec of Name from vec of str  where names are not checked for validity defined by GDTF
+    fn strs_to_names_unchecked(names: Vec<&str>) -> Vec<Name> {
+        let mut ns = vec![];
+        for name in names.iter() {
+            ns.push(Name::new_unchecked(name))
+        }
+        ns
+    }
+    #[cfg(test)]
+    ///creates a new vec of Nams from single str where name is not checked for validity defined by GDTF
+    fn str_to_names_unchecked(name: &str) -> Vec<Name> {
+        vec![Name::new_unchecked(name)]
+    }
+
+
+}
+
+
 impl Node {
     ///creates a new Node from vec of names (&str) where names are checked for validity defined by GDTF
     pub fn new(names: Vec<&str>) -> Result<Self, GDTFNodeError> {

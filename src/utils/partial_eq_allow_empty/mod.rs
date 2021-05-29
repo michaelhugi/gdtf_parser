@@ -121,6 +121,14 @@ pub trait PartialEqAllowEmpty: Debug {
         }
         true
     }
+
+    #[cfg(test)]
+    fn is_eq_option_of_vec_allow_empty<T: PartialEqAllowEmpty>(left: &Option<Vec<T>>, right: &Option<Vec<T>>, log: bool) -> bool {
+        match left {
+            None => if let None = right { true } else { Self::print_structs_not_equal(left, right, log) }
+            Some(left_s) => if let Some(right_s) = right { Self::is_vec_eq_ordered(&left_s, &right_s, log) } else { Self::print_structs_not_equal(left, right, log) }
+        }
+    }
 }
 
 
