@@ -64,33 +64,33 @@ pub(crate) trait TestDeparseSingle: Debug + Sized + PartialEqAllowEmpty + Depars
 
     fn test_with_result(&self, other: Result<Self, GdtfError>) {
         let other = other.expect(&format!("Unexpected error in test of {}", Self::single_event_name())[..]);
-        self.assert_eq_allow_empty(&other,true);
+        self.assert_eq_allow_empty(&other, true);
     }
 
     fn is_same_item_identifier(&self, compare: &Self) -> bool;
 
     ///Says if two vecs have the same items compared with PartialEqAllowEmpty where the order does not matter
-    fn is_vec_eq_unordered(one: &Vec<Self>, two: &Vec<Self>) -> bool {
+    fn is_vec_eq_unordered(one: &Vec<Self>, two: &Vec<Self>, log: bool) -> bool {
         if one.len() != two.len() {
             println!("Testing {} for is_vec_eq_unordered returned not the same amount of items", std::any::type_name::<Self>());
             return false;
         }
-        for one in &mut one.iter() {
-            let mut t = one.clone();
+        for one_item in &mut one.iter() {
+            let mut t = one_item.clone();
             let mut item_found = false;
 
             for tw in two.iter() {
-                if one.is_same_item_identifier(tw) {
+                if one_item.is_same_item_identifier(tw) {
                     t = tw;
                     item_found = true;
                 }
             }
             if !item_found {
-                println!("Did not find {} that corresponds to \n{:?}", Self::single_event_name(), one);
-                return false;
+                println!("Structs were not equal. Didn't find matching item in vec for\n{:?}", one_item);
+                return Self::print_structs_not_equal(one, two, log);
             }
 
-            if !one.is_eq_allow_empty(t, true) {
+            if !one_item.is_eq_allow_empty(t, log) {
                 return false;
             }
         }
@@ -178,7 +178,7 @@ pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
     fn test_group(one: Vec<Self>, xml: &str) where Self: Sized {
         let two = Self::vec_from_xml(xml);
         let two = two.expect(&format!("Testing {} for list raised an unexpected error", std::any::type_name::<Self>())[..]);
-        assert!(Self::is_vec_eq_unordered(&one, &two));
+        assert!(Self::is_vec_eq_unordered(&one, &two, true));
     }
 }
 

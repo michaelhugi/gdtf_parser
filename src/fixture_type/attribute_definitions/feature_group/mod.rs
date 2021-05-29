@@ -6,11 +6,11 @@ use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::deparse;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
+#[cfg(test)]
+use crate::utils::deparse::TestDeparseVec;
 use crate::utils::errors::GdtfError;
 #[cfg(test)]
 use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
-#[cfg(test)]
-use crate::utils::deparse::TestDeparseVec;
 use crate::utils::units::name::Name;
 
 pub mod feature;
@@ -81,17 +81,21 @@ impl DeparseSingle for FeatureGroup {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for FeatureGroup {
-    fn is_eq_allow_empty_impl(&self, other: &Self,log:bool) -> bool {
-        self.name.is_eq_allow_empty(&other.name,log) &&
-            self.pretty == other.pretty &&
-            Feature::is_vec_eq_unordered(&self.features, &other.features)
+    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+        if !self.name.is_eq_allow_empty(&other.name, log) {
+            return Self::print_structs_not_equal(&self.name, &other.name, log);
+        }
+        if self.pretty != other.pretty {
+            return Self::print_structs_not_equal(&self.pretty, &other.pretty, log);
+        }
+        Feature::is_vec_eq_unordered(&self.features, &other.features, log)
     }
 }
 
 #[cfg(test)]
 impl TestDeparseSingle for FeatureGroup {
     fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name.is_eq_allow_empty(&compare.name,false)
+        self.name.is_eq_allow_empty(&compare.name, false)
     }
 }
 
@@ -102,7 +106,6 @@ impl DeparseVec for FeatureGroup {
     fn is_group_event_name(event_name: &[u8]) -> bool {
         event_name == b"FeatureGroups"
     }
-
 }
 
 #[cfg(test)]
@@ -111,8 +114,8 @@ mod tests {
 
     use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
-    use crate::utils::deparse::TestDeparseVec;
     use crate::utils::deparse::TestDeparseSingle;
+    use crate::utils::deparse::TestDeparseVec;
 
     #[test]
     fn test_feature_group_no_child() {

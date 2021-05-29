@@ -3,12 +3,14 @@
 use std::convert::TryInto;
 
 use crate::fixture_type::attribute_definitions::attribute::Attribute;
+use crate::utils::units::attribute_name::AttributeName;
+use crate::utils::units::name::Name;
 use crate::utils::units::physical_unit::PhysicalUnit;
 
 pub fn expect() -> Vec<Attribute> {
     vec![
         Attribute {
-            name: "Pan".try_into().unwrap(),
+            name: AttributeName::Pan,
             pretty: "P".to_string(),
             activation_group: Some("PanTilt".to_string()),
             feature: "Position.PanTilt".to_string(),
@@ -17,7 +19,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Tilt".try_into().unwrap(),
+            name: AttributeName::Tilt,
             pretty: "T".to_string(),
             activation_group: Some("PanTilt".to_string()),
             feature: "Position.PanTilt".to_string(),
@@ -26,7 +28,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Control1".try_into().unwrap(),
+            name: AttributeName::Control_n_(1),
             pretty: "Ctrl1".to_string(),
             activation_group: None,
             feature: "Control.Control".to_string(),
@@ -35,7 +37,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "DimmerMode".try_into().unwrap(),
+            name: AttributeName::DimmerMode,
             pretty: "Dim Mode".to_string(),
             activation_group: None,
             feature: "Control.Control".to_string(),
@@ -44,7 +46,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Shutter1".try_into().unwrap(),
+            name: AttributeName::Shutter_n_(1),
             pretty: "Sh1".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -53,7 +55,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Dimmer".try_into().unwrap(),
+            name: AttributeName::Dimmer,
             pretty: "Dim".to_string(),
             activation_group: None,
             feature: "Dimmer.Dimmer".to_string(),
@@ -62,7 +64,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Focus1".try_into().unwrap(),
+            name: AttributeName::Focus_n_(1),
             pretty: "Focus1".to_string(),
             activation_group: None,
             feature: "Focus.Focus".to_string(),
@@ -71,7 +73,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Zoom".try_into().unwrap(),
+            name: AttributeName::Zoom,
             pretty: "Zoom".to_string(),
             activation_group: None,
             feature: "Focus.Focus".to_string(),
@@ -80,7 +82,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Focus1Distance".try_into().unwrap(),
+            name: AttributeName::Focus_n_Distance(1),
             pretty: "Focus1 Distance".to_string(),
             activation_group: None,
             feature: "Focus.Focus".to_string(),
@@ -89,7 +91,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Focus1Adjust".try_into().unwrap(),
+            name: AttributeName::Focus_n_Adjust(1),
             pretty: "Focus1 Adjust".to_string(),
             activation_group: None,
             feature: "Focus.Focus".to_string(),
@@ -98,7 +100,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Iris".try_into().unwrap(),
+            name: AttributeName::Iris,
             pretty: "Iris".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -107,7 +109,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Gobo1".try_into().unwrap(),
+            name: AttributeName::Gobo_n_(1),
             pretty: "G1".to_string(),
             activation_group: Some("Gobo1".to_string()),
             feature: "Gobo.Gobo".to_string(),
@@ -116,7 +118,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Gobo1SelectShake".try_into().unwrap(),
+            name: AttributeName::Gobo_n_SelectShake(1),
             pretty: "Select Shake".to_string(),
             activation_group: Some("Gobo1".to_string()),
             feature: "Gobo.Gobo".to_string(),
@@ -125,7 +127,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Gobo1WheelSpin".try_into().unwrap(),
+            name: AttributeName::Gobo_n_WheelSpin(1),
             pretty: "Wheel Spin".to_string(),
             activation_group: Some("Gobo1".to_string()),
             feature: "Gobo.Gobo".to_string(),
@@ -134,7 +136,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Gobo1Pos".try_into().unwrap(),
+            name: AttributeName::Gobo_n_Pos(1),
             pretty: "G1 &lt;&gt;".to_string(),
             activation_group: Some("Gobo1Pos".to_string()),
             feature: "Gobo.Gobo".to_string(),
@@ -143,7 +145,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Gobo1PosRotate".try_into().unwrap(),
+            name: AttributeName::Gobo_n_PosRotate(1),
             pretty: "Rotate".to_string(),
             activation_group: Some("Gobo1Pos".to_string()),
             feature: "Gobo.Gobo".to_string(),
@@ -152,7 +154,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Gobo2".try_into().unwrap(),
+            name: AttributeName::Gobo_n_(2),
             pretty: "G2".to_string(),
             activation_group: Some("Gobo2".to_string()),
             feature: "Gobo.Gobo".to_string(),
@@ -161,7 +163,7 @@ pub fn expect() -> Vec<Attribute> {
             color: None,
         },
         Attribute {
-            name: "Gobo2SelectShake".try_into().unwrap(),
+            name: AttributeName::Gobo_n_SelectShake(2),
             pretty: "Select Shake".to_string(),
             activation_group: Some("Gobo2".to_string()),
             feature: "Gobo.Gobo".to_string(),
@@ -172,7 +174,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Gobo2WheelSpin".try_into().unwrap(),
+            name: AttributeName::Gobo_n_WheelSpin(2),
             pretty: "Wheel Spin".to_string(),
             activation_group: Some("Gobo2".to_string()),
             feature: "Gobo.Gobo".to_string(),
@@ -183,7 +185,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Gobo2Pos".try_into().unwrap(),
+            name: AttributeName::Gobo_n_Pos(2),
             pretty: "G2 &lt;&gt;".to_string(),
             activation_group: Some("Gobo2Pos".to_string()),
             feature: "Gobo.Gobo".to_string(),
@@ -194,7 +196,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Gobo2PosRotate".try_into().unwrap(),
+            name: AttributeName::Gobo_n_PosRotate(2),
             pretty: "Rotate".to_string(),
             activation_group: Some("Gobo2Pos".to_string()),
             feature: "Gobo.Gobo".to_string(),
@@ -205,7 +207,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Color1".try_into().unwrap(),
+            name: AttributeName::Color_n_(1),
             pretty: "C1".to_string(),
             activation_group: Some("ColorRGB".to_string()),
             feature: "Color.Color".to_string(),
@@ -216,7 +218,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Color1WheelSpin".try_into().unwrap(),
+            name: AttributeName::Color_n_WheelSpin(1),
             pretty: "Wheel Spin".to_string(),
             activation_group: Some("ColorRGB".to_string()),
             feature: "Color.Color".to_string(),
@@ -227,7 +229,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "CTO".try_into().unwrap(),
+            name: AttributeName::CTO,
             pretty: "CTO".to_string(),
             activation_group: None,
             feature: "Color.Color".to_string(),
@@ -238,7 +240,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Sparkle".try_into().unwrap(),
+            name: AttributeName::UserDefined(Name::new_unchecked("Sparkle")),
             pretty: "Sparkle".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -249,7 +251,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "SparkleSpeed".try_into().unwrap(),
+            name: AttributeName::UserDefined(Name::new_unchecked("SparkleSpeed")),
             pretty: "SparkleSpeed".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -260,7 +262,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Prism1Pos".try_into().unwrap(),
+            name: AttributeName::Prism_n_Pos(1),
             pretty: "Prism1 Pos".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -271,7 +273,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Prism1PosRotate".try_into().unwrap(),
+            name: AttributeName::Prism_n_PosRotate(1),
             pretty: "Rotate1".to_string(),
             activation_group: Some("Prism".to_string()),
             feature: "Beam.Beam".to_string(),
@@ -282,7 +284,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Prism2".try_into().unwrap(),
+            name: AttributeName::Prism_n_(2),
             pretty: "Prism2".to_string(),
             activation_group: Some("Prism".to_string()),
             feature: "Beam.Beam".to_string(),
@@ -293,7 +295,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Prism1".try_into().unwrap(),
+            name: AttributeName::Prism_n_(1),
             pretty: "Prism1".to_string(),
             activation_group: Some("Prism".to_string()),
             feature: "Beam.Beam".to_string(),
@@ -304,7 +306,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Prism2Pos".try_into().unwrap(),
+            name: AttributeName::Prism_n_Pos(2),
             pretty: "Prism2 Pos".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -315,7 +317,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Frost1".try_into().unwrap(),
+            name: AttributeName::Frost_n_(1),
             pretty: "Frost1".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -326,7 +328,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Frost2".try_into().unwrap(),
+            name: AttributeName::Frost_n_(2),
             pretty: "Frost2".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -337,7 +339,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Effects1".try_into().unwrap(),
+            name: AttributeName::Effects_n_(1),
             pretty: "FX1".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -348,7 +350,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "PositionMSpeed".try_into().unwrap(),
+            name: AttributeName::PositionMSpeed,
             pretty: "Pos MSpeed".to_string(),
             activation_group: None,
             feature: "Control.Control".to_string(),
@@ -359,7 +361,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "GlobalMSpeed".try_into().unwrap(),
+            name: AttributeName::GlobalMSpeed,
             pretty: "Global MSpeed".to_string(),
             activation_group: None,
             feature: "Control.Control".to_string(),
@@ -370,7 +372,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "BlackoutMode".try_into().unwrap(),
+            name: AttributeName::BlackoutMode,
             pretty: "Blackout Mode".to_string(),
             activation_group: None,
             feature: "Control.Control".to_string(),
@@ -381,7 +383,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Function".try_into().unwrap(),
+            name: AttributeName::Function,
             pretty: "Function".to_string(),
             activation_group: None,
             feature: "Control.Control".to_string(),
@@ -392,7 +394,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "LEDFrequency".try_into().unwrap(),
+            name: AttributeName::LEDFrequency,
             pretty: "LED Frequency".to_string(),
             activation_group: None,
             feature: "Control.Control".to_string(),
@@ -403,7 +405,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "FixtureGlobalReset".try_into().unwrap(),
+            name: AttributeName::FixtureGlobalReset,
             pretty: "Fixture Global Reset".to_string(),
             activation_group: None,
             feature: "Control.Control".to_string(),
@@ -414,7 +416,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Shutter1Strobe".try_into().unwrap(),
+            name: AttributeName::Shutter_n_Strobe(1),
             pretty: "Strobe1".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -425,7 +427,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Shutter1StrobePulseOpen".try_into().unwrap(),
+            name: AttributeName::Shutter_n_StrobePulseOpen(1),
             pretty: "Pulse Open1".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -436,7 +438,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Shutter1StrobePulseClose".try_into().unwrap(),
+            name: AttributeName::Shutter_n_StrobePulseClose(1),
             pretty: "Pulse Close1".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -447,7 +449,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Shutter1StrobePulse".try_into().unwrap(),
+            name: AttributeName::Shutter_n_StrobePulse(1),
             pretty: "Pulse1".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -458,7 +460,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Shutter1StrobeRandom".try_into().unwrap(),
+            name: AttributeName::Shutter_n_StrobeRandom(1),
             pretty: "Random1".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -469,7 +471,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Shutter1StrobeRandomPulseClose".try_into().unwrap(),
+            name: AttributeName::Shutter_n_StrobeRandomPulseClose(1),
             pretty: "Random Pulse Close1".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -480,7 +482,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Shutter1StrobeRandomPulseOpen".try_into().unwrap(),
+            name: AttributeName::Shutter_n_StrobeRandomPulseOpen(1),
             pretty: "Random Pulse Open1".to_string(),
             activation_group: None,
             feature: "Beam.Beam".to_string(),
@@ -491,7 +493,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Color1WheelIndex".try_into().unwrap(),
+            name: AttributeName::Color_n_WheelIndex(1),
             pretty: "Wheel Index".to_string(),
             activation_group: Some("ColorRGB".to_string()),
             feature: "Color.Color".to_string(),
@@ -502,7 +504,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "ColorSub_R".try_into().unwrap(),
+            name: AttributeName::ColorSub_R,
             pretty: "R".to_string(),
             activation_group: Some("ColorRGB".to_string()),
             feature: "Color.RGB".to_string(),
@@ -513,7 +515,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "ColorSub_G".try_into().unwrap(),
+            name: AttributeName::ColorSub_G,
             pretty: "G".to_string(),
             activation_group: Some("ColorRGB".to_string()),
             feature: "Color.RGB".to_string(),
@@ -524,7 +526,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "ColorSub_B".try_into().unwrap(),
+            name: AttributeName::ColorSub_B,
             pretty: "B".to_string(),
             activation_group: Some("ColorRGB".to_string()),
             feature: "Color.RGB".to_string(),
@@ -535,7 +537,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "Prism2PosRotate".try_into().unwrap(),
+            name: AttributeName::Prism_n_PosRotate(2),
             pretty: "Rotate2".to_string(),
             activation_group: Some("Prism".to_string()),
             feature: "Beam.Beam".to_string(),
@@ -546,7 +548,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "AnimationWheel1".try_into().unwrap(),
+            name: AttributeName::AnimationWheel_n_(1),
             pretty: "Anim1".to_string(),
             activation_group: Some("AnimationWheel1".to_string()),
             feature: "Gobo.Gobo".to_string(),
@@ -557,7 +559,7 @@ pub fn expect() -> Vec<Attribute> {
 
         //
         Attribute {
-            name: "AnimationWheel1PosRotate".try_into().unwrap(),
+            name: AttributeName::AnimationWheel_n_PosRotate(1),
             pretty: "Anim Rotate".to_string(),
             activation_group: Some("AnimationWheel1Pos".to_string()),
             feature: "Gobo.Gobo".to_string(),

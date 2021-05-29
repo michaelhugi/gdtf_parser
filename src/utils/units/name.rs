@@ -3,7 +3,6 @@
 use std::borrow::Borrow;
 use std::convert::TryFrom;
 use std::error::Error;
-
 use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
@@ -22,7 +21,6 @@ impl Default for Name {
         Name("".to_string())
     }
 }
-
 
 
 ///Deparses Name from Attribute safely. In case of error it will return default. It will also allow not valid chars from GDTF-Spec because Rust can handle it!
@@ -97,8 +95,11 @@ impl PartialEq for Name {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for Name {
-    fn is_eq_allow_empty_impl(&self, other: &Self, _: bool) -> bool {
-        self.0 == other.0
+    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+        if self.0 != other.0 {
+            return Self::print_structs_not_equal(self, other, log);
+        }
+        true
     }
 }
 

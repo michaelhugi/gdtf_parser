@@ -50,12 +50,18 @@ impl PartialEq for DataVersion {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for DataVersion {
-    fn is_eq_allow_empty_impl(&self, other: &Self, _: bool) -> bool {
+    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
         use DataVersion::*;
         match self {
-            Version1_0 => if let Version1_0 = other { true } else { false }
-            Version1_1 => if let Version1_1 = other { true } else { false }
-            Unknown => if let Unknown = other { true } else { false }
+            Version1_0 => if let Version1_0 = other { true } else {
+                Self::print_structs_not_equal(self, other, log)
+            }
+            Version1_1 => if let Version1_1 = other { true } else {
+                Self::print_structs_not_equal(self, other, log)
+            }
+            Unknown => if let Unknown = other { true } else {
+                Self::print_structs_not_equal(self, other, log)
+            }
         }
     }
 }

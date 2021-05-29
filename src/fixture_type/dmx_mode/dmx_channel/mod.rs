@@ -106,12 +106,18 @@ impl DeparseSingle for DMXChannel {
 #[cfg(test)]
 impl PartialEqAllowEmpty for DMXChannel {
     fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        self.dmx_break == other.dmx_break &&
-            self.offset == other.offset &&
-            self.initial_function.is_eq_allow_empty(&other.initial_function, log) &&
-            self.highlight == other.highlight &&
+        if self.dmx_break != other.dmx_break {
+            return Self::print_structs_not_equal(&self.dmx_break, &other.dmx_break, log);
+        }
+        if self.offset != other.offset {
+            return Self::print_structs_not_equal(&self.offset, &other.offset, log);
+        }
+        if self.highlight != other.highlight {
+            return Self::print_structs_not_equal(&self.highlight, &other.highlight, log);
+        }
+        self.initial_function.is_eq_allow_empty(&other.initial_function, log) &&
             self.geometry.is_eq_allow_empty(&other.geometry, log) &&
-            LogicalChannel::is_vec_eq_unordered(&self.logical_channels, &other.logical_channels)
+            LogicalChannel::is_vec_eq_unordered(&self.logical_channels, &other.logical_channels, log)
     }
 }
 

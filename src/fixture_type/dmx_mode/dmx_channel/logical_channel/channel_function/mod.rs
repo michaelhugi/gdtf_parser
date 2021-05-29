@@ -178,24 +178,43 @@ impl DeparseSingle for ChannelFunction {
 #[cfg(test)]
 impl PartialEqAllowEmpty for ChannelFunction {
     fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        self.name.is_eq_allow_empty(&other.name, log) &&
-            self.attribute.is_eq_allow_empty(&other.attribute, log) &&
-            self.original_attribute == other.original_attribute &&
-            self.dmx_from == other.dmx_from &&
-            self.default == other.default &&
-            self.physical_from == other.physical_from &&
-            self.physical_to == other.physical_to &&
-            self.real_fade == other.real_fade &&
-            self.real_acceleration == other.real_acceleration &&
-            self.wheel.is_eq_allow_empty(&other.wheel, log) &&
+        if self.original_attribute != other.original_attribute {
+            return Self::print_structs_not_equal(&self.original_attribute, &other.original_attribute, log);
+        }
+        if self.dmx_from != other.dmx_from {
+            return Self::print_structs_not_equal(&self.dmx_from, &other.dmx_from, log);
+        }
+        if self.default != other.default {
+            return Self::print_structs_not_equal(&self.default, &other.default, log);
+        }
+        if self.physical_from != other.physical_from {
+            return Self::print_structs_not_equal(&self.physical_from, &other.physical_from, log);
+        }
+        if self.physical_to != other.physical_to {
+            return Self::print_structs_not_equal(&self.physical_to, &other.physical_to, log);
+        }
+        if self.real_fade != other.real_fade {
+            return Self::print_structs_not_equal(&self.real_fade, &other.real_fade, log);
+        }
+        if self.real_acceleration != other.real_acceleration {
+            return Self::print_structs_not_equal(&self.real_acceleration, &other.real_acceleration, log);
+        }
+        if self.mode_from != other.mode_from {
+            return Self::print_structs_not_equal(&self.mode_from, &other.mode_from, log);
+        }
+        if self.mode_to != other.mode_to {
+            return Self::print_structs_not_equal(&self.mode_to, &other.mode_to, log);
+        }
+        self.wheel.is_eq_allow_empty(&other.wheel, log) &&
             self.emitter.is_eq_allow_empty(&other.emitter, log) &&
             self.filter.is_eq_allow_empty(&other.filter, log) &&
             self.mode_master.is_eq_allow_empty(&other.mode_master, log) &&
-            self.mode_from == other.mode_from &&
-            self.mode_to == other.mode_to &&
-            ChannelSet::is_vec_eq_unordered(&self.channel_sets, &other.channel_sets)
+            self.name.is_eq_allow_empty(&other.name, log) &&
+            self.attribute.is_eq_allow_empty(&other.attribute, log) &&
+            ChannelSet::is_vec_eq_unordered(&self.channel_sets, &other.channel_sets, log)
     }
 }
+
 
 #[cfg(test)]
 impl TestDeparseSingle for ChannelFunction {

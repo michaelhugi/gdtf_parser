@@ -104,14 +104,23 @@ impl DeparseSingle for LogicalChannel {
 #[cfg(test)]
 impl PartialEqAllowEmpty for LogicalChannel {
     fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+        if self.snap != other.snap {
+            return Self::print_structs_not_equal(&self.snap, &other.snap, log);
+        }
+        if self.master != other.master {
+            return Self::print_structs_not_equal(&self.master, &other.master, log);
+        }
+        if self.mib_fade != other.mib_fade {
+            return Self::print_structs_not_equal(&self.mib_fade, &other.mib_fade, log);
+        }
+        if self.dmx_change_time_limit != other.dmx_change_time_limit {
+            return Self::print_structs_not_equal(&self.dmx_change_time_limit, &other.dmx_change_time_limit, log);
+        }
         self.attribute.is_eq_allow_empty(&other.attribute, log) &&
-            self.snap == other.snap &&
-            self.master == other.master &&
-            self.mib_fade == other.mib_fade &&
-            self.dmx_change_time_limit == other.dmx_change_time_limit &&
-            ChannelFunction::is_vec_eq_unordered(&self.channel_functions, &other.channel_functions)
+            ChannelFunction::is_vec_eq_unordered(&self.channel_functions, &other.channel_functions, log)
     }
 }
+
 
 #[cfg(test)]
 impl TestDeparseSingle for LogicalChannel {

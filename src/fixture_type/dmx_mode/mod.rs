@@ -88,8 +88,7 @@ impl PartialEqAllowEmpty for DMXMode {
     fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
         self.name.is_eq_allow_empty(&other.name, log) &&
             self.geometry.is_eq_allow_empty(&other.geometry, log) &&
-            DMXChannel::is_vec_eq_unordered(&self.dmx_channels, &other.dmx_channels)
-
+            DMXChannel::is_vec_eq_unordered(&self.dmx_channels, &other.dmx_channels, log)
         //TODO add todo fields
     }
 }

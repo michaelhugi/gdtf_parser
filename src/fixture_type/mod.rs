@@ -6,12 +6,12 @@ use crate::fixture_type::attribute_definitions::AttributeDefinitions;
 use crate::fixture_type::dmx_mode::DMXMode;
 use crate::utils::deparse;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
+#[cfg(test)]
+use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXMLError;
 #[cfg(test)]
 use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
-#[cfg(test)]
-use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::units::guid::GUID;
 use crate::utils::units::name::Name;
 
@@ -151,16 +151,30 @@ impl DeparseSingle for FixtureType {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for FixtureType {
-    fn is_eq_allow_empty_impl(&self, other: &Self,log:bool) -> bool {
-        self.name.is_eq_allow_empty(&other.name,log) &&
-            self.short_name == other.short_name &&
-            self.long_name == other.long_name &&
-            self.manufacturer == other.manufacturer &&
-            self.description == other.description &&
-            self.fixture_type_id == other.fixture_type_id &&
-            self.thumbnail == other.thumbnail &&
-            self.ref_ft == other.ref_ft &&
-            self.attribute_definitions.is_eq_allow_empty(&other.attribute_definitions,log)
+    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+        if self.short_name != other.short_name {
+            return Self::print_structs_not_equal(&self.short_name, &other.short_name, log);
+        }
+        if self.long_name != other.long_name {
+            return Self::print_structs_not_equal(&self.long_name, &other.long_name, log);
+        }
+        if self.manufacturer != other.manufacturer {
+            return Self::print_structs_not_equal(&self.manufacturer, &other.manufacturer, log);
+        }
+        if self.description != other.description {
+            return Self::print_structs_not_equal(&self.description, &other.description, log);
+        }
+        if self.fixture_type_id != other.fixture_type_id {
+            return Self::print_structs_not_equal(&self.fixture_type_id, &other.fixture_type_id, log);
+        }
+        if self.thumbnail != other.thumbnail {
+            return Self::print_structs_not_equal(&self.thumbnail, &other.thumbnail, log);
+        }
+        if self.ref_ft != other.ref_ft {
+            return Self::print_structs_not_equal(&self.ref_ft, &other.ref_ft, log);
+        }
+        self.attribute_definitions.is_eq_allow_empty(&other.attribute_definitions, log) &&
+            self.name.is_eq_allow_empty(&other.name, log)
     }
 }
 

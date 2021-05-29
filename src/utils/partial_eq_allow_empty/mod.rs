@@ -11,26 +11,55 @@ pub trait PartialEqAllowEmpty: Debug {
     ///Compares if two structs or enums are the same no matter if they have content or not and panics if they aren't. log defines if underlying PartialEqAllowEmpty impl should log additionally if they are not equal
     fn assert_eq_allow_empty(&self, other: &Self, log: bool) {
         if !self.is_eq_allow_empty(other, log) {
-            panic!("assert_eq_allow_empty! \n left: {:?} \n right: {:?}", self, other)
+            let left = format!("{:?}", self);
+            let left = Self::truncate_log(left);
+            let right = format!("{:?}", other);
+            let right = Self::truncate_log(right);
+            if log {
+                panic!("assert_eq_allow_empty! \n left: {:?} \n right: {:?}", left, right);
+            } else {
+                panic!();
+            }
         }
     }
 
     ///The same as assert_eq_allow_empty but panics if they are equal.
     fn assert_ne_allow_empty(&self, other: &Self) {
         if self.is_eq_allow_empty(other, false) {
-            panic!("assert_ne_allow_empty! \n left: {:?} \n right: {:?}", self, other)
+            panic!();
         }
     }
     ///Returns true if two objects are equal, else false. If they are not equal it will also log left and right if log == true
     fn is_eq_allow_empty(&self, other: &Self, log: bool) -> bool {
         let out = self.is_eq_allow_empty_impl(&other, log);
-        if !out && log {
-            let bt = Backtrace::new();
-            println!("\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\nStructs were not equal\n----------------------------------------------------------------------------- \n-----------------------------------------------------------------------------\nleft: {:?} \nright: {:?}\n\n{:#?}\n\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n-----\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n", &self, &other, bt);
+        if !out {
+            Self::print_structs_not_equal(self, other, log)
+        } else {
+            out
         }
-        out
     }
-    ///Returns true if two objects are equal, else false. impl, that this must be implemented. If log==true, this value may be passed to other calls of is_eq_allow_empty.
+    /// Returns false and prints structs not equal if log is true
+    fn print_structs_not_equal<T: Debug>(left: T, right: T, log: bool) -> bool {
+        if !log {
+            return false;
+        }
+        let bt = Backtrace::new();
+        let left = format!("{:?}", left);
+        let left = Self::truncate_log(left);
+        let right = format!("{:?}", right);
+        let right = Self::truncate_log(right);
+        println!("\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\nStructs were not equal\n----------------------------------------------------------------------------- \n-----------------------------------------------------------------------------\nleft:\n{:?} \nright:\n{:?}\n\n{:#?}\n\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n-----\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n", &left, &right, bt);
+        false
+    }
+    ///Truncates the output string. If too many info is printent it will be useless anyway and hide the content printent before in the console that may be important
+    fn truncate_log(s: String) -> String {
+        match s.char_indices().nth(1000) {
+            None => s,
+            Some((idx, _)) => s[..idx].to_string(),
+        }
+    }
+
+    ///Returns true if two objects are equal, else false. impl, that this must be implemented. If log==true, this value may be passed to other calls of is_eq_allow_empty
     fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool;
 
     ///Compares if two optionsif they the same no matter if they have content or not and panics if they aren't.
@@ -51,25 +80,16 @@ pub trait PartialEqAllowEmpty: Debug {
     fn is_eq_allow_option<T: PartialEq + Debug>(left: &Option<T>, right: &Option<T>, log: bool) -> bool {
         match left {
             None => if let None = right { true } else {
-                if log {
-                    let bt = Backtrace::new();
-                    println!("\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\nStructs were not equal\n----------------------------------------------------------------------------- \n-----------------------------------------------------------------------------\nleft: None \nright: {:?}\n\n{:#?}\n\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n-----\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n", &right, bt);
-                }
-                false
+                Self::print_structs_not_equal(left, right, log)
             },
-            Some(left) => if let Some(right) = right {
-                let output = right == left;
-                if !output && log {
-                    let bt = Backtrace::new();
-                    println!("\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\nStructs were not equal\n----------------------------------------------------------------------------- \n-----------------------------------------------------------------------------\nleft: {:?} \nright: {:?}\n\n{:#?}\n\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n-----\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n", &left, &right, bt);
+            Some(left_s) => if let Some(right_s) = right {
+                if right_s != left_s {
+                    Self::print_structs_not_equal(left, right, log)
+                } else {
+                    true
                 }
-                output
             } else {
-                if log {
-                    let bt = Backtrace::new();
-                    println!("\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\nStructs were not equal\n----------------------------------------------------------------------------- \n-----------------------------------------------------------------------------\nleft: {:?} \nright: None\n\n{:#?}\n\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n-----\n-----------------------------------------------------------------------------\n-----------------------------------------------------------------------------\n", &left, bt);
-                }
-                false
+                Self::print_structs_not_equal(left, right, log)
             }
         }
     }

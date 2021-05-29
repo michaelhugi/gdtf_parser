@@ -53,8 +53,11 @@ impl TryFrom<&str> for ColorCIE {
 
 #[cfg(test)]
 impl PartialEqAllowEmpty for ColorCIE {
-    fn is_eq_allow_empty_impl(&self, other: &Self, _: bool) -> bool {
-        self.x == other.x && self.y == other.y && self.Y == other.Y
+    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+        if self.x != other.x || self.y != other.y || self.Y != other.Y {
+            return Self::print_structs_not_equal(self, other, log);
+        }
+        true
     }
 }
 

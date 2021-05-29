@@ -10,14 +10,14 @@ use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 #[cfg(test)]
 use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
+use crate::utils::units::attribute_name::AttributeName;
 use crate::utils::units::color_cie::ColorCIE;
-use crate::utils::units::name::Name;
 use crate::utils::units::physical_unit::PhysicalUnit;
 
 ///Describes a singular mutual exclusive control function
 #[derive(Debug)]
 pub struct Attribute {
-    pub name: Name,
+    pub name: AttributeName,
     pub pretty: String,
     pub activation_group: Option<String>,
     pub feature: String,
@@ -74,14 +74,23 @@ impl DeparseSingle for Attribute {
 #[cfg(test)]
 impl PartialEqAllowEmpty for Attribute {
     fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+        if self.pretty != other.pretty {
+            return Self::print_structs_not_equal(&self.pretty, &other.pretty, log);
+        }
+        if self.activation_group.as_deref() != other.activation_group.as_deref() {
+            return Self::print_structs_not_equal(&self.activation_group, &other.activation_group, log);
+        }
+        if self.main_attribute.as_deref() != other.main_attribute.as_deref() {
+            return Self::print_structs_not_equal(&self.main_attribute, &other.main_attribute, log);
+        }
+        if self.physical_unit != other.physical_unit {
+            return Self::print_structs_not_equal(&self.physical_unit, &other.physical_unit, log);
+        }
         self.name.is_eq_allow_empty(&other.name, log) &&
-            self.pretty == other.pretty &&
-            self.activation_group.as_deref() == other.activation_group.as_deref() &&
-            self.main_attribute.as_deref() == other.main_attribute.as_deref() &&
-            self.physical_unit == other.physical_unit &&
             Self::is_eq_allow_option_allow_empty(&self.color, &other.color, log)
     }
 }
+
 
 #[cfg(test)]
 impl TestDeparseSingle for Attribute {
@@ -98,17 +107,17 @@ impl DeparseVec for Attribute {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
     use crate::fixture_type::attribute_definitions::attribute::Attribute;
     use crate::utils::deparse::TestDeparseSingle;
+    use crate::utils::units::attribute_name::AttributeName;
     use crate::utils::units::color_cie::ColorCIE;
+    use crate::utils::units::name::Name;
     use crate::utils::units::physical_unit::PhysicalUnit;
 
     #[test]
     fn test_attribute_all() {
         Attribute {
-            name: "Sound".try_into().unwrap(),
+            name: AttributeName::UserDefined(Name::new_unchecked("Sound")),
             pretty: "SoundP".to_string(),
             activation_group: Some("Gobo1".to_string()),
             feature: "Control.Control".to_string(),
@@ -125,9 +134,28 @@ mod tests {
     }
 
     #[test]
+    fn test_attribute_all_2() {
+        Attribute {
+            name: AttributeName::Effects_n_Adjust_m_(2,4),
+            pretty: "SoundP".to_string(),
+            activation_group: Some("Gobo1".to_string()),
+            feature: "Control.Control".to_string(),
+            main_attribute: Some("Gobo1M".to_string()),
+            physical_unit: PhysicalUnit::Angle,
+            color: Some(ColorCIE {
+                x: 0.312700,
+                y: 0.329000,
+                Y: 100.000000,
+            }),
+        }.test(
+            r#"<Attribute Color="0.312700,0.329000,100.000000" Feature="Control.Control" Name="Effects2Adjust4" PhysicalUnit="Angle" Pretty="SoundP" ActivationGroup="Gobo1"  MainAttribute="Gobo1M" />"#
+        )
+    }
+
+    #[test]
     fn test_attribute_min() {
         Attribute {
-            name: "Sound".try_into().unwrap(),
+            name: AttributeName::UserDefined(Name::new_unchecked("Sound")),
             pretty: "SoundP".to_string(),
             activation_group: None,
             feature: "Control.Control".to_string(),
@@ -142,7 +170,7 @@ mod tests {
     #[test]
     fn test_attribute_min_2() {
         Attribute {
-            name: "".try_into().unwrap(),
+            name: AttributeName::UserDefined(Name::new_unchecked("")),
             pretty: "".to_string(),
             activation_group: None,
             feature: "".to_string(),
@@ -157,7 +185,7 @@ mod tests {
     #[test]
     fn test_attribute_empty() {
         Attribute {
-            name: "".try_into().unwrap(),
+            name: AttributeName::UserDefined(Name::new_unchecked("")),
             pretty: "".to_string(),
             activation_group: None,
             feature: "".to_string(),

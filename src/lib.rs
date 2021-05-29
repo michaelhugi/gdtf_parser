@@ -229,7 +229,7 @@ mod tests {
 
     #[test]
     fn test_time() {
-        thread::sleep(Duration::from_secs(1));
+        thread::sleep(Duration::from_millis(1500));
         let now = time::Instant::now();
         let _ = GDTF::try_from(Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf")).unwrap();
         println!("Deparsing Acme takes {:?}", now.elapsed());

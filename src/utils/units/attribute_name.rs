@@ -9,6 +9,8 @@ use lazy_static::lazy_static;
 use quick_xml::events::attributes::Attribute;
 use regex::{Regex, RegexSet, SetMatches};
 
+#[cfg(test)]
+use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::name::{GDTFNameError, Name};
 
 #[derive(Debug)]
@@ -545,6 +547,31 @@ pub enum AttributeName {
     FieldOfView,
 }
 
+///Default is an Empty user defined name
+impl Default for AttributeName {
+    fn default() -> Self {
+        AttributeName::from_str_empty_on_error("")
+    }
+}
+
+#[cfg(test)]
+impl PartialEqAllowEmpty for AttributeName {
+    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+        use AttributeName::*;
+        if let UserDefined(name1) = self {
+            if let UserDefined(name2) = other {
+                return name1.is_eq_allow_empty(name2, log);
+            }
+        }
+        if self == other {
+            true
+        } else {
+            Self::print_structs_not_equal(self, other, log)
+        }
+    }
+}
+
+///Compares if the names for the attribute are exactly the same. Returns false if one of the compares is an empty name
 impl PartialEq for AttributeName {
     fn eq(&self, other: &Self) -> bool {
         use AttributeName::*;
