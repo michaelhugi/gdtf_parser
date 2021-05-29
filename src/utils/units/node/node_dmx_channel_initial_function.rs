@@ -1,4 +1,5 @@
 //!Module for Node used in DmxChannel.initial_function
+use std::borrow::Borrow;
 use std::convert::TryFrom;
 
 use quick_xml::events::attributes::Attribute;
@@ -6,63 +7,66 @@ use quick_xml::events::attributes::Attribute;
 #[cfg(test)]
 use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::partial_eq_option::partial_eq_option;
+use crate::utils::units::name::Name;
 use crate::utils::units::node::{GDTFNodeError, Node};
-use crate::utils::units::node::node_option::NodeOption;
 
 #[derive(Debug)]
 ///Node used in DmxChannel.initial_function.Link to the channel function that will be activated by default for this DMXChannel;
-pub struct NodeDmxChannelInitialFunction(Option<Node>);
-
-///Parses an xml attribute directly to a Node. In case of an error, the function will return a Node with None. This function will allow invalid chars for Name due to GDTF specs because Rust can handle it.
-impl From<Attribute<'_>> for NodeDmxChannelInitialFunction {
-    fn from(attr: Attribute<'_>) -> Self {
-        NodeDmxChannelInitialFunction(Self::read_option_from_attr(attr))
-    }
-}
+pub struct NodeDmxChannelInitialFunction(Option<Vec<Name>>);
 
 impl NodeDmxChannelInitialFunction {
-    ///Creates a new instance with names, where names are checked if they are valid for GDTF
-    pub fn new(names: Vec<&str>) -> Result<Self, GDTFNodeError> {
-        Ok(Self(Some(Node::new(names)?)))
+    ///New Node from str defined in GDTF-XML with checking if chars are valid for GDTF-Names
+    pub fn new_from_str(value: &str) -> Result<Self, GDTFNodeError> {
+        if value == "" {
+            return Ok(Self(None));
+        }
+        Ok(Self(Some(Self::str_to_names_vec(value)?)))
     }
 
-    ///Creates a new instance with one name, where name is checked if it's valid for GDTF
-    pub fn new_s(name: &str) -> Result<Self, GDTFNodeError> {
-        Ok(Self(Some(Node::new_s(name)?)))
+    ///New Node from str defined in GDTF-XML without checking if chars are valid for GDTF-Names
+    pub fn new_from_str_unchecked(value: &str) -> Self {
+        if value == "" {
+            return Self(None);
+        }
+        Self(Some(Name::str_to_names_vec_unchecked(value)))
     }
-
-    ///Creates a new instance with names, where names are not checked if they are valid for GDTF
     #[cfg(test)]
-    pub(crate) fn new_unchecked(names: Vec<&str>) -> Self {
-        Self(Some(Node::new_unchecked(names)))
+    ///New Node from a vec of str defined in GDTF-XML without checking if charse are valid for GDTF-Names
+    pub fn new_from_strs_unchecked(value: Vec<&str>) -> Self {
+        Self(Some(Name::strs_to_names_vec_unchecked(value)))
     }
-    #[cfg(test)]
-    ///Creates a new instance with one name, where name is checked if it's valid for GDTF
-    pub(crate) fn new_unchecked_s(name: &str) -> Self {
-        Self(Some(Node::new_unchecked_s(name)))
-    }
-
-    ///Creates a new instance with None content
+    ///New Node with None content
     pub fn none() -> Self {
         Self(None)
     }
 }
 
-#[cfg(test)]
-impl PartialEqAllowEmpty for NodeDmxChannelInitialFunction {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        Self::is_eq_allow_option_allow_empty(&self.0, &other.0, log)
-    }
-}
+impl Node for NodeDmxChannelInitialFunction {}
 
 ///Parses a str directly to a Node. This function will not allow invalid chars due to GDTF specs.
 impl TryFrom<&str> for NodeDmxChannelInitialFunction {
     type Error = GDTFNodeError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Ok(NodeDmxChannelInitialFunction(Self::try_read_from_str(value)?))
+        Self::new_from_str(value)
     }
 }
+
+///Parses an xml attribute directly to a Node. In case of an error, the function will return a Node with None. This function will allow invalid chars for Name due to GDTF specs because Rust can handle it.
+impl From<Attribute<'_>> for NodeDmxChannelInitialFunction {
+    fn from(attr: Attribute<'_>) -> Self {
+        Self::new_from_str_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| ""))
+    }
+}
+
+
+#[cfg(test)]
+impl PartialEqAllowEmpty for NodeDmxChannelInitialFunction {
+    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
+        Self::is_eq_option_of_vec_allow_empty(&self.0, &other.0, log)
+    }
+}
+
 
 ///Partial eq returns false if one is None, otherwise it compares the node value
 impl PartialEq for NodeDmxChannelInitialFunction {
@@ -74,12 +78,10 @@ impl PartialEq for NodeDmxChannelInitialFunction {
 ///Default value is None
 impl Default for NodeDmxChannelInitialFunction {
     fn default() -> Self {
-        NodeDmxChannelInitialFunction(None)
+        Self(None)
     }
 }
 
-///Implements helper trait for Option<Node> to prevent code redundancy
-impl NodeOption for NodeDmxChannelInitialFunction {}
 
 #[cfg(test)]
 mod tests {
@@ -91,113 +93,109 @@ mod tests {
     use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
     use crate::utils::testdata;
     use crate::utils::units::name::Name;
-    use crate::utils::units::node::Node;
     use crate::utils::units::node::node_dmx_channel_initial_function::NodeDmxChannelInitialFunction;
 
     #[test]
+    fn test_new_from_str() -> Result<(), GdtfError> {
+        T(Some(vec![Name::new("test")?])).assert_eq_allow_empty(&T::new_from_str("test")?, true);
+        T(Some(vec![Name::new("test")?, Name::new("test2")?])).assert_eq_allow_empty(&T::new_from_str("test.test2")?, true);
+        T(None).assert_eq_allow_empty(&T::new_from_str("")?, true);
+        assert!(T::new_from_str("asdf{").is_err());
+        assert!(T::new_from_str("Test.asdf{").is_err());
+        assert!(T::new_from_str("asdf{.Test").is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_new_from_str_unchecked() -> Result<(), GdtfError> {
+        T(Some(vec![Name::new("test")?])).assert_eq_allow_empty(&T::new_from_str_unchecked("test"), true);
+        T(Some(vec![Name::new("test")?, Name::new("test2")?])).assert_eq_allow_empty(&T::new_from_str_unchecked("test.test2"), true);
+        T(None).assert_eq_allow_empty(&T::new_from_str_unchecked(""), true);
+        T(Some(vec![Name::new_unchecked("asdf{")])).assert_eq_allow_empty(&T::new_from_str_unchecked("asdf{"), true);
+        T(Some(vec![Name::new("Test")?, Name::new_unchecked("asdf{")])).assert_eq_allow_empty(&T::new_from_str_unchecked("Test.asdf{"), true);
+        T(Some(vec![Name::new_unchecked("asdf{"), Name::new("Test")?])).assert_eq_allow_empty(&T::new_from_str_unchecked("asdf{.Test"), true);
+        Ok(())
+    }
+
+    #[test]
+    fn test_new_from_strs_unchecked() -> Result<(), GdtfError> {
+        T(Some(vec![Name::new("test")?])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["test"]), true);
+        T(Some(vec![Name::new("test")?, Name::new("test2")?])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["test", "test2"]), true);
+        T(Some(vec![Name::new("")?])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec![""]), true);
+        T(Some(vec![Name::new_unchecked("asdf{")])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["asdf{"]), true);
+        T(Some(vec![Name::new("Test")?, Name::new_unchecked("asdf{")])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["Test", "asdf{"]), true);
+        T(Some(vec![Name::new_unchecked("asdf{"), Name::new("Test")?])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["asdf{", "Test"]), true);
+        Ok(())
+    }
+
+    #[test]
     fn test_partial_eq_allow_empty() -> Result<(), GdtfError> {
-        assert!(T::new_s("")?.is_eq_allow_empty(&T::new_s("")?, true));
-        assert!(T(Some(Node(vec![]))).is_eq_allow_empty(&T(Some(Node(vec![]))), true));
-        assert!(T::new_s("test")?.is_eq_allow_empty(&T::new_s("test")?, true));
-        assert!(T::new(vec!["some", "test"])?.is_eq_allow_empty(&T::new(vec!["some", "test"])?, true));
-        assert!(T::new(vec!["", "test"])?.is_eq_allow_empty(&T::new(vec!["", "test"])?, true));
-        assert!(T::new(vec!["some", ""])?.is_eq_allow_empty(&T::new(vec!["some", ""])?, true));
+        T::new_from_str("")?.assert_eq_allow_empty(&T::new_from_str("")?, true);
+        T(Some(vec![])).assert_eq_allow_empty(&T(Some(vec![])), true);
+        T::new_from_str("test")?.assert_eq_allow_empty(&T::new_from_str("test")?, true);
+        T::new_from_strs_unchecked(vec!["some", "test"]).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["some", "test"]), true);
+        T::new_from_strs_unchecked(vec!["", "test"]).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["", "test"]), true);
+        T::new_from_strs_unchecked(vec!["some", ""]).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["some", ""]), true);
 
-        assert!(!T::new_s("")?.is_eq_allow_empty(&T::new_s("test")?, false));
-        assert!(!T::new_s("some")?.is_eq_allow_empty(&T::new_s("test")?, false));
-        assert!(!T::new_s("test")?.is_eq_allow_empty(&T::new_s("")?, false));
-        assert!(!T(Some(Node(vec![]))).is_eq_allow_empty(&T::new_s("")?, false));
-        assert!(!T::new_s("")?.is_eq_allow_empty(&T(Some(Node(vec![]))), false));
-        Ok(())
-    }
-
-    #[test]
-    fn test_new() -> Result<(), GdtfError> {
-        T(Some(Node(vec![Name::new("test")?]))).assert_eq_allow_empty(&T::new(vec!["test"])?, true);
-        T(Some(Node(vec![Name::new("test")?, Name::new("other")?]))).assert_eq_allow_empty(&T::new(vec!["test", "other"])?, true);
-        T(Some(Node(vec![Name::new("")?]))).assert_eq_allow_empty(&T::new(vec![""])?, true);
-        T(Some(Node(vec![]))).assert_eq_allow_empty(&T::new(vec![])?, true);
-        assert!(T::new(vec!["asdf{"]).is_err());
-        assert!(T::new(vec!["test", "asdf{"]).is_err());
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_s() -> Result<(), GdtfError> {
-        T(Some(Node(vec![Name::new("test")?]))).assert_eq_allow_empty(&T::new_s("test")?, true);
-        T(Some(Node(vec![Name::new("")?]))).assert_eq_allow_empty(&T::new_s("")?, true);
-        assert!(T::new_s("asdf{").is_err());
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_unchecked() -> Result<(), GdtfError> {
-        T(Some(Node(vec![Name::new("test")?]))).assert_eq_allow_empty(&T::new_unchecked(vec!["test"]), true);
-        T(Some(Node(vec![Name::new("test")?, Name::new("other")?]))).assert_eq_allow_empty(&T::new_unchecked(vec!["test", "other"]), true);
-        T(Some(Node(vec![Name::new("")?]))).assert_eq_allow_empty(&T::new_unchecked(vec![""]), true);
-        T(Some(Node(vec![]))).assert_eq_allow_empty(&T::new_unchecked(vec![]), true);
-        T(Some(Node(vec![Name::new_unchecked("asdf{")]))).assert_eq_allow_empty(&T::new_unchecked(vec!["asdf{"]), true);
-        T(Some(Node(vec![Name::new("test")?, Name::new_unchecked("asdf{")]))).assert_eq_allow_empty(&T::new_unchecked(vec!["test", "asdf{"]), true);
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_unchecked_s() -> Result<(), GdtfError> {
-        T(Some(Node(vec![Name::new("test")?]))).assert_eq_allow_empty(&T::new_unchecked_s("test"), true);
-        T(Some(Node(vec![Name::new("")?]))).assert_eq_allow_empty(&T::new_unchecked_s(""), true);
-        T(Some(Node(vec![Name::new_unchecked("asdf{")]))).assert_eq_allow_empty(&T::new_unchecked_s("asdf{"), true);
-        Ok(())
-    }
-
-    #[test]
-    fn test_none() {
-        T(None).assert_eq_allow_empty(&T::none(), true)
-    }
-
-    #[test]
-    fn test_from_attr_borrowed() -> Result<(), GdtfError> {
-        T(None).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"").into(), true);
-        T(Some(Node(vec!["One".try_into()?]))).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One").into(), true);
-        T(Some(Node(vec!["One".try_into()?, "Two".try_into()?]))).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One.Two").into(), true);
-        T(Some(Node(vec![Name::new_unchecked("Some{Invalid"), "Two".try_into()?]))).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"Some{Invalid.Two").into(), true);
-        T(Some(Node(vec![Name::new_unchecked("Some{Invalid"), Name::new_unchecked("T{wo")]))).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"Some{Invalid.T{wo").into(), true);
-        Ok(())
-    }
-
-    #[test]
-    fn test_from_attr_owned() -> Result<(), GdtfError> {
-        T(None).assert_eq_allow_empty(&testdata::to_attr_owned(b"").into(), true);
-        T(Some(Node(vec!["One".try_into()?]))).assert_eq_allow_empty(&testdata::to_attr_owned(b"One").into(), true);
-        T(Some(Node(vec!["One".try_into()?, "Two".try_into()?]))).assert_eq_allow_empty(&testdata::to_attr_owned(b"One.Two").into(), true);
-        T(Some(Node(vec![Name::new_unchecked("Some{Invalid"), "Two".try_into()?]))).assert_eq_allow_empty(&testdata::to_attr_owned(b"Some{Invalid.Two").into(), true);
-        T(Some(Node(vec![Name::new_unchecked("Some{Invalid"), Name::new_unchecked("T{wo")]))).assert_eq_allow_empty(&testdata::to_attr_owned(b"Some{Invalid.T{wo").into(), true);
+        T::new_from_str("")?.assert_ne_allow_empty(&T::new_from_str("test")?);
+        T::new_from_str("some")?.assert_ne_allow_empty(&T::new_from_str("test")?);
+        T::new_from_str("test")?.assert_ne_allow_empty(&T::new_from_str("")?);
+        T(Some(vec![])).assert_ne_allow_empty(&T::new_from_str("")?);
+        T::new_from_str("")?.assert_ne_allow_empty(&T(Some(vec![])));
         Ok(())
     }
 
     #[test]
     fn test_try_from_str() -> Result<(), GdtfError> {
         T(None).assert_eq_allow_empty(&"".try_into()?, true);
-        T(Some(Node(vec!["One".try_into()?]))).assert_eq_allow_empty(&"One".try_into()?, true);
-        T(Some(Node(vec!["One".try_into()?, "Two".try_into()?]))).assert_eq_allow_empty(&"One.Two".try_into()?, true);
+        T(Some(vec!["One".try_into()?])).assert_eq_allow_empty(&"One".try_into()?, true);
+        T(Some(vec!["One".try_into()?, "Two".try_into()?])).assert_eq_allow_empty(&"One.Two".try_into()?, true);
         assert!(T::try_from("Some{Invalid").is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_attr_owned() -> Result<(), GdtfError> {
+        T(None).assert_eq_allow_empty(&testdata::to_attr_owned(b"").into(), true);
+        T(Some(vec!["One".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_owned(b"One").into(), true);
+        T(Some(vec!["One".try_into()?, "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_owned(b"One.Two").into(), true);
+        T(Some(vec![Name::new_unchecked("Some{Invalid"), "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_owned(b"Some{Invalid.Two").into(), true);
+        T(Some(vec![Name::new_unchecked("Some{Invalid"), Name::new_unchecked("T{wo")])).assert_eq_allow_empty(&testdata::to_attr_owned(b"Some{Invalid.T{wo").into(), true);
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_attr_borrowed() -> Result<(), GdtfError> {
+        T(None).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"").into(), true);
+        T(Some(vec!["One".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One").into(), true);
+        T(Some(vec!["One".try_into()?, "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One.Two").into(), true);
+        T(Some(vec![Name::new_unchecked("Some{Invalid"), "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"Some{Invalid.Two").into(), true);
+        T(Some(vec![Name::new_unchecked("Some{Invalid"), Name::new_unchecked("T{wo")])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"Some{Invalid.T{wo").into(), true);
         Ok(())
     }
 
     #[test]
     fn test_partial_eq() -> Result<(), GdtfError> {
         assert_ne!(T(None), T(None));
-        assert_ne!(T(None), T(Some(Node(vec![]))));
-        assert_ne!(T(Some(Node(vec![]))), T(None));
-        assert_eq!(T(Some(Node(vec![]))), T(Some(Node(vec![]))));
-        assert_eq!(T(Some(Node(vec!["One".try_into()?]))), T(Some(Node(vec!["One".try_into()?]))));
-        assert_eq!(T(Some(Node(vec!["One".try_into()?, "Two".try_into()?]))), T(Some(Node(vec!["One".try_into()?, "Two".try_into()?]))));
-        assert_ne!(T(Some(Node(vec!["One".try_into()?, "Two".try_into()?]))), T(Some(Node(vec!["One".try_into()?]))));
-        assert_ne!(T(Some(Node(vec!["Two".try_into()?, "One".try_into()?]))), T(Some(Node(vec!["One".try_into()?, "Two".try_into()?]))));
+        assert_ne!(T(None), T(Some(vec![])));
+        assert_ne!(T(Some(vec![])), T(None));
+        assert_eq!(T(Some(vec![])), T(Some(vec![])));
+        assert_eq!(T(Some(vec!["One".try_into()?])), T(Some(vec!["One".try_into()?])));
+        assert_eq!(T(Some(vec!["One".try_into()?, "Two".try_into()?])), T(Some(vec!["One".try_into()?, "Two".try_into()?])));
+        assert_ne!(T(Some(vec!["One".try_into()?, "Two".try_into()?])), T(Some(vec!["One".try_into()?])));
+        assert_ne!(T(Some(vec!["Two".try_into()?, "One".try_into()?])), T(Some(vec!["One".try_into()?, "Two".try_into()?])));
         Ok(())
     }
 
     #[test]
-    fn test_default() {
-        T(None).assert_eq_allow_empty(&Default::default(), true)
+    fn test_none() -> Result<(), GdtfError> {
+        T(None).assert_eq_allow_empty(&T::none(), true);
+        Ok(())
+    }
+
+    #[test]
+    fn test_default() -> Result<(), GdtfError> {
+        T(None).assert_eq_allow_empty(&Default::default(), true);
+        Ok(())
     }
 }

@@ -81,6 +81,29 @@ impl Name {
 
         Ok(())
     }
+
+    ///creates a new vec of Nams from single str where name is not checked for validity defined by GDTF
+    pub fn str_to_names_vec_unchecked(value: &str) -> Vec<Name> {
+        if value == "" {
+            return vec![];
+        }
+        let value = value.split(".");
+        let mut tree: Vec<Name> = vec![];
+        for value in value.into_iter() {
+            tree.push(Name::new_unchecked(value));
+        }
+        tree
+    }
+
+    #[cfg(test)]
+    ///creates a new vec of Name from vec of str  where names are not checked for validity defined by GDTF
+    pub fn strs_to_names_vec_unchecked(names: Vec<&str>) -> Vec<Name> {
+        let mut ns = vec![];
+        for name in names.iter() {
+            ns.push(Name::new_unchecked(name))
+        }
+        ns
+    }
 }
 
 impl PartialEq for Name {

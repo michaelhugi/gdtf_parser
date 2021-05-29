@@ -156,7 +156,7 @@ mod tests {
         DMXChannel {
             dmx_break: DMXBreak::Value(1),
             offset: Offset::Value(vec![1]),
-            initial_function: NodeDmxChannelInitialFunction::new_unchecked(vec!["Beam_Shutter1", "Shutter1", "Open"]),
+            initial_function: NodeDmxChannelInitialFunction::new_from_strs_unchecked(vec!["Beam_Shutter1", "Shutter1", "Open"]),
             highlight: Highlight::Value(DMXValue {
                 initial_value: 8,
                 n: 1,
@@ -188,7 +188,7 @@ mod tests {
         DMXChannel {
             dmx_break: DMXBreak::Value(2),
             offset: Offset::Value(vec![1, 2]),
-            initial_function: NodeDmxChannelInitialFunction::new(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
+            initial_function: NodeDmxChannelInitialFunction::new_from_strs_unchecked(vec!["Beam_Shutter1", "Shutter1", "Open"]),
             highlight: Highlight::Value(DMXValue {
                 initial_value: 8,
                 n: 1,
@@ -220,7 +220,7 @@ mod tests {
         DMXChannel {
             dmx_break: DMXBreak::Overwrite,
             offset: Offset::Value(vec![1, 2]),
-            initial_function: NodeDmxChannelInitialFunction::new(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
+            initial_function: NodeDmxChannelInitialFunction::new_from_strs_unchecked(vec!["Beam_Shutter1", "Shutter1", "Open"]),
             highlight: Highlight::Value(DMXValue {
                 initial_value: 8,
                 n: 1,

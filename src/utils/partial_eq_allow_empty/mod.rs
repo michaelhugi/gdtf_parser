@@ -135,7 +135,7 @@ pub trait PartialEqAllowEmpty: Debug {
 #[cfg(test)]
 mod tests {
     use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
-    use crate::utils::units::node::Node;
+    use crate::utils::units::name::Name;
 
     #[derive(Debug, PartialEq)]
     struct TeststructOption(Option<String>);
@@ -339,16 +339,16 @@ mod tests {
 
     #[test]
     fn test_is_eq_allow_option_allow_empty() {
-        let none: Option<Node> = None;
+        let none: Option<Name> = None;
         assert!(TeststructOption::is_eq_allow_option_allow_empty(&none, &none, true));
-        assert!(TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("test")), &Some(Node::new_unchecked_s("test")), true));
-        assert!(TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("")), &Some(Node::new_unchecked_s("")), true));
-        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&none, &Some(Node::new_unchecked_s("")), false));
-        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&none, &Some(Node::new_unchecked_s("test")), false));
-        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("")), &none, false));
-        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("test")), &none, false));
-        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("")), &Some(Node::new_unchecked_s("test")), false));
-        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("test")), &Some(Node::new_unchecked_s("")), false));
-        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Node::new_unchecked_s("test")), &Some(Node::new_unchecked_s("other")), false));
+        assert!(TeststructOption::is_eq_allow_option_allow_empty(&Some(Name::new_unchecked("test")), &Some(Name::new_unchecked("test")), true));
+        assert!(TeststructOption::is_eq_allow_option_allow_empty(&Some(Name::new_unchecked("")), &Some(Name::new_unchecked("")), true));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&none, &Some(Name::new_unchecked("")), false));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&none, &Some(Name::new_unchecked("test")), false));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Name::new_unchecked("")), &none, false));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Name::new_unchecked("test")), &none, false));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Name::new_unchecked("")), &Some(Name::new_unchecked("test")), false));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Name::new_unchecked("test")), &Some(Name::new_unchecked("")), false));
+        assert!(!TeststructOption::is_eq_allow_option_allow_empty(&Some(Name::new_unchecked("test")), &Some(Name::new_unchecked("other")), false));
     }
 }

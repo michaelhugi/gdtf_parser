@@ -8,24 +8,24 @@ use quick_xml::events::attributes::Attribute;
 use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::partial_eq_option::partial_eq_option;
 use crate::utils::units::attribute_name::AttributeName;
-use crate::utils::units::node::{GDTFNodeError, NodeHelper};
-use crate::utils::units::node::node_option::NodeOption;
+use crate::utils::units::node::{GDTFNodeError, Node};
 
 #[derive(Debug)]
 ///Node used in LogicalChannel.attribute. Link to the channel function that will be activated by default for this DMXChannel;
 pub struct NodeLogicalChannelAttribute(Option<Vec<AttributeName>>);
 
-impl NodeHelper for NodeLogicalChannelAttribute {}
+impl Node for NodeLogicalChannelAttribute {}
 
 ///Parses an xml attribute directly to a Node. In case of an error, the function will return a Node with None. This function will allow invalid chars for Name due to GDTF specs because Rust can handle it.
 impl From<Attribute<'_>> for NodeLogicalChannelAttribute {
     fn from(attr: Attribute<'_>) -> Self {
-        NodeLogicalChannelAttribute::new_from_str_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| ""))
+        Self::new_from_str_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| ""))
     }
 }
 
 
 impl NodeLogicalChannelAttribute {
+    ///New Node from str defined in GDTF-XML with checking if chars are valid for GDTF-Names
     pub fn new_from_str(value: &str) -> Result<Self, GDTFNodeError> {
         if value == "" {
             return Ok(Self(None));
@@ -37,8 +37,7 @@ impl NodeLogicalChannelAttribute {
         }
         Ok(Self(Some(tree)))
     }
-
-
+    ///New Node from str defined in GDTF-XML without checking if chars are valid for GDTF-Names
     pub fn new_from_str_unchecked(value: &str) -> Self {
         if value == "" {
             return Self(None);
@@ -51,7 +50,7 @@ impl NodeLogicalChannelAttribute {
         Self(Some(tree))
     }
 
-
+    ///New Node from a vec of AttributeNames
     pub fn new_from_attribute_names(names: Vec<AttributeName>) -> Result<Self, GDTFNodeError> {
         Ok(Self(Some(names)))
     }
@@ -61,14 +60,7 @@ impl NodeLogicalChannelAttribute {
         Self(None)
     }
 
-    pub fn new_from_strs(names: Vec<&str>) -> Result<Self, GDTFNodeError> {
-        let mut vec = vec![];
-        for name in names.into_iter() {
-            vec.push(AttributeName::new(name)?);
-        }
-        Ok(Self(Some(vec)))
-    }
-
+    ///New Node from a vec of str defined in GDTF-XML without checking if charse are valid for GDTF-Names
     pub fn new_from_strs_unchecked(names: Vec<&str>) -> Self {
         let mut vec = vec![];
         for name in names.into_iter() {
@@ -108,9 +100,6 @@ impl Default for NodeLogicalChannelAttribute {
     }
 }
 
-///Implements helper trait for Option<Node> to prevent code redundancy
-impl NodeOption for NodeLogicalChannelAttribute {}
-
 #[cfg(test)]
 mod tests {
     use std::convert::{TryFrom, TryInto};
@@ -128,26 +117,15 @@ mod tests {
         assert!(T::new_from_str("")?.is_eq_allow_empty(&T::new_from_str("")?, true));
         assert!(T(Some(vec![])).is_eq_allow_empty(&T(Some(vec![])), true));
         assert!(T::new_from_str("test")?.is_eq_allow_empty(&T::new_from_str("test")?, true));
-        assert!(T::new_from_strs(vec!["some", "test"])?.is_eq_allow_empty(&T::new_from_strs(vec!["some", "test"])?, true));
-        assert!(T::new_from_strs(vec!["", "test"])?.is_eq_allow_empty(&T::new_from_strs(vec!["", "test"])?, true));
-        assert!(T::new_from_strs(vec!["some", ""])?.is_eq_allow_empty(&T::new_from_strs(vec!["some", ""])?, true));
+        assert!(T::new_from_strs_unchecked(vec!["some", "test"]).is_eq_allow_empty(&T::new_from_strs_unchecked(vec!["some", "test"]), true));
+        assert!(T::new_from_strs_unchecked(vec!["", "test"]).is_eq_allow_empty(&T::new_from_strs_unchecked(vec!["", "test"]), true));
+        assert!(T::new_from_strs_unchecked(vec!["some", ""]).is_eq_allow_empty(&T::new_from_strs_unchecked(vec!["some", ""]), true));
 
         assert!(!T::new_from_str("")?.is_eq_allow_empty(&T::new_from_str("test")?, false));
         assert!(!T::new_from_str("some")?.is_eq_allow_empty(&T::new_from_str("test")?, false));
         assert!(!T::new_from_str("test")?.is_eq_allow_empty(&T::new_from_str("")?, false));
         assert!(!T(Some(vec![])).is_eq_allow_empty(&T::new_from_str("")?, false));
         assert!(!T::new_from_str("")?.is_eq_allow_empty(&T(Some(vec![])), false));
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_from_strs() -> Result<(), GdtfError> {
-        T(Some(vec![AttributeName::new("test")?])).assert_eq_allow_empty(&T::new_from_strs(vec!["test"])?, true);
-        T(Some(vec![AttributeName::new("test")?, AttributeName::new("other")?])).assert_eq_allow_empty(&T::new_from_strs(vec!["test", "other"])?, true);
-        T(Some(vec![AttributeName::new("")?])).assert_eq_allow_empty(&T::new_from_strs(vec![""])?, true);
-        T(Some(vec![])).assert_eq_allow_empty(&T::new_from_strs(vec![])?, true);
-        assert!(T::new_from_strs(vec!["asdf{"]).is_err());
-        assert!(T::new_from_strs(vec!["test", "asdf{"]).is_err());
         Ok(())
     }
 
