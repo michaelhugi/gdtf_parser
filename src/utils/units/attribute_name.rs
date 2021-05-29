@@ -1,7 +1,15 @@
 //! AttributeName is a preferred Name for Attributes in GDTF Format.
 #![allow(non_camel_case_types)]
 
-use crate::utils::units::name::Name;
+use std::borrow::Borrow;
+use std::convert::TryFrom;
+use std::str::FromStr;
+
+use lazy_static::lazy_static;
+use quick_xml::events::attributes::Attribute;
+use regex::{Regex, RegexSet, SetMatches};
+
+use crate::utils::units::name::{GDTFNameError, Name};
 
 #[derive(Debug)]
 pub enum AttributeName {
@@ -810,24 +818,421 @@ impl PartialEq for AttributeName {
     }
 }
 
-///Parses a string in gdtf-xml definition to AttributeName. In case of error it will return UserDefined with Empty Name
-impl From<&str> for AttributeName {
-    fn from(value: &str) -> Self {
+impl AttributeName {
+    fn from_str_empty_on_error(value: &str) -> Self {
         use AttributeName::*;
-        if value == "" {
-            return UserDefined(Name::new_unchecked(value));
+        match value {
+            "Dimmer" => Dimmer,
+            "Pan" => Pan,
+            "Tilt" => Tilt,
+            "PanRotate" => PanRotate,
+            "TiltRotate" => TiltRotate,
+            "PositionEffect" => PositionEffect,
+            "PositionEffectRate" => PositionEffectRate,
+            "PositionEffectFade" => PositionEffectFade,
+            "XYZ_X" => XYZ_X,
+            "XYZ_Y" => XYZ_Y,
+            "XYZ_Z" => XYZ_Z,
+            "Rot_X" => Rot_X,
+            "Rot_Y" => Rot_Y,
+            "Rot_Z" => Rot_Z,
+            "Scale_X" => Scale_X,
+            "Scale_Y" => Scale_Y,
+            "Scale_Z" => Scale_Z,
+            "Scale_XYZ" => Scale_XYZ,
+            "PlayMode" => PlayMode,
+            "PlayBegin" => PlayBegin,
+            "PlayEnd" => PlayEnd,
+            "PlaySpeed" => PlaySpeed,
+            "ColorAdd_R" => ColorAdd_R,
+            "ColorAdd_G" => ColorAdd_G,
+            "ColorAdd_B" => ColorAdd_B,
+            "ColorAdd_C" => ColorAdd_C,
+            "ColorAdd_M" => ColorAdd_M,
+            "ColorAdd_Y" => ColorAdd_Y,
+            "ColorAdd_RY" => ColorAdd_RY,
+            "ColorAdd_GY" => ColorAdd_GY,
+            "ColorAdd_GC" => ColorAdd_GC,
+            "ColorAdd_BC" => ColorAdd_BC,
+            "ColorAdd_BM" => ColorAdd_BM,
+            "ColorAdd_RM" => ColorAdd_RM,
+            "ColorAdd_W" => ColorAdd_W,
+            "ColorAdd_WW" => ColorAdd_WW,
+            "ColorAdd_CW" => ColorAdd_CW,
+            "ColorAdd_UV" => ColorAdd_UV,
+            "ColorSub_R" => ColorSub_R,
+            "ColorSub_G" => ColorSub_G,
+            "ColorSub_B" => ColorSub_B,
+            "ColorSub_C" => ColorSub_C,
+            "ColorSub_M" => ColorSub_M,
+            "ColorSub_Y" => ColorSub_Y,
+            "CTO" => CTO,
+            "CTC" => CTC,
+            "CTB" => CTB,
+            "Tint" => Tint,
+            "HSB_Hue" => HSB_Hue,
+            "HSB_Saturation" => HSB_Saturation,
+            "HSB_Brightness" => HSB_Brightness,
+            "HSB_Quality" => HSB_Quality,
+            "CIE_X" => CIE_X,
+            "CIE_Y" => CIE_Y,
+            "CIE_Brightness" => CIE_Brightness,
+            "ColorRGB_Red" => ColorRGB_Red,
+            "ColorRGB_Green" => ColorRGB_Green,
+            "ColorRGB_Blue" => ColorRGB_Blue,
+            "ColorRGB_Cyan" => ColorRGB_Cyan,
+            "ColorRGB_Magenta" => ColorRGB_Magenta,
+            "ColorRGB_Yellow" => ColorRGB_Yellow,
+            "ColorRGB_Quality" => ColorRGB_Quality,
+            "VideoBoost_R" => VideoBoost_R,
+            "VideoBoost_G" => VideoBoost_G,
+            "VideoBoost_B" => VideoBoost_B,
+            "VideoHueShift" => VideoHueShift,
+            "VideoSaturation" => VideoSaturation,
+            "VideoBrightness" => VideoBrightness,
+            "VideoContrast" => VideoContrast,
+            "VideoKeyColor_R" => VideoKeyColor_R,
+            "VideoKeyColor_G" => VideoKeyColor_G,
+            "VideoKeyColor_B" => VideoKeyColor_B,
+            "VideoKeyIntensity" => VideoKeyIntensity,
+            "VideoKeyTolerance" => VideoKeyTolerance,
+            "StrobeDuration" => StrobeDuration,
+            "StrobeRate" => StrobeRate,
+            "Iris" => Iris,
+            "IrisStrobe" => IrisStrobe,
+            "IrisStrobeRandom" => IrisStrobeRandom,
+            "IrisPulseClose" => IrisPulseClose,
+            "IrisPulseOpen" => IrisPulseOpen,
+            "IrisRandomPulseClose" => IrisRandomPulseClose,
+            "IrisRandomPulseOpen" => IrisRandomPulseOpen,
+            "EffectsSync" => EffectsSync,
+            "BeamShaper" => BeamShaper,
+            "BeamShaperMacro" => BeamShaperMacro,
+            "BeamShaperPos" => BeamShaperPos,
+            "BeamShaperPosRotate" => BeamShaperPosRotate,
+            "Zoom" => Zoom,
+            "ZoomModeSpot" => ZoomModeSpot,
+            "ZoomModeBeam" => ZoomModeBeam,
+            "DimmerMode" => DimmerMode,
+            "DimmerCurve" => DimmerCurve,
+            "BlackoutMode" => BlackoutMode,
+            "LEDFrequency" => LEDFrequency,
+            "LEDZoneMode" => LEDZoneMode,
+            "PixelMode" => PixelMode,
+            "PanMode" => PanMode,
+            "TiltMode" => TiltMode,
+            "PanTiltMode" => PanTiltMode,
+            "PositionModes" => PositionModes,
+            "AnimationWheelShortcutMode" => AnimationWheelShortcutMode,
+            "ColorWheelShortcutMode" => ColorWheelShortcutMode,
+            "CyanMode" => CyanMode,
+            "MagentaMode" => MagentaMode,
+            "YellowMode" => YellowMode,
+            "ColorMixMode" => ColorMixMode,
+            "ChromaticMode" => ChromaticMode,
+            "ColorCalibrationMode" => ColorCalibrationMode,
+            "ColorConsistency" => ColorConsistency,
+            "ColorControl" => ColorControl,
+            "ColorModelMode" => ColorModelMode,
+            "ColorSettingsReset" => ColorSettingsReset,
+            "ColorUniformity" => ColorUniformity,
+            "CRIMode" => CRIMode,
+            "CustomColor" => CustomColor,
+            "UVStability" => UVStability,
+            "WavelengthCorrection" => WavelengthCorrection,
+            "WhiteCount" => WhiteCount,
+            "StrobeMode" => StrobeMode,
+            "ZoomMode" => ZoomMode,
+            "FocusMode" => FocusMode,
+            "IrisMode" => IrisMode,
+            "FollowSpotMode" => FollowSpotMode,
+            "BeamEffectIndexRotateMode" => BeamEffectIndexRotateMode,
+            "IntensityMSpeed" => IntensityMSpeed,
+            "PositionMSpeed" => PositionMSpeed,
+            "ColorMixMSpeed" => ColorMixMSpeed,
+            "ColorWheelSelectMSpeed" => ColorWheelSelectMSpeed,
+            "IrisMSpeed" => IrisMSpeed,
+            "FocusMSpeed" => FocusMSpeed,
+            "ZoomMSpeed" => ZoomMSpeed,
+            "FrameMSpeed" => FrameMSpeed,
+            "GlobalMSpeed" => GlobalMSpeed,
+            "ReflectorAdjust" => ReflectorAdjust,
+            "FixtureGlobalReset" => FixtureGlobalReset,
+            "ShutterReset" => ShutterReset,
+            "BeamReset" => BeamReset,
+            "ColorMixReset" => ColorMixReset,
+            "ColorWheelReset" => ColorWheelReset,
+            "FocusReset" => FocusReset,
+            "FrameReset" => FrameReset,
+            "GoboWheelReset" => GoboWheelReset,
+            "IntensityReset" => IntensityReset,
+            "IrisReset" => IrisReset,
+            "PositionReset" => PositionReset,
+            "PanReset" => PanReset,
+            "TiltReset" => TiltReset,
+            "ZoomReset" => ZoomReset,
+            "CTBReset" => CTBReset,
+            "CTOReset" => CTOReset,
+            "CTCReset" => CTCReset,
+            "AnimationSystemReset" => AnimationSystemReset,
+            "FixtureCalibrationReset" => FixtureCalibrationReset,
+            "Function" => Function,
+            "LampControl" => LampControl,
+            "DisplayIntensity" => DisplayIntensity,
+            "DMXInput" => DMXInput,
+            "NoFeature" => NoFeature,
+            "LampPowerMode" => LampPowerMode,
+            "Fans" => Fans,
+            "ShaperRot" => ShaperRot,
+            "ShaperMacros" => ShaperMacros,
+            "ShaperMacrosSpeed" => ShaperMacrosSpeed,
+            "Video" => Video,
+            "VideoBlendMode" => VideoBlendMode,
+            "InputSource" => InputSource,
+            "FieldOfView" => FieldOfView,
+            "" => UserDefined(Name::new_unchecked(value)),
+            _ => {
+                lazy_static! {
+                    static ref REGEX1: RegexSet = RegexSet::new(&[
+                        r"^Gobo\d{1,}$",
+                        r"^Gobo\d{1,}SelectSpin$",
+                        r"^Gobo\d{1,}SelectShake$",
+                        r"^Gobo\d{1,}SelectEffects$",
+                        r"^Gobo\d{1,}WheelIndex$",
+                        r"^Gobo\d{1,}WheelSpin$",
+                        r"^Gobo\d{1,}WheelShake$",
+                        r"^Gobo\d{1,}WheelRandom$",
+                        r"^Gobo\d{1,}WheelAudio$",
+                        r"^Gobo\d{1,}Pos$",
+                        r"^Gobo\d{1,}PosRotate$",
+                        r"^Gobo\d{1,}PosShake$",
+                        r"^AnimationWheel\d{1,}$",
+                        r"^AnimationWheel\d{1,}Audio$",
+                        r"^AnimationWheel\d{1,}Macro$",
+                        r"^AnimationWheel\d{1,}Random$",
+                        r"^AnimationWheel\d{1,}SelectEffects$",
+                        r"^AnimationWheel\d{1,}SelectShake$",
+                        r"^AnimationWheel\d{1,}SelectSpin$",
+                        r"^AnimationWheel\d{1,}Pos$",
+                        r"^AnimationWheel\d{1,}PosRotate$",
+                        r"^AnimationWheel\d{1,}PosShake$",
+                        r"^AnimationSystem\d{1,}$",
+                        r"^AnimationSystem\d{1,}Ramp$",
+                        r"^AnimationSystem\d{1,}Shake$",
+                        r"^AnimationSystem\d{1,}Audio$",
+                        r"^AnimationSystem\d{1,}Random$",
+                        r"^AnimationSystem\d{1,}Pos$",
+                        r"^AnimationSystem\d{1,}PosRotate$",
+                        r"^AnimationSystem\d{1,}PosShake$",
+                        r"^AnimationSystem\d{1,}PosRandom$",
+                        r"^AnimationSystem\d{1,}PosAudio$",
+                        r"^AnimationSystem\d{1,}Macro$",
+                        r"^MediaFolder\d{1,}$",
+                        r"^MediaContent\d{1,}$",
+                        r"^ModelFolder\d{1,}$",
+                        r"^ModelContent\d{1,}$",
+                        r"^ColorEffects\d{1,}$",
+                        r"^Color\d{1,}$",
+                        r"^Color\d{1,}WheelIndex$",
+                        r"^Color\d{1,}WheelSpin$",
+                        r"^Color\d{1,}WheelRandom$",
+                        r"^Color\d{1,}WheelAudio$",
+                        r"^ColorMacro\d{1,}$",
+                        r"^ColorMacro\d{1,}Rate$",
+                        r"^Shutter\d{1,}$",
+                        r"^Shutter\d{1,}Strobe$",
+                        r"^Shutter\d{1,}StrobePulse$",
+                        r"^Shutter\d{1,}StrobePulseClose$",
+                        r"^Shutter\d{1,}StrobePulseOpen$",
+                        r"^Shutter\d{1,}StrobeRandom$",
+                        r"^Shutter\d{1,}StrobeRandomPulse$",
+                        r"^Shutter\d{1,}StrobeRandomPulseClose$",
+                        r"^Shutter\d{1,}StrobeRandomPulseOpen$",
+                        r"^Shutter\d{1,}StrobeEffect$",
+                        r"^Frost\d{1,}$",
+                        r"^Frost\d{1,}PulseOpen$",
+                        r"^Frost\d{1,}PulseClose$",
+                        r"^Frost\d{1,}Ramp$",
+                        r"^Prism\d{1,}$",
+                        r"^Prism\d{1,}SelectSpin$",
+                        r"^Prism\d{1,}Macro$",
+                        r"^Prism\d{1,}Pos$",
+                        r"^Prism\d{1,}PosRotate$",
+                        r"^Effects\d{1,}$",
+                        r"^Effects\d{1,}Rate$",
+                        r"^Effects\d{1,}Fade$",
+                        r"^Effects\d{1,}Adjust\d{1,}$",
+                        r"^Effects\d{1,}Pos$",
+                        r"^Effects\d{1,}PosRotate$",
+                        r"^Focus\d{1,}$",
+                        r"^Focus\d{1,}Adjust$",
+                        r"^Focus\d{1,}Distance$",
+                        r"^Control\d{1,}$",
+                        r"^Gobo\d{1,}WheelMode$",
+                        r"^AnimationWheel\d{1,}Mode$",
+                        r"^Color\d{1,}Mode$",
+                        r"^Fan\d{1,}Mode$",
+                        r"^GoboWheel\d{1,}MSpeed$",
+                        r"^Prism\d{1,}MSpeed$",
+                        r"^Frost\d{1,}MSpeed$",
+                        r"^Blower\d{1,}$",
+                        r"^Fan\d{1,}$",
+                        r"^Fog\d{1,}$",
+                        r"^Haze\d{1,}$",
+                        r"^Blade\d{1,}A$",
+                        r"^Blade\d{1,}B$",
+                        r"^Blade\d{1,}Rot$",
+                        r"^BladeSoft\d{1,}A$",
+                        r"^BladeSoft\d{1,}B$",
+                        r"^KeyStone\d{1,}A$",
+                        r"^KeyStone\d{1,}B$",
+                        r"^VideoEffect\d{1,}Type$",
+                        r"^VideoEffect\d{1,}Parameter\d{1,}$",
+                        r"^VideoCamera\d{1,}$",
+                        r"^VideoSoundVolume\d{1,}$",
+                    ]).unwrap();
+                }
+                let matches: SetMatches = REGEX1.matches(value);
+                if !matches.matched_any() {
+                    UserDefined(Name::new_unchecked(value))
+                } else {
+                    lazy_static! {
+                        static ref RE2: Regex = Regex::new(r"\d{1,}").unwrap();
+                    }
+
+                    let mut caps = RE2.captures_iter(&value);
+                    let n = caps.next().map_or(0_u8, |m| u8::from_str(&m[0]).unwrap());
+                    let m = caps.next().map_or(0_u8, |m| u8::from_str(&m[0]).unwrap());
+
+                    if matches.matched(0) { return Gobo_n_(n); }
+                    if matches.matched(1) { return Gobo_n_SelectSpin(n); }
+                    if matches.matched(2) { return Gobo_n_SelectShake(n); }
+                    if matches.matched(3) { return Gobo_n_SelectEffects(n); }
+                    if matches.matched(4) { return Gobo_n_WheelIndex(n); }
+                    if matches.matched(5) { return Gobo_n_WheelSpin(n); }
+                    if matches.matched(6) { return Gobo_n_WheelShake(n); }
+                    if matches.matched(7) { return Gobo_n_WheelRandom(n); }
+                    if matches.matched(8) { return Gobo_n_WheelAudio(n); }
+                    if matches.matched(9) { return Gobo_n_Pos(n); }
+                    if matches.matched(10) { return Gobo_n_PosRotate(n); }
+                    if matches.matched(11) { return Gobo_n_PosShake(n); }
+                    if matches.matched(12) { return AnimationWheel_n_(n); }
+                    if matches.matched(13) { return AnimationWheel_n_Audio(n); }
+                    if matches.matched(14) { return AnimationWheel_n_Macro(n); }
+                    if matches.matched(15) { return AnimationWheel_n_Random(n); }
+                    if matches.matched(16) { return AnimationWheel_n_SelectEffects(n); }
+                    if matches.matched(17) { return AnimationWheel_n_SelectShake(n); }
+                    if matches.matched(18) { return AnimationWheel_n_SelectSpin(n); }
+                    if matches.matched(19) { return AnimationWheel_n_Pos(n); }
+                    if matches.matched(20) { return AnimationWheel_n_PosRotate(n); }
+                    if matches.matched(21) { return AnimationWheel_n_PosShake(n); }
+                    if matches.matched(22) { return AnimationSystem_n_(n); }
+                    if matches.matched(23) { return AnimationSystem_n_Ramp(n); }
+                    if matches.matched(24) { return AnimationSystem_n_Shake(n); }
+                    if matches.matched(25) { return AnimationSystem_n_Audio(n); }
+                    if matches.matched(26) { return AnimationSystem_n_Random(n); }
+                    if matches.matched(27) { return AnimationSystem_n_Pos(n); }
+                    if matches.matched(28) { return AnimationSystem_n_PosRotate(n); }
+                    if matches.matched(29) { return AnimationSystem_n_PosShake(n); }
+                    if matches.matched(30) { return AnimationSystem_n_PosRandom(n); }
+                    if matches.matched(31) { return AnimationSystem_n_PosAudio(n); }
+                    if matches.matched(32) { return AnimationSystem_n_Macro(n); }
+                    if matches.matched(33) { return MediaFolder_n_(n); }
+                    if matches.matched(34) { return MediaContent_n_(n); }
+                    if matches.matched(35) { return ModelFolder_n_(n); }
+                    if matches.matched(36) { return ModelContent_n_(n); }
+                    if matches.matched(37) { return ColorEffects_n_(n); }
+                    if matches.matched(38) { return Color_n_(n); }
+                    if matches.matched(39) { return Color_n_WheelIndex(n); }
+                    if matches.matched(40) { return Color_n_WheelSpin(n); }
+                    if matches.matched(41) { return Color_n_WheelRandom(n); }
+                    if matches.matched(42) { return Color_n_WheelAudio(n); }
+                    if matches.matched(43) { return ColorMacro_n_(n); }
+                    if matches.matched(44) { return ColorMacro_n_Rate(n); }
+                    if matches.matched(45) { return Shutter_n_(n); }
+                    if matches.matched(46) { return Shutter_n_Strobe(n); }
+                    if matches.matched(47) { return Shutter_n_StrobePulse(n); }
+                    if matches.matched(48) { return Shutter_n_StrobePulseClose(n); }
+                    if matches.matched(49) { return Shutter_n_StrobePulseOpen(n); }
+                    if matches.matched(50) { return Shutter_n_StrobeRandom(n); }
+                    if matches.matched(51) { return Shutter_n_StrobeRandomPulse(n); }
+                    if matches.matched(52) { return Shutter_n_StrobeRandomPulseClose(n); }
+                    if matches.matched(53) { return Shutter_n_StrobeRandomPulseOpen(n); }
+                    if matches.matched(54) { return Shutter_n_StrobeEffect(n); }
+                    if matches.matched(55) { return Frost_n_(n); }
+                    if matches.matched(56) { return Frost_n_PulseOpen(n); }
+                    if matches.matched(57) { return Frost_n_PulseClose(n); }
+                    if matches.matched(58) { return Frost_n_Ramp(n); }
+                    if matches.matched(59) { return Prism_n_(n); }
+                    if matches.matched(60) { return Prism_n_SelectSpin(n); }
+                    if matches.matched(61) { return Prism_n_Macro(n); }
+                    if matches.matched(62) { return Prism_n_Pos(n); }
+                    if matches.matched(63) { return Prism_n_PosRotate(n); }
+                    if matches.matched(64) { return Effects_n_(n); }
+                    if matches.matched(65) { return Effects_n_Rate(n); }
+                    if matches.matched(66) { return Effects_n_Fade(n); }
+                    if matches.matched(67) { return Effects_n_Adjust_m_(n, m); }
+                    if matches.matched(68) { return Effects_n_Pos(n); }
+                    if matches.matched(69) { return Effects_n_PosRotate(n); }
+                    if matches.matched(70) { return Focus_n_(n); }
+                    if matches.matched(71) { return Focus_n_Adjust(n); }
+                    if matches.matched(72) { return Focus_n_Distance(n); }
+                    if matches.matched(73) { return Control_n_(n); }
+                    if matches.matched(74) { return Gobo_n_WheelMode(n); }
+                    if matches.matched(75) { return AnimationWheel_n_Mode(n); }
+                    if matches.matched(76) { return Color_n_Mode(n); }
+                    if matches.matched(77) { return Fan_n_Mode(n); }
+                    if matches.matched(78) { return GoboWheel_n_MSpeed(n); }
+                    if matches.matched(79) { return Prism_n_MSpeed(n); }
+                    if matches.matched(80) { return Frost_n_MSpeed(n); }
+                    if matches.matched(81) { return Blower_n_(n); }
+                    if matches.matched(82) { return Fan_n_(n); }
+                    if matches.matched(83) { return Fog_n_(n); }
+                    if matches.matched(84) { return Haze_n_(n); }
+                    if matches.matched(85) { return Blade_n_A(n); }
+                    if matches.matched(86) { return Blade_n_B(n); }
+                    if matches.matched(87) { return Blade_n_Rot(n); }
+                    if matches.matched(88) { return BladeSoft_n_A(n); }
+                    if matches.matched(89) { return BladeSoft_n_B(n); }
+                    if matches.matched(90) { return KeyStone_n_A(n); }
+                    if matches.matched(91) { return KeyStone_n_B(n); }
+                    if matches.matched(92) { return VideoEffect_n_Type(n); }
+                    if matches.matched(93) { return VideoEffect_n_Parameter_m_(n, m); }
+                    if matches.matched(94) { return VideoCamera_n_(n); }
+                    if matches.matched(95) { return VideoSoundVolume_n_(n); }
+
+                    UserDefined(Name::new_unchecked(value))
+                }
+            }
         }
-        let _chars: Vec<char> = value.chars().collect();
+    }
+}
 
+///Checks if the string is valid for name chars defined in GDTF-Spec and parses to AttributeName if yes
+impl TryFrom<&str> for AttributeName {
+    type Error = GDTFNameError;
 
-        return UserDefined(Name::new_unchecked(value));
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Name::validate_chars(value)?;
+        Ok(AttributeName::from_str_empty_on_error(value))
+    }
+}
+
+///Parses an xml Attribute directili into AttributeName without checking valididty of Name, because Rust can handle if a GDTF should have wrong chars
+impl From<Attribute<'_>> for AttributeName {
+    ///Depares Name safely from Attribute. In case of error it returns default. It will also allow not valid chars from GDTF-Spec because Rust can handle it!
+    fn from(attr: Attribute) -> Self {
+        AttributeName::from_str_empty_on_error(std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| ""))
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::convert::{TryFrom, TryInto};
+
     use crate::utils::errors::GdtfError;
     use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
+    use crate::utils::testdata;
     use crate::utils::units::attribute_name::AttributeName;
     use crate::utils::units::name::Name;
 
@@ -1321,654 +1726,544 @@ mod tests {
     #[test]
     fn test_from_str() -> Result<(), GdtfError> {
         use AttributeName::*;
-        assert_eq!(UserDefined(Name::new("test")?), "test".into());
-        if let UserDefined(n) = AttributeName::from("something{invalid") {
-            n.assert_eq_allow_empty(&Name::new("")?, true);
-        } else {
-            panic!("something invalid was not parsed to empty user defined");
-        }
-        if let UserDefined(n) = AttributeName::from("") {
+        assert_eq!(UserDefined(Name::new("test")?), "test".try_into()?);
+
+        if let UserDefined(n) = AttributeName::try_from("")? {
             n.assert_eq_allow_empty(&Name::new("")?, true);
         } else {
             panic!("empty str was not parsed to empty user defined");
         }
-        assert_eq!(Dimmer, "Dimmer".into());
-        assert_eq!(Pan, "Pan".into());
-        assert_eq!(Tilt, "Tilt".into());
-        assert_eq!(PanRotate, "PanRotate".into());
-        assert_eq!(TiltRotate, "TiltRotate".into());
-        assert_eq!(PositionEffect, "PositionEffect".into());
-        assert_eq!(PositionEffectRate, "PositionEffectRate".into());
-        assert_eq!(PositionEffectFade, "PositionEffectFade".into());
-        assert_eq!(XYZ_X, "XYZ_X".into());
-        assert_eq!(XYZ_Y, "XYZ_Y".into());
-        assert_eq!(XYZ_Z, "XYZ_Z".into());
-        assert_eq!(Rot_X, "Rot_X".into());
-        assert_eq!(Rot_Y, "Rot_Y".into());
-        assert_eq!(Rot_Z, "Rot_Z".into());
-        assert_eq!(Scale_X, "Scale_X".into());
-        assert_eq!(Scale_Y, "Scale_Y".into());
-        assert_eq!(Scale_Z, "Scale_Z".into());
-        assert_eq!(Scale_XYZ, "Scale_XYZ".into());
-        assert_eq!(Gobo_n_(1), "Gobo1".into());
-        assert_eq!(Gobo_n_(2), "Gobo2".into());
-        assert_eq!(Gobo_n_SelectSpin(1), "Gobo1SelectSpin".into());
-        assert_eq!(Gobo_n_SelectSpin(2), "Gobo2SelectSpin".into());
-        assert_eq!(Gobo_n_SelectShake(1), "Gobo1SelectShake".into());
-        assert_eq!(Gobo_n_SelectShake(2), "Gobo2SelectShake".into());
-        assert_eq!(Gobo_n_SelectEffects(1), "Gobo1SelectEffects".into());
-        assert_eq!(Gobo_n_SelectEffects(2), "Gobo2SelectEffects".into());
-        assert_eq!(Gobo_n_WheelIndex(1), "Gobo1WheelIndex".into());
-        assert_eq!(Gobo_n_WheelIndex(2), "Gobo2WheelIndex".into());
-        assert_eq!(Gobo_n_WheelSpin(1), "Gobo1WheelSpin".into());
-        assert_eq!(Gobo_n_WheelSpin(2), "Gobo2WheelSpin".into());
-        assert_eq!(Gobo_n_WheelShake(1), "Gobo1WheelShake".into());
-        assert_eq!(Gobo_n_WheelShake(2), "Gobo2WheelShake".into());
-        assert_eq!(Gobo_n_WheelRandom(1), "Gobo1WheelRandom".into());
-        assert_eq!(Gobo_n_WheelRandom(2), "Gobo2WheelRandom".into());
-        assert_eq!(Gobo_n_WheelAudio(1), "Gobo1WheelAudio".into());
-        assert_eq!(Gobo_n_WheelAudio(2), "Gobo2WheelAudio".into());
-        assert_eq!(Gobo_n_Pos(1), "Gobo1Pos".into());
-        assert_eq!(Gobo_n_Pos(2), "Gobo2Pos".into());
-        assert_eq!(Gobo_n_PosRotate(1), "Gobo1PosRotate".into());
-        assert_eq!(Gobo_n_PosRotate(2), "Gobo2PosRotate".into());
-        assert_eq!(Gobo_n_PosShake(1), "Gobo1PosShake".into());
-        assert_eq!(Gobo_n_PosShake(2), "Gobo2PosShake".into());
-        assert_eq!(AnimationWheel_n_(1), "AnimationWheel1".into());
-        assert_eq!(AnimationWheel_n_(2), "AnimationWheel2".into());
-        assert_eq!(AnimationWheel_n_Audio(1), "AnimationWheel1Audio".into());
-        assert_eq!(AnimationWheel_n_Audio(2), "AnimationWheel2Audio".into());
-        assert_eq!(AnimationWheel_n_Macro(1), "AnimationWheel1Macro".into());
-        assert_eq!(AnimationWheel_n_Macro(2), "AnimationWheel2Macro".into());
-        assert_eq!(AnimationWheel_n_Random(1), "AnimationWheel1Random".into());
-        assert_eq!(AnimationWheel_n_Random(2), "AnimationWheel2Random".into());
-        assert_eq!(AnimationWheel_n_SelectEffects(1), "AnimationWheel1SelectEffects".into());
-        assert_eq!(AnimationWheel_n_SelectEffects(2), "AnimationWheel2SelectEffects".into());
-        assert_eq!(AnimationWheel_n_SelectShake(1), "AnimationWheel1SelectShake".into());
-        assert_eq!(AnimationWheel_n_SelectShake(2), "AnimationWheel2SelectShake".into());
-        assert_eq!(AnimationWheel_n_SelectSpin(1), "AnimationWheel1SelectSpin".into());
-        assert_eq!(AnimationWheel_n_SelectSpin(2), "AnimationWheel2SelectSpin".into());
-        assert_eq!(AnimationWheel_n_Pos(1), "AnimationWheel1Pos".into());
-        assert_eq!(AnimationWheel_n_Pos(2), "AnimationWheel2Pos".into());
-        assert_eq!(AnimationWheel_n_PosRotate(1), "AnimationWheel1PosRotate".into());
-        assert_eq!(AnimationWheel_n_PosRotate(2), "AnimationWheel2PosRotate".into());
-        assert_eq!(AnimationWheel_n_PosShake(1), "AnimationWheel1PosShake".into());
-        assert_eq!(AnimationWheel_n_PosShake(2), "AnimationWheel2PosShake".into());
-        assert_eq!(AnimationSystem_n_(1), "AnimationSystem1".into());
-        assert_eq!(AnimationSystem_n_(2), "AnimationSystem2".into());
-        assert_eq!(AnimationSystem_n_Ramp(1), "AnimationSystem1Ramp".into());
-        assert_eq!(AnimationSystem_n_Ramp(2), "AnimationSystem2Ramp".into());
-        assert_eq!(AnimationSystem_n_Shake(1), "AnimationSystem1Shake".into());
-        assert_eq!(AnimationSystem_n_Shake(2), "AnimationSystem2Shake".into());
-        assert_eq!(AnimationSystem_n_Audio(1), "AnimationSystem1Audio".into());
-        assert_eq!(AnimationSystem_n_Audio(2), "AnimationSystem2Audio".into());
-        assert_eq!(AnimationSystem_n_Random(1), "AnimationSystem1Random".into());
-        assert_eq!(AnimationSystem_n_Random(2), "AnimationSystem2Random".into());
-        assert_eq!(AnimationSystem_n_Pos(1), "AnimationSystem1Pos".into());
-        assert_eq!(AnimationSystem_n_Pos(2), "AnimationSystem2Pos".into());
-        assert_eq!(AnimationSystem_n_PosRotate(1), "AnimationSystem1PosRotate".into());
-        assert_eq!(AnimationSystem_n_PosRotate(2), "AnimationSystem2PosRotate".into());
-        assert_eq!(AnimationSystem_n_PosShake(1), "AnimationSystem1PosShake".into());
-        assert_eq!(AnimationSystem_n_PosShake(2), "AnimationSystem2PosShake".into());
-        assert_eq!(AnimationSystem_n_PosRandom(1), "AnimationSystem1PosRandom".into());
-        assert_eq!(AnimationSystem_n_PosRandom(2), "AnimationSystem2PosRandom".into());
-        assert_eq!(AnimationSystem_n_PosAudio(1), "AnimationSystem1PosAudio".into());
-        assert_eq!(AnimationSystem_n_PosAudio(2), "AnimationSystem2PosAudio".into());
-        assert_eq!(AnimationSystem_n_Macro(1), "AnimationSystem1Macro".into());
-        assert_eq!(AnimationSystem_n_Macro(2), "AnimationSystem2Macro".into());
-        assert_eq!(MediaFolder_n_(1), "MediaFolder1".into());
-        assert_eq!(MediaFolder_n_(2), "MediaFolder2".into());
-        assert_eq!(MediaContent_n_(1), "MediaContent1".into());
-        assert_eq!(MediaContent_n_(2), "MediaContent2".into());
-        assert_eq!(ModelFolder_n_(1), "ModelFolder1".into());
-        assert_eq!(ModelFolder_n_(2), "ModelFolder2".into());
-        assert_eq!(ModelContent_n_(1), "ModelContent1".into());
-        assert_eq!(ModelContent_n_(2), "ModelContent2".into());
-        assert_eq!(PlayMode, "PlayMode".into());
-        assert_eq!(PlayBegin, "PlayBegin".into());
-        assert_eq!(PlayEnd, "PlayEnd".into());
-        assert_eq!(PlaySpeed, "PlaySpeed".into());
-        assert_eq!(ColorEffects_n_(1), "ColorEffects1".into());
-        assert_eq!(ColorEffects_n_(2), "ColorEffects2".into());
-        assert_eq!(Color_n_(1), "Color1".into());
-        assert_eq!(Color_n_(2), "Color2".into());
-        assert_eq!(Color_n_WheelIndex(1), "Color1WheelIndex".into());
-        assert_eq!(Color_n_WheelIndex(2), "Color2WheelIndex".into());
-        assert_eq!(Color_n_WheelSpin(1), "Color1WheelSpin".into());
-        assert_eq!(Color_n_WheelSpin(2), "Color2WheelSpin".into());
-        assert_eq!(Color_n_WheelRandom(1), "Color1WheelRandom".into());
-        assert_eq!(Color_n_WheelRandom(2), "Color2WheelRandom".into());
-        assert_eq!(Color_n_WheelAudio(1), "Color1WheelAudio".into());
-        assert_eq!(Color_n_WheelAudio(2), "Color2WheelAudio".into());
-        assert_eq!(ColorAdd_R, "ColorAdd_R".into());
-        assert_eq!(ColorAdd_G, "ColorAdd_G".into());
-        assert_eq!(ColorAdd_B, "ColorAdd_B".into());
-        assert_eq!(ColorAdd_C, "ColorAdd_C".into());
-        assert_eq!(ColorAdd_M, "ColorAdd_M".into());
-        assert_eq!(ColorAdd_Y, "ColorAdd_Y".into());
-        assert_eq!(ColorAdd_RY, "ColorAdd_RY".into());
-        assert_eq!(ColorAdd_GY, "ColorAdd_GY".into());
-        assert_eq!(ColorAdd_GC, "ColorAdd_GC".into());
-        assert_eq!(ColorAdd_BC, "ColorAdd_BC".into());
-        assert_eq!(ColorAdd_BM, "ColorAdd_BM".into());
-        assert_eq!(ColorAdd_RM, "ColorAdd_RM".into());
-        assert_eq!(ColorAdd_W, "ColorAdd_W".into());
-        assert_eq!(ColorAdd_WW, "ColorAdd_WW".into());
-        assert_eq!(ColorAdd_CW, "ColorAdd_CW".into());
-        assert_eq!(ColorAdd_UV, "ColorAdd_UV".into());
-        assert_eq!(ColorSub_R, "ColorSub_R".into());
-        assert_eq!(ColorSub_G, "ColorSub_G".into());
-        assert_eq!(ColorSub_B, "ColorSub_B".into());
-        assert_eq!(ColorSub_C, "ColorSub_C".into());
-        assert_eq!(ColorSub_M, "ColorSub_M".into());
-        assert_eq!(ColorSub_Y, "ColorSub_Y".into());
-        assert_eq!(ColorMacro_n_(1), "ColorMacro1".into());
-        assert_eq!(ColorMacro_n_(2), "ColorMacro2".into());
-        assert_eq!(ColorMacro_n_Rate(1), "ColorMacro1Rate".into());
-        assert_eq!(ColorMacro_n_Rate(2), "ColorMacro2Rate".into());
-        assert_eq!(CTO, "CTO".into());
-        assert_eq!(CTC, "CTC".into());
-        assert_eq!(CTB, "CTB".into());
-        assert_eq!(Tint, "Tint".into());
-        assert_eq!(HSB_Hue, "HSB_Hue".into());
-        assert_eq!(HSB_Saturation, "HSB_Saturation".into());
-        assert_eq!(HSB_Brightness, "HSB_Brightness".into());
-        assert_eq!(HSB_Quality, "HSB_Quality".into());
-        assert_eq!(CIE_X, "CIE_X".into());
-        assert_eq!(CIE_Y, "CIE_Y".into());
-        assert_eq!(CIE_Brightness, "CIE_Brightness".into());
-        assert_eq!(ColorRGB_Red, "ColorRGB_Red".into());
-        assert_eq!(ColorRGB_Green, "ColorRGB_Green".into());
-        assert_eq!(ColorRGB_Blue, "ColorRGB_Blue".into());
-        assert_eq!(ColorRGB_Cyan, "ColorRGB_Cyan".into());
-        assert_eq!(ColorRGB_Magenta, "ColorRGB_Magenta".into());
-        assert_eq!(ColorRGB_Yellow, "ColorRGB_Yellow".into());
-        assert_eq!(ColorRGB_Quality, "ColorRGB_Quality".into());
-        assert_eq!(VideoBoost_R, "VideoBoost_R".into());
-        assert_eq!(VideoBoost_G, "VideoBoost_G".into());
-        assert_eq!(VideoBoost_B, "VideoBoost_B".into());
-        assert_eq!(VideoHueShift, "VideoHueShift".into());
-        assert_eq!(VideoSaturation, "VideoSaturation".into());
-        assert_eq!(VideoBrightness, "VideoBrightness".into());
-        assert_eq!(VideoContrast, "VideoContrast".into());
-        assert_eq!(VideoKeyColor_R, "VideoKeyColor_R".into());
-        assert_eq!(VideoKeyColor_G, "VideoKeyColor_G".into());
-        assert_eq!(VideoKeyColor_B, "VideoKeyColor_B".into());
-        assert_eq!(VideoKeyIntensity, "VideoKeyIntensity".into());
-        assert_eq!(VideoKeyTolerance, "VideoKeyTolerance".into());
-        assert_eq!(StrobeDuration, "StrobeDuration".into());
-        assert_eq!(StrobeRate, "StrobeRate".into());
-        assert_eq!(Shutter_n_(1), "Shutter11)".into());
-        assert_eq!(Shutter_n_(2), "Shutter2".into());
-        assert_eq!(Shutter_n_Strobe(1), "Shutter1Strobe".into());
-        assert_eq!(Shutter_n_Strobe(2), "Shutter2Strobe".into());
-        assert_eq!(Shutter_n_StrobePulse(1), "Shutter1StrobePulse".into());
-        assert_eq!(Shutter_n_StrobePulse(2), "Shutter2StrobePulse".into());
-        assert_eq!(Shutter_n_StrobePulseClose(1), "Shutter1StrobePulseClose".into());
-        assert_eq!(Shutter_n_StrobePulseClose(2), "Shutter2StrobePulseClose".into());
-        assert_eq!(Shutter_n_StrobePulseOpen(1), "Shutter1StrobePulseOpen".into());
-        assert_eq!(Shutter_n_StrobePulseOpen(2), "Shutter2StrobePulseOpen".into());
-        assert_eq!(Shutter_n_StrobeRandom(1), "Shutter1StrobeRandom".into());
-        assert_eq!(Shutter_n_StrobeRandom(2), "Shutter2StrobeRandom".into());
-        assert_eq!(Shutter_n_StrobeRandomPulse(1), "Shutter1StrobeRandomPulse".into());
-        assert_eq!(Shutter_n_StrobeRandomPulse(2), "Shutter2StrobeRandomPulse".into());
-        assert_eq!(Shutter_n_StrobeRandomPulseClose(1), "Shutter1StrobeRandomPulseClose".into());
-        assert_eq!(Shutter_n_StrobeRandomPulseClose(2), "Shutter2StrobeRandomPulseClose".into());
-        assert_eq!(Shutter_n_StrobeRandomPulseOpen(1), "Shutter1StrobeRandomPulseOpen".into());
-        assert_eq!(Shutter_n_StrobeRandomPulseOpen(2), "Shutter2StrobeRandomPulseOpen".into());
-        assert_eq!(Shutter_n_StrobeEffect(1), "Shutter1StrobeEffect".into());
-        assert_eq!(Shutter_n_StrobeEffect(2), "Shutter2StrobeEffect".into());
-        assert_eq!(Iris, "Iris".into());
-        assert_eq!(IrisStrobe, "IrisStrobe".into());
-        assert_eq!(IrisStrobeRandom, "IrisStrobeRandom".into());
-        assert_eq!(IrisPulseClose, "IrisPulseClose".into());
-        assert_eq!(IrisPulseOpen, "IrisPulseOpen".into());
-        assert_eq!(IrisRandomPulseClose, "IrisRandomPulseClose".into());
-        assert_eq!(IrisRandomPulseOpen, "IrisRandomPulseOpen".into());
-        assert_eq!(Frost_n_(1), "Frost1".into());
-        assert_eq!(Frost_n_(2), "Frost2".into());
-        assert_eq!(Frost_n_PulseOpen(1), "Frost1PulseOpen".into());
-        assert_eq!(Frost_n_PulseOpen(2), "Frost2PulseOpen".into());
-        assert_eq!(Frost_n_PulseClose(1), "Frost1PulseClose".into());
-        assert_eq!(Frost_n_PulseClose(2), "Frost2PulseClose".into());
-        assert_eq!(Frost_n_Ramp(1), "Frost1Ramp".into());
-        assert_eq!(Frost_n_Ramp(2), "Frost2Ramp".into());
-        assert_eq!(Prism_n_(1), "Prism1".into());
-        assert_eq!(Prism_n_(2), "Prism2".into());
-        assert_eq!(Prism_n_SelectSpin(1), "Prism1SelectSpin".into());
-        assert_eq!(Prism_n_SelectSpin(2), "Prism2SelectSpin".into());
-        assert_eq!(Prism_n_Macro(1), "Prism1Macro".into());
-        assert_eq!(Prism_n_Macro(2), "Prism2Macro".into());
-        assert_eq!(Prism_n_Pos(1), "Prism1Pos".into());
-        assert_eq!(Prism_n_Pos(2), "Prism2Pos".into());
-        assert_eq!(Prism_n_PosRotate(1), "Prism1PosRotate".into());
-        assert_eq!(Prism_n_PosRotate(2), "Prism2PosRotate".into());
-        assert_eq!(Effects_n_(1), "Effects1".into());
-        assert_eq!(Effects_n_(2), "Effects2".into());
-        assert_eq!(Effects_n_Rate(1), "Effects1Rate".into());
-        assert_eq!(Effects_n_Rate(2), "Effects2Rate".into());
-        assert_eq!(Effects_n_Fade(1), "Effects1Fade".into());
-        assert_eq!(Effects_n_Fade(2), "Effects2Fade".into());
-        assert_eq!(Effects_n_Adjust_m_(1, 1), "Effects1Adjust1".into());
-        assert_eq!(Effects_n_Adjust_m_(1, 2), "Effects1Adjust2".into());
-        assert_eq!(Effects_n_Adjust_m_(2, 1), "Effects2Adjust1".into());
-        assert_eq!(Effects_n_Adjust_m_(2, 2), "Effects1Adjust2".into());
-        assert_eq!(Effects_n_Pos(1), "Effects1Pos".into());
-        assert_eq!(Effects_n_Pos(2), "Effects2Pos".into());
-        assert_eq!(Effects_n_PosRotate(1), "Effects1PosRotate".into());
-        assert_eq!(Effects_n_PosRotate(2), "Effects2PosRotate".into());
-        assert_eq!(EffectsSync, "EffectsSync".into());
-        assert_eq!(BeamShaper, "BeamShaper".into());
-        assert_eq!(BeamShaperMacro, "BeamShaperMacro".into());
-        assert_eq!(BeamShaperPos, "BeamShaperPos".into());
-        assert_eq!(BeamShaperPosRotate, "BeamShaperPosRotate".into());
-        assert_eq!(Zoom, "Zoom".into());
-        assert_eq!(ZoomModeSpot, "ZoomModeSpot".into());
-        assert_eq!(ZoomModeBeam, "ZoomModeBeam".into());
-        assert_eq!(Focus_n_(1), "Focus1".into());
-        assert_eq!(Focus_n_(2), "Focus2".into());
-        assert_eq!(Focus_n_Adjust(1), "Focus1Adjust".into());
-        assert_eq!(Focus_n_Adjust(2), "Focus2Adjust".into());
-        assert_eq!(Focus_n_Distance(1), "Focus1Distance".into());
-        assert_eq!(Focus_n_Distance(2), "Focus2Distance".into());
-        assert_eq!(Control_n_(1), "Control1".into());
-        assert_eq!(Control_n_(2), "Control2".into());
-        assert_eq!(DimmerMode, "DimmerMode".into());
-        assert_eq!(DimmerCurve, "DimmerCurve".into());
-        assert_eq!(BlackoutMode, "BlackoutMode".into());
-        assert_eq!(LEDFrequency, "LEDFrequency".into());
-        assert_eq!(LEDZoneMode, "LEDZoneMode".into());
-        assert_eq!(PixelMode, "PixelMode".into());
-        assert_eq!(PanMode, "PanMode".into());
-        assert_eq!(TiltMode, "TiltMode".into());
-        assert_eq!(PanTiltMode, "PanTiltMode".into());
-        assert_eq!(PositionModes, "PositionModes".into());
-        assert_eq!(Gobo_n_WheelMode(1), "Gobo1WheelMode".into());
-        assert_eq!(Gobo_n_WheelMode(2), "Gobo2WheelMode".into());
-        assert_eq!(AnimationWheel_n_Mode(1), "AnimationWheel1Mode".into());
-        assert_eq!(AnimationWheel_n_Mode(2), "AnimationWheel2Mode".into());
-        assert_eq!(AnimationWheelShortcutMode, "AnimationWheelShortcutMode".into());
-        assert_eq!(Color_n_Mode(1), "Color1Mode".into());
-        assert_eq!(Color_n_Mode(2), "Color2Mode".into());
-        assert_eq!(ColorWheelShortcutMode, "ColorWheelShortcutMode".into());
-        assert_eq!(CyanMode, "CyanMode".into());
-        assert_eq!(MagentaMode, "MagentaMode".into());
-        assert_eq!(YellowMode, "YellowMode".into());
-        assert_eq!(ColorMixMode, "ColorMixMode".into());
-        assert_eq!(ChromaticMode, "ChromaticMode".into());
-        assert_eq!(ColorCalibrationMode, "ColorCalibrationMode".into());
-        assert_eq!(ColorConsistency, "ColorConsistency".into());
-        assert_eq!(ColorControl, "ColorControl".into());
-        assert_eq!(ColorModelMode, "ColorModelMode".into());
-        assert_eq!(ColorSettingsReset, "ColorSettingsReset".into());
-        assert_eq!(ColorUniformity, "ColorUniformity".into());
-        assert_eq!(CRIMode, "CRIMode".into());
-        assert_eq!(CustomColor, "CustomColor".into());
-        assert_eq!(UVStability, "UVStability".into());
-        assert_eq!(WavelengthCorrection, "WavelengthCorrection".into());
-        assert_eq!(WhiteCount, "WhiteCount".into());
-        assert_eq!(StrobeMode, "StrobeMode".into());
-        assert_eq!(ZoomMode, "ZoomMode".into());
-        assert_eq!(FocusMode, "FocusMode".into());
-        assert_eq!(IrisMode, "IrisMode".into());
-        assert_eq!(Fan_n_Mode(1), "Fan1Mode".into());
-        assert_eq!(Fan_n_Mode(2), "Fan2Mode".into());
-        assert_eq!(FollowSpotMode, "FollowSpotMode".into());
-        assert_eq!(BeamEffectIndexRotateMode, "BeamEffectIndexRotateMode".into());
-        assert_eq!(IntensityMSpeed, "IntensityMSpeed".into());
-        assert_eq!(PositionMSpeed, "PositionMSpeed".into());
-        assert_eq!(ColorMixMSpeed, "ColorMixMSpeed".into());
-        assert_eq!(ColorWheelSelectMSpeed, "ColorWheelSelectMSpeed".into());
-        assert_eq!(GoboWheel_n_MSpeed(1), "GoboWheel1MSpeed".into());
-        assert_eq!(GoboWheel_n_MSpeed(2), "GoboWheel2MSpeed".into());
-        assert_eq!(IrisMSpeed, "IrisMSpeed".into());
-        assert_eq!(Prism_n_MSpeed(1), "Prism1MSpeed".into());
-        assert_eq!(Prism_n_MSpeed(2), "Prism2MSpeed".into());
-        assert_eq!(FocusMSpeed, "FocusMSpeed".into());
-        assert_eq!(Frost_n_MSpeed(1), "Frost1MSpeed".into());
-        assert_eq!(Frost_n_MSpeed(2), "Frost2MSpeed".into());
-        assert_eq!(ZoomMSpeed, "ZoomMSpeed".into());
-        assert_eq!(FrameMSpeed, "FrameMSpeed".into());
-        assert_eq!(GlobalMSpeed, "GlobalMSpeed".into());
-        assert_eq!(ReflectorAdjust, "ReflectorAdjust".into());
-        assert_eq!(FixtureGlobalReset, "FixtureGlobalReset".into());
-        assert_eq!(ShutterReset, "ShutterReset".into());
-        assert_eq!(BeamReset, "BeamReset".into());
-        assert_eq!(ColorMixReset, "ColorMixReset".into());
-        assert_eq!(ColorWheelReset, "ColorWheelReset".into());
-        assert_eq!(FocusReset, "FocusReset".into());
-        assert_eq!(FrameReset, "FrameReset".into());
-        assert_eq!(GoboWheelReset, "GoboWheelReset".into());
-        assert_eq!(IntensityReset, "IntensityReset".into());
-        assert_eq!(IrisReset, "IrisReset".into());
-        assert_eq!(PositionReset, "PositionReset".into());
-        assert_eq!(PanReset, "PanReset".into());
-        assert_eq!(TiltReset, "TiltReset".into());
-        assert_eq!(ZoomReset, "ZoomReset".into());
-        assert_eq!(CTBReset, "CTBReset".into());
-        assert_eq!(CTOReset, "CTOReset".into());
-        assert_eq!(CTCReset, "CTCReset".into());
-        assert_eq!(AnimationSystemReset, "AnimationSystemReset".into());
-        assert_eq!(FixtureCalibrationReset, "FixtureCalibrationReset".into());
-        assert_eq!(Function, "Function".into());
-        assert_eq!(LampControl, "LampControl".into());
-        assert_eq!(DisplayIntensity, "DisplayIntensity".into());
-        assert_eq!(DMXInput, "DMXInput".into());
-        assert_eq!(NoFeature, "NoFeature".into());
-        assert_eq!(Blower_n_(1), "Blower1".into());
-        assert_eq!(Blower_n_(2), "Blower2".into());
-        assert_eq!(Fan_n_(1), "Fan1".into());
-        assert_eq!(Fan_n_(2), "Fan2".into());
-        assert_eq!(Fog_n_(1), "Fog1".into());
-        assert_eq!(Fog_n_(2), "Fog2".into());
-        assert_eq!(Haze_n_(1), "Haze1".into());
-        assert_eq!(Haze_n_(2), "Haze2".into());
-        assert_eq!(LampPowerMode, "LampPowerMode".into());
-        assert_eq!(Fans, "Fans".into());
-        assert_eq!(Blade_n_A(1), "Blade1A".into());
-        assert_eq!(Blade_n_A(2), "Blade2A".into());
-        assert_eq!(Blade_n_B(1), "Blade1B".into());
-        assert_eq!(Blade_n_B(2), "Blade2B".into());
-        assert_eq!(Blade_n_Rot(1), "Blade1Rot".into());
-        assert_eq!(Blade_n_Rot(2), "Blade2Rot".into());
-        assert_eq!(ShaperRot, "ShaperRot".into());
-        assert_eq!(ShaperMacros, "ShaperMacros".into());
-        assert_eq!(ShaperMacrosSpeed, "ShaperMacrosSpeed".into());
-        assert_eq!(BladeSoft_n_A(1), "BladeSoft1A".into());
-        assert_eq!(BladeSoft_n_A(2), "BladeSoft2A".into());
-        assert_eq!(BladeSoft_n_B(1), "BladeSoft1B".into());
-        assert_eq!(BladeSoft_n_B(2), "BladeSoft2B".into());
-        assert_eq!(KeyStone_n_A(1), "KeyStone1A".into());
-        assert_eq!(KeyStone_n_A(2), "KeyStone2A".into());
-        assert_eq!(KeyStone_n_B(1), "KeyStone1B".into());
-        assert_eq!(KeyStone_n_B(2), "KeyStone2B".into());
-        assert_eq!(Video, "Video".into());
-        assert_eq!(VideoEffect_n_Type(1), "VideoEffect1Type".into());
-        assert_eq!(VideoEffect_n_Type(2), "VideoEffect2Type".into());
-        assert_eq!(VideoEffect_n_Parameter_m_(1, 1), "VideoEffect1Parameter1".into());
-        assert_eq!(VideoEffect_n_Parameter_m_(1, 2), "VideoEffect1Parameter2".into());
-        assert_eq!(VideoEffect_n_Parameter_m_(2, 1), "VideoEffect2Parameter1".into());
-        assert_eq!(VideoEffect_n_Parameter_m_(2, 2), "VideoEffect2Parameter2".into());
-        assert_eq!(VideoCamera_n_(1), "VideoCamera1".into());
-        assert_eq!(VideoCamera_n_(2), "VideoCamera2".into());
-        assert_eq!(VideoSoundVolume_n_(1), "VideoSoundVolume1".into());
-        assert_eq!(VideoSoundVolume_n_(2), "VideoSoundVolume2".into());
-        assert_eq!(VideoBlendMode, "VideoBlendMode".into());
-        assert_eq!(InputSource, "InputSource".into());
-        assert_eq!(FieldOfView, "FieldOfView".into());
+        assert_eq!(Dimmer, "Dimmer".try_into()?);
+        assert_eq!(Pan, "Pan".try_into()?);
+        assert_eq!(Tilt, "Tilt".try_into()?);
+        assert_eq!(PanRotate, "PanRotate".try_into()?);
+        assert_eq!(TiltRotate, "TiltRotate".try_into()?);
+        assert_eq!(PositionEffect, "PositionEffect".try_into()?);
+        assert_eq!(PositionEffectRate, "PositionEffectRate".try_into()?);
+        assert_eq!(PositionEffectFade, "PositionEffectFade".try_into()?);
+        assert_eq!(XYZ_X, "XYZ_X".try_into()?);
+        assert_eq!(XYZ_Y, "XYZ_Y".try_into()?);
+        assert_eq!(XYZ_Z, "XYZ_Z".try_into()?);
+        assert_eq!(Rot_X, "Rot_X".try_into()?);
+        assert_eq!(Rot_Y, "Rot_Y".try_into()?);
+        assert_eq!(Rot_Z, "Rot_Z".try_into()?);
+        assert_eq!(Scale_X, "Scale_X".try_into()?);
+        assert_eq!(Scale_Y, "Scale_Y".try_into()?);
+        assert_eq!(Scale_Z, "Scale_Z".try_into()?);
+        assert_eq!(Scale_XYZ, "Scale_XYZ".try_into()?);
+        assert_eq!(Gobo_n_(1), "Gobo1".try_into()?);
+        assert_eq!(Gobo_n_(2), "Gobo2".try_into()?);
+        assert_eq!(Gobo_n_(120), "Gobo120".try_into()?);
+        assert_eq!(Gobo_n_SelectSpin(1), "Gobo1SelectSpin".try_into()?);
+        assert_eq!(Gobo_n_SelectSpin(2), "Gobo2SelectSpin".try_into()?);
+        assert_eq!(Gobo_n_SelectSpin(120), "Gobo120SelectSpin".try_into()?);
+        assert_eq!(Gobo_n_SelectShake(1), "Gobo1SelectShake".try_into()?);
+        assert_eq!(Gobo_n_SelectShake(2), "Gobo2SelectShake".try_into()?);
+        assert_eq!(Gobo_n_SelectShake(120), "Gobo120SelectShake".try_into()?);
+        assert_eq!(Gobo_n_SelectEffects(1), "Gobo1SelectEffects".try_into()?);
+        assert_eq!(Gobo_n_SelectEffects(2), "Gobo2SelectEffects".try_into()?);
+        assert_eq!(Gobo_n_SelectEffects(120), "Gobo120SelectEffects".try_into()?);
+        assert_eq!(Gobo_n_WheelIndex(1), "Gobo1WheelIndex".try_into()?);
+        assert_eq!(Gobo_n_WheelIndex(2), "Gobo2WheelIndex".try_into()?);
+        assert_eq!(Gobo_n_WheelIndex(120), "Gobo120WheelIndex".try_into()?);
+        assert_eq!(Gobo_n_WheelSpin(1), "Gobo1WheelSpin".try_into()?);
+        assert_eq!(Gobo_n_WheelSpin(2), "Gobo2WheelSpin".try_into()?);
+        assert_eq!(Gobo_n_WheelSpin(120), "Gobo120WheelSpin".try_into()?);
+        assert_eq!(Gobo_n_WheelShake(1), "Gobo1WheelShake".try_into()?);
+        assert_eq!(Gobo_n_WheelShake(2), "Gobo2WheelShake".try_into()?);
+        assert_eq!(Gobo_n_WheelShake(120), "Gobo120WheelShake".try_into()?);
+        assert_eq!(Gobo_n_WheelRandom(1), "Gobo1WheelRandom".try_into()?);
+        assert_eq!(Gobo_n_WheelRandom(2), "Gobo2WheelRandom".try_into()?);
+        assert_eq!(Gobo_n_WheelRandom(120), "Gobo120WheelRandom".try_into()?);
+        assert_eq!(Gobo_n_WheelAudio(1), "Gobo1WheelAudio".try_into()?);
+        assert_eq!(Gobo_n_WheelAudio(2), "Gobo2WheelAudio".try_into()?);
+        assert_eq!(Gobo_n_WheelAudio(120), "Gobo120WheelAudio".try_into()?);
+        assert_eq!(Gobo_n_Pos(1), "Gobo1Pos".try_into()?);
+        assert_eq!(Gobo_n_Pos(2), "Gobo2Pos".try_into()?);
+        assert_eq!(Gobo_n_Pos(120), "Gobo120Pos".try_into()?);
+        assert_eq!(Gobo_n_PosRotate(1), "Gobo1PosRotate".try_into()?);
+        assert_eq!(Gobo_n_PosRotate(2), "Gobo2PosRotate".try_into()?);
+        assert_eq!(Gobo_n_PosRotate(120), "Gobo120PosRotate".try_into()?);
+        assert_eq!(Gobo_n_PosShake(1), "Gobo1PosShake".try_into()?);
+        assert_eq!(Gobo_n_PosShake(2), "Gobo2PosShake".try_into()?);
+        assert_eq!(Gobo_n_PosShake(120), "Gobo120PosShake".try_into()?);
+        assert_eq!(AnimationWheel_n_(1), "AnimationWheel1".try_into()?);
+        assert_eq!(AnimationWheel_n_(2), "AnimationWheel2".try_into()?);
+        assert_eq!(AnimationWheel_n_(120), "AnimationWheel120".try_into()?);
+        assert_eq!(AnimationWheel_n_Audio(1), "AnimationWheel1Audio".try_into()?);
+        assert_eq!(AnimationWheel_n_Audio(2), "AnimationWheel2Audio".try_into()?);
+        assert_eq!(AnimationWheel_n_Audio(120), "AnimationWheel120Audio".try_into()?);
+        assert_eq!(AnimationWheel_n_Macro(1), "AnimationWheel1Macro".try_into()?);
+        assert_eq!(AnimationWheel_n_Macro(2), "AnimationWheel2Macro".try_into()?);
+        assert_eq!(AnimationWheel_n_Macro(120), "AnimationWheel120Macro".try_into()?);
+        assert_eq!(AnimationWheel_n_Random(1), "AnimationWheel1Random".try_into()?);
+        assert_eq!(AnimationWheel_n_Random(2), "AnimationWheel2Random".try_into()?);
+        assert_eq!(AnimationWheel_n_Random(120), "AnimationWheel120Random".try_into()?);
+        assert_eq!(AnimationWheel_n_SelectEffects(1), "AnimationWheel1SelectEffects".try_into()?);
+        assert_eq!(AnimationWheel_n_SelectEffects(2), "AnimationWheel2SelectEffects".try_into()?);
+        assert_eq!(AnimationWheel_n_SelectEffects(120), "AnimationWheel120SelectEffects".try_into()?);
+        assert_eq!(AnimationWheel_n_SelectShake(1), "AnimationWheel1SelectShake".try_into()?);
+        assert_eq!(AnimationWheel_n_SelectShake(2), "AnimationWheel2SelectShake".try_into()?);
+        assert_eq!(AnimationWheel_n_SelectShake(120), "AnimationWheel120SelectShake".try_into()?);
+        assert_eq!(AnimationWheel_n_SelectSpin(1), "AnimationWheel1SelectSpin".try_into()?);
+        assert_eq!(AnimationWheel_n_SelectSpin(2), "AnimationWheel2SelectSpin".try_into()?);
+        assert_eq!(AnimationWheel_n_SelectSpin(120), "AnimationWheel120SelectSpin".try_into()?);
+        assert_eq!(AnimationWheel_n_Pos(1), "AnimationWheel1Pos".try_into()?);
+        assert_eq!(AnimationWheel_n_Pos(2), "AnimationWheel2Pos".try_into()?);
+        assert_eq!(AnimationWheel_n_Pos(120), "AnimationWheel120Pos".try_into()?);
+        assert_eq!(AnimationWheel_n_PosRotate(1), "AnimationWheel1PosRotate".try_into()?);
+        assert_eq!(AnimationWheel_n_PosRotate(2), "AnimationWheel2PosRotate".try_into()?);
+        assert_eq!(AnimationWheel_n_PosRotate(120), "AnimationWheel120PosRotate".try_into()?);
+        assert_eq!(AnimationWheel_n_PosShake(1), "AnimationWheel1PosShake".try_into()?);
+        assert_eq!(AnimationWheel_n_PosShake(2), "AnimationWheel2PosShake".try_into()?);
+        assert_eq!(AnimationWheel_n_PosShake(120), "AnimationWheel120PosShake".try_into()?);
+        assert_eq!(AnimationSystem_n_(1), "AnimationSystem1".try_into()?);
+        assert_eq!(AnimationSystem_n_(2), "AnimationSystem2".try_into()?);
+        assert_eq!(AnimationSystem_n_(120), "AnimationSystem120".try_into()?);
+        assert_eq!(AnimationSystem_n_Ramp(1), "AnimationSystem1Ramp".try_into()?);
+        assert_eq!(AnimationSystem_n_Ramp(2), "AnimationSystem2Ramp".try_into()?);
+        assert_eq!(AnimationSystem_n_Ramp(120), "AnimationSystem120Ramp".try_into()?);
+        assert_eq!(AnimationSystem_n_Shake(1), "AnimationSystem1Shake".try_into()?);
+        assert_eq!(AnimationSystem_n_Shake(2), "AnimationSystem2Shake".try_into()?);
+        assert_eq!(AnimationSystem_n_Shake(120), "AnimationSystem120Shake".try_into()?);
+        assert_eq!(AnimationSystem_n_Audio(1), "AnimationSystem1Audio".try_into()?);
+        assert_eq!(AnimationSystem_n_Audio(2), "AnimationSystem2Audio".try_into()?);
+        assert_eq!(AnimationSystem_n_Audio(120), "AnimationSystem120Audio".try_into()?);
+        assert_eq!(AnimationSystem_n_Random(1), "AnimationSystem1Random".try_into()?);
+        assert_eq!(AnimationSystem_n_Random(2), "AnimationSystem2Random".try_into()?);
+        assert_eq!(AnimationSystem_n_Random(120), "AnimationSystem120Random".try_into()?);
+        assert_eq!(AnimationSystem_n_Pos(1), "AnimationSystem1Pos".try_into()?);
+        assert_eq!(AnimationSystem_n_Pos(2), "AnimationSystem2Pos".try_into()?);
+        assert_eq!(AnimationSystem_n_Pos(120), "AnimationSystem120Pos".try_into()?);
+        assert_eq!(AnimationSystem_n_PosRotate(1), "AnimationSystem1PosRotate".try_into()?);
+        assert_eq!(AnimationSystem_n_PosRotate(2), "AnimationSystem2PosRotate".try_into()?);
+        assert_eq!(AnimationSystem_n_PosRotate(120), "AnimationSystem120PosRotate".try_into()?);
+        assert_eq!(AnimationSystem_n_PosShake(1), "AnimationSystem1PosShake".try_into()?);
+        assert_eq!(AnimationSystem_n_PosShake(2), "AnimationSystem2PosShake".try_into()?);
+        assert_eq!(AnimationSystem_n_PosShake(120), "AnimationSystem120PosShake".try_into()?);
+        assert_eq!(AnimationSystem_n_PosRandom(1), "AnimationSystem1PosRandom".try_into()?);
+        assert_eq!(AnimationSystem_n_PosRandom(2), "AnimationSystem2PosRandom".try_into()?);
+        assert_eq!(AnimationSystem_n_PosRandom(120), "AnimationSystem120PosRandom".try_into()?);
+        assert_eq!(AnimationSystem_n_PosAudio(1), "AnimationSystem1PosAudio".try_into()?);
+        assert_eq!(AnimationSystem_n_PosAudio(2), "AnimationSystem2PosAudio".try_into()?);
+        assert_eq!(AnimationSystem_n_PosAudio(120), "AnimationSystem120PosAudio".try_into()?);
+        assert_eq!(AnimationSystem_n_Macro(1), "AnimationSystem1Macro".try_into()?);
+        assert_eq!(AnimationSystem_n_Macro(2), "AnimationSystem2Macro".try_into()?);
+        assert_eq!(AnimationSystem_n_Macro(120), "AnimationSystem120Macro".try_into()?);
+        assert_eq!(MediaFolder_n_(1), "MediaFolder1".try_into()?);
+        assert_eq!(MediaFolder_n_(2), "MediaFolder2".try_into()?);
+        assert_eq!(MediaFolder_n_(120), "MediaFolder120".try_into()?);
+        assert_eq!(MediaContent_n_(1), "MediaContent1".try_into()?);
+        assert_eq!(MediaContent_n_(2), "MediaContent2".try_into()?);
+        assert_eq!(MediaContent_n_(120), "MediaContent120".try_into()?);
+        assert_eq!(ModelFolder_n_(1), "ModelFolder1".try_into()?);
+        assert_eq!(ModelFolder_n_(2), "ModelFolder2".try_into()?);
+        assert_eq!(ModelFolder_n_(120), "ModelFolder120".try_into()?);
+        assert_eq!(ModelContent_n_(1), "ModelContent1".try_into()?);
+        assert_eq!(ModelContent_n_(2), "ModelContent2".try_into()?);
+        assert_eq!(ModelContent_n_(120), "ModelContent120".try_into()?);
+        assert_eq!(PlayMode, "PlayMode".try_into()?);
+        assert_eq!(PlayBegin, "PlayBegin".try_into()?);
+        assert_eq!(PlayEnd, "PlayEnd".try_into()?);
+        assert_eq!(PlaySpeed, "PlaySpeed".try_into()?);
+        assert_eq!(ColorEffects_n_(1), "ColorEffects1".try_into()?);
+        assert_eq!(ColorEffects_n_(2), "ColorEffects2".try_into()?);
+        assert_eq!(ColorEffects_n_(120), "ColorEffects120".try_into()?);
+        assert_eq!(Color_n_(1), "Color1".try_into()?);
+        assert_eq!(Color_n_(2), "Color2".try_into()?);
+        assert_eq!(Color_n_(120), "Color120".try_into()?);
+        assert_eq!(Color_n_WheelIndex(1), "Color1WheelIndex".try_into()?);
+        assert_eq!(Color_n_WheelIndex(2), "Color2WheelIndex".try_into()?);
+        assert_eq!(Color_n_WheelIndex(120), "Color120WheelIndex".try_into()?);
+        assert_eq!(Color_n_WheelSpin(1), "Color1WheelSpin".try_into()?);
+        assert_eq!(Color_n_WheelSpin(2), "Color2WheelSpin".try_into()?);
+        assert_eq!(Color_n_WheelSpin(120), "Color120WheelSpin".try_into()?);
+        assert_eq!(Color_n_WheelRandom(1), "Color1WheelRandom".try_into()?);
+        assert_eq!(Color_n_WheelRandom(2), "Color2WheelRandom".try_into()?);
+        assert_eq!(Color_n_WheelRandom(120), "Color120WheelRandom".try_into()?);
+        assert_eq!(Color_n_WheelAudio(1), "Color1WheelAudio".try_into()?);
+        assert_eq!(Color_n_WheelAudio(2), "Color2WheelAudio".try_into()?);
+        assert_eq!(Color_n_WheelAudio(120), "Color120WheelAudio".try_into()?);
+        assert_eq!(ColorAdd_R, "ColorAdd_R".try_into()?);
+        assert_eq!(ColorAdd_G, "ColorAdd_G".try_into()?);
+        assert_eq!(ColorAdd_B, "ColorAdd_B".try_into()?);
+        assert_eq!(ColorAdd_C, "ColorAdd_C".try_into()?);
+        assert_eq!(ColorAdd_M, "ColorAdd_M".try_into()?);
+        assert_eq!(ColorAdd_Y, "ColorAdd_Y".try_into()?);
+        assert_eq!(ColorAdd_RY, "ColorAdd_RY".try_into()?);
+        assert_eq!(ColorAdd_GY, "ColorAdd_GY".try_into()?);
+        assert_eq!(ColorAdd_GC, "ColorAdd_GC".try_into()?);
+        assert_eq!(ColorAdd_BC, "ColorAdd_BC".try_into()?);
+        assert_eq!(ColorAdd_BM, "ColorAdd_BM".try_into()?);
+        assert_eq!(ColorAdd_RM, "ColorAdd_RM".try_into()?);
+        assert_eq!(ColorAdd_W, "ColorAdd_W".try_into()?);
+        assert_eq!(ColorAdd_WW, "ColorAdd_WW".try_into()?);
+        assert_eq!(ColorAdd_CW, "ColorAdd_CW".try_into()?);
+        assert_eq!(ColorAdd_UV, "ColorAdd_UV".try_into()?);
+        assert_eq!(ColorSub_R, "ColorSub_R".try_into()?);
+        assert_eq!(ColorSub_G, "ColorSub_G".try_into()?);
+        assert_eq!(ColorSub_B, "ColorSub_B".try_into()?);
+        assert_eq!(ColorSub_C, "ColorSub_C".try_into()?);
+        assert_eq!(ColorSub_M, "ColorSub_M".try_into()?);
+        assert_eq!(ColorSub_Y, "ColorSub_Y".try_into()?);
+        assert_eq!(ColorMacro_n_(1), "ColorMacro1".try_into()?);
+        assert_eq!(ColorMacro_n_(2), "ColorMacro2".try_into()?);
+        assert_eq!(ColorMacro_n_(120), "ColorMacro120".try_into()?);
+        assert_eq!(ColorMacro_n_Rate(1), "ColorMacro1Rate".try_into()?);
+        assert_eq!(ColorMacro_n_Rate(2), "ColorMacro2Rate".try_into()?);
+        assert_eq!(ColorMacro_n_Rate(120), "ColorMacro120Rate".try_into()?);
+        assert_eq!(CTO, "CTO".try_into()?);
+        assert_eq!(CTC, "CTC".try_into()?);
+        assert_eq!(CTB, "CTB".try_into()?);
+        assert_eq!(Tint, "Tint".try_into()?);
+        assert_eq!(HSB_Hue, "HSB_Hue".try_into()?);
+        assert_eq!(HSB_Saturation, "HSB_Saturation".try_into()?);
+        assert_eq!(HSB_Brightness, "HSB_Brightness".try_into()?);
+        assert_eq!(HSB_Quality, "HSB_Quality".try_into()?);
+        assert_eq!(CIE_X, "CIE_X".try_into()?);
+        assert_eq!(CIE_Y, "CIE_Y".try_into()?);
+        assert_eq!(CIE_Brightness, "CIE_Brightness".try_into()?);
+        assert_eq!(ColorRGB_Red, "ColorRGB_Red".try_into()?);
+        assert_eq!(ColorRGB_Green, "ColorRGB_Green".try_into()?);
+        assert_eq!(ColorRGB_Blue, "ColorRGB_Blue".try_into()?);
+        assert_eq!(ColorRGB_Cyan, "ColorRGB_Cyan".try_into()?);
+        assert_eq!(ColorRGB_Magenta, "ColorRGB_Magenta".try_into()?);
+        assert_eq!(ColorRGB_Yellow, "ColorRGB_Yellow".try_into()?);
+        assert_eq!(ColorRGB_Quality, "ColorRGB_Quality".try_into()?);
+        assert_eq!(VideoBoost_R, "VideoBoost_R".try_into()?);
+        assert_eq!(VideoBoost_G, "VideoBoost_G".try_into()?);
+        assert_eq!(VideoBoost_B, "VideoBoost_B".try_into()?);
+        assert_eq!(VideoHueShift, "VideoHueShift".try_into()?);
+        assert_eq!(VideoSaturation, "VideoSaturation".try_into()?);
+        assert_eq!(VideoBrightness, "VideoBrightness".try_into()?);
+        assert_eq!(VideoContrast, "VideoContrast".try_into()?);
+        assert_eq!(VideoKeyColor_R, "VideoKeyColor_R".try_into()?);
+        assert_eq!(VideoKeyColor_G, "VideoKeyColor_G".try_into()?);
+        assert_eq!(VideoKeyColor_B, "VideoKeyColor_B".try_into()?);
+        assert_eq!(VideoKeyIntensity, "VideoKeyIntensity".try_into()?);
+        assert_eq!(VideoKeyTolerance, "VideoKeyTolerance".try_into()?);
+        assert_eq!(StrobeDuration, "StrobeDuration".try_into()?);
+        assert_eq!(StrobeRate, "StrobeRate".try_into()?);
+        assert_eq!(Shutter_n_(1), "Shutter1".try_into()?);
+        assert_eq!(Shutter_n_(2), "Shutter2".try_into()?);
+        assert_eq!(Shutter_n_(120), "Shutter120".try_into()?);
+        assert_eq!(Shutter_n_Strobe(1), "Shutter1Strobe".try_into()?);
+        assert_eq!(Shutter_n_Strobe(2), "Shutter2Strobe".try_into()?);
+        assert_eq!(Shutter_n_Strobe(120), "Shutter120Strobe".try_into()?);
+        assert_eq!(Shutter_n_StrobePulse(1), "Shutter1StrobePulse".try_into()?);
+        assert_eq!(Shutter_n_StrobePulse(2), "Shutter2StrobePulse".try_into()?);
+        assert_eq!(Shutter_n_StrobePulse(120), "Shutter120StrobePulse".try_into()?);
+        assert_eq!(Shutter_n_StrobePulseClose(1), "Shutter1StrobePulseClose".try_into()?);
+        assert_eq!(Shutter_n_StrobePulseClose(2), "Shutter2StrobePulseClose".try_into()?);
+        assert_eq!(Shutter_n_StrobePulseOpen(1), "Shutter1StrobePulseOpen".try_into()?);
+        assert_eq!(Shutter_n_StrobePulseOpen(2), "Shutter2StrobePulseOpen".try_into()?);
+        assert_eq!(Shutter_n_StrobePulseOpen(120), "Shutter120StrobePulseOpen".try_into()?);
+        assert_eq!(Shutter_n_StrobeRandom(1), "Shutter1StrobeRandom".try_into()?);
+        assert_eq!(Shutter_n_StrobeRandom(2), "Shutter2StrobeRandom".try_into()?);
+        assert_eq!(Shutter_n_StrobeRandom(120), "Shutter120StrobeRandom".try_into()?);
+        assert_eq!(Shutter_n_StrobeRandomPulse(1), "Shutter1StrobeRandomPulse".try_into()?);
+        assert_eq!(Shutter_n_StrobeRandomPulse(2), "Shutter2StrobeRandomPulse".try_into()?);
+        assert_eq!(Shutter_n_StrobeRandomPulse(120), "Shutter120StrobeRandomPulse".try_into()?);
+        assert_eq!(Shutter_n_StrobeRandomPulseClose(1), "Shutter1StrobeRandomPulseClose".try_into()?);
+        assert_eq!(Shutter_n_StrobeRandomPulseClose(2), "Shutter2StrobeRandomPulseClose".try_into()?);
+        assert_eq!(Shutter_n_StrobeRandomPulseClose(120), "Shutter120StrobeRandomPulseClose".try_into()?);
+        assert_eq!(Shutter_n_StrobeRandomPulseOpen(1), "Shutter1StrobeRandomPulseOpen".try_into()?);
+        assert_eq!(Shutter_n_StrobeRandomPulseOpen(2), "Shutter2StrobeRandomPulseOpen".try_into()?);
+        assert_eq!(Shutter_n_StrobeRandomPulseOpen(120), "Shutter120StrobeRandomPulseOpen".try_into()?);
+        assert_eq!(Shutter_n_StrobeEffect(1), "Shutter1StrobeEffect".try_into()?);
+        assert_eq!(Shutter_n_StrobeEffect(2), "Shutter2StrobeEffect".try_into()?);
+        assert_eq!(Shutter_n_StrobeEffect(120), "Shutter120StrobeEffect".try_into()?);
+        assert_eq!(Iris, "Iris".try_into()?);
+        assert_eq!(IrisStrobe, "IrisStrobe".try_into()?);
+        assert_eq!(IrisStrobeRandom, "IrisStrobeRandom".try_into()?);
+        assert_eq!(IrisPulseClose, "IrisPulseClose".try_into()?);
+        assert_eq!(IrisPulseOpen, "IrisPulseOpen".try_into()?);
+        assert_eq!(IrisRandomPulseClose, "IrisRandomPulseClose".try_into()?);
+        assert_eq!(IrisRandomPulseOpen, "IrisRandomPulseOpen".try_into()?);
+        assert_eq!(Frost_n_(1), "Frost1".try_into()?);
+        assert_eq!(Frost_n_(2), "Frost2".try_into()?);
+        assert_eq!(Frost_n_(120), "Frost120".try_into()?);
+        assert_eq!(Frost_n_PulseOpen(1), "Frost1PulseOpen".try_into()?);
+        assert_eq!(Frost_n_PulseOpen(2), "Frost2PulseOpen".try_into()?);
+        assert_eq!(Frost_n_PulseOpen(120), "Frost120PulseOpen".try_into()?);
+        assert_eq!(Frost_n_PulseClose(1), "Frost1PulseClose".try_into()?);
+        assert_eq!(Frost_n_PulseClose(2), "Frost2PulseClose".try_into()?);
+        assert_eq!(Frost_n_PulseClose(120), "Frost120PulseClose".try_into()?);
+        assert_eq!(Frost_n_Ramp(1), "Frost1Ramp".try_into()?);
+        assert_eq!(Frost_n_Ramp(2), "Frost2Ramp".try_into()?);
+        assert_eq!(Frost_n_Ramp(120), "Frost120Ramp".try_into()?);
+        assert_eq!(Prism_n_(1), "Prism1".try_into()?);
+        assert_eq!(Prism_n_(2), "Prism2".try_into()?);
+        assert_eq!(Prism_n_(120), "Prism120".try_into()?);
+        assert_eq!(Prism_n_SelectSpin(1), "Prism1SelectSpin".try_into()?);
+        assert_eq!(Prism_n_SelectSpin(2), "Prism2SelectSpin".try_into()?);
+        assert_eq!(Prism_n_SelectSpin(120), "Prism120SelectSpin".try_into()?);
+        assert_eq!(Prism_n_Macro(1), "Prism1Macro".try_into()?);
+        assert_eq!(Prism_n_Macro(2), "Prism2Macro".try_into()?);
+        assert_eq!(Prism_n_Macro(120), "Prism120Macro".try_into()?);
+        assert_eq!(Prism_n_Pos(1), "Prism1Pos".try_into()?);
+        assert_eq!(Prism_n_Pos(2), "Prism2Pos".try_into()?);
+        assert_eq!(Prism_n_Pos(120), "Prism120Pos".try_into()?);
+        assert_eq!(Prism_n_PosRotate(1), "Prism1PosRotate".try_into()?);
+        assert_eq!(Prism_n_PosRotate(2), "Prism2PosRotate".try_into()?);
+        assert_eq!(Prism_n_PosRotate(120), "Prism120PosRotate".try_into()?);
+        assert_eq!(Effects_n_(1), "Effects1".try_into()?);
+        assert_eq!(Effects_n_(2), "Effects2".try_into()?);
+        assert_eq!(Effects_n_(120), "Effects120".try_into()?);
+        assert_eq!(Effects_n_Rate(1), "Effects1Rate".try_into()?);
+        assert_eq!(Effects_n_Rate(2), "Effects2Rate".try_into()?);
+        assert_eq!(Effects_n_Rate(120), "Effects120Rate".try_into()?);
+        assert_eq!(Effects_n_Fade(1), "Effects1Fade".try_into()?);
+        assert_eq!(Effects_n_Fade(2), "Effects2Fade".try_into()?);
+        assert_eq!(Effects_n_Fade(120), "Effects120Fade".try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(1, 1), "Effects1Adjust1".try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(1, 2), "Effects1Adjust2".try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(2, 1), "Effects2Adjust1".try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(2, 2), "Effects2Adjust2".try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(2, 120), "Effects2Adjust120".try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(120, 2), "Effects120Adjust2".try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(120, 120), "Effects120Adjust120".try_into()?);
+        assert_eq!(Effects_n_Pos(1), "Effects1Pos".try_into()?);
+        assert_eq!(Effects_n_Pos(2), "Effects2Pos".try_into()?);
+        assert_eq!(Effects_n_Pos(120), "Effects120Pos".try_into()?);
+        assert_eq!(Effects_n_PosRotate(1), "Effects1PosRotate".try_into()?);
+        assert_eq!(Effects_n_PosRotate(2), "Effects2PosRotate".try_into()?);
+        assert_eq!(Effects_n_PosRotate(120), "Effects120PosRotate".try_into()?);
+        assert_eq!(EffectsSync, "EffectsSync".try_into()?);
+        assert_eq!(BeamShaper, "BeamShaper".try_into()?);
+        assert_eq!(BeamShaperMacro, "BeamShaperMacro".try_into()?);
+        assert_eq!(BeamShaperPos, "BeamShaperPos".try_into()?);
+        assert_eq!(BeamShaperPosRotate, "BeamShaperPosRotate".try_into()?);
+        assert_eq!(Zoom, "Zoom".try_into()?);
+        assert_eq!(ZoomModeSpot, "ZoomModeSpot".try_into()?);
+        assert_eq!(ZoomModeBeam, "ZoomModeBeam".try_into()?);
+        assert_eq!(Focus_n_(1), "Focus1".try_into()?);
+        assert_eq!(Focus_n_(2), "Focus2".try_into()?);
+        assert_eq!(Focus_n_(120), "Focus120".try_into()?);
+        assert_eq!(Focus_n_Adjust(1), "Focus1Adjust".try_into()?);
+        assert_eq!(Focus_n_Adjust(2), "Focus2Adjust".try_into()?);
+        assert_eq!(Focus_n_Adjust(120), "Focus120Adjust".try_into()?);
+        assert_eq!(Focus_n_Distance(1), "Focus1Distance".try_into()?);
+        assert_eq!(Focus_n_Distance(2), "Focus2Distance".try_into()?);
+        assert_eq!(Focus_n_Distance(120), "Focus120Distance".try_into()?);
+        assert_eq!(Control_n_(1), "Control1".try_into()?);
+        assert_eq!(Control_n_(2), "Control2".try_into()?);
+        assert_eq!(Control_n_(120), "Control120".try_into()?);
+        assert_eq!(DimmerMode, "DimmerMode".try_into()?);
+        assert_eq!(DimmerCurve, "DimmerCurve".try_into()?);
+        assert_eq!(BlackoutMode, "BlackoutMode".try_into()?);
+        assert_eq!(LEDFrequency, "LEDFrequency".try_into()?);
+        assert_eq!(LEDZoneMode, "LEDZoneMode".try_into()?);
+        assert_eq!(PixelMode, "PixelMode".try_into()?);
+        assert_eq!(PanMode, "PanMode".try_into()?);
+        assert_eq!(TiltMode, "TiltMode".try_into()?);
+        assert_eq!(PanTiltMode, "PanTiltMode".try_into()?);
+        assert_eq!(PositionModes, "PositionModes".try_into()?);
+        assert_eq!(Gobo_n_WheelMode(1), "Gobo1WheelMode".try_into()?);
+        assert_eq!(Gobo_n_WheelMode(2), "Gobo2WheelMode".try_into()?);
+        assert_eq!(Gobo_n_WheelMode(120), "Gobo120WheelMode".try_into()?);
+        assert_eq!(AnimationWheel_n_Mode(1), "AnimationWheel1Mode".try_into()?);
+        assert_eq!(AnimationWheel_n_Mode(2), "AnimationWheel2Mode".try_into()?);
+        assert_eq!(AnimationWheel_n_Mode(120), "AnimationWheel120Mode".try_into()?);
+        assert_eq!(AnimationWheelShortcutMode, "AnimationWheelShortcutMode".try_into()?);
+        assert_eq!(Color_n_Mode(1), "Color1Mode".try_into()?);
+        assert_eq!(Color_n_Mode(2), "Color2Mode".try_into()?);
+        assert_eq!(Color_n_Mode(120), "Color120Mode".try_into()?);
+        assert_eq!(ColorWheelShortcutMode, "ColorWheelShortcutMode".try_into()?);
+        assert_eq!(CyanMode, "CyanMode".try_into()?);
+        assert_eq!(MagentaMode, "MagentaMode".try_into()?);
+        assert_eq!(YellowMode, "YellowMode".try_into()?);
+        assert_eq!(ColorMixMode, "ColorMixMode".try_into()?);
+        assert_eq!(ChromaticMode, "ChromaticMode".try_into()?);
+        assert_eq!(ColorCalibrationMode, "ColorCalibrationMode".try_into()?);
+        assert_eq!(ColorConsistency, "ColorConsistency".try_into()?);
+        assert_eq!(ColorControl, "ColorControl".try_into()?);
+        assert_eq!(ColorModelMode, "ColorModelMode".try_into()?);
+        assert_eq!(ColorSettingsReset, "ColorSettingsReset".try_into()?);
+        assert_eq!(ColorUniformity, "ColorUniformity".try_into()?);
+        assert_eq!(CRIMode, "CRIMode".try_into()?);
+        assert_eq!(CustomColor, "CustomColor".try_into()?);
+        assert_eq!(UVStability, "UVStability".try_into()?);
+        assert_eq!(WavelengthCorrection, "WavelengthCorrection".try_into()?);
+        assert_eq!(WhiteCount, "WhiteCount".try_into()?);
+        assert_eq!(StrobeMode, "StrobeMode".try_into()?);
+        assert_eq!(ZoomMode, "ZoomMode".try_into()?);
+        assert_eq!(FocusMode, "FocusMode".try_into()?);
+        assert_eq!(IrisMode, "IrisMode".try_into()?);
+        assert_eq!(Fan_n_Mode(1), "Fan1Mode".try_into()?);
+        assert_eq!(Fan_n_Mode(2), "Fan2Mode".try_into()?);
+        assert_eq!(Fan_n_Mode(120), "Fan120Mode".try_into()?);
+        assert_eq!(FollowSpotMode, "FollowSpotMode".try_into()?);
+        assert_eq!(BeamEffectIndexRotateMode, "BeamEffectIndexRotateMode".try_into()?);
+        assert_eq!(IntensityMSpeed, "IntensityMSpeed".try_into()?);
+        assert_eq!(PositionMSpeed, "PositionMSpeed".try_into()?);
+        assert_eq!(ColorMixMSpeed, "ColorMixMSpeed".try_into()?);
+        assert_eq!(ColorWheelSelectMSpeed, "ColorWheelSelectMSpeed".try_into()?);
+        assert_eq!(GoboWheel_n_MSpeed(1), "GoboWheel1MSpeed".try_into()?);
+        assert_eq!(GoboWheel_n_MSpeed(2), "GoboWheel2MSpeed".try_into()?);
+        assert_eq!(GoboWheel_n_MSpeed(120), "GoboWheel120MSpeed".try_into()?);
+        assert_eq!(IrisMSpeed, "IrisMSpeed".try_into()?);
+        assert_eq!(Prism_n_MSpeed(1), "Prism1MSpeed".try_into()?);
+        assert_eq!(Prism_n_MSpeed(2), "Prism2MSpeed".try_into()?);
+        assert_eq!(Prism_n_MSpeed(120), "Prism120MSpeed".try_into()?);
+        assert_eq!(FocusMSpeed, "FocusMSpeed".try_into()?);
+        assert_eq!(Frost_n_MSpeed(1), "Frost1MSpeed".try_into()?);
+        assert_eq!(Frost_n_MSpeed(2), "Frost2MSpeed".try_into()?);
+        assert_eq!(Frost_n_MSpeed(120), "Frost120MSpeed".try_into()?);
+        assert_eq!(ZoomMSpeed, "ZoomMSpeed".try_into()?);
+        assert_eq!(FrameMSpeed, "FrameMSpeed".try_into()?);
+        assert_eq!(GlobalMSpeed, "GlobalMSpeed".try_into()?);
+        assert_eq!(ReflectorAdjust, "ReflectorAdjust".try_into()?);
+        assert_eq!(FixtureGlobalReset, "FixtureGlobalReset".try_into()?);
+        assert_eq!(ShutterReset, "ShutterReset".try_into()?);
+        assert_eq!(BeamReset, "BeamReset".try_into()?);
+        assert_eq!(ColorMixReset, "ColorMixReset".try_into()?);
+        assert_eq!(ColorWheelReset, "ColorWheelReset".try_into()?);
+        assert_eq!(FocusReset, "FocusReset".try_into()?);
+        assert_eq!(FrameReset, "FrameReset".try_into()?);
+        assert_eq!(GoboWheelReset, "GoboWheelReset".try_into()?);
+        assert_eq!(IntensityReset, "IntensityReset".try_into()?);
+        assert_eq!(IrisReset, "IrisReset".try_into()?);
+        assert_eq!(PositionReset, "PositionReset".try_into()?);
+        assert_eq!(PanReset, "PanReset".try_into()?);
+        assert_eq!(TiltReset, "TiltReset".try_into()?);
+        assert_eq!(ZoomReset, "ZoomReset".try_into()?);
+        assert_eq!(CTBReset, "CTBReset".try_into()?);
+        assert_eq!(CTOReset, "CTOReset".try_into()?);
+        assert_eq!(CTCReset, "CTCReset".try_into()?);
+        assert_eq!(AnimationSystemReset, "AnimationSystemReset".try_into()?);
+        assert_eq!(FixtureCalibrationReset, "FixtureCalibrationReset".try_into()?);
+        assert_eq!(Function, "Function".try_into()?);
+        assert_eq!(LampControl, "LampControl".try_into()?);
+        assert_eq!(DisplayIntensity, "DisplayIntensity".try_into()?);
+        assert_eq!(DMXInput, "DMXInput".try_into()?);
+        assert_eq!(NoFeature, "NoFeature".try_into()?);
+        assert_eq!(Blower_n_(1), "Blower1".try_into()?);
+        assert_eq!(Blower_n_(2), "Blower2".try_into()?);
+        assert_eq!(Blower_n_(120), "Blower120".try_into()?);
+        assert_eq!(Fan_n_(1), "Fan1".try_into()?);
+        assert_eq!(Fan_n_(2), "Fan2".try_into()?);
+        assert_eq!(Fan_n_(120), "Fan120".try_into()?);
+        assert_eq!(Fog_n_(1), "Fog1".try_into()?);
+        assert_eq!(Fog_n_(2), "Fog2".try_into()?);
+        assert_eq!(Fog_n_(120), "Fog120".try_into()?);
+        assert_eq!(Haze_n_(1), "Haze1".try_into()?);
+        assert_eq!(Haze_n_(2), "Haze2".try_into()?);
+        assert_eq!(Haze_n_(120), "Haze120".try_into()?);
+        assert_eq!(LampPowerMode, "LampPowerMode".try_into()?);
+        assert_eq!(Fans, "Fans".try_into()?);
+        assert_eq!(Blade_n_A(1), "Blade1A".try_into()?);
+        assert_eq!(Blade_n_A(2), "Blade2A".try_into()?);
+        assert_eq!(Blade_n_A(120), "Blade120A".try_into()?);
+        assert_eq!(Blade_n_B(1), "Blade1B".try_into()?);
+        assert_eq!(Blade_n_B(2), "Blade2B".try_into()?);
+        assert_eq!(Blade_n_B(120), "Blade120B".try_into()?);
+        assert_eq!(Blade_n_Rot(1), "Blade1Rot".try_into()?);
+        assert_eq!(Blade_n_Rot(2), "Blade2Rot".try_into()?);
+        assert_eq!(Blade_n_Rot(120), "Blade120Rot".try_into()?);
+        assert_eq!(ShaperRot, "ShaperRot".try_into()?);
+        assert_eq!(ShaperMacros, "ShaperMacros".try_into()?);
+        assert_eq!(ShaperMacrosSpeed, "ShaperMacrosSpeed".try_into()?);
+        assert_eq!(BladeSoft_n_A(1), "BladeSoft1A".try_into()?);
+        assert_eq!(BladeSoft_n_A(2), "BladeSoft2A".try_into()?);
+        assert_eq!(BladeSoft_n_A(120), "BladeSoft120A".try_into()?);
+        assert_eq!(BladeSoft_n_B(1), "BladeSoft1B".try_into()?);
+        assert_eq!(BladeSoft_n_B(2), "BladeSoft2B".try_into()?);
+        assert_eq!(BladeSoft_n_B(120), "BladeSoft120B".try_into()?);
+        assert_eq!(KeyStone_n_A(1), "KeyStone1A".try_into()?);
+        assert_eq!(KeyStone_n_A(2), "KeyStone2A".try_into()?);
+        assert_eq!(KeyStone_n_A(120), "KeyStone120A".try_into()?);
+        assert_eq!(KeyStone_n_B(1), "KeyStone1B".try_into()?);
+        assert_eq!(KeyStone_n_B(2), "KeyStone2B".try_into()?);
+        assert_eq!(KeyStone_n_B(120), "KeyStone120B".try_into()?);
+        assert_eq!(Video, "Video".try_into()?);
+        assert_eq!(VideoEffect_n_Type(1), "VideoEffect1Type".try_into()?);
+        assert_eq!(VideoEffect_n_Type(2), "VideoEffect2Type".try_into()?);
+        assert_eq!(VideoEffect_n_Type(120), "VideoEffect120Type".try_into()?);
+        assert_eq!(VideoEffect_n_Parameter_m_(1, 1), "VideoEffect1Parameter1".try_into()?);
+        assert_eq!(VideoEffect_n_Parameter_m_(1, 2), "VideoEffect1Parameter2".try_into()?);
+        assert_eq!(VideoEffect_n_Parameter_m_(2, 1), "VideoEffect2Parameter1".try_into()?);
+        assert_eq!(VideoEffect_n_Parameter_m_(2, 2), "VideoEffect2Parameter2".try_into()?);
+        assert_eq!(VideoEffect_n_Parameter_m_(2, 120), "VideoEffect2Parameter120".try_into()?);
+        assert_eq!(VideoEffect_n_Parameter_m_(120, 2), "VideoEffect120Parameter2".try_into()?);
+        assert_eq!(VideoEffect_n_Parameter_m_(120, 120), "VideoEffect120Parameter120".try_into()?);
+        assert_eq!(VideoCamera_n_(1), "VideoCamera1".try_into()?);
+        assert_eq!(VideoCamera_n_(2), "VideoCamera2".try_into()?);
+        assert_eq!(VideoCamera_n_(120), "VideoCamera120".try_into()?);
+        assert_eq!(VideoSoundVolume_n_(1), "VideoSoundVolume1".try_into()?);
+        assert_eq!(VideoSoundVolume_n_(2), "VideoSoundVolume2".try_into()?);
+        assert_eq!(VideoSoundVolume_n_(120), "VideoSoundVolume120".try_into()?);
+        assert_eq!(VideoBlendMode, "VideoBlendMode".try_into()?);
+        assert_eq!(InputSource, "InputSource".try_into()?);
+        assert_eq!(FieldOfView, "FieldOfView".try_into()?);
+
+        assert!(AttributeName::try_from("something{invalid").is_err());
+
+        Ok(())
+    }
+
+
+    #[test]
+    fn test_from_attr_owned() -> Result<(), GdtfError> {
+        use AttributeName::*;
+        assert_eq!(UserDefined(Name::new("test")?), "test".try_into()?);
+
+        if let UserDefined(n) = AttributeName::try_from("")? {
+            n.assert_eq_allow_empty(&Name::new("")?, true);
+        } else {
+            panic!("empty str was not parsed to empty user defined");
+        }
+        assert_eq!(Dimmer, testdata::to_attr_owned(b"Dimmer").into());
+        assert_eq!(Pan, testdata::to_attr_owned(b"Pan").into());
+        assert_eq!(Tilt, testdata::to_attr_owned(b"Tilt").into());
+        assert_eq!(Gobo_n_(1), testdata::to_attr_owned(b"Gobo1").into());
+        assert_eq!(Gobo_n_SelectSpin(2), testdata::to_attr_owned(b"Gobo2SelectSpin").into());
+        assert_eq!(Gobo_n_SelectShake(120), testdata::to_attr_owned(b"Gobo120SelectShake").into());
+        assert_eq!(Dimmer, testdata::to_attr_owned(b"Dimmer").into());
+        assert_eq!(Dimmer, testdata::to_attr_owned(b"Dimmer").into());
+
+        assert_eq!(Effects_n_Adjust_m_(1, 1), testdata::to_attr_owned(b"Effects1Adjust1").into());
+        assert_eq!(Effects_n_Adjust_m_(1, 2), testdata::to_attr_owned(b"Effects1Adjust2").into());
+        assert_eq!(Effects_n_Adjust_m_(2, 1), testdata::to_attr_owned(b"Effects2Adjust1").into());
+        assert_eq!(Effects_n_Adjust_m_(2, 2), testdata::to_attr_owned(b"Effects2Adjust2").into());
+        assert_eq!(Effects_n_Adjust_m_(2, 120), testdata::to_attr_owned(b"Effects2Adjust120").into());
+        assert_eq!(Effects_n_Adjust_m_(120, 2), testdata::to_attr_owned(b"Effects120Adjust2").into());
+        assert_eq!(Effects_n_Adjust_m_(120, 120), testdata::to_attr_owned(b"Effects120Adjust120").into());
+
+        assert_eq!(UserDefined(Name::new_unchecked("something{invalid")), testdata::to_attr_owned(b"something{invalid").into());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_attr_borrowed() -> Result<(), GdtfError> {
+        use AttributeName::*;
+        assert_eq!(UserDefined(Name::new("test")?), "test".try_into()?);
+
+        if let UserDefined(n) = AttributeName::try_from("")? {
+            n.assert_eq_allow_empty(&Name::new("")?, true);
+        } else {
+            panic!("empty str was not parsed to empty user defined");
+        }
+        assert_eq!(Dimmer, testdata::to_attr_borrowed(b"Dimmer").into());
+        assert_eq!(Pan, testdata::to_attr_borrowed(b"Pan").into());
+        assert_eq!(Tilt, testdata::to_attr_borrowed(b"Tilt").into());
+        assert_eq!(Gobo_n_(1), testdata::to_attr_borrowed(b"Gobo1").into());
+        assert_eq!(Gobo_n_SelectSpin(2), testdata::to_attr_borrowed(b"Gobo2SelectSpin").into());
+        assert_eq!(Gobo_n_SelectShake(120), testdata::to_attr_borrowed(b"Gobo120SelectShake").into());
+        assert_eq!(Dimmer, testdata::to_attr_borrowed(b"Dimmer").into());
+        assert_eq!(Dimmer, testdata::to_attr_borrowed(b"Dimmer").into());
+
+        assert_eq!(Effects_n_Adjust_m_(1, 1), testdata::to_attr_borrowed(b"Effects1Adjust1").into());
+        assert_eq!(Effects_n_Adjust_m_(1, 2), testdata::to_attr_borrowed(b"Effects1Adjust2").into());
+        assert_eq!(Effects_n_Adjust_m_(2, 1), testdata::to_attr_borrowed(b"Effects2Adjust1").into());
+        assert_eq!(Effects_n_Adjust_m_(2, 2), testdata::to_attr_borrowed(b"Effects2Adjust2").into());
+        assert_eq!(Effects_n_Adjust_m_(2, 120), testdata::to_attr_borrowed(b"Effects2Adjust120").into());
+        assert_eq!(Effects_n_Adjust_m_(120, 2), testdata::to_attr_borrowed(b"Effects120Adjust2").into());
+        assert_eq!(Effects_n_Adjust_m_(120, 120), testdata::to_attr_borrowed(b"Effects120Adjust120").into());
+
+        assert_eq!(UserDefined(Name::new_unchecked("something{invalid")), testdata::to_attr_borrowed(b"something{invalid").into());
 
         Ok(())
     }
 }
-
-/*
-Set for copying if needed
-
-
-UserDefined(n1)
-Dimmer
-Pan
-Tilt
-PanRotate
-TiltRotate
-PositionEffect
-PositionEffectRate
-PositionEffectFade
-XYZ_X
-XYZ_Y
-XYZ_Z
-Rot_X
-Rot_Y
-Rot_Z
-Scale_X
-Scale_Y
-Scale_Z
-Scale_XYZ
-Gobo_n_(n1)
-Gobo_n_SelectSpin(n1)
-Gobo_n_SelectShake(n1)
-Gobo_n_SelectEffects(n1)
-Gobo_n_WheelIndex(n1)
-Gobo_n_WheelSpin(n1)
-Gobo_n_WheelShake(n1)
-Gobo_n_WheelRandom(n1)
-Gobo_n_WheelAudio(n1)
-Gobo_n_Pos(n1)
-Gobo_n_PosRotate(n1)
-Gobo_n_PosShake(n1)
-AnimationWheel_n_(n1)
-AnimationWheel_n_Audio(n1)
-AnimationWheel_n_Macro(n1)
-AnimationWheel_n_Random(n1)
-AnimationWheel_n_SelectEffects(n1)
-AnimationWheel_n_SelectShake(n1)
-AnimationWheel_n_SelectSpin(n1)
-AnimationWheel_n_Pos(n1)
-AnimationWheel_n_PosRotate(n1)
-AnimationWheel_n_PosShake(n1)
-AnimationSystem_n_(n1)
-AnimationSystem_n_Ramp(n1)
-AnimationSystem_n_Shake(n1)
-AnimationSystem_n_Audio(n1)
-AnimationSystem_n_Random(n1)
-AnimationSystem_n_Pos(n1)
-AnimationSystem_n_PosRotate(n1)
-AnimationSystem_n_PosShake(n1)
-AnimationSystem_n_PosRandom(n1)
-AnimationSystem_n_PosAudio(n1)
-AnimationSystem_n_Macro(n1)
-MediaFolder_n_(n1)
-MediaContent_n_(n1)
-ModelFolder_n_(n1)
-ModelContent_n_(n1)
-PlayMode
-PlayBegin
-PlayEnd
-PlaySpeed
-ColorEffects_n_(n1)
-Color_n_(n1)
-Color_n_WheelIndex(n1)
-Color_n_WheelSpin(n1)
-Color_n_WheelRandom(n1)
-Color_n_WheelAudio(n1)
-ColorAdd_R
-ColorAdd_G
-ColorAdd_B
-ColorAdd_C
-ColorAdd_M
-ColorAdd_Y
-ColorAdd_RY
-ColorAdd_GY
-ColorAdd_GC
-ColorAdd_BC
-ColorAdd_BM
-ColorAdd_RM
-ColorAdd_W
-ColorAdd_WW
-ColorAdd_CW
-ColorAdd_UV
-ColorSub_R
-ColorSub_G
-ColorSub_B
-ColorSub_C
-ColorSub_M
-ColorSub_Y
-ColorMacro_n_(n1)
-ColorMacro_n_Rate(n1)
-CTO
-CTC
-CTB
-Tint
-HSB_Hue
-HSB_Saturation
-HSB_Brightness
-HSB_Quality
-CIE_X
-CIE_Y
-CIE_Brightness
-ColorRGB_Red
-ColorRGB_Green
-ColorRGB_Blue
-ColorRGB_Cyan
-ColorRGB_Magenta
-ColorRGB_Yellow
-ColorRGB_Quality
-VideoBoost_R
-VideoBoost_G
-VideoBoost_B
-VideoHueShift
-VideoSaturation
-VideoBrightness
-VideoContrast
-VideoKeyColor_R
-VideoKeyColor_G
-VideoKeyColor_B
-VideoKeyIntensity
-VideoKeyTolerance
-StrobeDuration
-StrobeRate
-Shutter_n_(n1)
-Shutter_n_Strobe(n1)
-Shutter_n_StrobePulse(n1)
-Shutter_n_StrobePulseClose(n1)
-Shutter_n_StrobePulseOpen(n1)
-Shutter_n_StrobeRandom(n1)
-Shutter_n_StrobeRandomPulse(n1)
-Shutter_n_StrobeRandomPulseClose(n1)
-Shutter_n_StrobeRandomPulseOpen(n1)
-Shutter_n_StrobeEffect(n1)
-Iris
-IrisStrobe
-IrisStrobeRandom
-IrisPulseClose
-IrisPulseOpen
-IrisRandomPulseClose
-IrisRandomPulseOpen
-Frost_n_(n1)
-Frost_n_PulseOpen(n1)
-Frost_n_PulseClose(n1)
-Frost_n_Ramp(n1)
-Prism_n_(n1)
-Prism_n_SelectSpin(n1)
-Prism_n_Macro(n1)
-Prism_n_Pos(n1)
-Prism_n_PosRotate(n1)
-Effects_n_(n1)
-Effects_n_Rate(n1)
-Effects_n_Fade(n1)
-Effects_n_Adjust_m_(n1,m1)
-Effects_n_Pos(n1)
-Effects_n_PosRotate(n1)
-EffectsSync
-BeamShaper
-BeamShaperMacro
-BeamShaperPos
-BeamShaperPosRotate
-Zoom
-ZoomModeSpot
-ZoomModeBeam
-Focus_n_(n1)
-Focus_n_Adjust(n1)
-Focus_n_Distance(n1)
-Control_n_(n1)
-DimmerMode
-DimmerCurve
-BlackoutMode
-LEDFrequency
-LEDZoneMode
-PixelMode
-PanMode
-TiltMode
-PanTiltMode
-PositionModes
-Gobo_n_WheelMode(n1)
-AnimationWheel_n_Mode(n1)
-AnimationWheelShortcutMode
-Color_n_Mode(n1)
-ColorWheelShortcutMode
-CyanMode
-MagentaMode
-YellowMode
-ColorMixMode
-ChromaticMode
-ColorCalibrationMode
-ColorConsistency
-ColorControl
-ColorModelMode
-ColorSettingsReset
-ColorUniformity
-CRIMode
-CustomColor
-UVStability
-WavelengthCorrection
-WhiteCount
-StrobeMode
-ZoomMode
-FocusMode
-IrisMode
-Fan_n_Mode(n1)
-FollowSpotMode
-BeamEffectIndexRotateMode
-IntensityMSpeed
-PositionMSpeed
-ColorMixMSpeed
-ColorWheelSelectMSpeed
-GoboWheel_n_MSpeed(n1)
-IrisMSpeed
-Prism_n_MSpeed(n1)
-FocusMSpeed
-Frost_n_MSpeed(n1)
-ZoomMSpeed
-FrameMSpeed
-GlobalMSpeed
-ReflectorAdjust
-FixtureGlobalReset
-ShutterReset
-BeamReset
-ColorMixReset
-ColorWheelReset
-FocusReset
-FrameReset
-GoboWheelReset
-IntensityReset
-IrisReset
-PositionReset
-PanReset
-TiltReset
-ZoomReset
-CTBReset
-CTOReset
-CTCReset
-AnimationSystemReset
-FixtureCalibrationReset
-Function
-LampControl
-DisplayIntensity
-DMXInput
-NoFeature
-Blower_n_(n1)
-Fan_n_(n1)
-Fog_n_(n1)
-Haze_n_(n1)
-LampPowerMode
-Fans
-Blade_n_A(n1)
-Blade_n_B(n1)
-Blade_n_Rot(n1)
-ShaperRot
-ShaperMacros
-ShaperMacrosSpeed
-BladeSoft_n_A(n1)
-BladeSoft_n_B(n1)
-KeyStone_n_A(n1)
-KeyStone_n_B(n1)
-Video
-VideoEffect_n_Type(n1)
-VideoEffect_n_Parameter_m_(n1,m1)
-VideoCamera_n_(n1)
-VideoSoundVolume_n_(n1)
-VideoBlendMode
-InputSource
-FieldOfView
-
- */

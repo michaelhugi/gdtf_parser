@@ -23,12 +23,6 @@ impl Default for Name {
     }
 }
 
-impl Name {
-    ///Creates an new_unchecked name with any given char allowed
-    pub(crate) fn new_unchecked(name: &str) -> Self {
-        Self(name.to_string())
-    }
-}
 
 
 ///Deparses Name from Attribute safely. In case of error it will return default. It will also allow not valid chars from GDTF-Spec because Rust can handle it!
@@ -70,9 +64,12 @@ impl Name {
         Self::validate_chars(name)?;
         Ok(Self(name.to_string()))
     }
+    ///Creates an new_unchecked name with any given char allowed
+    pub(crate) fn new_unchecked(name: &str) -> Self {
+        Self(name.to_string())
+    }
 
-
-    fn validate_chars(s: &str) -> Result<(), GDTFNameError> {
+    pub fn validate_chars(s: &str) -> Result<(), GDTFNameError> {
         for char in s.chars() {
             let char = char as u8;
             if char < 32 || char > 122 {
