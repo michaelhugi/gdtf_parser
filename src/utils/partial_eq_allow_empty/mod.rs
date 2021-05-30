@@ -23,10 +23,18 @@ pub trait PartialEqAllowEmpty: Debug {
         }
     }
 
-    ///The same as assert_eq_allow_empty but panics if they are equal.
-    fn assert_ne_allow_empty(&self, other: &Self) {
+    ///The same as assert_eq_allow_empty but panics if they are equal. Log will only print a log when they are equal
+    fn assert_ne_allow_empty(&self, other: &Self, log: bool) {
         if self.is_eq_allow_empty(other, false) {
-            panic!();
+            let left = format!("{:?}", self);
+            let left = Self::truncate_log(left);
+            let right = format!("{:?}", other);
+            let right = Self::truncate_log(right);
+            if log {
+                panic!("assert_ne_allow_empty! \n left: {:?} \n right: {:?}", left, right);
+            } else {
+                panic!();
+            }
         }
     }
     ///Returns true if two objects are equal, else false. If they are not equal it will also log left and right if log == true
@@ -69,10 +77,18 @@ pub trait PartialEqAllowEmpty: Debug {
         }
     }
 
-    ///The same as assert_eq_allow_option but panics if they are equal.
-    fn assert_ne_allow_option<T: PartialEq + Debug>(left: &Option<T>, right: &Option<T>) {
+    ///The same as assert_eq_allow_option but panics if they are equal. Log will only print log when it panics
+    fn assert_ne_allow_option<T: PartialEq + Debug>(left: &Option<T>, right: &Option<T>, log: bool) {
         if Self::is_eq_allow_option(left, right, false) {
-            panic!("assert_ne_allow_empty! \n left: {:?} \n right: {:?}", left, right)
+            let left = format!("{:?}", left);
+            let left = Self::truncate_log(left);
+            let right = format!("{:?}", right);
+            let right = Self::truncate_log(right);
+            if log {
+                panic!("assert_ne_allow_option! \n left: {:?} \n right: {:?}", left, right);
+            } else {
+                panic!();
+            }
         }
     }
 
@@ -197,31 +213,31 @@ mod tests {
 
     #[test]
     fn test_assert_ne_allow_empty() {
-        TeststructOption(None).assert_ne_allow_empty(&TeststructOption(Some("".to_string())));
-        TeststructOption(None).assert_ne_allow_empty(&TeststructOption(Some("other".to_string())));
-        TeststructOption(Some("test".to_string())).assert_ne_allow_empty(&TeststructOption(Some("".to_string())));
-        TeststructOption(Some("test".to_string())).assert_ne_allow_empty(&TeststructOption(Some("other".to_string())));
-        TeststructOption(Some("".to_string())).assert_ne_allow_empty(&TeststructOption(Some("other".to_string())));
-        TeststructOption(Some("test".to_string())).assert_ne_allow_empty(&TeststructOption(None));
-        TeststructOption(Some("".to_string())).assert_ne_allow_empty(&TeststructOption(None));
+        TeststructOption(None).assert_ne_allow_empty(&TeststructOption(Some("".to_string())), true);
+        TeststructOption(None).assert_ne_allow_empty(&TeststructOption(Some("other".to_string())), true);
+        TeststructOption(Some("test".to_string())).assert_ne_allow_empty(&TeststructOption(Some("".to_string())), true);
+        TeststructOption(Some("test".to_string())).assert_ne_allow_empty(&TeststructOption(Some("other".to_string())), true);
+        TeststructOption(Some("".to_string())).assert_ne_allow_empty(&TeststructOption(Some("other".to_string())), true);
+        TeststructOption(Some("test".to_string())).assert_ne_allow_empty(&TeststructOption(None), true);
+        TeststructOption(Some("".to_string())).assert_ne_allow_empty(&TeststructOption(None), true);
     }
 
     #[test]
     #[should_panic]
     fn test_assert_ne_allow_empty_panic_1() {
-        TeststructOption(None).assert_ne_allow_empty(&TeststructOption(None));
+        TeststructOption(None).assert_ne_allow_empty(&TeststructOption(None), false);
     }
 
     #[test]
     #[should_panic]
     fn test_assert_ne_allow_empty_panic_2() {
-        TeststructOption(Some("".to_string())).assert_ne_allow_empty(&TeststructOption(Some("".to_string())));
+        TeststructOption(Some("".to_string())).assert_ne_allow_empty(&TeststructOption(Some("".to_string())), false);
     }
 
     #[test]
     #[should_panic]
     fn test_assert_ne_allow_empty_panic_3() {
-        TeststructOption(Some("test".to_string())).assert_ne_allow_empty(&TeststructOption(Some("test".to_string())));
+        TeststructOption(Some("test".to_string())).assert_ne_allow_empty(&TeststructOption(Some("test".to_string())), false);
     }
 
     #[test]
@@ -294,32 +310,32 @@ mod tests {
     #[test]
     fn test_assert_ne_allow_option() {
         let none: Option<&str> = None;
-        TeststructOption::assert_ne_allow_option(&none, &Some(""));
-        TeststructOption::assert_ne_allow_option(&none, &Some("test"));
-        TeststructOption::assert_ne_allow_option(&Some(""), &none);
-        TeststructOption::assert_ne_allow_option(&Some("test"), &none);
-        TeststructOption::assert_ne_allow_option(&Some("test"), &Some("test2"));
-        TeststructOption::assert_ne_allow_option(&Some(""), &Some("test2"));
-        TeststructOption::assert_ne_allow_option(&Some("test"), &Some(""));
+        TeststructOption::assert_ne_allow_option(&none, &Some(""), true);
+        TeststructOption::assert_ne_allow_option(&none, &Some("test"), true);
+        TeststructOption::assert_ne_allow_option(&Some(""), &none, true);
+        TeststructOption::assert_ne_allow_option(&Some("test"), &none, true);
+        TeststructOption::assert_ne_allow_option(&Some("test"), &Some("test2"), true);
+        TeststructOption::assert_ne_allow_option(&Some(""), &Some("test2"), true);
+        TeststructOption::assert_ne_allow_option(&Some("test"), &Some(""), true);
     }
 
     #[test]
     #[should_panic]
     fn test_assert_ne_allow_option_panic_1() {
         let none: Option<&str> = None;
-        TeststructOption::assert_ne_allow_option(&none, &none);
+        TeststructOption::assert_ne_allow_option(&none, &none, false);
     }
 
     #[test]
     #[should_panic]
     fn test_assert_ne_allow_option_panic_2() {
-        TeststructOption::assert_ne_allow_option(&Some("test"), &Some("test"));
+        TeststructOption::assert_ne_allow_option(&Some("test"), &Some("test"), false);
     }
 
     #[test]
     #[should_panic]
     fn test_assert_ne_allow_option_panic_3() {
-        TeststructOption::assert_ne_allow_option(&Some(""), &Some(""));
+        TeststructOption::assert_ne_allow_option(&Some(""), &Some(""), false);
     }
 
     #[test]

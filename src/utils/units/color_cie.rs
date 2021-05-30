@@ -1,6 +1,6 @@
 //! Module for the unit ColorCIE used in GDTF
 use std::borrow::Borrow;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt;
 use std::fmt::Debug;
@@ -23,19 +23,9 @@ pub struct ColorCIE {
     pub Y: f32,
 }
 
-///Parses an attribute directly into ColorCIE
-impl TryFrom<Attribute<'_>> for ColorCIE {
-    type Error = GDTFColorCIEError;
-    fn try_from(attr: Attribute<'_>) -> Result<Self, Self::Error> {
-        Ok(std::str::from_utf8(attr.value.borrow())?.try_into()?)
-    }
-}
-
-///Parses a str from GDTF xml to ColorCIE
-impl TryFrom<&str> for ColorCIE {
-    type Error = GDTFColorCIEError;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+impl ColorCIE {
+    ///Creates a new ColorCIE from a &str defined by GDTF-XML.
+    pub fn new_from_str(value: &str) -> Result<Self, GDTFColorCIEError> {
         use GDTFColorCIEError::*;
         let value: Vec<&str> = value.split(",").collect();
         if value.len() != 3 {
@@ -48,6 +38,22 @@ impl TryFrom<&str> for ColorCIE {
                 Y: f32::from_str(value[2]).or_else(|_| { return Err(MalformatError); })?,
             }
         )
+    }
+}
+
+///Creates a new ColorCIE from an xml-attribute defined by GDTF-XML.
+impl TryFrom<Attribute<'_>> for ColorCIE {
+    type Error = GDTFColorCIEError;
+    fn try_from(attr: Attribute<'_>) -> Result<Self, Self::Error> {
+        Self::new_from_str(std::str::from_utf8(attr.value.borrow())?)
+    }
+}
+
+///Creates a new ColorCIE from a &str defined by GDTF-XML.
+impl TryFrom<&str> for ColorCIE {
+    type Error = GDTFColorCIEError;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::new_from_str(value)
     }
 }
 

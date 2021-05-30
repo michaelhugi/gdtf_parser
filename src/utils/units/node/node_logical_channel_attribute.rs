@@ -45,7 +45,7 @@ impl NodeLogicalChannelAttribute {
         let value = value.split(".");
         let mut tree: Vec<AttributeName> = vec![];
         for value in value.into_iter() {
-            tree.push(AttributeName::new_unchecked(value));
+            tree.push(AttributeName::new_from_str_unchecked(value));
         }
         Self(Some(tree))
     }
@@ -64,7 +64,7 @@ impl NodeLogicalChannelAttribute {
     pub fn new_from_strs_unchecked(names: Vec<&str>) -> Self {
         let mut vec = vec![];
         for name in names.into_iter() {
-            vec.push(AttributeName::new_unchecked(name));
+            vec.push(AttributeName::new_from_str_unchecked(name));
         }
         Self(Some(vec))
     }
@@ -131,7 +131,7 @@ mod tests {
 
     #[test]
     fn test_new_from_str() -> Result<(), GdtfError> {
-        T(Some(vec![AttributeName::new("test")?])).assert_eq_allow_empty(&T::new_from_str("test")?, true);
+        T(Some(vec![AttributeName::new_from_str("test")?])).assert_eq_allow_empty(&T::new_from_str("test")?, true);
         T(None).assert_eq_allow_empty(&T::new_from_str("")?, true);
         assert!(T::new_from_str("asdf{").is_err());
         Ok(())
@@ -139,20 +139,20 @@ mod tests {
 
     #[test]
     fn test_new_from_strs_unchecked() -> Result<(), GdtfError> {
-        T(Some(vec![AttributeName::new("test")?])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["test"]), true);
-        T(Some(vec![AttributeName::new("test")?, AttributeName::new("other")?])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["test", "other"]), true);
-        T(Some(vec![AttributeName::new("")?])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec![""]), true);
+        T(Some(vec![AttributeName::new_from_str("test")?])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["test"]), true);
+        T(Some(vec![AttributeName::new_from_str("test")?, AttributeName::new_from_str("other")?])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["test", "other"]), true);
+        T(Some(vec![AttributeName::new_from_str("")?])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec![""]), true);
         T(Some(vec![])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec![]), true);
-        T(Some(vec![AttributeName::new_unchecked("asdf{")])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["asdf{"]), true);
-        T(Some(vec![AttributeName::new("test")?, AttributeName::new_unchecked("asdf{")])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["test", "asdf{"]), true);
+        T(Some(vec![AttributeName::new_from_str_unchecked("asdf{")])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["asdf{"]), true);
+        T(Some(vec![AttributeName::new_from_str("test")?, AttributeName::new_from_str_unchecked("asdf{")])).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["test", "asdf{"]), true);
         Ok(())
     }
 
     #[test]
     fn test_new_from_str_unchecked() -> Result<(), GdtfError> {
-        T(Some(vec![AttributeName::new("test")?])).assert_eq_allow_empty(&T::new_from_str_unchecked("test"), true);
+        T(Some(vec![AttributeName::new_from_str("test")?])).assert_eq_allow_empty(&T::new_from_str_unchecked("test"), true);
         T(None).assert_eq_allow_empty(&T::new_from_str_unchecked(""), true);
-        T(Some(vec![AttributeName::new_unchecked("asdf{")])).assert_eq_allow_empty(&T::new_from_str_unchecked("asdf{"), true);
+        T(Some(vec![AttributeName::new_from_str_unchecked("asdf{")])).assert_eq_allow_empty(&T::new_from_str_unchecked("asdf{"), true);
         Ok(())
     }
 
@@ -166,8 +166,8 @@ mod tests {
         T(None).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"").into(), true);
         T(Some(vec!["One".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One").into(), true);
         T(Some(vec!["One".try_into()?, "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"One.Two").into(), true);
-        T(Some(vec![AttributeName::new_unchecked("Some{Invalid"), "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"Some{Invalid.Two").into(), true);
-        T(Some(vec![AttributeName::new_unchecked("Some{Invalid"), AttributeName::new_unchecked("T{wo")])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"Some{Invalid.T{wo").into(), true);
+        T(Some(vec![AttributeName::new_from_str_unchecked("Some{Invalid"), "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"Some{Invalid.Two").into(), true);
+        T(Some(vec![AttributeName::new_from_str_unchecked("Some{Invalid"), AttributeName::new_from_str_unchecked("T{wo")])).assert_eq_allow_empty(&testdata::to_attr_borrowed(b"Some{Invalid.T{wo").into(), true);
         Ok(())
     }
 
@@ -176,8 +176,8 @@ mod tests {
         T(None).assert_eq_allow_empty(&testdata::to_attr_owned(b"").into(), true);
         T(Some(vec!["One".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_owned(b"One").into(), true);
         T(Some(vec!["One".try_into()?, "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_owned(b"One.Two").into(), true);
-        T(Some(vec![AttributeName::new_unchecked("Some{Invalid"), "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_owned(b"Some{Invalid.Two").into(), true);
-        T(Some(vec![AttributeName::new_unchecked("Some{Invalid"), AttributeName::new_unchecked("T{wo")])).assert_eq_allow_empty(&testdata::to_attr_owned(b"Some{Invalid.T{wo").into(), true);
+        T(Some(vec![AttributeName::new_from_str_unchecked("Some{Invalid"), "Two".try_into()?])).assert_eq_allow_empty(&testdata::to_attr_owned(b"Some{Invalid.Two").into(), true);
+        T(Some(vec![AttributeName::new_from_str_unchecked("Some{Invalid"), AttributeName::new_from_str_unchecked("T{wo")])).assert_eq_allow_empty(&testdata::to_attr_owned(b"Some{Invalid.T{wo").into(), true);
         Ok(())
     }
 

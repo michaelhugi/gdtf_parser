@@ -148,11 +148,11 @@ mod tests {
         T::new_from_strs_unchecked(vec!["", "test"]).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["", "test"]), true);
         T::new_from_strs_unchecked(vec!["some", ""]).assert_eq_allow_empty(&T::new_from_strs_unchecked(vec!["some", ""]), true);
 
-        T::new_from_str("")?.assert_ne_allow_empty(&T::new_from_str("test")?);
-        T::new_from_str("some")?.assert_ne_allow_empty(&T::new_from_str("test")?);
-        T::new_from_str("test")?.assert_ne_allow_empty(&T::new_from_str("")?);
-        T::Node(vec![]).assert_ne_allow_empty(&T::new_from_str("")?);
-        T::new_from_str("")?.assert_ne_allow_empty(&T::Node(vec![]));
+        T::new_from_str("")?.assert_ne_allow_empty(&T::new_from_str("test")?,true);
+        T::new_from_str("some")?.assert_ne_allow_empty(&T::new_from_str("test")?,true);
+        T::new_from_str("test")?.assert_ne_allow_empty(&T::new_from_str("")?,true);
+        T::Node(vec![]).assert_ne_allow_empty(&T::new_from_str("")?,true);
+        T::new_from_str("")?.assert_ne_allow_empty(&T::Node(vec![]),true);
         Ok(())
     }
 

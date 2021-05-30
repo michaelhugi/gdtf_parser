@@ -220,9 +220,9 @@ mod tests {
         Name::new("")?.assert_eq_allow_empty(&Name::new("")?, true);
         Name::new("Hello")?.assert_eq_allow_empty(&Name::new("Hello")?, true);
         Name::new("MyName")?.assert_eq_allow_empty(&Name::new("MyName")?, true);
-        Name::new("Hello")?.assert_ne_allow_empty(&Name::new("")?);
-        Name::new("")?.assert_ne_allow_empty(&Name::new("Hello")?);
-        Name::new("Hello")?.assert_ne_allow_empty(&Name::new("MyName")?);
+        Name::new("Hello")?.assert_ne_allow_empty(&Name::new("")?,true);
+        Name::new("")?.assert_ne_allow_empty(&Name::new("Hello")?,true);
+        Name::new("Hello")?.assert_ne_allow_empty(&Name::new("MyName")?,true);
         Ok(())
     }
 }

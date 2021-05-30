@@ -101,7 +101,7 @@ mod tests {
         DataVersion::Version1_1.assert_eq_allow_empty(&DataVersion::Version1_1, true);
         DataVersion::Version1_0.assert_eq_allow_empty(&DataVersion::Version1_0, true);
         DataVersion::Unknown.assert_eq_allow_empty(&DataVersion::Unknown, true);
-        DataVersion::Version1_1.assert_ne_allow_empty(&DataVersion::Version1_0);
-        DataVersion::Version1_0.assert_ne_allow_empty(&DataVersion::Unknown);
+        DataVersion::Version1_1.assert_ne_allow_empty(&DataVersion::Version1_0,true);
+        DataVersion::Version1_0.assert_ne_allow_empty(&DataVersion::Unknown,true);
     }
 }

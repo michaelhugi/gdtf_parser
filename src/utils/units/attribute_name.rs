@@ -14,6 +14,7 @@ use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::name::{GDTFNameError, Name};
 
 #[derive(Debug)]
+///AttributeName is an enum for preferred Names used in GDTF for Attributes. It contains an option UserDefined(Name) which can contain all other Names for Atttribute
 pub enum AttributeName {
     ///Fallback if a user-defined Name for an Attribute was used
     UserDefined(Name),
@@ -550,7 +551,7 @@ pub enum AttributeName {
 ///Default is an Empty user defined name
 impl Default for AttributeName {
     fn default() -> Self {
-        AttributeName::new_unchecked("")
+        AttributeName::new_from_str_unchecked("")
     }
 }
 
@@ -846,8 +847,8 @@ impl PartialEq for AttributeName {
 }
 
 impl AttributeName {
-    ///Creates an new_unchecked name. If a char is not allowed by GDTF spec it will return a UserDefined("")
-    pub(crate) fn new_unchecked(value: &str) -> Self {
+    ///Creates an new AttributeName of &str defined by xml of GDTF. This method does not check if all chars are valid for Name defined by GDTF spec
+    pub(crate) fn new_from_str_unchecked(value: &str) -> Self {
         use AttributeName::*;
         match value {
             "Dimmer" => Dimmer,
@@ -1235,27 +1236,26 @@ impl AttributeName {
         }
     }
 
-    ///Creates a new instance of name. Only chars to GDTF Spec are allowed
-    pub fn new(name: &str) -> Result<Self, GDTFNameError> {
+    ///Creates an new AttributeName of &str defined by xml of GDTF. This method does check if all chars are valid for Name defined by GDTF spec
+    pub fn new_from_str(name: &str) -> Result<Self, GDTFNameError> {
         Name::validate_chars(name)?;
-        Ok(Self::new_unchecked(name))
+        Ok(Self::new_from_str_unchecked(name))
     }
 }
 
-///Checks if the string is valid for name chars defined in GDTF-Spec and parses to AttributeName if yes
+///Creates an new AttributeName of &str defined by xml of GDTF. This method does check if all chars are valid for Name defined by GDTF spec
 impl TryFrom<&str> for AttributeName {
     type Error = GDTFNameError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Ok(AttributeName::new(value)?)
+        Ok(AttributeName::new_from_str(value)?)
     }
 }
 
-///Parses an xml Attribute directili into AttributeName without checking valididty of Name, because Rust can handle if a GDTF should have wrong chars
+///Creates an new AttributeName of an xml-attribute defined by xml of GDTF. This method does check if all chars are valid for Name defined by GDTF spec
 impl From<Attribute<'_>> for AttributeName {
-    ///Depares Name safely from Attribute. In case of error it returns default. It will also allow not valid chars from GDTF-Spec because Rust can handle it!
     fn from(attr: Attribute) -> Self {
-        AttributeName::new_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| ""))
+        AttributeName::new_from_str_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| ""))
     }
 }
 
@@ -1268,6 +1268,500 @@ mod tests {
     use crate::utils::testdata;
     use crate::utils::units::attribute_name::AttributeName;
     use crate::utils::units::name::Name;
+
+    #[test]
+    fn test_default() -> Result<(), GdtfError> {
+        use AttributeName::*;
+        UserDefined(Name::new("")?).assert_eq_allow_empty(&AttributeName::default(), true);
+        Ok(())
+    }
+
+    #[test]
+    fn test_partial_eq_allow_empty() -> Result<(), GdtfError> {
+        use AttributeName::*;
+        UserDefined(Name::new("test")?).assert_eq_allow_empty(&UserDefined(Name::new("test")?), true);
+        UserDefined(Name::new("")?).assert_eq_allow_empty(&UserDefined(Name::new("")?), true);
+        Dimmer.assert_eq_allow_empty(&Dimmer, true);
+        Pan.assert_eq_allow_empty(&Pan, true);
+        Tilt.assert_eq_allow_empty(&Tilt, true);
+        PanRotate.assert_eq_allow_empty(&PanRotate, true);
+        TiltRotate.assert_eq_allow_empty(&TiltRotate, true);
+        PositionEffect.assert_eq_allow_empty(&PositionEffect, true);
+        PositionEffectRate.assert_eq_allow_empty(&PositionEffectRate, true);
+        PositionEffectFade.assert_eq_allow_empty(&PositionEffectFade, true);
+        XYZ_X.assert_eq_allow_empty(&XYZ_X, true);
+        XYZ_Y.assert_eq_allow_empty(&XYZ_Y, true);
+        XYZ_Z.assert_eq_allow_empty(&XYZ_Z, true);
+        Rot_X.assert_eq_allow_empty(&Rot_X, true);
+        Rot_Y.assert_eq_allow_empty(&Rot_Y, true);
+        Rot_Z.assert_eq_allow_empty(&Rot_Z, true);
+        Scale_X.assert_eq_allow_empty(&Scale_X, true);
+        Scale_Y.assert_eq_allow_empty(&Scale_Y, true);
+        Scale_Z.assert_eq_allow_empty(&Scale_Z, true);
+        Scale_XYZ.assert_eq_allow_empty(&Scale_XYZ, true);
+        Gobo_n_(1).assert_eq_allow_empty(&Gobo_n_(1), true);
+        Gobo_n_(2).assert_eq_allow_empty(&Gobo_n_(2), true);
+        Gobo_n_(1).assert_ne_allow_empty(&Gobo_n_(2), true);
+        Gobo_n_SelectSpin(1).assert_eq_allow_empty(&Gobo_n_SelectSpin(1), true);
+        Gobo_n_SelectSpin(2).assert_eq_allow_empty(&Gobo_n_SelectSpin(2), true);
+        Gobo_n_SelectSpin(1).assert_ne_allow_empty(&Gobo_n_SelectSpin(2), true);
+        Gobo_n_SelectShake(1).assert_eq_allow_empty(&Gobo_n_SelectShake(1), true);
+        Gobo_n_SelectShake(2).assert_eq_allow_empty(&Gobo_n_SelectShake(2), true);
+        Gobo_n_SelectShake(1).assert_ne_allow_empty(&Gobo_n_SelectShake(2), true);
+        Gobo_n_SelectEffects(1).assert_eq_allow_empty(&Gobo_n_SelectEffects(1), true);
+        Gobo_n_SelectEffects(2).assert_eq_allow_empty(&Gobo_n_SelectEffects(2), true);
+        Gobo_n_SelectEffects(1).assert_ne_allow_empty(&Gobo_n_SelectEffects(2), true);
+        Gobo_n_WheelIndex(1).assert_eq_allow_empty(&Gobo_n_WheelIndex(1), true);
+        Gobo_n_WheelIndex(2).assert_eq_allow_empty(&Gobo_n_WheelIndex(2), true);
+        Gobo_n_WheelIndex(1).assert_ne_allow_empty(&Gobo_n_WheelIndex(2), true);
+        Gobo_n_WheelSpin(1).assert_eq_allow_empty(&Gobo_n_WheelSpin(1), true);
+        Gobo_n_WheelSpin(2).assert_eq_allow_empty(&Gobo_n_WheelSpin(2), true);
+        Gobo_n_WheelSpin(1).assert_ne_allow_empty(&Gobo_n_WheelSpin(2), true);
+        Gobo_n_WheelShake(1).assert_eq_allow_empty(&Gobo_n_WheelShake(1), true);
+        Gobo_n_WheelShake(2).assert_eq_allow_empty(&Gobo_n_WheelShake(2), true);
+        Gobo_n_WheelShake(1).assert_ne_allow_empty(&Gobo_n_WheelShake(2), true);
+        Gobo_n_WheelRandom(1).assert_eq_allow_empty(&Gobo_n_WheelRandom(1), true);
+        Gobo_n_WheelRandom(2).assert_eq_allow_empty(&Gobo_n_WheelRandom(2), true);
+        Gobo_n_WheelRandom(1).assert_ne_allow_empty(&Gobo_n_WheelRandom(2), true);
+        Gobo_n_WheelAudio(1).assert_eq_allow_empty(&Gobo_n_WheelAudio(1), true);
+        Gobo_n_WheelAudio(2).assert_eq_allow_empty(&Gobo_n_WheelAudio(2), true);
+        Gobo_n_WheelAudio(1).assert_ne_allow_empty(&Gobo_n_WheelAudio(2), true);
+        Gobo_n_Pos(1).assert_eq_allow_empty(&Gobo_n_Pos(1), true);
+        Gobo_n_Pos(2).assert_eq_allow_empty(&Gobo_n_Pos(2), true);
+        Gobo_n_Pos(1).assert_ne_allow_empty(&Gobo_n_Pos(2), true);
+        Gobo_n_PosRotate(1).assert_eq_allow_empty(&Gobo_n_PosRotate(1), true);
+        Gobo_n_PosRotate(2).assert_eq_allow_empty(&Gobo_n_PosRotate(2), true);
+        Gobo_n_PosRotate(1).assert_ne_allow_empty(&Gobo_n_PosRotate(2), true);
+        Gobo_n_PosShake(1).assert_eq_allow_empty(&Gobo_n_PosShake(1), true);
+        Gobo_n_PosShake(2).assert_eq_allow_empty(&Gobo_n_PosShake(2), true);
+        Gobo_n_PosShake(1).assert_ne_allow_empty(&Gobo_n_PosShake(2), true);
+        AnimationWheel_n_(1).assert_eq_allow_empty(&AnimationWheel_n_(1), true);
+        AnimationWheel_n_(2).assert_eq_allow_empty(&AnimationWheel_n_(2), true);
+        AnimationWheel_n_(1).assert_ne_allow_empty(&AnimationWheel_n_(2), true);
+        AnimationWheel_n_Audio(1).assert_eq_allow_empty(&AnimationWheel_n_Audio(1), true);
+        AnimationWheel_n_Audio(2).assert_eq_allow_empty(&AnimationWheel_n_Audio(2), true);
+        AnimationWheel_n_Audio(1).assert_ne_allow_empty(&AnimationWheel_n_Audio(2), true);
+        AnimationWheel_n_Macro(1).assert_eq_allow_empty(&AnimationWheel_n_Macro(1), true);
+        AnimationWheel_n_Macro(2).assert_eq_allow_empty(&AnimationWheel_n_Macro(2), true);
+        AnimationWheel_n_Macro(1).assert_ne_allow_empty(&AnimationWheel_n_Macro(2), true);
+        AnimationWheel_n_Random(1).assert_eq_allow_empty(&AnimationWheel_n_Random(1), true);
+        AnimationWheel_n_Random(2).assert_eq_allow_empty(&AnimationWheel_n_Random(2), true);
+        AnimationWheel_n_Random(1).assert_ne_allow_empty(&AnimationWheel_n_Random(2), true);
+        AnimationWheel_n_SelectEffects(1).assert_eq_allow_empty(&AnimationWheel_n_SelectEffects(1), true);
+        AnimationWheel_n_SelectEffects(2).assert_eq_allow_empty(&AnimationWheel_n_SelectEffects(2), true);
+        AnimationWheel_n_SelectEffects(1).assert_ne_allow_empty(&AnimationWheel_n_SelectEffects(2), true);
+        AnimationWheel_n_SelectShake(1).assert_eq_allow_empty(&AnimationWheel_n_SelectShake(1), true);
+        AnimationWheel_n_SelectShake(2).assert_eq_allow_empty(&AnimationWheel_n_SelectShake(2), true);
+        AnimationWheel_n_SelectShake(1).assert_ne_allow_empty(&AnimationWheel_n_SelectShake(2), true);
+        AnimationWheel_n_SelectSpin(1).assert_eq_allow_empty(&AnimationWheel_n_SelectSpin(1), true);
+        AnimationWheel_n_SelectSpin(2).assert_eq_allow_empty(&AnimationWheel_n_SelectSpin(2), true);
+        AnimationWheel_n_SelectSpin(1).assert_ne_allow_empty(&AnimationWheel_n_SelectSpin(2), true);
+        AnimationWheel_n_Pos(1).assert_eq_allow_empty(&AnimationWheel_n_Pos(1), true);
+        AnimationWheel_n_Pos(2).assert_eq_allow_empty(&AnimationWheel_n_Pos(2), true);
+        AnimationWheel_n_Pos(1).assert_ne_allow_empty(&AnimationWheel_n_Pos(2), true);
+        AnimationWheel_n_PosRotate(1).assert_eq_allow_empty(&AnimationWheel_n_PosRotate(1), true);
+        AnimationWheel_n_PosRotate(2).assert_eq_allow_empty(&AnimationWheel_n_PosRotate(2), true);
+        AnimationWheel_n_PosRotate(1).assert_ne_allow_empty(&AnimationWheel_n_PosRotate(2), true);
+        AnimationWheel_n_PosShake(1).assert_eq_allow_empty(&AnimationWheel_n_PosShake(1), true);
+        AnimationWheel_n_PosShake(2).assert_eq_allow_empty(&AnimationWheel_n_PosShake(2), true);
+        AnimationWheel_n_PosShake(1).assert_ne_allow_empty(&AnimationWheel_n_PosShake(2), true);
+        AnimationSystem_n_(1).assert_eq_allow_empty(&AnimationSystem_n_(1), true);
+        AnimationSystem_n_(2).assert_eq_allow_empty(&AnimationSystem_n_(2), true);
+        AnimationSystem_n_(1).assert_ne_allow_empty(&AnimationSystem_n_(2), true);
+        AnimationSystem_n_Ramp(1).assert_eq_allow_empty(&AnimationSystem_n_Ramp(1), true);
+        AnimationSystem_n_Ramp(2).assert_eq_allow_empty(&AnimationSystem_n_Ramp(2), true);
+        AnimationSystem_n_Ramp(1).assert_ne_allow_empty(&AnimationSystem_n_Ramp(2), true);
+        AnimationSystem_n_Shake(1).assert_eq_allow_empty(&AnimationSystem_n_Shake(1), true);
+        AnimationSystem_n_Shake(2).assert_eq_allow_empty(&AnimationSystem_n_Shake(2), true);
+        AnimationSystem_n_Shake(1).assert_ne_allow_empty(&AnimationSystem_n_Shake(2), true);
+        AnimationSystem_n_Audio(1).assert_eq_allow_empty(&AnimationSystem_n_Audio(1), true);
+        AnimationSystem_n_Audio(2).assert_eq_allow_empty(&AnimationSystem_n_Audio(2), true);
+        AnimationSystem_n_Audio(1).assert_ne_allow_empty(&AnimationSystem_n_Audio(2), true);
+        AnimationSystem_n_Random(1).assert_eq_allow_empty(&AnimationSystem_n_Random(1), true);
+        AnimationSystem_n_Random(2).assert_eq_allow_empty(&AnimationSystem_n_Random(2), true);
+        AnimationSystem_n_Random(1).assert_ne_allow_empty(&AnimationSystem_n_Random(2), true);
+        AnimationSystem_n_Pos(1).assert_eq_allow_empty(&AnimationSystem_n_Pos(1), true);
+        AnimationSystem_n_Pos(2).assert_eq_allow_empty(&AnimationSystem_n_Pos(2), true);
+        AnimationSystem_n_Pos(1).assert_ne_allow_empty(&AnimationSystem_n_Pos(2), true);
+        AnimationSystem_n_PosRotate(1).assert_eq_allow_empty(&AnimationSystem_n_PosRotate(1), true);
+        AnimationSystem_n_PosRotate(2).assert_eq_allow_empty(&AnimationSystem_n_PosRotate(2), true);
+        AnimationSystem_n_PosRotate(1).assert_ne_allow_empty(&AnimationSystem_n_PosRotate(2), true);
+        AnimationSystem_n_PosShake(1).assert_eq_allow_empty(&AnimationSystem_n_PosShake(1), true);
+        AnimationSystem_n_PosShake(2).assert_eq_allow_empty(&AnimationSystem_n_PosShake(2), true);
+        AnimationSystem_n_PosShake(1).assert_ne_allow_empty(&AnimationSystem_n_PosShake(2), true);
+        AnimationSystem_n_PosRandom(1).assert_eq_allow_empty(&AnimationSystem_n_PosRandom(1), true);
+        AnimationSystem_n_PosRandom(2).assert_eq_allow_empty(&AnimationSystem_n_PosRandom(2), true);
+        AnimationSystem_n_PosRandom(1).assert_ne_allow_empty(&AnimationSystem_n_PosRandom(2), true);
+        AnimationSystem_n_PosAudio(1).assert_eq_allow_empty(&AnimationSystem_n_PosAudio(1), true);
+        AnimationSystem_n_PosAudio(2).assert_eq_allow_empty(&AnimationSystem_n_PosAudio(2), true);
+        AnimationSystem_n_PosAudio(1).assert_ne_allow_empty(&AnimationSystem_n_PosAudio(2), true);
+        AnimationSystem_n_Macro(1).assert_eq_allow_empty(&AnimationSystem_n_Macro(1), true);
+        AnimationSystem_n_Macro(2).assert_eq_allow_empty(&AnimationSystem_n_Macro(2), true);
+        AnimationSystem_n_Macro(1).assert_ne_allow_empty(&AnimationSystem_n_Macro(2), true);
+        MediaFolder_n_(1).assert_eq_allow_empty(&MediaFolder_n_(1), true);
+        MediaFolder_n_(2).assert_eq_allow_empty(&MediaFolder_n_(2), true);
+        MediaFolder_n_(1).assert_ne_allow_empty(&MediaFolder_n_(2), true);
+        MediaContent_n_(1).assert_eq_allow_empty(&MediaContent_n_(1), true);
+        MediaContent_n_(2).assert_eq_allow_empty(&MediaContent_n_(2), true);
+        MediaContent_n_(1).assert_ne_allow_empty(&MediaContent_n_(2), true);
+        ModelFolder_n_(1).assert_eq_allow_empty(&ModelFolder_n_(1), true);
+        ModelFolder_n_(2).assert_eq_allow_empty(&ModelFolder_n_(2), true);
+        ModelFolder_n_(1).assert_ne_allow_empty(&ModelFolder_n_(2), true);
+        ModelContent_n_(1).assert_eq_allow_empty(&ModelContent_n_(1), true);
+        ModelContent_n_(2).assert_eq_allow_empty(&ModelContent_n_(2), true);
+        ModelContent_n_(1).assert_ne_allow_empty(&ModelContent_n_(2), true);
+        PlayMode.assert_eq_allow_empty(&PlayMode, true);
+        PlayBegin.assert_eq_allow_empty(&PlayBegin, true);
+        PlayEnd.assert_eq_allow_empty(&PlayEnd, true);
+        PlaySpeed.assert_eq_allow_empty(&PlaySpeed, true);
+        ColorEffects_n_(1).assert_eq_allow_empty(&ColorEffects_n_(1), true);
+        ColorEffects_n_(2).assert_eq_allow_empty(&ColorEffects_n_(2), true);
+        ColorEffects_n_(1).assert_ne_allow_empty(&ColorEffects_n_(2), true);
+        Color_n_(1).assert_eq_allow_empty(&Color_n_(1), true);
+        Color_n_(2).assert_eq_allow_empty(&Color_n_(2), true);
+        Color_n_(1).assert_ne_allow_empty(&Color_n_(2), true);
+        Color_n_WheelIndex(1).assert_eq_allow_empty(&Color_n_WheelIndex(1), true);
+        Color_n_WheelIndex(2).assert_eq_allow_empty(&Color_n_WheelIndex(2), true);
+        Color_n_WheelIndex(1).assert_ne_allow_empty(&Color_n_WheelIndex(2), true);
+        Color_n_WheelSpin(1).assert_eq_allow_empty(&Color_n_WheelSpin(1), true);
+        Color_n_WheelSpin(2).assert_eq_allow_empty(&Color_n_WheelSpin(2), true);
+        Color_n_WheelSpin(1).assert_ne_allow_empty(&Color_n_WheelSpin(2), true);
+        Color_n_WheelRandom(1).assert_eq_allow_empty(&Color_n_WheelRandom(1), true);
+        Color_n_WheelRandom(2).assert_eq_allow_empty(&Color_n_WheelRandom(2), true);
+        Color_n_WheelRandom(1).assert_ne_allow_empty(&Color_n_WheelRandom(2), true);
+        Color_n_WheelAudio(1).assert_eq_allow_empty(&Color_n_WheelAudio(1), true);
+        Color_n_WheelAudio(2).assert_eq_allow_empty(&Color_n_WheelAudio(2), true);
+        Color_n_WheelAudio(1).assert_ne_allow_empty(&Color_n_WheelAudio(2), true);
+        ColorAdd_R.assert_eq_allow_empty(&ColorAdd_R, true);
+        ColorAdd_G.assert_eq_allow_empty(&ColorAdd_G, true);
+        ColorAdd_B.assert_eq_allow_empty(&ColorAdd_B, true);
+        ColorAdd_C.assert_eq_allow_empty(&ColorAdd_C, true);
+        ColorAdd_M.assert_eq_allow_empty(&ColorAdd_M, true);
+        ColorAdd_Y.assert_eq_allow_empty(&ColorAdd_Y, true);
+        ColorAdd_RY.assert_eq_allow_empty(&ColorAdd_RY, true);
+        ColorAdd_GY.assert_eq_allow_empty(&ColorAdd_GY, true);
+        ColorAdd_GC.assert_eq_allow_empty(&ColorAdd_GC, true);
+        ColorAdd_BC.assert_eq_allow_empty(&ColorAdd_BC, true);
+        ColorAdd_BM.assert_eq_allow_empty(&ColorAdd_BM, true);
+        ColorAdd_RM.assert_eq_allow_empty(&ColorAdd_RM, true);
+        ColorAdd_W.assert_eq_allow_empty(&ColorAdd_W, true);
+        ColorAdd_WW.assert_eq_allow_empty(&ColorAdd_WW, true);
+        ColorAdd_CW.assert_eq_allow_empty(&ColorAdd_CW, true);
+        ColorAdd_UV.assert_eq_allow_empty(&ColorAdd_UV, true);
+        ColorSub_R.assert_eq_allow_empty(&ColorSub_R, true);
+        ColorSub_G.assert_eq_allow_empty(&ColorSub_G, true);
+        ColorSub_B.assert_eq_allow_empty(&ColorSub_B, true);
+        ColorSub_C.assert_eq_allow_empty(&ColorSub_C, true);
+        ColorSub_M.assert_eq_allow_empty(&ColorSub_M, true);
+        ColorSub_Y.assert_eq_allow_empty(&ColorSub_Y, true);
+        ColorMacro_n_(1).assert_eq_allow_empty(&ColorMacro_n_(1), true);
+        ColorMacro_n_(2).assert_eq_allow_empty(&ColorMacro_n_(2), true);
+        ColorMacro_n_(1).assert_ne_allow_empty(&ColorMacro_n_(2), true);
+        ColorMacro_n_Rate(1).assert_eq_allow_empty(&ColorMacro_n_Rate(1), true);
+        ColorMacro_n_Rate(2).assert_eq_allow_empty(&ColorMacro_n_Rate(2), true);
+        ColorMacro_n_Rate(1).assert_ne_allow_empty(&ColorMacro_n_Rate(2), true);
+        CTO.assert_eq_allow_empty(&CTO, true);
+        CTC.assert_eq_allow_empty(&CTC, true);
+        CTB.assert_eq_allow_empty(&CTB, true);
+        Tint.assert_eq_allow_empty(&Tint, true);
+        HSB_Hue.assert_eq_allow_empty(&HSB_Hue, true);
+        HSB_Saturation.assert_eq_allow_empty(&HSB_Saturation, true);
+        HSB_Brightness.assert_eq_allow_empty(&HSB_Brightness, true);
+        HSB_Quality.assert_eq_allow_empty(&HSB_Quality, true);
+        CIE_X.assert_eq_allow_empty(&CIE_X, true);
+        CIE_Y.assert_eq_allow_empty(&CIE_Y, true);
+        CIE_Brightness.assert_eq_allow_empty(&CIE_Brightness, true);
+        ColorRGB_Red.assert_eq_allow_empty(&ColorRGB_Red, true);
+        ColorRGB_Green.assert_eq_allow_empty(&ColorRGB_Green, true);
+        ColorRGB_Blue.assert_eq_allow_empty(&ColorRGB_Blue, true);
+        ColorRGB_Cyan.assert_eq_allow_empty(&ColorRGB_Cyan, true);
+        ColorRGB_Magenta.assert_eq_allow_empty(&ColorRGB_Magenta, true);
+        ColorRGB_Yellow.assert_eq_allow_empty(&ColorRGB_Yellow, true);
+        ColorRGB_Quality.assert_eq_allow_empty(&ColorRGB_Quality, true);
+        VideoBoost_R.assert_eq_allow_empty(&VideoBoost_R, true);
+        VideoBoost_G.assert_eq_allow_empty(&VideoBoost_G, true);
+        VideoBoost_B.assert_eq_allow_empty(&VideoBoost_B, true);
+        VideoHueShift.assert_eq_allow_empty(&VideoHueShift, true);
+        VideoSaturation.assert_eq_allow_empty(&VideoSaturation, true);
+        VideoBrightness.assert_eq_allow_empty(&VideoBrightness, true);
+        VideoContrast.assert_eq_allow_empty(&VideoContrast, true);
+        VideoKeyColor_R.assert_eq_allow_empty(&VideoKeyColor_R, true);
+        VideoKeyColor_G.assert_eq_allow_empty(&VideoKeyColor_G, true);
+        VideoKeyColor_B.assert_eq_allow_empty(&VideoKeyColor_B, true);
+        VideoKeyIntensity.assert_eq_allow_empty(&VideoKeyIntensity, true);
+        VideoKeyTolerance.assert_eq_allow_empty(&VideoKeyTolerance, true);
+        StrobeDuration.assert_eq_allow_empty(&StrobeDuration, true);
+        StrobeRate.assert_eq_allow_empty(&StrobeRate, true);
+        Shutter_n_(1).assert_eq_allow_empty(&Shutter_n_(1), true);
+        Shutter_n_(2).assert_eq_allow_empty(&Shutter_n_(2), true);
+        Shutter_n_(1).assert_ne_allow_empty(&Shutter_n_(2), true);
+        Shutter_n_Strobe(1).assert_eq_allow_empty(&Shutter_n_Strobe(1), true);
+        Shutter_n_Strobe(2).assert_eq_allow_empty(&Shutter_n_Strobe(2), true);
+        Shutter_n_Strobe(1).assert_ne_allow_empty(&Shutter_n_Strobe(2), true);
+        Shutter_n_StrobePulse(1).assert_eq_allow_empty(&Shutter_n_StrobePulse(1), true);
+        Shutter_n_StrobePulse(2).assert_eq_allow_empty(&Shutter_n_StrobePulse(2), true);
+        Shutter_n_StrobePulse(1).assert_ne_allow_empty(&Shutter_n_StrobePulse(2), true);
+        Shutter_n_StrobePulseClose(1).assert_eq_allow_empty(&Shutter_n_StrobePulseClose(1), true);
+        Shutter_n_StrobePulseClose(2).assert_eq_allow_empty(&Shutter_n_StrobePulseClose(2), true);
+        Shutter_n_StrobePulseClose(1).assert_ne_allow_empty(&Shutter_n_StrobePulseClose(2), true);
+        Shutter_n_StrobePulseOpen(1).assert_eq_allow_empty(&Shutter_n_StrobePulseOpen(1), true);
+        Shutter_n_StrobePulseOpen(2).assert_eq_allow_empty(&Shutter_n_StrobePulseOpen(2), true);
+        Shutter_n_StrobePulseOpen(1).assert_ne_allow_empty(&Shutter_n_StrobePulseOpen(2), true);
+        Shutter_n_StrobeRandom(1).assert_eq_allow_empty(&Shutter_n_StrobeRandom(1), true);
+        Shutter_n_StrobeRandom(2).assert_eq_allow_empty(&Shutter_n_StrobeRandom(2), true);
+        Shutter_n_StrobeRandom(1).assert_ne_allow_empty(&Shutter_n_StrobeRandom(2), true);
+        Shutter_n_StrobeRandomPulse(1).assert_eq_allow_empty(&Shutter_n_StrobeRandomPulse(1), true);
+        Shutter_n_StrobeRandomPulse(2).assert_eq_allow_empty(&Shutter_n_StrobeRandomPulse(2), true);
+        Shutter_n_StrobeRandomPulse(1).assert_ne_allow_empty(&Shutter_n_StrobeRandomPulse(2), true);
+        Shutter_n_StrobeRandomPulseClose(1).assert_eq_allow_empty(&Shutter_n_StrobeRandomPulseClose(1), true);
+        Shutter_n_StrobeRandomPulseClose(2).assert_eq_allow_empty(&Shutter_n_StrobeRandomPulseClose(2), true);
+        Shutter_n_StrobeRandomPulseClose(1).assert_ne_allow_empty(&Shutter_n_StrobeRandomPulseClose(2), true);
+        Shutter_n_StrobeRandomPulseOpen(1).assert_eq_allow_empty(&Shutter_n_StrobeRandomPulseOpen(1), true);
+        Shutter_n_StrobeRandomPulseOpen(2).assert_eq_allow_empty(&Shutter_n_StrobeRandomPulseOpen(2), true);
+        Shutter_n_StrobeRandomPulseOpen(1).assert_ne_allow_empty(&Shutter_n_StrobeRandomPulseOpen(2), true);
+        Shutter_n_StrobeEffect(1).assert_eq_allow_empty(&Shutter_n_StrobeEffect(1), true);
+        Shutter_n_StrobeEffect(2).assert_eq_allow_empty(&Shutter_n_StrobeEffect(2), true);
+        Shutter_n_StrobeEffect(1).assert_ne_allow_empty(&Shutter_n_StrobeEffect(2), true);
+        Iris.assert_eq_allow_empty(&Iris, true);
+        IrisStrobe.assert_eq_allow_empty(&IrisStrobe, true);
+        IrisStrobeRandom.assert_eq_allow_empty(&IrisStrobeRandom, true);
+        IrisPulseClose.assert_eq_allow_empty(&IrisPulseClose, true);
+        IrisPulseOpen.assert_eq_allow_empty(&IrisPulseOpen, true);
+        IrisRandomPulseClose.assert_eq_allow_empty(&IrisRandomPulseClose, true);
+        IrisRandomPulseOpen.assert_eq_allow_empty(&IrisRandomPulseOpen, true);
+        Frost_n_(1).assert_eq_allow_empty(&Frost_n_(1), true);
+        Frost_n_(2).assert_eq_allow_empty(&Frost_n_(2), true);
+        Frost_n_(1).assert_ne_allow_empty(&Frost_n_(2), true);
+        Frost_n_PulseOpen(1).assert_eq_allow_empty(&Frost_n_PulseOpen(1), true);
+        Frost_n_PulseOpen(2).assert_eq_allow_empty(&Frost_n_PulseOpen(2), true);
+        Frost_n_PulseOpen(1).assert_ne_allow_empty(&Frost_n_PulseOpen(2), true);
+        Frost_n_PulseClose(1).assert_eq_allow_empty(&Frost_n_PulseClose(1), true);
+        Frost_n_PulseClose(2).assert_eq_allow_empty(&Frost_n_PulseClose(2), true);
+        Frost_n_PulseClose(1).assert_ne_allow_empty(&Frost_n_PulseClose(2), true);
+        Frost_n_Ramp(1).assert_eq_allow_empty(&Frost_n_Ramp(1), true);
+        Frost_n_Ramp(2).assert_eq_allow_empty(&Frost_n_Ramp(2), true);
+        Frost_n_Ramp(1).assert_ne_allow_empty(&Frost_n_Ramp(2), true);
+        Prism_n_(1).assert_eq_allow_empty(&Prism_n_(1), true);
+        Prism_n_(2).assert_eq_allow_empty(&Prism_n_(2), true);
+        Prism_n_(1).assert_ne_allow_empty(&Prism_n_(2), true);
+        Prism_n_SelectSpin(1).assert_eq_allow_empty(&Prism_n_SelectSpin(1), true);
+        Prism_n_SelectSpin(2).assert_eq_allow_empty(&Prism_n_SelectSpin(2), true);
+        Prism_n_SelectSpin(1).assert_ne_allow_empty(&Prism_n_SelectSpin(2), true);
+        Prism_n_Macro(1).assert_eq_allow_empty(&Prism_n_Macro(1), true);
+        Prism_n_Macro(2).assert_eq_allow_empty(&Prism_n_Macro(2), true);
+        Prism_n_Macro(1).assert_ne_allow_empty(&Prism_n_Macro(2), true);
+        Prism_n_Pos(1).assert_eq_allow_empty(&Prism_n_Pos(1), true);
+        Prism_n_Pos(2).assert_eq_allow_empty(&Prism_n_Pos(2), true);
+        Prism_n_Pos(1).assert_ne_allow_empty(&Prism_n_Pos(2), true);
+        Prism_n_PosRotate(1).assert_eq_allow_empty(&Prism_n_PosRotate(1), true);
+        Prism_n_PosRotate(2).assert_eq_allow_empty(&Prism_n_PosRotate(2), true);
+        Prism_n_PosRotate(1).assert_ne_allow_empty(&Prism_n_PosRotate(2), true);
+        Effects_n_(1).assert_eq_allow_empty(&Effects_n_(1), true);
+        Effects_n_(2).assert_eq_allow_empty(&Effects_n_(2), true);
+        Effects_n_(1).assert_ne_allow_empty(&Effects_n_(2), true);
+        Effects_n_Rate(1).assert_eq_allow_empty(&Effects_n_Rate(1), true);
+        Effects_n_Rate(2).assert_eq_allow_empty(&Effects_n_Rate(2), true);
+        Effects_n_Rate(1).assert_ne_allow_empty(&Effects_n_Rate(2), true);
+        Effects_n_Fade(1).assert_eq_allow_empty(&Effects_n_Fade(1), true);
+        Effects_n_Fade(2).assert_eq_allow_empty(&Effects_n_Fade(2), true);
+        Effects_n_Fade(1).assert_ne_allow_empty(&Effects_n_Fade(2), true);
+        Effects_n_Adjust_m_(1, 1).assert_eq_allow_empty(&Effects_n_Adjust_m_(1, 1), true);
+        Effects_n_Adjust_m_(1, 2).assert_eq_allow_empty(&Effects_n_Adjust_m_(1, 2), true);
+        Effects_n_Adjust_m_(2, 1).assert_eq_allow_empty(&Effects_n_Adjust_m_(2, 1), true);
+        Effects_n_Adjust_m_(2, 2).assert_eq_allow_empty(&Effects_n_Adjust_m_(2, 2), true);
+        Effects_n_Adjust_m_(1, 1).assert_ne_allow_empty(&Effects_n_Adjust_m_(1, 2), true);
+        Effects_n_Adjust_m_(1, 1).assert_ne_allow_empty(&Effects_n_Adjust_m_(2, 1), true);
+        Effects_n_Adjust_m_(2, 1).assert_ne_allow_empty(&Effects_n_Adjust_m_(1, 1), true);
+        Effects_n_Adjust_m_(2, 1).assert_ne_allow_empty(&Effects_n_Adjust_m_(2, 2), true);
+        Effects_n_Adjust_m_(1, 2).assert_ne_allow_empty(&Effects_n_Adjust_m_(1, 1), true);
+        Effects_n_Adjust_m_(1, 2).assert_ne_allow_empty(&Effects_n_Adjust_m_(2, 2), true);
+        Effects_n_Adjust_m_(2, 2).assert_ne_allow_empty(&Effects_n_Adjust_m_(1, 1), true);
+        Effects_n_Adjust_m_(1, 1).assert_ne_allow_empty(&Effects_n_Adjust_m_(2, 2), true);
+        Effects_n_Adjust_m_(2, 2).assert_ne_allow_empty(&Effects_n_Adjust_m_(1, 1), true);
+        Effects_n_Adjust_m_(1, 1).assert_ne_allow_empty(&Effects_n_Adjust_m_(2, 2), true);
+        Effects_n_Pos(1).assert_eq_allow_empty(&Effects_n_Pos(1), true);
+        Effects_n_Pos(2).assert_eq_allow_empty(&Effects_n_Pos(2), true);
+        Effects_n_Pos(1).assert_ne_allow_empty(&Effects_n_Pos(2), true);
+        Effects_n_PosRotate(1).assert_eq_allow_empty(&Effects_n_PosRotate(1), true);
+        Effects_n_PosRotate(2).assert_eq_allow_empty(&Effects_n_PosRotate(2), true);
+        Effects_n_PosRotate(1).assert_ne_allow_empty(&Effects_n_PosRotate(2), true);
+        EffectsSync.assert_eq_allow_empty(&EffectsSync, true);
+        BeamShaper.assert_eq_allow_empty(&BeamShaper, true);
+        BeamShaperMacro.assert_eq_allow_empty(&BeamShaperMacro, true);
+        BeamShaperPos.assert_eq_allow_empty(&BeamShaperPos, true);
+        BeamShaperPosRotate.assert_eq_allow_empty(&BeamShaperPosRotate, true);
+        Zoom.assert_eq_allow_empty(&Zoom, true);
+        ZoomModeSpot.assert_eq_allow_empty(&ZoomModeSpot, true);
+        ZoomModeBeam.assert_eq_allow_empty(&ZoomModeBeam, true);
+        Focus_n_(1).assert_eq_allow_empty(&Focus_n_(1), true);
+        Focus_n_(2).assert_eq_allow_empty(&Focus_n_(2), true);
+        Focus_n_(1).assert_ne_allow_empty(&Focus_n_(2), true);
+        Focus_n_Adjust(1).assert_eq_allow_empty(&Focus_n_Adjust(1), true);
+        Focus_n_Adjust(2).assert_eq_allow_empty(&Focus_n_Adjust(2), true);
+        Focus_n_Adjust(1).assert_ne_allow_empty(&Focus_n_Adjust(2), true);
+        Focus_n_Distance(1).assert_eq_allow_empty(&Focus_n_Distance(1), true);
+        Focus_n_Distance(2).assert_eq_allow_empty(&Focus_n_Distance(2), true);
+        Focus_n_Distance(1).assert_ne_allow_empty(&Focus_n_Distance(2), true);
+        Control_n_(1).assert_eq_allow_empty(&Control_n_(1), true);
+        Control_n_(2).assert_eq_allow_empty(&Control_n_(2), true);
+        Control_n_(1).assert_ne_allow_empty(&Control_n_(2), true);
+        DimmerMode.assert_eq_allow_empty(&DimmerMode, true);
+        DimmerCurve.assert_eq_allow_empty(&DimmerCurve, true);
+        BlackoutMode.assert_eq_allow_empty(&BlackoutMode, true);
+        LEDFrequency.assert_eq_allow_empty(&LEDFrequency, true);
+        LEDZoneMode.assert_eq_allow_empty(&LEDZoneMode, true);
+        PixelMode.assert_eq_allow_empty(&PixelMode, true);
+        PanMode.assert_eq_allow_empty(&PanMode, true);
+        TiltMode.assert_eq_allow_empty(&TiltMode, true);
+        PanTiltMode.assert_eq_allow_empty(&PanTiltMode, true);
+        PositionModes.assert_eq_allow_empty(&PositionModes, true);
+        Gobo_n_WheelMode(1).assert_eq_allow_empty(&Gobo_n_WheelMode(1), true);
+        Gobo_n_WheelMode(2).assert_eq_allow_empty(&Gobo_n_WheelMode(2), true);
+        Gobo_n_WheelMode(1).assert_ne_allow_empty(&Gobo_n_WheelMode(2), true);
+        AnimationWheel_n_Mode(1).assert_eq_allow_empty(&AnimationWheel_n_Mode(1), true);
+        AnimationWheel_n_Mode(2).assert_eq_allow_empty(&AnimationWheel_n_Mode(2), true);
+        AnimationWheel_n_Mode(1).assert_ne_allow_empty(&AnimationWheel_n_Mode(2), true);
+        AnimationWheelShortcutMode.assert_eq_allow_empty(&AnimationWheelShortcutMode, true);
+        Color_n_Mode(1).assert_eq_allow_empty(&Color_n_Mode(1), true);
+        Color_n_Mode(2).assert_eq_allow_empty(&Color_n_Mode(2), true);
+        Color_n_Mode(1).assert_ne_allow_empty(&Color_n_Mode(2), true);
+        ColorWheelShortcutMode.assert_eq_allow_empty(&ColorWheelShortcutMode, true);
+        CyanMode.assert_eq_allow_empty(&CyanMode, true);
+        MagentaMode.assert_eq_allow_empty(&MagentaMode, true);
+        YellowMode.assert_eq_allow_empty(&YellowMode, true);
+        ColorMixMode.assert_eq_allow_empty(&ColorMixMode, true);
+        ChromaticMode.assert_eq_allow_empty(&ChromaticMode, true);
+        ColorCalibrationMode.assert_eq_allow_empty(&ColorCalibrationMode, true);
+        ColorConsistency.assert_eq_allow_empty(&ColorConsistency, true);
+        ColorControl.assert_eq_allow_empty(&ColorControl, true);
+        ColorModelMode.assert_eq_allow_empty(&ColorModelMode, true);
+        ColorSettingsReset.assert_eq_allow_empty(&ColorSettingsReset, true);
+        ColorUniformity.assert_eq_allow_empty(&ColorUniformity, true);
+        CRIMode.assert_eq_allow_empty(&CRIMode, true);
+        CustomColor.assert_eq_allow_empty(&CustomColor, true);
+        UVStability.assert_eq_allow_empty(&UVStability, true);
+        WavelengthCorrection.assert_eq_allow_empty(&WavelengthCorrection, true);
+        WhiteCount.assert_eq_allow_empty(&WhiteCount, true);
+        StrobeMode.assert_eq_allow_empty(&StrobeMode, true);
+        ZoomMode.assert_eq_allow_empty(&ZoomMode, true);
+        FocusMode.assert_eq_allow_empty(&FocusMode, true);
+        IrisMode.assert_eq_allow_empty(&IrisMode, true);
+        Fan_n_Mode(1).assert_eq_allow_empty(&Fan_n_Mode(1), true);
+        Fan_n_Mode(2).assert_eq_allow_empty(&Fan_n_Mode(2), true);
+        Fan_n_Mode(1).assert_ne_allow_empty(&Fan_n_Mode(2), true);
+        FollowSpotMode.assert_eq_allow_empty(&FollowSpotMode, true);
+        BeamEffectIndexRotateMode.assert_eq_allow_empty(&BeamEffectIndexRotateMode, true);
+        IntensityMSpeed.assert_eq_allow_empty(&IntensityMSpeed, true);
+        PositionMSpeed.assert_eq_allow_empty(&PositionMSpeed, true);
+        ColorMixMSpeed.assert_eq_allow_empty(&ColorMixMSpeed, true);
+        ColorWheelSelectMSpeed.assert_eq_allow_empty(&ColorWheelSelectMSpeed, true);
+        GoboWheel_n_MSpeed(1).assert_eq_allow_empty(&GoboWheel_n_MSpeed(1), true);
+        GoboWheel_n_MSpeed(2).assert_eq_allow_empty(&GoboWheel_n_MSpeed(2), true);
+        GoboWheel_n_MSpeed(1).assert_ne_allow_empty(&GoboWheel_n_MSpeed(2), true);
+        IrisMSpeed.assert_eq_allow_empty(&IrisMSpeed, true);
+        Prism_n_MSpeed(1).assert_eq_allow_empty(&Prism_n_MSpeed(1), true);
+        Prism_n_MSpeed(2).assert_eq_allow_empty(&Prism_n_MSpeed(2), true);
+        Prism_n_MSpeed(1).assert_ne_allow_empty(&Prism_n_MSpeed(2), true);
+        FocusMSpeed.assert_eq_allow_empty(&FocusMSpeed, true);
+        Frost_n_MSpeed(1).assert_eq_allow_empty(&Frost_n_MSpeed(1), true);
+        Frost_n_MSpeed(2).assert_eq_allow_empty(&Frost_n_MSpeed(2), true);
+        Frost_n_MSpeed(1).assert_ne_allow_empty(&Frost_n_MSpeed(2), true);
+        ZoomMSpeed.assert_eq_allow_empty(&ZoomMSpeed, true);
+        FrameMSpeed.assert_eq_allow_empty(&FrameMSpeed, true);
+        GlobalMSpeed.assert_eq_allow_empty(&GlobalMSpeed, true);
+        ReflectorAdjust.assert_eq_allow_empty(&ReflectorAdjust, true);
+        FixtureGlobalReset.assert_eq_allow_empty(&FixtureGlobalReset, true);
+        ShutterReset.assert_eq_allow_empty(&ShutterReset, true);
+        BeamReset.assert_eq_allow_empty(&BeamReset, true);
+        ColorMixReset.assert_eq_allow_empty(&ColorMixReset, true);
+        ColorWheelReset.assert_eq_allow_empty(&ColorWheelReset, true);
+        FocusReset.assert_eq_allow_empty(&FocusReset, true);
+        FrameReset.assert_eq_allow_empty(&FrameReset, true);
+        GoboWheelReset.assert_eq_allow_empty(&GoboWheelReset, true);
+        IntensityReset.assert_eq_allow_empty(&IntensityReset, true);
+        IrisReset.assert_eq_allow_empty(&IrisReset, true);
+        PositionReset.assert_eq_allow_empty(&PositionReset, true);
+        PanReset.assert_eq_allow_empty(&PanReset, true);
+        TiltReset.assert_eq_allow_empty(&TiltReset, true);
+        ZoomReset.assert_eq_allow_empty(&ZoomReset, true);
+        CTBReset.assert_eq_allow_empty(&CTBReset, true);
+        CTOReset.assert_eq_allow_empty(&CTOReset, true);
+        CTCReset.assert_eq_allow_empty(&CTCReset, true);
+        AnimationSystemReset.assert_eq_allow_empty(&AnimationSystemReset, true);
+        FixtureCalibrationReset.assert_eq_allow_empty(&FixtureCalibrationReset, true);
+        Function.assert_eq_allow_empty(&Function, true);
+        LampControl.assert_eq_allow_empty(&LampControl, true);
+        DisplayIntensity.assert_eq_allow_empty(&DisplayIntensity, true);
+        DMXInput.assert_eq_allow_empty(&DMXInput, true);
+        NoFeature.assert_eq_allow_empty(&NoFeature, true);
+        Blower_n_(1).assert_eq_allow_empty(&Blower_n_(1), true);
+        Blower_n_(2).assert_eq_allow_empty(&Blower_n_(2), true);
+        Blower_n_(1).assert_ne_allow_empty(&Blower_n_(2), true);
+        Fan_n_(1).assert_eq_allow_empty(&Fan_n_(1), true);
+        Fan_n_(2).assert_eq_allow_empty(&Fan_n_(2), true);
+        Fan_n_(1).assert_ne_allow_empty(&Fan_n_(2), true);
+        Fog_n_(1).assert_eq_allow_empty(&Fog_n_(1), true);
+        Fog_n_(2).assert_eq_allow_empty(&Fog_n_(2), true);
+        Fog_n_(1).assert_ne_allow_empty(&Fog_n_(2), true);
+        Haze_n_(1).assert_eq_allow_empty(&Haze_n_(1), true);
+        Haze_n_(2).assert_eq_allow_empty(&Haze_n_(2), true);
+        Haze_n_(1).assert_ne_allow_empty(&Haze_n_(2), true);
+        LampPowerMode.assert_eq_allow_empty(&LampPowerMode, true);
+        Fans.assert_eq_allow_empty(&Fans, true);
+        Blade_n_A(1).assert_eq_allow_empty(&Blade_n_A(1), true);
+        Blade_n_A(2).assert_eq_allow_empty(&Blade_n_A(2), true);
+        Blade_n_A(1).assert_ne_allow_empty(&Blade_n_A(2), true);
+        Blade_n_B(1).assert_eq_allow_empty(&Blade_n_B(1), true);
+        Blade_n_B(2).assert_eq_allow_empty(&Blade_n_B(2), true);
+        Blade_n_B(1).assert_ne_allow_empty(&Blade_n_B(2), true);
+        Blade_n_Rot(1).assert_eq_allow_empty(&Blade_n_Rot(1), true);
+        Blade_n_Rot(2).assert_eq_allow_empty(&Blade_n_Rot(2), true);
+        Blade_n_Rot(1).assert_ne_allow_empty(&Blade_n_Rot(2), true);
+        ShaperRot.assert_eq_allow_empty(&ShaperRot, true);
+        ShaperMacros.assert_eq_allow_empty(&ShaperMacros, true);
+        ShaperMacrosSpeed.assert_eq_allow_empty(&ShaperMacrosSpeed, true);
+        BladeSoft_n_A(1).assert_eq_allow_empty(&BladeSoft_n_A(1), true);
+        BladeSoft_n_A(2).assert_eq_allow_empty(&BladeSoft_n_A(2), true);
+        BladeSoft_n_A(1).assert_ne_allow_empty(&BladeSoft_n_A(2), true);
+        BladeSoft_n_B(1).assert_eq_allow_empty(&BladeSoft_n_B(1), true);
+        BladeSoft_n_B(2).assert_eq_allow_empty(&BladeSoft_n_B(2), true);
+        BladeSoft_n_B(1).assert_ne_allow_empty(&BladeSoft_n_B(2), true);
+        KeyStone_n_A(1).assert_eq_allow_empty(&KeyStone_n_A(1), true);
+        KeyStone_n_A(2).assert_eq_allow_empty(&KeyStone_n_A(2), true);
+        KeyStone_n_A(1).assert_ne_allow_empty(&KeyStone_n_A(2), true);
+        KeyStone_n_B(1).assert_eq_allow_empty(&KeyStone_n_B(1), true);
+        KeyStone_n_B(2).assert_eq_allow_empty(&KeyStone_n_B(2), true);
+        KeyStone_n_B(1).assert_ne_allow_empty(&KeyStone_n_B(2), true);
+        Video.assert_eq_allow_empty(&Video, true);
+        VideoEffect_n_Type(1).assert_eq_allow_empty(&VideoEffect_n_Type(1), true);
+        VideoEffect_n_Type(2).assert_eq_allow_empty(&VideoEffect_n_Type(2), true);
+        VideoEffect_n_Type(1).assert_ne_allow_empty(&VideoEffect_n_Type(2), true);
+        VideoEffect_n_Parameter_m_(1, 1).assert_eq_allow_empty(&VideoEffect_n_Parameter_m_(1, 1), true);
+        VideoEffect_n_Parameter_m_(1, 2).assert_eq_allow_empty(&VideoEffect_n_Parameter_m_(1, 2), true);
+        VideoEffect_n_Parameter_m_(2, 1).assert_eq_allow_empty(&VideoEffect_n_Parameter_m_(2, 1), true);
+        VideoEffect_n_Parameter_m_(2, 2).assert_eq_allow_empty(&VideoEffect_n_Parameter_m_(2, 2), true);
+        VideoEffect_n_Parameter_m_(1, 1).assert_ne_allow_empty(&VideoEffect_n_Parameter_m_(1, 2), true);
+        VideoEffect_n_Parameter_m_(1, 1).assert_ne_allow_empty(&VideoEffect_n_Parameter_m_(2, 1), true);
+        VideoEffect_n_Parameter_m_(2, 1).assert_ne_allow_empty(&VideoEffect_n_Parameter_m_(1, 1), true);
+        VideoEffect_n_Parameter_m_(2, 1).assert_ne_allow_empty(&VideoEffect_n_Parameter_m_(2, 2), true);
+        VideoEffect_n_Parameter_m_(1, 2).assert_ne_allow_empty(&VideoEffect_n_Parameter_m_(1, 1), true);
+        VideoEffect_n_Parameter_m_(1, 2).assert_ne_allow_empty(&VideoEffect_n_Parameter_m_(2, 2), true);
+        VideoEffect_n_Parameter_m_(2, 2).assert_ne_allow_empty(&VideoEffect_n_Parameter_m_(1, 1), true);
+        VideoEffect_n_Parameter_m_(1, 1).assert_ne_allow_empty(&VideoEffect_n_Parameter_m_(2, 2), true);
+        VideoEffect_n_Parameter_m_(2, 2).assert_ne_allow_empty(&VideoEffect_n_Parameter_m_(1, 1), true);
+        VideoEffect_n_Parameter_m_(1, 1).assert_ne_allow_empty(&VideoEffect_n_Parameter_m_(2, 2), true);
+        VideoCamera_n_(1).assert_eq_allow_empty(&VideoCamera_n_(1), true);
+        VideoCamera_n_(2).assert_eq_allow_empty(&VideoCamera_n_(2), true);
+        VideoCamera_n_(1).assert_ne_allow_empty(&VideoCamera_n_(2), true);
+        VideoSoundVolume_n_(1).assert_eq_allow_empty(&VideoSoundVolume_n_(1), true);
+        VideoSoundVolume_n_(2).assert_eq_allow_empty(&VideoSoundVolume_n_(2), true);
+        VideoSoundVolume_n_(1).assert_ne_allow_empty(&VideoSoundVolume_n_(2), true);
+        VideoBlendMode.assert_eq_allow_empty(&VideoBlendMode, true);
+        InputSource.assert_eq_allow_empty(&InputSource, true);
+        FieldOfView.assert_eq_allow_empty(&FieldOfView, true);
+
+        Ok(())
+    }
 
     #[test]
     fn test_partial_eq() -> Result<(), GdtfError> {
@@ -1757,15 +2251,10 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), GdtfError> {
+    fn test_try_from_str() -> Result<(), GdtfError> {
         use AttributeName::*;
         assert_eq!(UserDefined(Name::new("test")?), "test".try_into()?);
-
-        if let UserDefined(n) = AttributeName::try_from("")? {
-            n.assert_eq_allow_empty(&Name::new("")?, true);
-        } else {
-            panic!("empty str was not parsed to empty user defined");
-        }
+        AttributeName::UserDefined(Name::new("")?).assert_eq_allow_empty(&AttributeName::try_from("")?, true);
         assert_eq!(Dimmer, "Dimmer".try_into()?);
         assert_eq!(Pan, "Pan".try_into()?);
         assert_eq!(Tilt, "Tilt".try_into()?);
@@ -2301,24 +2790,24 @@ mod tests {
     }
 
     #[test]
-    fn test_new() -> Result<(), GdtfError> {
-        AttributeName::Effects_n_(2).is_eq_allow_empty(&AttributeName::new("Effects2")?, true);
-        AttributeName::Control_n_(3).is_eq_allow_empty(&AttributeName::new("Control3")?, true);
-        AttributeName::Dimmer.is_eq_allow_empty(&AttributeName::new("Dimmer")?, true);
-        AttributeName::UserDefined(Name::new("")?).is_eq_allow_empty(&AttributeName::new("")?, true);
-        AttributeName::UserDefined(Name::new("Something weird")?).is_eq_allow_empty(&AttributeName::new("Something weird")?, true);
+    fn test_new_from_str() -> Result<(), GdtfError> {
+        AttributeName::Effects_n_(2).is_eq_allow_empty(&AttributeName::new_from_str("Effects2")?, true);
+        AttributeName::Control_n_(3).is_eq_allow_empty(&AttributeName::new_from_str("Control3")?, true);
+        AttributeName::Dimmer.is_eq_allow_empty(&AttributeName::new_from_str("Dimmer")?, true);
+        AttributeName::UserDefined(Name::new("")?).is_eq_allow_empty(&AttributeName::new_from_str("")?, true);
+        AttributeName::UserDefined(Name::new("Something weird")?).is_eq_allow_empty(&AttributeName::new_from_str("Something weird")?, true);
         assert!(Name::new("asdf{").is_err());
         Ok(())
     }
 
     #[test]
-    fn test_new_unchecked() -> Result<(), GdtfError> {
-        AttributeName::Effects_n_(2).is_eq_allow_empty(&AttributeName::new_unchecked("Effects2"), true);
-        AttributeName::Control_n_(3).is_eq_allow_empty(&AttributeName::new_unchecked("Control3"), true);
-        AttributeName::Dimmer.is_eq_allow_empty(&AttributeName::new_unchecked("Dimmer"), true);
-        AttributeName::UserDefined(Name::new("")?).is_eq_allow_empty(&AttributeName::new_unchecked(""), true);
-        AttributeName::UserDefined(Name::new("Something weird")?).is_eq_allow_empty(&AttributeName::new_unchecked("Something weird"), true);
-        AttributeName::UserDefined(Name::new_unchecked("asdf{")).is_eq_allow_empty(&AttributeName::new_unchecked("asdf{"), true);
+    fn test_new_from_str_unchecked() -> Result<(), GdtfError> {
+        AttributeName::Effects_n_(2).is_eq_allow_empty(&AttributeName::new_from_str_unchecked("Effects2"), true);
+        AttributeName::Control_n_(3).is_eq_allow_empty(&AttributeName::new_from_str_unchecked("Control3"), true);
+        AttributeName::Dimmer.is_eq_allow_empty(&AttributeName::new_from_str_unchecked("Dimmer"), true);
+        AttributeName::UserDefined(Name::new("")?).is_eq_allow_empty(&AttributeName::new_from_str_unchecked(""), true);
+        AttributeName::UserDefined(Name::new("Something weird")?).is_eq_allow_empty(&AttributeName::new_from_str_unchecked("Something weird"), true);
+        AttributeName::UserDefined(Name::new_unchecked("asdf{")).is_eq_allow_empty(&AttributeName::new_from_str_unchecked("asdf{"), true);
         Ok(())
     }
 }
