@@ -37,9 +37,6 @@ pub trait Node {
         }
         Ok(tree)
     }
-
-
-
 }
 
 
@@ -64,7 +61,6 @@ impl Error for GDTFNodeError {}
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::{GDTFNodeError, Node};
 
@@ -73,11 +69,6 @@ mod tests {
 
     impl Node for T {}
 
-    impl PartialEqAllowEmpty for T {
-        fn is_eq_allow_empty_impl(&self, _other: &Self, _log: bool) -> bool {
-            true
-        }
-    }
 
     #[test]
     fn test_strs_to_names_vec() -> Result<(), GDTFNodeError> {

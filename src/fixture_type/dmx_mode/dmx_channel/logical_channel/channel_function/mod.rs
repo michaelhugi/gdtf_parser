@@ -11,8 +11,6 @@ use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::dmx_value::DMXValue;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::node_channel_function_attribute::NodeChannelFunctionAttribute;
@@ -24,7 +22,7 @@ use crate::utils::units::node::node_channel_function_wheel::NodeChannelFunctionW
 pub mod channel_set;
 
 ///The Fixture Type Attribute is assinged to a Channel Function and defines the function of its DMX Range
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ChannelFunction {
     ///Unique name; Default value: Name of attribute and number of channel function.
     pub name: Name,
@@ -176,53 +174,7 @@ impl DeparseSingle for ChannelFunction {
 }
 
 #[cfg(test)]
-impl PartialEqAllowEmpty for ChannelFunction {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        if self.original_attribute != other.original_attribute {
-            return Self::print_structs_not_equal(&self.original_attribute, &other.original_attribute, log);
-        }
-        if self.dmx_from != other.dmx_from {
-            return Self::print_structs_not_equal(&self.dmx_from, &other.dmx_from, log);
-        }
-        if self.default != other.default {
-            return Self::print_structs_not_equal(&self.default, &other.default, log);
-        }
-        if self.physical_from != other.physical_from {
-            return Self::print_structs_not_equal(&self.physical_from, &other.physical_from, log);
-        }
-        if self.physical_to != other.physical_to {
-            return Self::print_structs_not_equal(&self.physical_to, &other.physical_to, log);
-        }
-        if self.real_fade != other.real_fade {
-            return Self::print_structs_not_equal(&self.real_fade, &other.real_fade, log);
-        }
-        if self.real_acceleration != other.real_acceleration {
-            return Self::print_structs_not_equal(&self.real_acceleration, &other.real_acceleration, log);
-        }
-        if self.mode_from != other.mode_from {
-            return Self::print_structs_not_equal(&self.mode_from, &other.mode_from, log);
-        }
-        if self.mode_to != other.mode_to {
-            return Self::print_structs_not_equal(&self.mode_to, &other.mode_to, log);
-        }
-        self.wheel.is_eq_allow_empty(&other.wheel, log) &&
-            self.emitter.is_eq_allow_empty(&other.emitter, log) &&
-            self.filter.is_eq_allow_empty(&other.filter, log) &&
-            self.mode_master.is_eq_allow_empty(&other.mode_master, log) &&
-            self.name.is_eq_allow_empty(&other.name, log) &&
-            self.attribute.is_eq_allow_empty(&other.attribute, log) &&
-            ChannelSet::is_vec_eq_unordered(&self.channel_sets, &other.channel_sets, log)
-    }
-}
-
-
-#[cfg(test)]
-impl TestDeparseSingle for ChannelFunction {
-    fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name.is_eq_allow_empty(&compare.name, false)
-    }
-}
-
+impl TestDeparseSingle for ChannelFunction {}
 
 #[cfg(test)]
 mod tests {

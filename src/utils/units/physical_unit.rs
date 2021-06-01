@@ -3,7 +3,7 @@
 
 
 ///Physical Unit representation used in GDTF
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum PhysicalUnit {
     None,
     Percent,
@@ -78,146 +78,6 @@ impl From<&str> for PhysicalUnit {
     }
 }
 
-#[cfg(test)]
-impl PartialEq for PhysicalUnit {
-    fn eq(&self, other: &Self) -> bool {
-        use PhysicalUnit::*;
-        match self {
-            None => {
-                match other {
-                    None => true,
-                    _ => false
-                }
-            }
-            Percent => {
-                match other {
-                    Percent => true,
-                    _ => false
-                }
-            }
-            Length => {
-                match other {
-                    Length => true,
-                    _ => false
-                }
-            }
-            Mass => {
-                match other {
-                    Mass => true,
-                    _ => false
-                }
-            }
-            Time => {
-                match other {
-                    Time => true,
-                    _ => false
-                }
-            }
-            Temperature => {
-                match other {
-                    Temperature => true,
-                    _ => false
-                }
-            }
-            LuminousIntensity => {
-                match other {
-                    LuminousIntensity => true,
-                    _ => false
-                }
-            }
-            Angle => {
-                match other {
-                    Angle => true,
-                    _ => false
-                }
-            }
-            Force => {
-                match other {
-                    Force => true,
-                    _ => false
-                }
-            }
-            Frequency => {
-                match other {
-                    Frequency => true,
-                    _ => false
-                }
-            }
-            Current => {
-                match other {
-                    Current => true,
-                    _ => false
-                }
-            }
-            Voltage => {
-                match other {
-                    Voltage => true,
-                    _ => false
-                }
-            }
-            Power => {
-                match other {
-                    Power => true,
-                    _ => false
-                }
-            }
-            Energy => {
-                match other {
-                    Energy => true,
-                    _ => false
-                }
-            }
-            Area => {
-                match other {
-                    Area => true,
-                    _ => false
-                }
-            }
-            Volume => {
-                match other {
-                    Volume => true,
-                    _ => false
-                }
-            }
-            Speed => {
-                match other {
-                    Speed => true,
-                    _ => false
-                }
-            }
-            Acceleration => {
-                match other {
-                    Acceleration => true,
-                    _ => false
-                }
-            }
-            AngularSpeed => {
-                match other {
-                    AngularSpeed => true,
-                    _ => false
-                }
-            }
-            AngularAccc => {
-                match other {
-                    AngularAccc => true,
-                    _ => false
-                }
-            }
-            WaveLength => {
-                match other {
-                    WaveLength => true,
-                    _ => false
-                }
-            }
-            ColorComponent => {
-                match other {
-                    ColorComponent => true,
-                    _ => false
-                }
-            }
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -257,5 +117,4 @@ mod tests {
             PhysicalUnit::try_from("").unwrap()
         );
     }
-
 }

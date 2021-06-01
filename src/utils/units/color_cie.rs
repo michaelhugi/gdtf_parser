@@ -8,11 +8,8 @@ use std::str::FromStr;
 
 use quick_xml::events::attributes::Attribute;
 
-#[cfg(test)]
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
-
 ///CIE color representation xyY 1931 used in GDTF
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 #[allow(non_snake_case)]
 pub struct ColorCIE {
     ///x for color representation xyY 1931
@@ -57,16 +54,6 @@ impl TryFrom<&str> for ColorCIE {
     }
 }
 
-#[cfg(test)]
-impl PartialEqAllowEmpty for ColorCIE {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        if self.x != other.x || self.y != other.y || self.Y != other.Y {
-            return Self::print_structs_not_equal(self, other, log);
-        }
-        true
-    }
-}
-
 #[derive(Debug)]
 ///Error when ColorCIE could not be parsed
 pub enum GDTFColorCIEError {
@@ -100,39 +87,27 @@ mod tests {
     use std::convert::{TryFrom, TryInto};
 
     use crate::utils::errors::GdtfError;
-    use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
     use crate::utils::testdata;
     use crate::utils::units::color_cie::ColorCIE;
 
     #[test]
     fn test_try_from_str() -> Result<(), GdtfError> {
-        ColorCIE { x: 234.2, y: 123.123, Y: 123. }.assert_eq_allow_empty(&ColorCIE::try_from("234.2,123.123,123.000")?, true);
+        assert_eq!(ColorCIE { x: 234.2, y: 123.123, Y: 123. }, ColorCIE::try_from("234.2,123.123,123.000")?);
         assert!(ColorCIE::try_from("something invalid").is_err());
         Ok(())
     }
 
     #[test]
     fn test_try_from_attr_borrowed() -> Result<(), GdtfError> {
-        ColorCIE { x: 234.2, y: 123.123, Y: 123. }.assert_eq_allow_empty(&testdata::to_attr_borrowed(b"234.2,123.123,123.000").try_into()?, true);
+        assert_eq!(ColorCIE { x: 234.2, y: 123.123, Y: 123. }, testdata::to_attr_borrowed(b"234.2,123.123,123.000").try_into()?);
         assert!(ColorCIE::try_from(testdata::to_attr_borrowed(b"Something invalid")).is_err());
         Ok(())
     }
 
     #[test]
     fn test_try_from_attr_owned() -> Result<(), GdtfError> {
-        ColorCIE { x: 234.2, y: 123.123, Y: 123. }.assert_eq_allow_empty(&testdata::to_attr_owned(b"234.2,123.123,123.000").try_into()?, true);
+        assert_eq!(ColorCIE { x: 234.2, y: 123.123, Y: 123. }, testdata::to_attr_owned(b"234.2,123.123,123.000").try_into()?);
         assert!(ColorCIE::try_from(testdata::to_attr_owned(b"Something invalid")).is_err());
-        Ok(())
-    }
-
-
-    #[test]
-    #[allow(non_snake_case)]
-    fn test_partial_eq_allow_empty() -> Result<(), GdtfError> {
-        assert!(!ColorCIE::try_from("1.0,1.0,1.0")?.is_eq_allow_empty(&ColorCIE::try_from("2.0,1.0,1.0")?, false));
-        assert!(!ColorCIE::try_from("1.0,1.0,1.0")?.is_eq_allow_empty(&ColorCIE::try_from("1.0,2.0,1.0")?, false));
-        assert!(!ColorCIE::try_from("1.0,1.0,1.0")?.is_eq_allow_empty(&ColorCIE::try_from("1.0,1.0,2.0")?, false));
-        assert!(ColorCIE::try_from("1.0,1.0,1.0")?.is_eq_allow_empty(&ColorCIE::try_from("1.0,1.0,1.0")?, true));
         Ok(())
     }
 }

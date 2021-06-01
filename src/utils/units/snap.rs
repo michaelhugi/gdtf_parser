@@ -3,7 +3,7 @@
 
 
 ///Snap representation for logicalChannel used in GDTF
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Snap {
     No,
     Yes,
@@ -26,39 +26,6 @@ impl From<&str> for Snap {
             "On" => On,
             "Off" => Off,
             _ => No
-        }
-    }
-}
-
-#[cfg(test)]
-impl PartialEq for Snap {
-    fn eq(&self, other: &Self) -> bool {
-        use Snap::*;
-        match self {
-            No => {
-                match other {
-                    No => true,
-                    _ => false
-                }
-            }
-            Yes => {
-                match other {
-                    Yes => true,
-                    _ => false
-                }
-            }
-            On => {
-                match other {
-                    On => true,
-                    _ => false
-                }
-            }
-            Off => {
-                match other {
-                    Off => true,
-                    _ => false
-                }
-            }
         }
     }
 }

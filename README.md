@@ -21,43 +21,41 @@
 ```rust
  use std::convert::TryFrom;
  use std::path::Path;
+ use gdtf_parser::GDTF;
+ use gdtf_parser::utils::errors::GdtfError;
+ use gdtf_parser::utils::units::data_version::DataVersion;
+ use gdtf_parser::utils::units::name::Name;
+ use gdtf_parser::utils::units::color_cie::ColorCIE;
 
- use crate::GDTF;
- use crate::utils::errors::GdtfError;
-
- fn main() {
-    let path: &Path = Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf");
-
-    let gdtf: Result<GDTF, GdtfError> = GDTF::try_from(path);
-        match gdtf {
-            Ok(gdtf) => {
-                println!("The fixture's name is {:?} from the manufacturer {:?}.\n GDTF version is {:?}", gdtf.fixture_type.name, gdtf.fixture_type.manufacturer, gdtf.data_version)
-            }
-            Err(_) => panic!("Some error occured during parsing gdtf"),
-        }
+ fn main() -> Result<(),GdtfError>{
+     let path: &Path = Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf");
+     let gdtf:GDTF =  GDTF::try_from(path)?;
+     assert_eq!(gdtf.data_version, DataVersion::Version1_0);
+     assert_eq!(gdtf.fixture_type.name, Name::new("ACME AE-610 BEAM")?);
+     assert_eq!(gdtf.fixture_type.attribute_definitions.attributes.get(18).unwrap().color.unwrap(), ColorCIE{x:0.3127, y:0.329, Y:100.0});
+     Ok(())
  }
  ```
 
  ### Example try into
 
  ```rust
- use std::convert::TryInto;
- use std::path::Path;
+use std::convert::TryInto;
+use std::path::Path;
+use gdtf_parser::GDTF;
+use gdtf_parser::utils::errors::GdtfError;
+use gdtf_parser::utils::units::data_version::DataVersion;
+use gdtf_parser::utils::units::color_cie::ColorCIE;
+use gdtf_parser::utils::units::name::Name;
 
- use crate::GDTF;
- use crate::utils::errors::GdtfError;
-
- #[test]
- fn test_try_from() {
+#[test]
+fn test_try_from() -> Result<(),GdtfError> {
      let path: &Path = Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf");
-
-     let gdtf: Result<GDTF, GdtfError> = path.try_into();
-     match gdtf {
-         Ok(gdtf) => {
-             println!("The fixture's name is {:?} from the manufacturer {:?}.\n GDTF version is {:?}", gdtf.fixture_type.name, gdtf.fixture_type.manufacturer, gdtf.data_version)
-         }
-         Err(_) => panic!("Some error occured during parsing gdtf"),
-     }
- }
+     let gdtf:GDTF =  path.try_into()?;
+     assert_eq!(gdtf.data_version, DataVersion::Version1_0);
+     assert_eq!(gdtf.fixture_type.name, Name::new("ACME AE-610 BEAM")?);
+     assert_eq!(gdtf.fixture_type.attribute_definitions.attributes.get(18).unwrap().color.unwrap(), ColorCIE{x:0.3127, y:0.329, Y:100.0});
+     Ok(())
+}
  ```
 

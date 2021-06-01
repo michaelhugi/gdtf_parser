@@ -9,14 +9,12 @@ use crate::utils::deparse::TestDeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseVec;
 use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::name::Name;
 
 pub mod feature;
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FeatureGroup {
     pub name: Name,
     pub pretty: String,
@@ -79,34 +77,17 @@ impl DeparseSingle for FeatureGroup {
     }
 }
 
-#[cfg(test)]
-impl PartialEqAllowEmpty for FeatureGroup {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        if !self.name.is_eq_allow_empty(&other.name, log) {
-            return Self::print_structs_not_equal(&self.name, &other.name, log);
-        }
-        if self.pretty != other.pretty {
-            return Self::print_structs_not_equal(&self.pretty, &other.pretty, log);
-        }
-        Feature::is_vec_eq_unordered(&self.features, &other.features, log)
-    }
-}
-
-#[cfg(test)]
-impl TestDeparseSingle for FeatureGroup {
-    fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name.is_eq_allow_empty(&compare.name, false)
-    }
-}
-
-#[cfg(test)]
-impl TestDeparseVec for FeatureGroup {}
-
 impl DeparseVec for FeatureGroup {
     fn is_group_event_name(event_name: &[u8]) -> bool {
         event_name == b"FeatureGroups"
     }
 }
+
+#[cfg(test)]
+impl TestDeparseSingle for FeatureGroup {}
+
+#[cfg(test)]
+impl TestDeparseVec for FeatureGroup {}
 
 #[cfg(test)]
 mod tests {

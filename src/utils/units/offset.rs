@@ -6,7 +6,7 @@
 use std::str::FromStr;
 
 ///Offset used for DMXChannel in GDTF
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Offset {
     ///Relative addresses of the current DMX channel from highest to least significant
     Value(Vec<u32>),
@@ -34,23 +34,6 @@ impl From<&str> for Offset {
             }
         }
         Value(v)
-    }
-}
-
-#[cfg(test)]
-impl PartialEq for Offset {
-    fn eq(&self, other: &Self) -> bool {
-        use Offset::*;
-        match self {
-            Value(one) => match other {
-                Value(two) => one == two,
-                _ => false
-            },
-            None => match other {
-                None => true,
-                _ => false
-            }
-        }
     }
 }
 
@@ -124,5 +107,4 @@ mod tests {
             Offset::try_from(",1,3,").unwrap()
         );
     }
-
 }

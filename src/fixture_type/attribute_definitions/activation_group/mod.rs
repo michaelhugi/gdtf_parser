@@ -5,11 +5,9 @@ use crate::utils::deparse::{DeparseSingle, DeparseVec};
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::name::Name;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ActivationGroup {
     pub name: Name,
 }
@@ -43,26 +41,13 @@ impl DeparseSingle for ActivationGroup {
     }
 }
 
-#[cfg(test)]
-impl PartialEqAllowEmpty for ActivationGroup {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        self.name.is_eq_allow_empty(&other.name, log)
-    }
-}
-
-#[cfg(test)]
-impl TestDeparseSingle for ActivationGroup {
-    fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name.is_eq_allow_empty(&compare.name, false)
-    }
-}
-
 impl DeparseVec for ActivationGroup {
     fn is_group_event_name(event_name: &[u8]) -> bool {
         event_name == b"ActivationGroups"
     }
 }
-
+#[cfg(test)]
+impl TestDeparseSingle for ActivationGroup {}
 
 #[cfg(test)]
 mod tests {

@@ -9,7 +9,7 @@ use std::str::{FromStr, Utf8Error};
 use quick_xml::events::attributes::Attribute;
 
 ///Date representation used in GDTF
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Date {
     pub year: u16,
     pub month: u8,
@@ -60,17 +60,6 @@ impl TryFrom<Attribute<'_>> for Date {
     }
 }
 
-#[cfg(test)]
-impl PartialEq for Date {
-    fn eq(&self, other: &Self) -> bool {
-        self.year == other.year &&
-            self.month == other.month &&
-            self.day == other.day &&
-            self.hour == other.hour &&
-            self.minute == other.minute &&
-            self.second == other.second
-    }
-}
 
 #[derive(Debug)]
 /// Error that occures if the format of Date is wrong e.q. not yyyy-mm-ddThh:mm:ss
@@ -163,25 +152,5 @@ mod tests {
         assert!(Date::try_from(testdata::to_attr_borrowed(b"")).is_err());
         assert!(Date::try_from(testdata::to_attr_borrowed(b"2021-05-16T17:4112")).is_err());
         assert!(Date::try_from(testdata::to_attr_borrowed(b"2021-05-16T1741:12")).is_err());
-    }
-
-    #[test]
-    fn test_partial_eq() {
-        assert_eq!(Date { year: 2021, month: 5, day: 16, hour: 17, minute: 41, second: 12 },
-                   Date { year: 2021, month: 5, day: 16, hour: 17, minute: 41, second: 12 });
-        assert_eq!(Date { year: 2, month: 5, day: 3, hour: 1, minute: 4, second: 07 },
-                   Date { year: 2, month: 5, day: 3, hour: 1, minute: 4, second: 07 });
-        assert_ne!(Date { year: 2, month: 5, day: 3, hour: 1, minute: 4, second: 07 },
-                   Date { year: 1, month: 5, day: 3, hour: 1, minute: 4, second: 07 });
-        assert_ne!(Date { year: 2, month: 5, day: 3, hour: 1, minute: 4, second: 07 },
-                   Date { year: 2, month: 6, day: 3, hour: 1, minute: 4, second: 07 });
-        assert_ne!(Date { year: 2, month: 5, day: 3, hour: 1, minute: 4, second: 07 },
-                   Date { year: 2, month: 5, day: 4, hour: 1, minute: 4, second: 07 });
-        assert_ne!(Date { year: 2, month: 5, day: 3, hour: 1, minute: 4, second: 07 },
-                   Date { year: 2, month: 5, day: 3, hour: 3, minute: 4, second: 07 });
-        assert_ne!(Date { year: 2, month: 5, day: 3, hour: 1, minute: 4, second: 07 },
-                   Date { year: 2, month: 5, day: 3, hour: 1, minute: 1, second: 07 });
-        assert_ne!(Date { year: 2, month: 5, day: 3, hour: 1, minute: 4, second: 07 },
-                   Date { year: 2, month: 5, day: 3, hour: 1, minute: 4, second: 12 });
     }
 }

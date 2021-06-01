@@ -2,11 +2,10 @@
 //! Module for the unit Master for LogicalChannel used in GDTF
 use std::borrow::Borrow;
 
-
 use quick_xml::events::attributes::Attribute;
 
 ///Master representation for logicalChannel used in GDTF
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Master {
     None,
     Grand,
@@ -44,19 +43,6 @@ impl From<Attribute<'_>> for Master {
 }
 
 #[cfg(test)]
-impl PartialEq for Master {
-    fn eq(&self, other: &Self) -> bool {
-        use Master::*;
-        match self {
-            None => if let None = other { true } else { false }
-            Grand => if let Grand = other { true } else { false }
-            Group => if let Group = other { true } else { false }
-        }
-    }
-}
-
-
-#[cfg(test)]
 mod tests {
     use crate::utils::testdata;
     use crate::utils::units::master::Master;
@@ -88,19 +74,5 @@ mod tests {
         assert_eq!(Master::Group, testdata::to_attr_borrowed(b"Group").into());
         assert_eq!(Master::None, testdata::to_attr_borrowed(b"None").into());
         assert_eq!(Master::default(), testdata::to_attr_borrowed(b"Something else").into());
-    }
-
-    #[test]
-    fn test_partial_eq() {
-        assert_eq!(Master::Grand, Master::Grand);
-        assert_eq!(Master::Group, Master::Group);
-        assert_eq!(Master::None, Master::None);
-
-        assert_ne!(Master::Grand, Master::Group);
-        assert_ne!(Master::Grand, Master::None);
-        assert_ne!(Master::Group, Master::Grand);
-        assert_ne!(Master::Group, Master::None);
-        assert_ne!(Master::None, Master::Grand);
-        assert_ne!(Master::None, Master::Group);
     }
 }

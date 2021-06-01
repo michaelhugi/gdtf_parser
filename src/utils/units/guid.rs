@@ -44,7 +44,7 @@ const CHAR_E_AS_U8: u8 = 0x45;
 const CHAR_F_AS_U8: u8 = 0x46;
 
 ///GUID representation used in GDTF
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum GUID {
     ///The bytes value of the GUID
     GUID([u8; 16]),
@@ -155,15 +155,6 @@ fn pop_last_byte(vec: &mut Vec<u8>) -> Result<u8, GDTFGUIDError> {
     hexcharbytes_to_byte(first, second)
 }
 
-///Says if thwo GUIDs contain the same value if some value is contained. If the GUID is Empty, the result will always be false
-impl PartialEq for GUID {
-    fn eq(&self, other: &Self) -> bool {
-        match self {
-            GUID::GUID(v1) => if let GUID::GUID(v2) = other { v1 == v2 } else { false }
-            GUID::Empty => false
-        }
-    }
-}
 
 impl GUID {
     ///Returns the GUID as a string in format  XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format or "" if GUID is empty
@@ -702,20 +693,9 @@ mod tests {
     }
 
     #[test]
-    fn test_partial_eq_empty() {
-        assert_ne!(GUID::Empty, GUID::Empty);
-    }
-
-    #[test]
     fn test_partial_ne() {
         assert_ne!(GUID::GUID([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]), GUID::GUID([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 123, 81]));
     }
-
-    #[test]
-    fn test_partial_eq() {
-        assert_eq!(GUID::GUID([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]), GUID::GUID([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]));
-    }
-
 
     #[cfg(test)]
     ///Deparsed by Rust is slower but needed in this context so code is not tested with itself

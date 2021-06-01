@@ -7,15 +7,15 @@ use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::deparse;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
-use crate::utils::errors::GdtfError;
 #[cfg(test)]
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
+use crate::utils::deparse::TestDeparseVec;
+use crate::utils::errors::GdtfError;
 use crate::utils::units::attribute_name::AttributeName;
 use crate::utils::units::color_cie::ColorCIE;
 use crate::utils::units::physical_unit::PhysicalUnit;
 
 ///Describes a singular mutual exclusive control function
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Attribute {
     pub name: AttributeName,
     pub pretty: String,
@@ -71,39 +71,17 @@ impl DeparseSingle for Attribute {
     }
 }
 
-#[cfg(test)]
-impl PartialEqAllowEmpty for Attribute {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        if self.pretty != other.pretty {
-            return Self::print_structs_not_equal(&self.pretty, &other.pretty, log);
-        }
-        if self.activation_group.as_deref() != other.activation_group.as_deref() {
-            return Self::print_structs_not_equal(&self.activation_group, &other.activation_group, log);
-        }
-        if self.main_attribute.as_deref() != other.main_attribute.as_deref() {
-            return Self::print_structs_not_equal(&self.main_attribute, &other.main_attribute, log);
-        }
-        if self.physical_unit != other.physical_unit {
-            return Self::print_structs_not_equal(&self.physical_unit, &other.physical_unit, log);
-        }
-        self.name.is_eq_allow_empty(&other.name, log) &&
-            Self::is_eq_allow_option_allow_empty(&self.color, &other.color, log)
-    }
-}
-
-
-#[cfg(test)]
-impl TestDeparseSingle for Attribute {
-    fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name.is_eq_allow_empty(&compare.name, false)
-    }
-}
-
 impl DeparseVec for Attribute {
     fn is_group_event_name(event_name: &[u8]) -> bool {
         event_name == b"Attributes"
     }
 }
+
+#[cfg(test)]
+impl TestDeparseSingle for Attribute {}
+
+#[cfg(test)]
+impl TestDeparseVec for Attribute {}
 
 #[cfg(test)]
 mod tests {
@@ -136,7 +114,7 @@ mod tests {
     #[test]
     fn test_attribute_all_2() {
         Attribute {
-            name: AttributeName::Effects_n_Adjust_m_(2,4),
+            name: AttributeName::Effects_n_Adjust_m_(2, 4),
             pretty: "SoundP".to_string(),
             activation_group: Some("Gobo1".to_string()),
             feature: "Control.Control".to_string(),

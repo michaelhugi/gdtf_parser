@@ -3,13 +3,12 @@
 
 
 use std::borrow::Borrow;
-
 use std::str::FromStr;
 
 use quick_xml::events::attributes::Attribute;
 
 ///DMXBreak used for DMXChannel in GDTF
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum DMXBreak {
     ///Number of the DMXBreak; Default value: 1
     Value(u32),
@@ -42,25 +41,6 @@ impl From<Attribute<'_>> for DMXBreak {
         match std::str::from_utf8(attr.value.borrow()) {
             Ok(attr) => attr.into(),
             Err(_) => Default::default()
-        }
-    }
-}
-
-#[cfg(test)]
-impl PartialEq for DMXBreak {
-    fn eq(&self, other: &Self) -> bool {
-        use DMXBreak::*;
-        match self {
-            Value(val1) => if let Value(val2) = other {
-                val1 == val2
-            } else {
-                false
-            },
-            Overwrite => if let Overwrite = other {
-                true
-            } else {
-                false
-            }
         }
     }
 }

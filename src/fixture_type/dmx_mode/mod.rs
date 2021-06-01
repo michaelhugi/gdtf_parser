@@ -7,14 +7,12 @@ use crate::utils::deparse::{DeparseSingle, DeparseVec};
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::name::Name;
 
 pub mod dmx_channel;
 
 ///Each DMX mode describes logical control a part of the device in a specific mode
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct DMXMode {
     ///The unique name of the DMX mode
     pub name: Name,
@@ -83,30 +81,14 @@ impl DeparseSingle for DMXMode {
     }
 }
 
-#[cfg(test)]
-impl PartialEqAllowEmpty for DMXMode {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        self.name.is_eq_allow_empty(&other.name, log) &&
-            self.geometry.is_eq_allow_empty(&other.geometry, log) &&
-            DMXChannel::is_vec_eq_unordered(&self.dmx_channels, &other.dmx_channels, log)
-        //TODO add todo fields
-    }
-}
-
-#[cfg(test)]
-impl TestDeparseSingle for DMXMode {
-    fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name.is_eq_allow_empty(&compare.name, false)
-    }
-}
-
-
 impl DeparseVec for DMXMode {
     fn is_group_event_name(event_name: &[u8]) -> bool {
         event_name == b"DMXModes"
     }
 }
 
+#[cfg(test)]
+impl TestDeparseSingle for DMXMode {}
 
 #[cfg(test)]
 mod tests {

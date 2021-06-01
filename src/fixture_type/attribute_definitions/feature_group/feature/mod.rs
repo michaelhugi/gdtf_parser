@@ -5,11 +5,9 @@ use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::name::Name;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Feature {
     pub name: Name,
 }
@@ -40,21 +38,8 @@ impl DeparseSingle for Feature {
         "Feature".to_string()
     }
 }
-
 #[cfg(test)]
-impl PartialEqAllowEmpty for Feature {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        self.name.is_eq_allow_empty(&other.name, log)
-    }
-}
-
-#[cfg(test)]
-impl TestDeparseSingle for Feature {
-    fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name.is_eq_allow_empty(&compare.name, false)
-    }
-}
-
+impl TestDeparseSingle for Feature {}
 
 #[cfg(test)]
 mod tests {

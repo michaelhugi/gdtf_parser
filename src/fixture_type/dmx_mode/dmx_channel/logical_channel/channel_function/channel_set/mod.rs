@@ -8,12 +8,10 @@ use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::dmx_value::DMXValue;
 use crate::utils::units::name::Name;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ChannelSet {
     pub name: Name,
     pub dmx_from: DMXValue,
@@ -63,31 +61,7 @@ impl DeparseSingle for ChannelSet {
 }
 
 #[cfg(test)]
-impl PartialEqAllowEmpty for ChannelSet {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        if self.dmx_from != other.dmx_from {
-            return Self::print_structs_not_equal(&self.dmx_from, &other.dmx_from, log);
-        }
-        if self.physical_from != other.physical_from {
-            return Self::print_structs_not_equal(&self.physical_from, &other.physical_from, log);
-        }
-        if self.physical_to != other.physical_to {
-            return Self::print_structs_not_equal(&self.physical_to, &other.physical_to, log);
-        }
-        if self.wheel_slot_index != other.wheel_slot_index {
-            return Self::print_structs_not_equal(&self.wheel_slot_index, &other.wheel_slot_index, log);
-        }
-        self.name.is_eq_allow_empty(&other.name, log)
-    }
-}
-
-
-#[cfg(test)]
-impl TestDeparseSingle for ChannelSet {
-    fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.name.is_eq_allow_empty(&compare.name, false)
-    }
-}
+impl TestDeparseSingle for ChannelSet {}
 
 #[cfg(test)]
 mod tests {

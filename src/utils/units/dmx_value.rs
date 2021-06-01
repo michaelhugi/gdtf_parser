@@ -3,14 +3,13 @@
 use std::borrow::Borrow;
 use std::convert::{TryFrom, TryInto};
 use std::error::Error;
-
+use std::fmt::{Display, Formatter};
 use std::str::{FromStr, Utf8Error};
 
 use quick_xml::events::attributes::Attribute;
-use std::fmt::{Display, Formatter};
 
 ///DMXValue used in GDTF
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 #[allow(non_snake_case)]
 pub struct DMXValue {
     ///The initial value without byte shift
@@ -68,13 +67,6 @@ impl Error for GDTFDmxValueError {}
 impl From<Utf8Error> for GDTFDmxValueError {
     fn from(_: Utf8Error) -> Self {
         GDTFDmxValueError {}
-    }
-}
-
-#[cfg(test)]
-impl PartialEq for DMXValue {
-    fn eq(&self, other: &Self) -> bool {
-        self.is_byte_shifting == other.is_byte_shifting && self.initial_value == other.initial_value && self.n == other.n
     }
 }
 

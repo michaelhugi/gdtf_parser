@@ -5,13 +5,12 @@
 use std::borrow::Borrow;
 use std::convert::TryFrom;
 
-
 use quick_xml::events::attributes::Attribute;
 
 use crate::utils::units::dmx_value::DMXValue;
 
 ///Highlight used for DMXChannel in GDTF
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Highlight {
     ///Highlight value for current channel;
     Value(DMXValue),
@@ -49,23 +48,6 @@ impl From<&str> for Highlight {
         match DMXValue::try_from(s) {
             Ok(s) => Highlight::Value(s),
             Err(_) => Highlight::default()
-        }
-    }
-}
-
-#[cfg(test)]
-impl PartialEq for Highlight {
-    fn eq(&self, other: &Self) -> bool {
-        use Highlight::*;
-        match self {
-            Value(one) => match other {
-                Value(two) => one == two,
-                _ => false
-            },
-            None => match other {
-                None => true,
-                _ => false
-            }
         }
     }
 }
@@ -187,22 +169,5 @@ mod tests {
             Highlight::default(),
             testdata::to_attr_borrowed(b"something else").into()
         );
-    }
-
-    #[test]
-    fn test_partial_eq() {
-        assert_eq!(Highlight::Value(DMXValue { initial_value: 12, n: 3, is_byte_shifting: false }),
-                   Highlight::Value(DMXValue { initial_value: 12, n: 3, is_byte_shifting: false }));
-        assert_eq!(Highlight::None, Highlight::None);
-        assert_ne!(Highlight::Value(DMXValue { initial_value: 12, n: 3, is_byte_shifting: false }),
-                   Highlight::None);
-        assert_ne!(Highlight::None,
-                   Highlight::Value(DMXValue { initial_value: 12, n: 3, is_byte_shifting: false }));
-        assert_ne!(Highlight::Value(DMXValue { initial_value: 12, n: 3, is_byte_shifting: false }),
-                   Highlight::Value(DMXValue { initial_value: 14, n: 3, is_byte_shifting: false }));
-        assert_ne!(Highlight::Value(DMXValue { initial_value: 12, n: 3, is_byte_shifting: false }),
-                   Highlight::Value(DMXValue { initial_value: 12, n: 1, is_byte_shifting: false }));
-        assert_ne!(Highlight::Value(DMXValue { initial_value: 12, n: 3, is_byte_shifting: false }),
-                   Highlight::Value(DMXValue { initial_value: 12, n: 3, is_byte_shifting: true }));
     }
 }

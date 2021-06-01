@@ -9,15 +9,13 @@ use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXMLError;
-#[cfg(test)]
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 
 pub mod feature_group;
 pub mod attribute;
 pub mod activation_group;
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct AttributeDefinitions {
     pub feature_groups: Vec<FeatureGroup>,
     pub attributes: Vec<Attribute>,
@@ -72,20 +70,7 @@ impl DeparseSingle for AttributeDefinitions {
 }
 
 #[cfg(test)]
-impl PartialEqAllowEmpty for AttributeDefinitions {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        FeatureGroup::is_vec_eq_unordered(&self.feature_groups, &other.feature_groups, log) &&
-            Attribute::is_vec_eq_unordered(&self.attributes, &other.attributes, log) &&
-            ActivationGroup::is_vec_eq_unordered(&self.activation_groups, &other.activation_groups, log)
-    }
-}
-
-#[cfg(test)]
-impl TestDeparseSingle for AttributeDefinitions {
-    fn is_same_item_identifier(&self, _: &Self) -> bool {
-        false
-    }
-}
+impl TestDeparseSingle for AttributeDefinitions {}
 
 #[cfg(test)]
 mod tests {

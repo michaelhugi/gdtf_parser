@@ -10,8 +10,6 @@ use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXMLError;
-#[cfg(test)]
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::guid::GUID;
 use crate::utils::units::name::Name;
 
@@ -19,7 +17,7 @@ pub mod attribute_definitions;
 pub mod dmx_mode;
 
 ///The FixtureType node_2 is the starting point of the description of the fixture type
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FixtureType {
     ///Name of the fixture type.
     pub name: Name,
@@ -56,7 +54,6 @@ pub struct FixtureType {
     //Specifies supported protocols.
     //pub protocols: Option<Protocols>,
 }
-
 
 impl DeparseSingle for FixtureType {
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
@@ -150,40 +147,7 @@ impl DeparseSingle for FixtureType {
 }
 
 #[cfg(test)]
-impl PartialEqAllowEmpty for FixtureType {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        if self.short_name != other.short_name {
-            return Self::print_structs_not_equal(&self.short_name, &other.short_name, log);
-        }
-        if self.long_name != other.long_name {
-            return Self::print_structs_not_equal(&self.long_name, &other.long_name, log);
-        }
-        if self.manufacturer != other.manufacturer {
-            return Self::print_structs_not_equal(&self.manufacturer, &other.manufacturer, log);
-        }
-        if self.description != other.description {
-            return Self::print_structs_not_equal(&self.description, &other.description, log);
-        }
-        if self.fixture_type_id != other.fixture_type_id {
-            return Self::print_structs_not_equal(&self.fixture_type_id, &other.fixture_type_id, log);
-        }
-        if self.thumbnail != other.thumbnail {
-            return Self::print_structs_not_equal(&self.thumbnail, &other.thumbnail, log);
-        }
-        if self.ref_ft != other.ref_ft {
-            return Self::print_structs_not_equal(&self.ref_ft, &other.ref_ft, log);
-        }
-        self.attribute_definitions.is_eq_allow_empty(&other.attribute_definitions, log) &&
-            self.name.is_eq_allow_empty(&other.name, log)
-    }
-}
-
-#[cfg(test)]
-impl TestDeparseSingle for FixtureType {
-    fn is_same_item_identifier(&self, _: &Self) -> bool {
-        false
-    }
-}
+impl TestDeparseSingle for FixtureType {}
 
 #[cfg(test)]
 mod tests {
@@ -194,8 +158,10 @@ mod tests {
     use crate::fixture_type::attribute_definitions::AttributeDefinitions;
     use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
+    use crate::fixture_type::dmx_mode::DMXMode;
     use crate::fixture_type::FixtureType;
     use crate::utils::deparse::TestDeparseSingle;
+    use crate::utils::units::name::Name;
     use crate::utils::units::physical_unit::PhysicalUnit;
 
     #[test]
@@ -230,7 +196,12 @@ mod tests {
                     color: None,
                 }],
             },
-            dmx_modes: vec![],
+            dmx_modes: vec![DMXMode {
+                name: Name::new_unchecked("Mode 1 12 DMX"),
+                geometry: Name::new_unchecked("Base"),
+                dmx_channels: vec![],
+            }],
+
         }.test(
             r#"
         <FixtureType Description="ACME AE-610 BEAM" FixtureTypeID="E62F2ECF-2A08-491D-BEEC-F5C491B89784" LongName="ACME AE 610 BEAM" Manufacturer="ACME" Name="ACME AE-610 BEAM" RefFT="8F54E11C-4C91-11E9-80BC-F1DFE217E634" ShortName="ACME AE 610 BEAM" Thumbnail="AE-610 BEAM">
@@ -250,10 +221,7 @@ mod tests {
             <DMXModes>
                 <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
                     <DMXChannels>
-                        <DMXChannel DMXBreak="Overwrite" Default="32768/2" Geometry="Yoke" Highlight="None" Offset="1,2">
-                    </DMXChannel>
-                    <DMXChannel DMXBreak="1" Default="32767/2" Geometry="Head" Highlight="None" Offset="3,4">
-                    </DMXChannel>
+
                     </DMXChannels>
                 </DMXMode>
             </DMXModes>

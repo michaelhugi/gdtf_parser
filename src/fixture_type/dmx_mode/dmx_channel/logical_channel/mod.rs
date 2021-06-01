@@ -8,8 +8,6 @@ use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::master::Master;
 use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
 use crate::utils::units::snap::Snap;
@@ -17,7 +15,7 @@ use crate::utils::units::snap::Snap;
 pub mod channel_function;
 
 ///The Fixture Type Attribute is assinged to a LogicalChannel and defines the function of the LogicalChannel. All logical channels that are children of the same DMX channel are mutually exclusive. In a DMX mode, only one logical channel with the same attribute can reference the same geometry at a time.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct LogicalChannel {
     ///Link to the attribute; The starting point is the Attribute Collect
     pub attribute: NodeLogicalChannelAttribute,
@@ -102,32 +100,7 @@ impl DeparseSingle for LogicalChannel {
 }
 
 #[cfg(test)]
-impl PartialEqAllowEmpty for LogicalChannel {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        if self.snap != other.snap {
-            return Self::print_structs_not_equal(&self.snap, &other.snap, log);
-        }
-        if self.master != other.master {
-            return Self::print_structs_not_equal(&self.master, &other.master, log);
-        }
-        if self.mib_fade != other.mib_fade {
-            return Self::print_structs_not_equal(&self.mib_fade, &other.mib_fade, log);
-        }
-        if self.dmx_change_time_limit != other.dmx_change_time_limit {
-            return Self::print_structs_not_equal(&self.dmx_change_time_limit, &other.dmx_change_time_limit, log);
-        }
-        self.attribute.is_eq_allow_empty(&other.attribute, log) &&
-            ChannelFunction::is_vec_eq_unordered(&self.channel_functions, &other.channel_functions, log)
-    }
-}
-
-
-#[cfg(test)]
-impl TestDeparseSingle for LogicalChannel {
-    fn is_same_item_identifier(&self, other: &Self) -> bool {
-        self.is_eq_allow_empty(other, false)
-    }
-}
+impl TestDeparseSingle for LogicalChannel {}
 
 #[cfg(test)]
 mod tests {

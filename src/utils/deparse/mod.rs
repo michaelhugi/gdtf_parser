@@ -10,8 +10,6 @@ use quick_xml::events::Event;
 use quick_xml::Reader;
 
 use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::name::Name;
 
 pub(crate) trait DeparseSingle: std::fmt::Debug + Sized {
@@ -23,7 +21,7 @@ pub(crate) trait DeparseSingle: std::fmt::Debug + Sized {
 }
 
 #[cfg(test)]
-pub(crate) trait TestDeparseSingle: Debug + Sized + PartialEqAllowEmpty + DeparseSingle {
+pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSingle {
     fn single_from_reader(reader: &mut Reader<&[u8]>) -> Result<Self, GdtfError> {
         reader.trim_text(true);
 
@@ -58,43 +56,14 @@ pub(crate) trait TestDeparseSingle: Debug + Sized + PartialEqAllowEmpty + Depars
         let mut reader = Reader::from_str(xml);
         Self::single_from_reader(&mut reader)
     }
+
     fn test(&self, xml: &str) {
         self.test_with_result(Self::single_from_xml(xml));
     }
 
     fn test_with_result(&self, other: Result<Self, GdtfError>) {
         let other = other.expect(&format!("Unexpected error in test of {}", Self::single_event_name())[..]);
-        self.assert_eq_allow_empty(&other, true);
-    }
-
-    fn is_same_item_identifier(&self, compare: &Self) -> bool;
-
-    ///Says if two vecs have the same items compared with PartialEqAllowEmpty where the order does not matter
-    fn is_vec_eq_unordered(one: &Vec<Self>, two: &Vec<Self>, log: bool) -> bool {
-        if one.len() != two.len() {
-            println!("Testing {} for is_vec_eq_unordered returned not the same amount of items", std::any::type_name::<Self>());
-            return false;
-        }
-        for one_item in &mut one.iter() {
-            let mut t = one_item.clone();
-            let mut item_found = false;
-
-            for tw in two.iter() {
-                if one_item.is_same_item_identifier(tw) {
-                    t = tw;
-                    item_found = true;
-                }
-            }
-            if !item_found {
-                println!("Structs were not equal. Didn't find matching item in vec for\n{:?}", one_item);
-                return Self::print_structs_not_equal(one, two, log);
-            }
-
-            if !one_item.is_eq_allow_empty(t, log) {
-                return false;
-            }
-        }
-        true
+        assert_eq!(self, &other);
     }
 }
 
@@ -178,7 +147,7 @@ pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
     fn test_group(one: Vec<Self>, xml: &str) where Self: Sized {
         let two = Self::vec_from_xml(xml);
         let two = two.expect(&format!("Testing {} for list raised an unexpected error", std::any::type_name::<Self>())[..]);
-        assert!(Self::is_vec_eq_unordered(&one, &two, true));
+        assert_eq!(one, two)
     }
 }
 

@@ -8,8 +8,6 @@ use crate::utils::deparse::{DeparseSingle, DeparseVec};
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-#[cfg(test)]
-use crate::utils::partial_eq_allow_empty::PartialEqAllowEmpty;
 use crate::utils::units::dmx_break::DMXBreak;
 use crate::utils::units::highlight::Highlight;
 use crate::utils::units::name::Name;
@@ -19,7 +17,7 @@ use crate::utils::units::offset::Offset;
 pub mod logical_channel;
 
 ///This section defines the DMX channe
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct DMXChannel {
     ///Number of the DMXBreak; Default value: 1; Special value: “Overwrite” – means that this number will be overwritten by Geometry Reference; Size: 4 bytes
     pub dmx_break: DMXBreak,
@@ -103,36 +101,14 @@ impl DeparseSingle for DMXChannel {
     }
 }
 
-#[cfg(test)]
-impl PartialEqAllowEmpty for DMXChannel {
-    fn is_eq_allow_empty_impl(&self, other: &Self, log: bool) -> bool {
-        if self.dmx_break != other.dmx_break {
-            return Self::print_structs_not_equal(&self.dmx_break, &other.dmx_break, log);
-        }
-        if self.offset != other.offset {
-            return Self::print_structs_not_equal(&self.offset, &other.offset, log);
-        }
-        if self.highlight != other.highlight {
-            return Self::print_structs_not_equal(&self.highlight, &other.highlight, log);
-        }
-        self.initial_function.is_eq_allow_empty(&other.initial_function, log) &&
-            self.geometry.is_eq_allow_empty(&other.geometry, log) &&
-            LogicalChannel::is_vec_eq_unordered(&self.logical_channels, &other.logical_channels, log)
-    }
-}
-
-#[cfg(test)]
-impl TestDeparseSingle for DMXChannel {
-    fn is_same_item_identifier(&self, compare: &Self) -> bool {
-        self.is_eq_allow_empty(compare, false)
-    }
-}
-
 impl DeparseVec for DMXChannel {
     fn is_group_event_name(event_name: &[u8]) -> bool {
         event_name == b"DMXChannels"
     }
 }
+
+#[cfg(test)]
+impl TestDeparseSingle for DMXChannel {}
 
 #[cfg(test)]
 mod tests {
