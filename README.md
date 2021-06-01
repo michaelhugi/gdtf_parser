@@ -29,7 +29,7 @@
 
  fn main() -> Result<(),GdtfError>{
      let path: &Path = Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf");
-     let gdtf: GDTF =  GDTF::try_from(path)?;
+     let gdtf: GDTF = GDTF::try_from(path)?;
      assert_eq!(gdtf.data_version, DataVersion::Version1_0);
      assert_eq!(gdtf.fixture_type.name, Name::new("ACME AE-610 BEAM")?);
      assert_eq!(gdtf.fixture_type.attribute_definitions.attributes.get(18).unwrap().color.unwrap(), ColorCIE{x:0.3127, y:0.329, Y:100.0});
@@ -51,7 +51,7 @@ use gdtf_parser::utils::units::name::Name;
 #[test]
 fn test_try_from() -> Result<(),GdtfError> {
      let path: &Path = Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf");
-     let gdtf: GDTF =  path.try_into()?;
+     let gdtf: GDTF = path.try_into()?;
      assert_eq!(gdtf.data_version, DataVersion::Version1_0);
      assert_eq!(gdtf.fixture_type.name, Name::new("ACME AE-610 BEAM")?);
      assert_eq!(gdtf.fixture_type.attribute_definitions.attributes.get(18).unwrap().color.unwrap(), ColorCIE{x:0.3127, y:0.329, Y:100.0});
