@@ -1,6 +1,7 @@
 //! Contains ChannelFunction and it's children
 
 use std::convert::TryInto;
+use std::fmt::Debug;
 
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
@@ -22,7 +23,7 @@ use crate::utils::units::node::node_channel_function_wheel::NodeChannelFunctionW
 pub mod channel_set;
 
 ///The Fixture Type Attribute is assinged to a Channel Function and defines the function of its DMX Range
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ChannelFunction {
     ///Unique name; Default value: Name of attribute and number of channel function.
     pub name: Name,
@@ -71,7 +72,9 @@ const DEFAULT_DMX_DEFAULT: DMXValue = DMXValue {
 };
 
 impl DeparseSingle for ChannelFunction {
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    type PrimaryKey = ();
+
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut attribute: NodeChannelFunctionAttribute = Default::default();
@@ -123,7 +126,7 @@ impl DeparseSingle for ChannelFunction {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"ChannelSet" {
-                        channel_sets.push(ChannelSet::single_from_event(reader, e)?);
+                        channel_sets.push(ChannelSet::single_from_event(reader, e)?.0);
                     } else {
                         tree_down += 1;
                     }
@@ -142,26 +145,24 @@ impl DeparseSingle for ChannelFunction {
         }
         buf.clear();
 
-        Ok(
-            ChannelFunction {
-                name,
-                attribute,
-                original_attribute,
-                dmx_from,
-                default,
-                physical_from,
-                physical_to,
-                real_fade,
-                real_acceleration,
-                wheel,
-                emitter,
-                filter,
-                mode_master,
-                mode_from,
-                mode_to,
-                channel_sets,
-            }
-        )
+        Ok((ChannelFunction {
+            name,
+            attribute,
+            original_attribute,
+            dmx_from,
+            default,
+            physical_from,
+            physical_to,
+            real_fade,
+            real_acceleration,
+            wheel,
+            emitter,
+            filter,
+            mode_master,
+            mode_from,
+            mode_to,
+            channel_sets,
+        }, None))
     }
 
     fn is_single_event_name(event_name: &[u8]) -> bool {
@@ -230,8 +231,8 @@ mod tests {
                     wheel_slot_index: Some(0),
                 },
             ],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
             <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" ModeFrom="0/1" ModeMaster="Base_ColorMacro1" ModeTo="0/1" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
                 <ChannelSet DMXFrom="0/1" Name="min" WheelSlotIndex="0"/>
                 <ChannelSet DMXFrom="1/1" Name="" WheelSlotIndex="0"/>
@@ -260,8 +261,8 @@ mod tests {
             mode_from: Some("0/1".try_into().unwrap()),
             mode_to: Some("0/1".try_into().unwrap()),
             channel_sets: vec![],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
             <ChannelFunction Wheel="Wheel1" Emitter="Emitter1" Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" ModeFrom="0/1" ModeMaster="Base_ColorMacro1" ModeTo="0/1" Name="Magenta" OriginalAttribute="orig" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="4.001000" RealFade="3.000000">
             </ChannelFunction>
             "#);
@@ -287,8 +288,8 @@ mod tests {
             mode_from: None,
             mode_to: None,
             channel_sets: vec![],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
             <ChannelFunction Wheel="" Emitter="" Filter="" ModeFrom="" ModeMaster="" ModeTo=""  Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Name="Magenta" OriginalAttribute="orig" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="4.001000" RealFade="3.000000">
             </ChannelFunction>
             "#)
@@ -313,8 +314,8 @@ mod tests {
             mode_from: None,
             mode_to: None,
             channel_sets: vec![],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
             <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Name="Magenta" OriginalAttribute="orig" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="4.001000" RealFade="3.000000">
             </ChannelFunction>
             "#)

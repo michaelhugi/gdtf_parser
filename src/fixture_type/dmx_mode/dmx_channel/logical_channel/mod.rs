@@ -1,4 +1,6 @@
 //! Contains LogicalChannel and it's children
+use std::fmt::Debug;
+
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
@@ -15,7 +17,7 @@ use crate::utils::units::snap::Snap;
 pub mod channel_function;
 
 ///The Fixture Type Attribute is assinged to a LogicalChannel and defines the function of the LogicalChannel. All logical channels that are children of the same DMX channel are mutually exclusive. In a DMX mode, only one logical channel with the same attribute can reference the same geometry at a time.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct LogicalChannel {
     ///Link to the attribute; The starting point is the Attribute Collect
     pub attribute: NodeLogicalChannelAttribute,
@@ -32,7 +34,9 @@ pub struct LogicalChannel {
 }
 
 impl DeparseSingle for LogicalChannel {
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    type PrimaryKey = ();
+
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut attribute: NodeLogicalChannelAttribute = Default::default();
         let mut snap: Snap = Snap::default();
@@ -59,7 +63,7 @@ impl DeparseSingle for LogicalChannel {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"ChannelFunction" {
-                        channel_functions.push(ChannelFunction::single_from_event(reader, e)?);
+                        channel_functions.push(ChannelFunction::single_from_event(reader, e)?.0);
                     } else {
                         tree_down += 1;
                     }
@@ -78,7 +82,7 @@ impl DeparseSingle for LogicalChannel {
         }
         buf.clear();
 
-        Ok(
+        Ok((
             LogicalChannel {
                 attribute,
                 snap,
@@ -87,7 +91,7 @@ impl DeparseSingle for LogicalChannel {
                 dmx_change_time_limit,
                 channel_functions,
             }
-        )
+            , None))
     }
 
     fn is_single_event_name(event_name: &[u8]) -> bool {
@@ -163,8 +167,8 @@ mod tests {
                     channel_sets: vec![],
                 }
             ],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
             <LogicalChannel Attribute="ColorSub_M" DMXChangeTimeLimit="0.000000" Master="Grand" MibFade="0.100000" Snap="Yes">
               <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" ModeFrom="0/1" ModeMaster="Base_ColorMacro1" ModeTo="0/1" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
               </ChannelFunction>
@@ -220,8 +224,8 @@ mod tests {
                     channel_sets: vec![],
                 }
             ],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
             <LogicalChannel Attribute="" DMXChangeTimeLimit="" Master="" MibFade="" Snap="">
               <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" ModeFrom="0/1" ModeMaster="Base_ColorMacro1" ModeTo="0/1" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
               </ChannelFunction>

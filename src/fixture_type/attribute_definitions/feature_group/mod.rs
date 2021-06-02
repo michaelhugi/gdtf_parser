@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
@@ -14,7 +16,7 @@ use crate::utils::units::name::Name;
 pub mod feature;
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct FeatureGroup {
     pub name: Name,
     pub pretty: String,
@@ -22,7 +24,9 @@ pub struct FeatureGroup {
 }
 
 impl DeparseSingle for FeatureGroup {
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    type PrimaryKey = ();
+
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name = Default::default();
         let mut pretty = String::new();
@@ -42,7 +46,7 @@ impl DeparseSingle for FeatureGroup {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"Feature" {
-                        features.push(Feature::single_from_event(reader, e)?);
+                        features.push(Feature::single_from_event(reader, e)?.0);
                     } else {
                         tree_down += 1;
                     }
@@ -61,11 +65,11 @@ impl DeparseSingle for FeatureGroup {
         }
         buf.clear();
 
-        Ok(FeatureGroup {
+        Ok((FeatureGroup {
             name,
             pretty,
             features,
-        })
+        }, None))
     }
 
     fn is_single_event_name(event_name: &[u8]) -> bool {
@@ -104,9 +108,9 @@ mod tests {
             pretty: "PositionPretty".to_string(),
             name: "Position".try_into().unwrap(),
             features: vec![],
-        }.test(
-            r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
-              </FeatureGroup>"#
+        }.test(None,
+               r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
+              </FeatureGroup>"#,
         );
     }
 
@@ -116,9 +120,9 @@ mod tests {
             pretty: "".to_string(),
             name: "".try_into().unwrap(),
             features: vec![],
-        }.test(
-            r#"<FeatureGroup Name="" Pretty="">
-              </FeatureGroup>"#
+        }.test(None,
+               r#"<FeatureGroup Name="" Pretty="">
+              </FeatureGroup>"#,
         );
     }
 
@@ -128,8 +132,8 @@ mod tests {
             pretty: "".to_string(),
             name: "".try_into().unwrap(),
             features: vec![],
-        }.test(
-            r#"<FeatureGroup/>"#
+        }.test(None,
+               r#"<FeatureGroup/>"#,
         );
     }
 
@@ -139,10 +143,10 @@ mod tests {
             pretty: "PositionPretty".to_string(),
             name: "Position".try_into().unwrap(),
             features: vec![Feature { name: "PanTilt".try_into().unwrap() }],
-        }.test(
-            r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
+        }.test(None,
+               r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
               <Feature Name="PanTilt"/>
-              </FeatureGroup>"#
+              </FeatureGroup>"#,
         );
     }
 
@@ -152,10 +156,10 @@ mod tests {
             pretty: "".to_string(),
             name: "".try_into().unwrap(),
             features: vec![Feature { name: "".try_into().unwrap() }],
-        }.test(
-            r#"<FeatureGroup Name="" Pretty="">
+        }.test(None,
+               r#"<FeatureGroup Name="" Pretty="">
               <Feature Name=""/>
-              </FeatureGroup>"#
+              </FeatureGroup>"#,
         );
     }
 
@@ -165,10 +169,10 @@ mod tests {
             pretty: "".to_string(),
             name: "".try_into().unwrap(),
             features: vec![Feature { name: "".try_into().unwrap() }],
-        }.test(
-            r#"<FeatureGroup>
+        }.test(None,
+               r#"<FeatureGroup>
               <Feature/>
-              </FeatureGroup>"#
+              </FeatureGroup>"#,
         );
     }
 
@@ -182,11 +186,11 @@ mod tests {
                 Feature { name: "PanTilt".try_into().unwrap() },
                 Feature { name: "Other".try_into().unwrap() }
             ],
-        }.test(
-            r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
+        }.test(None,
+               r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
               <Feature Name="PanTilt"/>
               <Feature Name="Other"/>
-              </FeatureGroup>"#
+              </FeatureGroup>"#,
         );
     }
 
@@ -199,11 +203,11 @@ mod tests {
                 Feature { name: "".try_into().unwrap() },
                 Feature { name: "".try_into().unwrap() }
             ],
-        }.test(
-            r#"<FeatureGroup Name="" Pretty="">
+        }.test(None,
+               r#"<FeatureGroup Name="" Pretty="">
               <Feature Name=""/>
               <Feature Name=""/>
-              </FeatureGroup>"#
+              </FeatureGroup>"#,
         );
     }
 
@@ -216,11 +220,11 @@ mod tests {
                 Feature { name: "".try_into().unwrap() },
                 Feature { name: "".try_into().unwrap() }
             ],
-        }.test(
-            r#"<FeatureGroup>
+        }.test(None,
+               r#"<FeatureGroup>
               <Feature/>
               <Feature/>
-              </FeatureGroup>"#
+              </FeatureGroup>"#,
         );
     }
 

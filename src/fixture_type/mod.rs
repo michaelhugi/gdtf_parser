@@ -1,4 +1,6 @@
 //! Holds the GDTF FixtureType and it's children
+use std::fmt::Debug;
+
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
@@ -17,7 +19,7 @@ pub mod attribute_definitions;
 pub mod dmx_mode;
 
 ///The FixtureType node_2 is the starting point of the description of the fixture type
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct FixtureType {
     ///Name of the fixture type.
     pub name: Name,
@@ -56,7 +58,9 @@ pub struct FixtureType {
 }
 
 impl DeparseSingle for FixtureType {
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    type PrimaryKey = ();
+
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name = Name::default();
         let mut short_name = String::new();
@@ -94,7 +98,7 @@ impl DeparseSingle for FixtureType {
             match reader.read_event(&mut buf) {
                 Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
                     match e.name() {
-                        b"AttributeDefinitions" => attribute_definitions = Some(AttributeDefinitions::single_from_event(reader, e)?),
+                        b"AttributeDefinitions" => attribute_definitions = Some(AttributeDefinitions::single_from_event(reader, e)?.0),
                         b"DMXModes" => {
                             dmx_modes = Some(DMXMode::vec_from_event(reader, e)?);
                         }
@@ -123,7 +127,7 @@ impl DeparseSingle for FixtureType {
         }
         let dmx_modes = dmx_modes.unwrap();
 
-        Ok(Self {
+        Ok((Self {
             name,
             short_name,
             long_name,
@@ -134,7 +138,7 @@ impl DeparseSingle for FixtureType {
             ref_ft,
             dmx_modes,
             attribute_definitions,
-        })
+        }, None))
     }
 
     fn is_single_event_name(event_name: &[u8]) -> bool {
@@ -161,7 +165,10 @@ mod tests {
     use crate::fixture_type::dmx_mode::DMXMode;
     use crate::fixture_type::FixtureType;
     use crate::utils::deparse::TestDeparseSingle;
+    use crate::utils::testdata;
+    use crate::utils::units::attribute_name::AttributeName;
     use crate::utils::units::name::Name;
+    use crate::utils::units::node::node_attribute_feature::NodeAttributeFeature;
     use crate::utils::units::physical_unit::PhysicalUnit;
 
     #[test]
@@ -186,15 +193,15 @@ mod tests {
                         name: "PanTilt".try_into().unwrap()
                     }],
                 }],
-                attributes: vec![Attribute {
-                    activation_group: Some("PanTilt".to_string()),
-                    feature: "Position.PanTilt".to_string(),
-                    name: "Pan".try_into().unwrap(),
-                    physical_unit: PhysicalUnit::Angle,
-                    pretty: "P".to_string(),
-                    main_attribute: None,
-                    color: None,
-                }],
+                attributes: testdata::vec_to_hash_map(vec![AttributeName::Pan], vec![
+                    Attribute::new(
+                        "P",
+                        Some("PanTilt"),
+                        NodeAttributeFeature::new_from_strs_unchecked(vec!["Position", "PanTilt"]),
+                        None,
+                        PhysicalUnit::Angle,
+                        None)
+                ]),
             },
             dmx_modes: vec![DMXMode {
                 name: Name::new_unchecked("Mode 1 12 DMX"),
@@ -202,7 +209,7 @@ mod tests {
                 dmx_channels: vec![],
             }],
 
-        }.test(
+        }.test(None,
             r#"
         <FixtureType Description="ACME AE-610 BEAM" FixtureTypeID="E62F2ECF-2A08-491D-BEEC-F5C491B89784" LongName="ACME AE 610 BEAM" Manufacturer="ACME" Name="ACME AE-610 BEAM" RefFT="8F54E11C-4C91-11E9-80BC-F1DFE217E634" ShortName="ACME AE 610 BEAM" Thumbnail="AE-610 BEAM">
             <AttributeDefinitions>

@@ -7,7 +7,7 @@ use quick_xml::events::attributes::Attribute;
 use crate::utils::units::attribute_name::AttributeName;
 use crate::utils::units::node::{GDTFNodeError, Node};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 ///Node used in LogicalChannel.attribute. Link to the channel function that will be activated by default for this DMXChannel;
 pub struct NodeLogicalChannelAttribute(Option<Vec<AttributeName>>);
 

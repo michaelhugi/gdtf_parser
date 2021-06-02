@@ -1,14 +1,11 @@
 #![cfg(test)]
 
 use std::borrow::Cow;
+use std::collections::HashMap;
 
 use quick_xml::events::attributes::Attribute;
 
-pub mod sgm_light_at_g_7_spot_at_rev_a;
-pub mod acme_at_acme_ae_610_beam_at_acme_ae_610_beam;
-pub mod robe_lighting_at_robin_viva_cmy_at_13042021;
-pub mod jb_lighting_at_p12_spot_hp_at_v_1_15;
-
+use crate::utils::deparse::DeparseHashMap;
 
 pub fn to_attr_borrowed(value: &[u8]) -> Attribute {
     Attribute { key: &[], value: Cow::Borrowed(value) }
@@ -16,4 +13,17 @@ pub fn to_attr_borrowed(value: &[u8]) -> Attribute {
 
 pub fn to_attr_owned(value: &[u8]) -> Attribute {
     Attribute { key: &[], value: Cow::Borrowed(value).to_owned() }
+}
+
+pub(crate) fn vec_to_hash_map<T: DeparseHashMap>(keys: Vec<T::PrimaryKey>, input: Vec<T>) -> HashMap<T::PrimaryKey, T> {
+    if keys.len() != input.len() {
+        panic!("Vec length must be the same!");
+    }
+    let mut output: HashMap<T::PrimaryKey, T> = HashMap::new();
+
+    for value in input.into_iter().enumerate() {
+        let key = keys.get(value.0).unwrap().clone();
+        output.insert(key.clone(), value.1);
+    }
+    output
 }

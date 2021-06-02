@@ -3,7 +3,7 @@
 
 
 ///Physical Unit representation used in GDTF
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum PhysicalUnit {
     None,
     Percent,

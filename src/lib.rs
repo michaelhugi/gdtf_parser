@@ -23,14 +23,14 @@
 //! use gdtf_parser::utils::errors::GdtfError;
 //! use gdtf_parser::utils::units::data_version::DataVersion;
 //! use gdtf_parser::utils::units::name::Name;
-//! use gdtf_parser::utils::units::color_cie::ColorCIE;
-//!
+//! use gdtf_parser::utils::units::attribute_name::AttributeName;
+//! use gdtf_parser::utils::units::physical_unit::PhysicalUnit;
 //! fn main() -> Result<(),GdtfError>{
 //!     let path: &Path = Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf");
 //!     let gdtf: GDTF = GDTF::try_from(path)?;
 //!     assert_eq!(gdtf.data_version, DataVersion::Version1_0);
 //!     assert_eq!(gdtf.fixture_type.name, Name::new("ACME AE-610 BEAM")?);
-//!     assert_eq!(gdtf.fixture_type.attribute_definitions.attributes.get(18).unwrap().color.unwrap(), ColorCIE{x:0.3127, y:0.329, Y:100.0});
+//!     assert_eq!(gdtf.fixture_type.attribute_definitions.attributes.get(&AttributeName::Gobo_n_WheelSpin(1)).unwrap().physical_unit, PhysicalUnit::AngularSpeed);
 //!     Ok(())
 //! }
 //! ```
@@ -43,22 +43,23 @@
 //! use gdtf_parser::GDTF;
 //! use gdtf_parser::utils::errors::GdtfError;
 //! use gdtf_parser::utils::units::data_version::DataVersion;
-//! use gdtf_parser::utils::units::color_cie::ColorCIE;
 //! use gdtf_parser::utils::units::name::Name;
+//! use gdtf_parser::utils::units::attribute_name::AttributeName;
+//! use gdtf_parser::utils::units::physical_unit::PhysicalUnit;
 //!
-//! #[test]
-//! fn test_try_from() -> Result<(),GdtfError> {
+//! fn main() -> Result<(),GdtfError> {
 //!     let path: &Path = Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf");
 //!     let gdtf: GDTF = path.try_into()?;
 //!     assert_eq!(gdtf.data_version, DataVersion::Version1_0);
 //!     assert_eq!(gdtf.fixture_type.name, Name::new("ACME AE-610 BEAM")?);
-//!     assert_eq!(gdtf.fixture_type.attribute_definitions.attributes.get(18).unwrap().color.unwrap(), ColorCIE{x:0.3127, y:0.329, Y:100.0});
+//!     assert_eq!(gdtf.fixture_type.attribute_definitions.attributes.get(&AttributeName::Gobo_n_WheelSpin(1)).unwrap().physical_unit, PhysicalUnit::AngularSpeed);
 //!     Ok(())
 //! }
 //! ```
 //!
 //!
 use std::convert::TryFrom;
+use std::fmt::Debug;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -77,14 +78,16 @@ pub mod fixture_type;
 pub mod utils;
 
 ///Describes the hierarchical and logical structure and controls of any type of controllable device (e.g. luminaires, fog machines, etc.) in the lighting and entertainment industry.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct GDTF {
     pub data_version: DataVersion,
     pub fixture_type: FixtureType,
 }
 
 impl DeparseSingle for GDTF {
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    type PrimaryKey = ();
+
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut data_version = DataVersion::Unknown;
         for attr in e.attributes().into_iter() {
@@ -103,10 +106,10 @@ impl DeparseSingle for GDTF {
                 Event::Start(e) | Event::Empty(e) => {
                     if FixtureType::is_single_event_name(e.name()) {
                         return Ok(
-                            GDTF {
-                                fixture_type: FixtureType::single_from_event(reader, e)?,
+                            (GDTF {
+                                fixture_type: FixtureType::single_from_event(reader, e)?.0,
                                 data_version,
-                            }
+                            }, None)
                         );
                     } else {
                         tree_down += 1;
@@ -158,7 +161,7 @@ impl TryFrom<&Path> for GDTF {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"GDTF" {
                         return Ok(
-                            GDTF::single_from_event(&mut reader, e)?
+                            GDTF::single_from_event(&mut reader, e)?.0
                         );
                     } else {
                         tree_down += 1;

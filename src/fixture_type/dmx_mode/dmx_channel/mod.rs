@@ -1,4 +1,6 @@
 //!Holds the DMXChannel and it's children
+use std::fmt::Debug;
+
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
@@ -17,7 +19,7 @@ use crate::utils::units::offset::Offset;
 pub mod logical_channel;
 
 ///This section defines the DMX channe
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct DMXChannel {
     ///Number of the DMXBreak; Default value: 1; Special value: “Overwrite” – means that this number will be overwritten by Geometry Reference; Size: 4 bytes
     pub dmx_break: DMXBreak,
@@ -34,7 +36,9 @@ pub struct DMXChannel {
 }
 
 impl DeparseSingle for DMXChannel {
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    type PrimaryKey = ();
+
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut dmx_break = DMXBreak::default();
         let mut offset = Offset::default();
@@ -62,7 +66,7 @@ impl DeparseSingle for DMXChannel {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"LogicalChannel" {
-                        logical_channels.push(LogicalChannel::single_from_event(reader, e)?);
+                        logical_channels.push(LogicalChannel::single_from_event(reader, e)?.0);
                     } else {
                         tree_down += 1;
                     }
@@ -82,14 +86,14 @@ impl DeparseSingle for DMXChannel {
         }
         buf.clear();
 
-        Ok(Self {
+        Ok((Self {
             dmx_break,
             offset,
             initial_function,
             highlight,
             geometry,
             logical_channels,
-        })
+        }, None))
     }
 
     fn is_single_event_name(event_name: &[u8]) -> bool {
@@ -149,12 +153,12 @@ mod tests {
                     channel_functions: vec![],
                 }
             ],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
             <DMXChannel DMXBreak="1" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1">
                 <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
             </DMXChannel>
-            "#
+            "#,
         );
         Ok(())
     }
@@ -181,12 +185,12 @@ mod tests {
                     channel_functions: vec![],
                 }
             ],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
             <DMXChannel DMXBreak="2" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1,2">
                 <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
             </DMXChannel>
-            "#
+            "#,
         );
         Ok(())
     }
@@ -213,12 +217,12 @@ mod tests {
                     channel_functions: vec![],
                 }
             ],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
             <DMXChannel DMXBreak="Overwrite" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1,2">
                 <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
             </DMXChannel>
-            "#
+            "#,
         );
         Ok(())
     }
@@ -249,13 +253,13 @@ mod tests {
                     channel_functions: vec![],
                 }
             ],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
             <DMXChannel DMXBreak="" Geometry="" Highlight="" InitialFunction="" Offset="">
                 <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
                 <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="Yes"></LogicalChannel>
             </DMXChannel>
-            "#
+            "#,
         );
         Ok(())
     }
@@ -269,11 +273,11 @@ mod tests {
             highlight: Highlight::None,
             geometry: Name::new("")?,
             logical_channels: vec![],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
             <DMXChannel>
             </DMXChannel>
-            "#
+            "#,
         );
         Ok(())
     }

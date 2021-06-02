@@ -9,7 +9,7 @@ use std::str::{FromStr, Utf8Error};
 use quick_xml::events::attributes::Attribute;
 
 ///Date representation used in GDTF
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Date {
     pub year: u16,
     pub month: u8,

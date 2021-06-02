@@ -1,4 +1,5 @@
 use std::convert::TryInto;
+use std::fmt::Debug;
 
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
@@ -11,7 +12,7 @@ use crate::utils::errors::GdtfError;
 use crate::utils::units::dmx_value::DMXValue;
 use crate::utils::units::name::Name;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ChannelSet {
     pub name: Name,
     pub dmx_from: DMXValue,
@@ -21,7 +22,9 @@ pub struct ChannelSet {
 }
 
 impl DeparseSingle for ChannelSet {
-    fn single_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    type PrimaryKey = ();
+
+    fn single_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut dmx_from: DMXValue = "1/1".try_into().unwrap();
@@ -40,15 +43,13 @@ impl DeparseSingle for ChannelSet {
                 _ => {}
             }
         }
-        Ok(
-            ChannelSet {
-                name,
-                dmx_from,
-                physical_from,
-                physical_to,
-                wheel_slot_index,
-            }
-        )
+        Ok((ChannelSet {
+            name,
+            dmx_from,
+            physical_from,
+            physical_to,
+            wheel_slot_index,
+        }, None))
     }
 
     fn is_single_event_name(event_name: &[u8]) -> bool {
@@ -83,8 +84,8 @@ mod tests {
             physical_from: Some(23.1),
             physical_to: Some(23.4),
             wheel_slot_index: Some(0),
-        }.test(
-            r#"<ChannelSet DMXFrom="55/1" Name="Slow" WheelSlotIndex="0" PhysicalFrom="23.1" PhysicalTo="23.4" />"#)
+        }.test(None,
+               r#"<ChannelSet DMXFrom="55/1" Name="Slow" WheelSlotIndex="0" PhysicalFrom="23.1" PhysicalTo="23.4" />"#)
     }
 
     #[test]
@@ -99,8 +100,8 @@ mod tests {
             physical_from: None,
             physical_to: None,
             wheel_slot_index: None,
-        }.test(
-            r#"<ChannelSet DMXFrom="55/2s" Name="Slow"/>"#)
+        }.test(None,
+               r#"<ChannelSet DMXFrom="55/2s" Name="Slow"/>"#)
     }
 
     #[test]
@@ -115,8 +116,8 @@ mod tests {
             physical_from: None,
             physical_to: None,
             wheel_slot_index: None,
-        }.test(
-            r#"<ChannelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#)
+        }.test(None,
+               r#"<ChannelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#)
     }
 
     #[test]

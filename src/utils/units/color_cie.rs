@@ -9,7 +9,7 @@ use std::str::FromStr;
 use quick_xml::events::attributes::Attribute;
 
 ///CIE color representation xyY 1931 used in GDTF
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 #[allow(non_snake_case)]
 pub struct ColorCIE {
     ///x for color representation xyY 1931

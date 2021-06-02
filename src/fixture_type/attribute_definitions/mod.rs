@@ -1,34 +1,49 @@
+use std::collections::HashMap;
+use std::fmt::Debug;
+
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
 use crate::fixture_type::attribute_definitions::activation_group::ActivationGroup;
 use crate::fixture_type::attribute_definitions::attribute::Attribute;
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
+use crate::utils::compare_hashmap::hashmap_eq;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
+use crate::utils::deparse::DeparseHashMap;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXMLError;
+use crate::utils::units::attribute_name::AttributeName;
 
 pub mod feature_group;
 pub mod attribute;
 pub mod activation_group;
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct AttributeDefinitions {
     pub feature_groups: Vec<FeatureGroup>,
-    pub attributes: Vec<Attribute>,
+    pub attributes: HashMap<AttributeName, Attribute>,
     pub activation_groups: Vec<ActivationGroup>,
 }
 
+impl PartialEq for AttributeDefinitions {
+    fn eq(&self, other: &Self) -> bool {
+        self.feature_groups == other.feature_groups &&
+            hashmap_eq(&self.attributes, &other.attributes) &&
+            self.activation_groups == other.activation_groups
+    }
+}
 
 impl DeparseSingle for AttributeDefinitions {
-    fn single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<Self, GdtfError> where
+    type PrimaryKey = ();
+
+    fn single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut buf: Vec<u8> = Vec::new();
         let mut feature_groups: Vec<FeatureGroup> = Vec::new();
-        let mut attributes: Vec<Attribute> = Vec::new();
+        let mut attributes: HashMap<AttributeName, Attribute> = HashMap::new();
         let mut activation_groups: Vec<ActivationGroup> = Vec::new();
         let mut tree_down = 0;
         loop {
@@ -36,7 +51,7 @@ impl DeparseSingle for AttributeDefinitions {
                 Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
                     match e.name() {
                         b"FeatureGroups" => feature_groups = FeatureGroup::vec_from_event(reader, e)?,
-                        b"Attributes" => attributes = Attribute::vec_from_event(reader, e)?,
+                        b"Attributes" => attributes = Attribute::hash_map_from_event(reader, e)?,
                         b"ActivationGroups" => activation_groups = ActivationGroup::vec_from_event(reader, e)?,
                         _ => { tree_down += 1; }
                     }
@@ -53,11 +68,11 @@ impl DeparseSingle for AttributeDefinitions {
             }
         }
         buf.clear();
-        Ok(AttributeDefinitions {
+        Ok((AttributeDefinitions {
             feature_groups,
             attributes,
             activation_groups,
-        })
+        }, None))
     }
 
     fn is_single_event_name(event_name: &[u8]) -> bool {
@@ -82,10 +97,14 @@ mod tests {
     use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
     use crate::utils::deparse::TestDeparseSingle;
+    use crate::utils::errors::GdtfError;
+    use crate::utils::testdata;
+    use crate::utils::units::attribute_name::AttributeName;
+    use crate::utils::units::name::Name;
     use crate::utils::units::physical_unit::PhysicalUnit;
 
     #[test]
-    fn test_some() {
+    fn test_some() -> Result<(), GdtfError> {
         AttributeDefinitions {
             feature_groups: vec![
                 FeatureGroup {
@@ -109,20 +128,18 @@ mod tests {
                         }
                     ],
                 }],
-            attributes: vec![
+            attributes: testdata::vec_to_hash_map(vec![AttributeName::Pan, AttributeName::Tilt, AttributeName::Gobo_n_(1)], vec![
                 Attribute {
-                    name: "Pan".try_into().unwrap(),
                     pretty: "P".to_string(),
                     activation_group: Some("PanTilt".to_string()),
-                    feature: "Position.PanTilt".to_string(),
+                    feature: "Position.PanTilt".try_into()?,
                     main_attribute: None,
                     physical_unit: PhysicalUnit::Angle,
                     color: None,
                 },
                 Attribute {
                     activation_group: Some("PanTilt".to_string()),
-                    feature: "Position.PanTilt".to_string(),
-                    name: "Tilt".try_into().unwrap(),
+                    feature: "Position.PanTilt".try_into()?,
                     physical_unit: PhysicalUnit::Angle,
                     pretty: "T".to_string(),
                     main_attribute: None,
@@ -130,14 +147,13 @@ mod tests {
                 },
                 Attribute {
                     activation_group: Some("Gobo1".to_string()),
-                    feature: "Gobo.Gobo".to_string(),
-                    name: "Gobo1".try_into().unwrap(),
+                    feature: "Gobo.Gobo".try_into()?,
                     physical_unit: PhysicalUnit::None,
                     pretty: "G1".to_string(),
                     main_attribute: None,
                     color: None,
                 }
-            ],
+            ]),
             activation_groups: vec![
                 ActivationGroup {
                     name: "PanTilt".try_into().unwrap()
@@ -146,8 +162,8 @@ mod tests {
                     name: "Gobo1".try_into().unwrap()
                 }
             ],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
     <AttributeDefinitions>
         <ActivationGroups>
             <ActivationGroup Name="PanTilt"/>
@@ -168,12 +184,13 @@ mod tests {
             <Attribute ActivationGroup="Gobo1" Feature="Gobo.Gobo" Name="Gobo1" PhysicalUnit="None" Pretty="G1"/>
         </Attributes>
      </AttributeDefinitions>
-     "#
+     "#,
         );
+        Ok(())
     }
 
     #[test]
-    fn test_min() {
+    fn test_min() -> Result<(), GdtfError> {
         AttributeDefinitions {
             feature_groups: vec![
                 FeatureGroup {
@@ -194,20 +211,19 @@ mod tests {
                         }
                     ],
                 }],
-            attributes: vec![
+            attributes: testdata::vec_to_hash_map(vec![AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?)], vec![
                 Attribute {
-                    name: "".try_into().unwrap(),
                     pretty: "".to_string(),
                     activation_group: None,
-                    feature: "".to_string(),
+                    feature: "".try_into()?,
                     main_attribute: None,
                     physical_unit: PhysicalUnit::None,
                     color: None,
                 },
                 Attribute {
                     activation_group: None,
-                    feature: "".to_string(),
-                    name: "".try_into().unwrap(),
+                    feature: "".try_into()?,
+
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
                     main_attribute: None,
@@ -215,14 +231,13 @@ mod tests {
                 },
                 Attribute {
                     activation_group: None,
-                    feature: "".to_string(),
-                    name: "".try_into().unwrap(),
+                    feature: "".try_into()?,
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
                     main_attribute: None,
                     color: None,
                 }
-            ],
+            ]),
             activation_groups: vec![
                 ActivationGroup {
                     name: "".try_into().unwrap()
@@ -231,8 +246,8 @@ mod tests {
                     name: "".try_into().unwrap()
                 }
             ],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
     <AttributeDefinitions>
         <ActivationGroups>
             <ActivationGroup Name=""/>
@@ -252,13 +267,14 @@ mod tests {
             <Attribute ActivationGroup="" Feature="" Name="" PhysicalUnit="" Pretty=""/>
         </Attributes>
      </AttributeDefinitions>
-     "#
+     "#,
         );
+        Ok(())
     }
 
 
     #[test]
-    fn test_empty() {
+    fn test_empty() -> Result<(), GdtfError> {
         AttributeDefinitions {
             feature_groups: vec![
                 FeatureGroup {
@@ -279,20 +295,18 @@ mod tests {
                         }
                     ],
                 }],
-            attributes: vec![
+            attributes: testdata::vec_to_hash_map(vec![AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?)], vec![
                 Attribute {
-                    name: "".try_into().unwrap(),
                     pretty: "".to_string(),
                     activation_group: None,
-                    feature: "".to_string(),
+                    feature: "".try_into()?,
                     main_attribute: None,
                     physical_unit: PhysicalUnit::None,
                     color: None,
                 },
                 Attribute {
                     activation_group: None,
-                    feature: "".to_string(),
-                    name: "".try_into().unwrap(),
+                    feature: "".try_into()?,
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
                     main_attribute: None,
@@ -300,14 +314,13 @@ mod tests {
                 },
                 Attribute {
                     activation_group: None,
-                    feature: "".to_string(),
-                    name: "".try_into().unwrap(),
+                    feature: "".try_into()?,
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
                     main_attribute: None,
                     color: None,
                 }
-            ],
+            ]),
             activation_groups: vec![
                 ActivationGroup {
                     name: "".try_into().unwrap()
@@ -316,8 +329,8 @@ mod tests {
                     name: "".try_into().unwrap()
                 }
             ],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
     <AttributeDefinitions>
         <ActivationGroups>
             <ActivationGroup />
@@ -337,8 +350,9 @@ mod tests {
             <Attribute  />
         </Attributes >
      </AttributeDefinitions>
-     "#
+     "#,
         );
+        Ok(())
     }
 
     #[test]

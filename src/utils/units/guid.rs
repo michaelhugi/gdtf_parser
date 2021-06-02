@@ -44,7 +44,7 @@ const CHAR_E_AS_U8: u8 = 0x45;
 const CHAR_F_AS_U8: u8 = 0x46;
 
 ///GUID representation used in GDTF
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum GUID {
     ///The bytes value of the GUID
     GUID([u8; 16]),

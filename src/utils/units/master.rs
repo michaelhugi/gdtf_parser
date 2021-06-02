@@ -5,7 +5,7 @@ use std::borrow::Borrow;
 use quick_xml::events::attributes::Attribute;
 
 ///Master representation for logicalChannel used in GDTF
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Master {
     None,
     Grand,

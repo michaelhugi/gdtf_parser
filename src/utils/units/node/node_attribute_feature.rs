@@ -9,9 +9,9 @@ use crate::utils::units::node::{GDTFNodeError, Node};
 
 #[derive(Debug, PartialEq, Clone)]
 ///Node used in DmxChannel.initial_function.Link to the channel function that will be activated by default for this DMXChannel;
-pub struct NodeChannelFunctionFilter(Option<Vec<Name>>);
+pub struct NodeAttributeFeature(Option<Vec<Name>>);
 
-impl NodeChannelFunctionFilter {
+impl NodeAttributeFeature {
     ///New Node from str defined in GDTF-XML with checking if chars are valid for GDTF-Names
     pub fn new_from_str(value: &str) -> Result<Self, GDTFNodeError> {
         if value == "" {
@@ -37,10 +37,11 @@ impl NodeChannelFunctionFilter {
     }
 }
 
-impl Node for NodeChannelFunctionFilter {}
+///Helper methods for Nodes
+impl Node for NodeAttributeFeature {}
 
 ///Parses a str directly to a Node. This function will not allow invalid chars due to GDTF specs.
-impl TryFrom<&str> for NodeChannelFunctionFilter {
+impl TryFrom<&str> for NodeAttributeFeature {
     type Error = GDTFNodeError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
@@ -49,14 +50,14 @@ impl TryFrom<&str> for NodeChannelFunctionFilter {
 }
 
 ///Parses an xml attribute directly to a Node. In case of an error, the function will return a Node with None. This function will allow invalid chars for Name due to GDTF specs because Rust can handle it.
-impl From<Attribute<'_>> for NodeChannelFunctionFilter {
+impl From<Attribute<'_>> for NodeAttributeFeature {
     fn from(attr: Attribute<'_>) -> Self {
         Self::new_from_str_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| ""))
     }
 }
 
 ///Default value is None
-impl Default for NodeChannelFunctionFilter {
+impl Default for NodeAttributeFeature {
     fn default() -> Self {
         Self(None)
     }
@@ -67,12 +68,12 @@ impl Default for NodeChannelFunctionFilter {
 mod tests {
     use std::convert::{TryFrom, TryInto};
 
-    use NodeChannelFunctionFilter as T;
+    use NodeAttributeFeature as T;
 
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
     use crate::utils::units::name::Name;
-    use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;
+    use crate::utils::units::node::node_attribute_feature::NodeAttributeFeature;
 
     #[test]
     fn test_new_from_str() -> Result<(), GdtfError> {

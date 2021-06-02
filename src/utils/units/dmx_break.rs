@@ -8,7 +8,7 @@ use std::str::FromStr;
 use quick_xml::events::attributes::Attribute;
 
 ///DMXBreak used for DMXChannel in GDTF
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum DMXBreak {
     ///Number of the DMXBreak; Default value: 1
     Value(u32),

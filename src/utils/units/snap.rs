@@ -3,7 +3,7 @@
 
 
 ///Snap representation for logicalChannel used in GDTF
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Snap {
     No,
     Yes,

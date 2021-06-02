@@ -12,10 +12,11 @@ pub mod node_channel_function_wheel;
 pub mod node_channel_function_emitter;
 pub mod node_channel_function_filter;
 pub mod node_channel_function_mode_master;
+pub mod node_attribute_feature;
 
 
 ///Node representation used in GDTF. A Node is a link to another xml node
-pub trait Node {
+pub trait Node: Sized {
     ///Creates a vec of Names from a vec of str where names are checked for validity defined by GDTF
     fn strs_to_names_vec(names: Vec<&str>) -> Result<Vec<Name>, GDTFNodeError> {
         let mut ns = vec![];

@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
@@ -7,27 +9,29 @@ use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Feature {
     pub name: Name,
 }
 
 
 impl DeparseSingle for Feature {
-    fn single_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    type PrimaryKey = ();
+
+    fn single_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
                 b"Name" => {
-                    return Ok(Feature { name: attr.into() });
+                    return Ok((Feature { name: attr.into() }, None));
                 }
                 _ => {}
             }
         }
-        return Ok(Feature {
+        return Ok((Feature {
             name: Default::default()
-        });
+        }, None));
     }
 
     fn is_single_event_name(event_name: &[u8]) -> bool {
@@ -38,6 +42,7 @@ impl DeparseSingle for Feature {
         "Feature".to_string()
     }
 }
+
 #[cfg(test)]
 impl TestDeparseSingle for Feature {}
 
@@ -52,8 +57,8 @@ mod tests {
     fn test_feature() {
         Feature {
             name: "PanTilt".try_into().unwrap()
-        }.test(
-            r#"<Feature Name="PanTilt"/>"#
+        }.test(None,
+               r#"<Feature Name="PanTilt"/>"#,
         );
     }
 
@@ -61,25 +66,22 @@ mod tests {
     fn test_feature_empty() {
         Feature {
             name: "".try_into().unwrap()
-        }.test(
-            r#"<Feature Name=""/>"#
+        }.test(None,
+               r#"<Feature Name=""/>"#,
         );
     }
 
     #[test]
     fn test_feature_min() {
         Feature {
-            name: "".try_into().unwrap()
-        }.test(
-            r#"<Feature/>"#
+            name: "".try_into().unwrap(),
+        }.test(None,
+               r#"<Feature/>"#,
         );
     }
 
     #[test]
     fn test_feature_faulty() {
-        match Feature::single_from_xml(r#"Feature Name="PanTilt"/>"#) {
-            Ok(_) => { panic!("test_feature_faulty should return an error"); }
-            Err(_) => {}
-        }
+        assert!(Feature::single_from_xml(r#"Feature Name="PanTilt"/>"#).is_err())
     }
 }

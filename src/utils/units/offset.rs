@@ -6,7 +6,7 @@
 use std::str::FromStr;
 
 ///Offset used for DMXChannel in GDTF
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Offset {
     ///Relative addresses of the current DMX channel from highest to least significant
     Value(Vec<u32>),

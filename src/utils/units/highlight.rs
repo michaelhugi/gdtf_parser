@@ -10,7 +10,7 @@ use quick_xml::events::attributes::Attribute;
 use crate::utils::units::dmx_value::DMXValue;
 
 ///Highlight used for DMXChannel in GDTF
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Highlight {
     ///Highlight value for current channel;
     Value(DMXValue),

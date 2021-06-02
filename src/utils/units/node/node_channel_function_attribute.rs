@@ -7,7 +7,7 @@ use quick_xml::events::attributes::Attribute;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::{GDTFNodeError, Node};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 ///Node used in ChannelFunction.attribute. Link to attribute; Starting point is the attributes node. Default value: “NoFeature”.
 pub enum NodeChannelFunctionAttribute {
     ///Used when a reference to a node is present

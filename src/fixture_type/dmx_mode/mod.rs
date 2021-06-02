@@ -1,4 +1,6 @@
 //!This section is describes all DMX modes of the device
+use std::fmt::Debug;
+
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
@@ -12,7 +14,7 @@ use crate::utils::units::name::Name;
 pub mod dmx_channel;
 
 ///Each DMX mode describes logical control a part of the device in a specific mode
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct DMXMode {
     ///The unique name of the DMX mode
     pub name: Name,
@@ -27,7 +29,9 @@ pub struct DMXMode {
 }
 
 impl DeparseSingle for DMXMode {
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Self, GdtfError> where
+    type PrimaryKey = ();
+
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut geometry: Name = Default::default();
@@ -65,11 +69,11 @@ impl DeparseSingle for DMXMode {
         }
         buf.clear();
 
-        Ok(Self {
+        Ok((Self {
             name,
             geometry,
             dmx_channels,
-        })
+        }, None))
     }
 
     fn is_single_event_name(event_name: &[u8]) -> bool {
@@ -125,8 +129,8 @@ mod tests {
                     logical_channels: vec![],
                 }
             ],
-        }.test(
-            r#"
+        }.test(None,
+               r#"
       <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
         <DMXChannels>
           <DMXChannel DMXBreak="Overwrite" Default="32768/2" Geometry="Yoke" Highlight="None" Offset="1,2">
@@ -135,7 +139,7 @@ mod tests {
           </DMXChannel>
         </DMXChannels>
        </DMXMode>
-            "#
+            "#,
         );
         Ok(())
     }

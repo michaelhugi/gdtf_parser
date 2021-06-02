@@ -8,7 +8,7 @@ use std::fmt;
 use quick_xml::events::attributes::Attribute;
 
 ///Name representation used in GDTF
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct Name(String);
 
 ///Default is an empty Name
@@ -18,7 +18,6 @@ impl Default for Name {
         Name("".to_string())
     }
 }
-
 
 ///Deparses Name from Attribute safely. In case of error it will return default. It will also allow not valid chars from GDTF-Spec because Rust can handle it!
 impl From<Attribute<'_>> for Name {

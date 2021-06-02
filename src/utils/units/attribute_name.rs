@@ -11,7 +11,7 @@ use regex::{Regex, RegexSet, SetMatches};
 
 use crate::utils::units::name::{GDTFNameError, Name};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 ///AttributeName is an enum for preferred Names used in GDTF for Attributes. It contains an option UserDefined(Name) which can contain all other Names for Atttribute
 pub enum AttributeName {
     ///Fallback if a user-defined Name for an Attribute was used

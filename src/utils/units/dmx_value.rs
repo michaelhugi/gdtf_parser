@@ -9,7 +9,7 @@ use std::str::{FromStr, Utf8Error};
 use quick_xml::events::attributes::Attribute;
 
 ///DMXValue used in GDTF
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 #[allow(non_snake_case)]
 pub struct DMXValue {
     ///The initial value without byte shift

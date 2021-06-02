@@ -4,7 +4,7 @@ use std::borrow::Borrow;
 use quick_xml::events::attributes::Attribute;
 
 ///The DataVersion attribute defines the minimal version of compatibility. The Version format is “Major.Minor”, where major and minor is Uint with size 1 byte
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum DataVersion {
     ///Enum for GDTF Version 1.0
     Version1_0,
