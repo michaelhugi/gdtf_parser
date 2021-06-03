@@ -51,7 +51,7 @@ impl DeparseSingle for LogicalChannel {
             let attr = attr?;
             match attr.key {
                 b"Attribute" => attribute = attr.into(),
-                b"Snap" => snap = deparse::attr_to_str(&attr).into(),
+                b"Snap" => snap = Snap::new_from_attr(attr),
                 b"Master" => master = deparse::attr_to_str(&attr).into(),
                 b"MibFade" => mib_fade = deparse::attr_to_f32(&attr),
                 b"DMXChangeTimeLimit" => dmx_change_time_limit = deparse::attr_to_f32(&attr),
