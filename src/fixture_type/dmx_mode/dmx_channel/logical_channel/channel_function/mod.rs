@@ -13,7 +13,7 @@ use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::units::dmx_value::DMXValue;
+use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::node_channel_function_attribute::NodeChannelFunctionAttribute;
 use crate::utils::units::node::node_channel_function_emitter::NodeChannelFunctionEmitter;
@@ -31,9 +31,9 @@ pub struct ChannelFunction {
     ///The manufacturer’s original name of the attribute; Default: empty
     pub original_attribute: String,
     ///Start DMX value; The end DMX value is calculated as a DMXFrom of the next channel function – 1 or the maximum value of the DMX channel. Default value: "0/1".
-    pub dmx_from: DMXValue,
+    pub dmx_from: DmxValue,
     ///Default DMX value of channel function when activated by the control system.
-    pub default: DMXValue,
+    pub default: DmxValue,
     ///Physical start value; Default value: 0
     pub physical_from: f32,
     ///Physical end value; Default value: 1
@@ -51,20 +51,20 @@ pub struct ChannelFunction {
     ///Link to DMX Channel or Channel Function; Starting point DMX mode
     pub mode_master: NodeChannelFunctionModeMaster,
     ///Only used together with ModeMaster; DMX start value; Default value: 0/1
-    pub mode_from: Option<DMXValue>,
+    pub mode_from: Option<DmxValue>,
     ///Only used together with ModeMaster; DMX end value; Default value: 0/1
-    pub mode_to: Option<DMXValue>,
+    pub mode_to: Option<DmxValue>,
     //A list of channel sets for the channel function
     pub channel_sets: HashMap<Name, ChannelSet>,
 }
 
-const DEFAULT_DMX_FROM: DMXValue = DMXValue {
+const DEFAULT_DMX_FROM: DmxValue = DmxValue {
     initial_value: 0,
     n: 1,
     is_byte_shifting: false,
 };
 
-const DEFAULT_DMX_DEFAULT: DMXValue = DMXValue {
+const DEFAULT_DMX_DEFAULT: DmxValue = DmxValue {
     initial_value: 0,
     n: 1,
     is_byte_shifting: false,
@@ -78,8 +78,8 @@ impl DeparseSingle for ChannelFunction {
         let mut name: Name = Default::default();
         let mut attribute: NodeChannelFunctionAttribute = Default::default();
         let mut original_attribute: String = String::new();
-        let mut dmx_from: DMXValue = DEFAULT_DMX_FROM;
-        let mut default: DMXValue = DEFAULT_DMX_DEFAULT;
+        let mut dmx_from: DmxValue = DEFAULT_DMX_FROM;
+        let mut default: DmxValue = DEFAULT_DMX_DEFAULT;
         let mut physical_from: f32 = 0.;
         let mut physical_to: f32 = 0.;
         let mut real_fade: f32 = 0.;
@@ -88,8 +88,8 @@ impl DeparseSingle for ChannelFunction {
         let mut emitter: NodeChannelFunctionEmitter = Default::default();
         let mut filter: NodeChannelFunctionFilter = Default::default();
         let mut mode_master: NodeChannelFunctionModeMaster = Default::default();
-        let mut mode_from: Option<DMXValue> = None;
-        let mut mode_to: Option<DMXValue> = None;
+        let mut mode_from: Option<DmxValue> = None;
+        let mut mode_to: Option<DmxValue> = None;
         let mut channel_sets: HashMap<Name, ChannelSet> = HashMap::new();
         for attr in e.attributes().into_iter() {
             let attr = attr?;
@@ -97,8 +97,8 @@ impl DeparseSingle for ChannelFunction {
                 b"Name" => name = attr.into(),
                 b"Attribute" => attribute = attr.into(),
                 b"OriginalAttribute" => original_attribute = deparse::attr_to_string(&attr),
-                b"DMXFrom" => dmx_from = attr.try_into().unwrap_or_else(|_| DEFAULT_DMX_FROM),
-                b"Default" => default = attr.try_into().unwrap_or_else(|_| DEFAULT_DMX_DEFAULT),
+                b"DMXFrom" => dmx_from = attr.try_into().unwrap_or( DEFAULT_DMX_FROM),
+                b"Default" => default = attr.try_into().unwrap_or( DEFAULT_DMX_DEFAULT),
                 b"PhysicalFrom" => physical_from = deparse::attr_to_f32(&attr),
                 b"PhysicalTo" => physical_to = deparse::attr_to_f32(&attr),
                 b"RealFade" => real_fade = deparse::attr_to_f32(&attr),

@@ -9,12 +9,12 @@ use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::units::dmx_value::DMXValue;
+use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ChannelSet {
-    pub dmx_from: DMXValue,
+    pub dmx_from: DmxValue,
     pub physical_from: Option<f32>,
     pub physical_to: Option<f32>,
     pub wheel_slot_index: Option<u8>,
@@ -26,7 +26,7 @@ impl DeparseSingle for ChannelSet {
     fn single_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
-        let mut dmx_from: DMXValue = "1/1".try_into().unwrap();
+        let mut dmx_from: DmxValue = "1/1".try_into().unwrap();
         let mut physical_from: Option<f32> = None;
         let mut physical_to: Option<f32> = None;
         let mut wheel_slot_index: Option<u8> = None;
@@ -66,13 +66,13 @@ impl TestDeparseSingle for ChannelSet {}
 mod tests {
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
     use crate::utils::deparse::TestDeparseSingle;
-    use crate::utils::units::dmx_value::DMXValue;
+    use crate::utils::units::dmx_value::DmxValue;
     use crate::utils::units::name::Name;
 
     #[test]
     fn test_max() {
         ChannelSet {
-            dmx_from: DMXValue {
+            dmx_from: DmxValue {
                 is_byte_shifting: false,
                 initial_value: 55,
                 n: 1,
@@ -87,7 +87,7 @@ mod tests {
     #[test]
     fn test_min() {
         ChannelSet {
-            dmx_from: DMXValue {
+            dmx_from: DmxValue {
                 is_byte_shifting: true,
                 initial_value: 55,
                 n: 2,
@@ -102,7 +102,7 @@ mod tests {
     #[test]
     fn test_min_2() {
         ChannelSet {
-            dmx_from: DMXValue {
+            dmx_from: DmxValue {
                 is_byte_shifting: true,
                 initial_value: 55,
                 n: 2,

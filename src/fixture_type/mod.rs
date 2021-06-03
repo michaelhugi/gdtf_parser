@@ -6,14 +6,14 @@ use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
 use crate::fixture_type::attribute_definitions::AttributeDefinitions;
-use crate::fixture_type::dmx_mode::DMXMode;
+use crate::fixture_type::dmx_mode::DmxMode;
 use crate::utils::deparse;
 use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::errors::GdtfError::QuickXMLError;
-use crate::utils::units::guid::GUID;
+use crate::utils::errors::GdtfError::QuickXmlError;
+use crate::utils::units::guid::Guid;
 use crate::utils::units::name::Name;
 
 pub mod attribute_definitions;
@@ -33,11 +33,11 @@ pub struct FixtureType {
     /// Description of the fixture type.
     pub description: String,
     ///Unique number of the fixture type.
-    pub fixture_type_id: GUID,
+    pub fixture_type_id: Guid,
     /// File name without extension containing description of the thumbnail.Use the following as a resource file:
     pub thumbnail: Option<String>,
     ///GUID of the referenced fixture type
-    pub ref_ft: Option<GUID>,
+    pub ref_ft: Option<Guid>,
     ///This section defines all attributes that are used in the fixture type.
     pub attribute_definitions: AttributeDefinitions,
     //Defines the physical or virtual color wheels, gobo wheels, media server content and others.
@@ -49,7 +49,7 @@ pub struct FixtureType {
     //Describes physically separated parts of the device.
     //pub geometries: Geometries,
     ///Contains descriptions of the DMX modes.
-    pub dmx_modes: HashMap<Name, DMXMode>,
+    pub dmx_modes: HashMap<Name, DmxMode>,
     //Describe the history of the fixture type.
     //pub revisions: Option<Revisions>,
     //Is used to transfer user - defined and fixture type specific presets to other show files.
@@ -68,9 +68,9 @@ impl DeparseSingle for FixtureType {
         let mut long_name = String::new();
         let mut manufacturer = String::new();
         let mut description = String::new();
-        let mut fixture_type_id = GUID::default();
+        let mut fixture_type_id = Guid::default();
         let mut thumbnail = None;
-        let mut ref_ft: Option<GUID> = None;
+        let mut ref_ft: Option<Guid> = None;
 
         for attr in e.attributes().into_iter() {
             let attr = attr?;
@@ -82,9 +82,9 @@ impl DeparseSingle for FixtureType {
                 b"Description" => description = deparse::attr_to_string(&attr),
                 b"FixtureTypeID" => fixture_type_id = attr.into(),
                 b"Thumbnail" => thumbnail = deparse::attr_to_string_option(&attr),
-                b"RefFT" => ref_ft = match GUID::from(attr) {
-                    GUID::GUID(guid) => Some(GUID::GUID(guid)),
-                    GUID::Empty => None
+                b"RefFT" => ref_ft = match Guid::from(attr) {
+                    Guid::Guid(guid) => Some(Guid::Guid(guid)),
+                    Guid::Empty => None
                 },
 
                 _ => {}
@@ -93,7 +93,7 @@ impl DeparseSingle for FixtureType {
 
         let mut buf: Vec<u8> = Vec::new();
         let mut attribute_definitions: Option<AttributeDefinitions> = None;
-        let mut dmx_modes: Option<HashMap<Name, DMXMode>> = None;
+        let mut dmx_modes: Option<HashMap<Name, DmxMode>> = None;
         let mut tree_down = 0;
         loop {
             match reader.read_event(&mut buf) {
@@ -101,7 +101,7 @@ impl DeparseSingle for FixtureType {
                     match e.name() {
                         b"AttributeDefinitions" => attribute_definitions = Some(AttributeDefinitions::single_from_event(reader, e)?.0),
                         b"DMXModes" => {
-                            dmx_modes = Some(DMXMode::hash_map_from_event(reader, e)?);
+                            dmx_modes = Some(DmxMode::hash_map_from_event(reader, e)?);
                         }
                         _ => tree_down += 1
                     }
@@ -113,7 +113,7 @@ impl DeparseSingle for FixtureType {
                 Ok(Event::Eof) => {
                     break;
                 }
-                Err(e) => return Err(QuickXMLError(e)),
+                Err(e) => return Err(QuickXmlError(e)),
                 _ => {}
             }
         }
@@ -161,7 +161,7 @@ mod tests {
     use crate::fixture_type::attribute_definitions::attribute::Attribute;
     use crate::fixture_type::attribute_definitions::AttributeDefinitions;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
-    use crate::fixture_type::dmx_mode::DMXMode;
+    use crate::fixture_type::dmx_mode::DmxMode;
     use crate::fixture_type::FixtureType;
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::testdata;
@@ -197,7 +197,7 @@ mod tests {
                         None)
                 ]),
             },
-            dmx_modes: testdata::vec_to_hash_map(vec![Name::new_unchecked("Mode 1 12 DMX")], vec![DMXMode {
+            dmx_modes: testdata::vec_to_hash_map(vec![Name::new_unchecked("Mode 1 12 DMX")], vec![DmxMode {
                 geometry: Name::new_unchecked("Base"),
                 dmx_channels: vec![],
             }]),

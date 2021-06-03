@@ -23,20 +23,20 @@ impl Default for Name {
 impl From<Attribute<'_>> for Name {
     ///Depares Name safely from Attribute. In case of error it returns default. It will also allow not valid chars from GDTF-Spec because Rust can handle it!
     fn from(attr: Attribute) -> Self {
-        Name::new_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| ""))
+        Name::new_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or(""))
     }
 }
 
 #[derive(Debug)]
-pub enum GDTFNameError {
+pub enum GdtfNameError {
     NotAllowedCharError(String)
 }
 
-impl Error for GDTFNameError {}
+impl Error for GdtfNameError {}
 
-impl fmt::Display for GDTFNameError {
+impl fmt::Display for GdtfNameError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use GDTFNameError::*;
+        use GdtfNameError::*;
         match self {
             //GDTFNameError(_) => write!(f, "ColorCIE Error. Utf8 Error"),
             NotAllowedCharError(s) => write!(f, "GdtfNameError: {}", s)
@@ -45,7 +45,7 @@ impl fmt::Display for GDTFNameError {
 }
 
 impl TryFrom<&str> for Name {
-    type Error = GDTFNameError;
+    type Error = GdtfNameError;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         Self::new(s)
@@ -54,7 +54,7 @@ impl TryFrom<&str> for Name {
 
 impl Name {
     ///Creates a new instance of name. Only chars to GDTF Spec are allowed
-    pub fn new(name: &str) -> Result<Self, GDTFNameError> {
+    pub fn new(name: &str) -> Result<Self, GdtfNameError> {
         Self::validate_chars(name)?;
         Ok(Self(name.to_string()))
     }
@@ -63,14 +63,14 @@ impl Name {
         Self(name.to_string())
     }
 
-    pub fn validate_chars(s: &str) -> Result<(), GDTFNameError> {
+    pub fn validate_chars(s: &str) -> Result<(), GdtfNameError> {
         for char in s.chars() {
             let char = char as u8;
-            if char < 32 || char > 122 {
+            if !(32..=122).contains(&char) {
                 let char = [char];
                 match std::str::from_utf8(&char) {
-                    Ok(char) => return Err(GDTFNameError::NotAllowedCharError(format!(" '{}' is not an allowed char for Name in GDTF", char))),
-                    Err(_) => return Err(GDTFNameError::NotAllowedCharError(format!("Invalid char for Name in GDTF found")))
+                    Ok(char) => return Err(GdtfNameError::NotAllowedCharError(format!(" '{}' is not an allowed char for Name in GDTF", char))),
+                    Err(_) => return Err(GdtfNameError::NotAllowedCharError("Invalid char for Name in GDTF found".to_string()))
                 }
             }
         }
@@ -80,10 +80,10 @@ impl Name {
 
     ///creates a new vec of Nams from single str where name is not checked for validity defined by GDTF
     pub fn str_to_names_vec_unchecked(value: &str) -> Vec<Name> {
-        if value == "" {
+        if value.is_empty() {
             return vec![];
         }
-        let value = value.split(".");
+        let value = value.split('.');
         let mut tree: Vec<Name> = vec![];
         for value in value.into_iter() {
             tree.push(Name::new_unchecked(value));
@@ -108,7 +108,7 @@ mod tests {
 
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
-    use crate::utils::units::name::{GDTFNameError, Name};
+    use crate::utils::units::name::{GdtfNameError, Name};
 
     #[test]
     fn test_default() -> Result<(), GdtfError> {
@@ -117,7 +117,7 @@ mod tests {
     }
 
     #[test]
-    fn test_new() -> Result<(), GDTFNameError> {
+    fn test_new() -> Result<(), GdtfNameError> {
         assert_eq!(Name::new("test")?, Name::new("test")?);
         assert_eq!(Name::new("")?, Name::new("")?);
         assert!(Name::new("asd{").is_err());
@@ -125,7 +125,7 @@ mod tests {
     }
 
     #[test]
-    fn test_new_unchecked() -> Result<(), GDTFNameError> {
+    fn test_new_unchecked() -> Result<(), GdtfNameError> {
         assert_eq!(Name("test".to_string()), Name::new_unchecked("test"));
         assert_eq!(Name("".to_string()), Name::new_unchecked(""));
         assert_eq!(Name("asd{".to_string()), Name::new_unchecked("asd{"));

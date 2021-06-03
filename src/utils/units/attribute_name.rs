@@ -9,7 +9,7 @@ use lazy_static::lazy_static;
 use quick_xml::events::attributes::Attribute;
 use regex::{Regex, RegexSet, SetMatches};
 
-use crate::utils::units::name::{GDTFNameError, Name};
+use crate::utils::units::name::{GdtfNameError, Name};
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 ///AttributeName is an enum for preferred Names used in GDTF for Attributes. It contains an option UserDefined(Name) which can contain all other Names for Atttribute
@@ -33,11 +33,11 @@ pub enum AttributeName {
     ///Snaps or smooth fades with timing in running predefined position effects.
     PositionEffectFade,
     ///Defines a fixture’s x-coordinate within an XYZ coordinate system.
-    XYZ_X,
+    Xyz_X,
     ///Defines a fixture’s y-coordinate within an XYZ coordinate system.
-    XYZ_Y,
+    Xyz_Y,
     ///Defines a fixture‘s z-coordinate within an XYZ coordinate system.
-    XYZ_Z,
+    Xyz_Z,
     ///Defines rotation around X axis.
     Rot_X,
     ///Defines rotation around Y axis.
@@ -51,7 +51,7 @@ pub enum AttributeName {
     ///Scaling on Y axis.
     Scale_Z,
     ///Unified scaling on all axes.
-    Scale_XYZ,
+    Scale_Xyz,
     ///The fixture’s gobo wheel _n_. This is the main attribute of gobo wheel’s _n_ wheel control. Selects gobos in gobo wheel _n_. A different channel function sets the angle of the indexed position in the selected gobo or the angular speed of its continuous rotation.
     Gobo_n_(u8),
     ///Selects gobos whose rotation is continuous in gobo wheel _n_ and controls the angular speed of the gobo’s spin within the same channel function.
@@ -159,25 +159,25 @@ pub enum AttributeName {
     ///Controls the intensity of the fixture’s yellow emitters for direct additive color mixing.
     ColorAdd_Y,
     ///Controls the intensity of the fixture’s amber emitters for direct additive color mixing.
-    ColorAdd_RY,
+    ColorAdd_Ry,
     ///Controls the intensity of the fixture’s lime emitters for direct additive color mixing.
-    ColorAdd_GY,
+    ColorAdd_Gy,
     ///Controls the intensity of the fixture’s blue-green emitters for direct additive color mixing.
-    ColorAdd_GC,
+    ColorAdd_Gc,
     ///Controls the intensity of the fixture’s light-blue emitters for direct additive color mixing.
-    ColorAdd_BC,
+    ColorAdd_Bc,
     ///Controls the intensity of the fixture’s purple emitters for direct additive color mixing.
-    ColorAdd_BM,
+    ColorAdd_Bm,
     ///Controls the intensity of the fixture’s pink emitters for direct additive color mixing.
-    ColorAdd_RM,
+    ColorAdd_Rm,
     ///Controls the intensity of the fixture’s white emitters for direct additive color mixing.
     ColorAdd_W,
     ///Controls the intensity of the fixture’s warm white emitters for direct additive color mixing.
-    ColorAdd_WW,
+    ColorAdd_Ww,
     ///Controls the intensity of the fixture’s cool white emitters for direct additive color mixing.
-    ColorAdd_CW,
+    ColorAdd_Cw,
     ///Controls the intensity of the fixture’s UV emitters for direct additive color mixing.
-    ColorAdd_UV,
+    ColorAdd_Uv,
     ///Controls the insertion of the fixture’s red filter flag for direct subtractive color mixing.
     ColorSub_R,
     ///Controls the insertion of the fixture’s green filter flag for direct subtractive color mixing.
@@ -195,41 +195,41 @@ pub enum AttributeName {
     ///Controls the time between Color Macro steps.
     ColorMacro_n_Rate(u8),
     ///Controls the fixture’s “Correct to orange” wheel or mixing system.
-    CTO,
+    Cto,
     ///Controls the fixture’s “Correct to color” wheel or mixing system.
-    CTC,
+    Ctc,
     ///Controls the fixture’s “Correct to blue” wheel or mixing system.
-    CTB,
+    Ctb,
     ///Controls the fixture’s “Correct green to magenta” wheel or mixing system.
     Tint,
     ///Controls the fixture’s color attribute regarding the hue.
-    HSB_Hue,
+    Hsb_Hue,
     ///Controls the fixture’s color attribute regarding the saturation.
-    HSB_Saturation,
+    Hsb_Saturation,
     ///Controls the fixture’s color attribute regarding the brightness.
-    HSB_Brightness,
+    Hsb_Brightness,
     ///Controls the fixture’s color attribute regarding the quality.
-    HSB_Quality,
+    Hsb_Quality,
     ///Controls the fixture’s CIE 1931 color attribute regarding the chromaticity x.
-    CIE_X,
+    Cie_X,
     ///Controls the fixture’s CIE 1931 color attribute regarding the chromaticity y.
-    CIE_Y,
+    Cie_Y,
     ///Controls the fixture’s CIE 1931 color attribute regarding the brightness (Y).
-    CIE_Brightness,
+    Cie_Brightness,
     ///Controls the fixture’s red attribute for indirect RGB color mixing.
-    ColorRGB_Red,
+    ColorRgb_Red,
     ///Controls the fixture’s green attribute for indirect RGB color mixing.
-    ColorRGB_Green,
+    ColorRgb_Green,
     ///Controls the fixture’s blue attribute for indirect RGB color mixing.
-    ColorRGB_Blue,
+    ColorRgb_Blue,
     ///Controls the fixture’s cyan attribute for indirect CMY color mixing.
-    ColorRGB_Cyan,
+    ColorRgb_Cyan,
     ///Controls the fixture’s magenta attribute for indirect CMY color mixing.
-    ColorRGB_Magenta,
+    ColorRgb_Magenta,
     ///Controls the fixture’s yellow attribute for indirect CMY color mixing.
-    ColorRGB_Yellow,
+    ColorRgb_Yellow,
     ///Controls the fixture’s quality attribute for indirect color mixing.
-    ColorRGB_Quality,
+    ColorRgb_Quality,
     ///Adjusts color boost red of content.
     VideoBoost_R,
     ///Adjusts color boost green of content.
@@ -353,9 +353,9 @@ pub enum AttributeName {
     ///Closes the light output under certain conditions (movement correction, gobo movement, etc.).
     BlackoutMode,
     ///Controls LED frequency.
-    LEDFrequency,
+    LedFrequency,
     ///Changes zones of LEDs.
-    LEDZoneMode,
+    LedZoneMode,
     ///Controls behavior of LED pixels.
     PixelMode,
     ///Selects fixture’s pan mode. Selects between a limited pan range (e.g. −270 to 270) or a continuous pan range.
@@ -399,11 +399,11 @@ pub enum AttributeName {
     ///Controls behavior of color uniformity.
     ColorUniformity,
     ///Controls CRI settings of output.
-    CRIMode,
+    CriMode,
     ///Custom color related functions (save, recall).
     CustomColor,
     ///Settings for UV stability color behavior.
-    UVStability,
+    UvStability,
     ///Settings for WaveLength corrections of colors.
     WavelengthCorrection,
     ///Controls if White LED is proportionally added to RGB.
@@ -477,11 +477,11 @@ pub enum AttributeName {
     ///Resets the fixture’s zoom.
     ZoomReset,
     ///Resets the fixture’s CTB.
-    CTBReset,
+    CtbReset,
     ///Resets the fixture’s CTO.
-    CTOReset,
+    CtoReset,
     ///Resets the fixture’s CTC.
-    CTCReset,
+    CtcReset,
     ///Resets the fixture's animation system features.
     AnimationSystemReset,
     ///Resets the fixture’s calibration.
@@ -493,7 +493,7 @@ pub enum AttributeName {
     ///Adjusts intensity of display
     DisplayIntensity,
     ///Selects DMX Input
-    DMXInput,
+    DmxInput,
     ///Ranges without a functionality.
     NoFeature,
     ///Fog or hazer‘s blower feature.
@@ -567,16 +567,16 @@ impl AttributeName {
             "PositionEffect" => PositionEffect,
             "PositionEffectRate" => PositionEffectRate,
             "PositionEffectFade" => PositionEffectFade,
-            "XYZ_X" => XYZ_X,
-            "XYZ_Y" => XYZ_Y,
-            "XYZ_Z" => XYZ_Z,
+            "XYZ_X" => Xyz_X,
+            "XYZ_Y" => Xyz_Y,
+            "XYZ_Z" => Xyz_Z,
             "Rot_X" => Rot_X,
             "Rot_Y" => Rot_Y,
             "Rot_Z" => Rot_Z,
             "Scale_X" => Scale_X,
             "Scale_Y" => Scale_Y,
             "Scale_Z" => Scale_Z,
-            "Scale_XYZ" => Scale_XYZ,
+            "Scale_XYZ" => Scale_Xyz,
             "PlayMode" => PlayMode,
             "PlayBegin" => PlayBegin,
             "PlayEnd" => PlayEnd,
@@ -587,40 +587,40 @@ impl AttributeName {
             "ColorAdd_C" => ColorAdd_C,
             "ColorAdd_M" => ColorAdd_M,
             "ColorAdd_Y" => ColorAdd_Y,
-            "ColorAdd_RY" => ColorAdd_RY,
-            "ColorAdd_GY" => ColorAdd_GY,
-            "ColorAdd_GC" => ColorAdd_GC,
-            "ColorAdd_BC" => ColorAdd_BC,
-            "ColorAdd_BM" => ColorAdd_BM,
-            "ColorAdd_RM" => ColorAdd_RM,
+            "ColorAdd_RY" => ColorAdd_Ry,
+            "ColorAdd_GY" => ColorAdd_Gy,
+            "ColorAdd_GC" => ColorAdd_Gc,
+            "ColorAdd_BC" => ColorAdd_Bc,
+            "ColorAdd_BM" => ColorAdd_Bm,
+            "ColorAdd_RM" => ColorAdd_Rm,
             "ColorAdd_W" => ColorAdd_W,
-            "ColorAdd_WW" => ColorAdd_WW,
-            "ColorAdd_CW" => ColorAdd_CW,
-            "ColorAdd_UV" => ColorAdd_UV,
+            "ColorAdd_WW" => ColorAdd_Ww,
+            "ColorAdd_CW" => ColorAdd_Cw,
+            "ColorAdd_UV" => ColorAdd_Uv,
             "ColorSub_R" => ColorSub_R,
             "ColorSub_G" => ColorSub_G,
             "ColorSub_B" => ColorSub_B,
             "ColorSub_C" => ColorSub_C,
             "ColorSub_M" => ColorSub_M,
             "ColorSub_Y" => ColorSub_Y,
-            "CTO" => CTO,
-            "CTC" => CTC,
-            "CTB" => CTB,
+            "CTO" => Cto,
+            "CTC" => Ctc,
+            "CTB" => Ctb,
             "Tint" => Tint,
-            "HSB_Hue" => HSB_Hue,
-            "HSB_Saturation" => HSB_Saturation,
-            "HSB_Brightness" => HSB_Brightness,
-            "HSB_Quality" => HSB_Quality,
-            "CIE_X" => CIE_X,
-            "CIE_Y" => CIE_Y,
-            "CIE_Brightness" => CIE_Brightness,
-            "ColorRGB_Red" => ColorRGB_Red,
-            "ColorRGB_Green" => ColorRGB_Green,
-            "ColorRGB_Blue" => ColorRGB_Blue,
-            "ColorRGB_Cyan" => ColorRGB_Cyan,
-            "ColorRGB_Magenta" => ColorRGB_Magenta,
-            "ColorRGB_Yellow" => ColorRGB_Yellow,
-            "ColorRGB_Quality" => ColorRGB_Quality,
+            "HSB_Hue" => Hsb_Hue,
+            "HSB_Saturation" => Hsb_Saturation,
+            "HSB_Brightness" => Hsb_Brightness,
+            "HSB_Quality" => Hsb_Quality,
+            "CIE_X" => Cie_X,
+            "CIE_Y" => Cie_Y,
+            "CIE_Brightness" => Cie_Brightness,
+            "ColorRGB_Red" => ColorRgb_Red,
+            "ColorRGB_Green" => ColorRgb_Green,
+            "ColorRGB_Blue" => ColorRgb_Blue,
+            "ColorRGB_Cyan" => ColorRgb_Cyan,
+            "ColorRGB_Magenta" => ColorRgb_Magenta,
+            "ColorRGB_Yellow" => ColorRgb_Yellow,
+            "ColorRGB_Quality" => ColorRgb_Quality,
             "VideoBoost_R" => VideoBoost_R,
             "VideoBoost_G" => VideoBoost_G,
             "VideoBoost_B" => VideoBoost_B,
@@ -653,8 +653,8 @@ impl AttributeName {
             "DimmerMode" => DimmerMode,
             "DimmerCurve" => DimmerCurve,
             "BlackoutMode" => BlackoutMode,
-            "LEDFrequency" => LEDFrequency,
-            "LEDZoneMode" => LEDZoneMode,
+            "LEDFrequency" => LedFrequency,
+            "LEDZoneMode" => LedZoneMode,
             "PixelMode" => PixelMode,
             "PanMode" => PanMode,
             "TiltMode" => TiltMode,
@@ -673,9 +673,9 @@ impl AttributeName {
             "ColorModelMode" => ColorModelMode,
             "ColorSettingsReset" => ColorSettingsReset,
             "ColorUniformity" => ColorUniformity,
-            "CRIMode" => CRIMode,
+            "CRIMode" => CriMode,
             "CustomColor" => CustomColor,
-            "UVStability" => UVStability,
+            "UVStability" => UvStability,
             "WavelengthCorrection" => WavelengthCorrection,
             "WhiteCount" => WhiteCount,
             "StrobeMode" => StrobeMode,
@@ -708,15 +708,15 @@ impl AttributeName {
             "PanReset" => PanReset,
             "TiltReset" => TiltReset,
             "ZoomReset" => ZoomReset,
-            "CTBReset" => CTBReset,
-            "CTOReset" => CTOReset,
-            "CTCReset" => CTCReset,
+            "CTBReset" => CtbReset,
+            "CTOReset" => CtoReset,
+            "CTCReset" => CtcReset,
             "AnimationSystemReset" => AnimationSystemReset,
             "FixtureCalibrationReset" => FixtureCalibrationReset,
             "Function" => Function,
             "LampControl" => LampControl,
             "DisplayIntensity" => DisplayIntensity,
-            "DMXInput" => DMXInput,
+            "DMXInput" => DmxInput,
             "NoFeature" => NoFeature,
             "LampPowerMode" => LampPowerMode,
             "Fans" => Fans,
@@ -945,7 +945,7 @@ impl AttributeName {
     }
 
     ///Creates an new AttributeName of &str defined by xml of GDTF. This method does check if all chars are valid for Name defined by GDTF spec
-    pub fn new_from_str(name: &str) -> Result<Self, GDTFNameError> {
+    pub fn new_from_str(name: &str) -> Result<Self, GdtfNameError> {
         Name::validate_chars(name)?;
         Ok(Self::new_from_str_unchecked(name))
     }
@@ -953,17 +953,17 @@ impl AttributeName {
 
 ///Creates an new AttributeName of &str defined by xml of GDTF. This method does check if all chars are valid for Name defined by GDTF spec
 impl TryFrom<&str> for AttributeName {
-    type Error = GDTFNameError;
+    type Error = GdtfNameError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Ok(AttributeName::new_from_str(value)?)
+        AttributeName::new_from_str(value)
     }
 }
 
 ///Creates an new AttributeName of an xml-attribute defined by xml of GDTF. This method does check if all chars are valid for Name defined by GDTF spec
 impl From<Attribute<'_>> for AttributeName {
     fn from(attr: Attribute) -> Self {
-        AttributeName::new_from_str_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| ""))
+        AttributeName::new_from_str_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or(""))
     }
 }
 
@@ -996,16 +996,16 @@ mod tests {
         assert_eq!(PositionEffect, "PositionEffect".try_into()?);
         assert_eq!(PositionEffectRate, "PositionEffectRate".try_into()?);
         assert_eq!(PositionEffectFade, "PositionEffectFade".try_into()?);
-        assert_eq!(XYZ_X, "XYZ_X".try_into()?);
-        assert_eq!(XYZ_Y, "XYZ_Y".try_into()?);
-        assert_eq!(XYZ_Z, "XYZ_Z".try_into()?);
+        assert_eq!(Xyz_X, "XYZ_X".try_into()?);
+        assert_eq!(Xyz_Y, "XYZ_Y".try_into()?);
+        assert_eq!(Xyz_Z, "XYZ_Z".try_into()?);
         assert_eq!(Rot_X, "Rot_X".try_into()?);
         assert_eq!(Rot_Y, "Rot_Y".try_into()?);
         assert_eq!(Rot_Z, "Rot_Z".try_into()?);
         assert_eq!(Scale_X, "Scale_X".try_into()?);
         assert_eq!(Scale_Y, "Scale_Y".try_into()?);
         assert_eq!(Scale_Z, "Scale_Z".try_into()?);
-        assert_eq!(Scale_XYZ, "Scale_XYZ".try_into()?);
+        assert_eq!(Scale_Xyz, "Scale_XYZ".try_into()?);
         assert_eq!(Gobo_n_(1), "Gobo1".try_into()?);
         assert_eq!(Gobo_n_(2), "Gobo2".try_into()?);
         assert_eq!(Gobo_n_(120), "Gobo120".try_into()?);
@@ -1145,16 +1145,16 @@ mod tests {
         assert_eq!(ColorAdd_C, "ColorAdd_C".try_into()?);
         assert_eq!(ColorAdd_M, "ColorAdd_M".try_into()?);
         assert_eq!(ColorAdd_Y, "ColorAdd_Y".try_into()?);
-        assert_eq!(ColorAdd_RY, "ColorAdd_RY".try_into()?);
-        assert_eq!(ColorAdd_GY, "ColorAdd_GY".try_into()?);
-        assert_eq!(ColorAdd_GC, "ColorAdd_GC".try_into()?);
-        assert_eq!(ColorAdd_BC, "ColorAdd_BC".try_into()?);
-        assert_eq!(ColorAdd_BM, "ColorAdd_BM".try_into()?);
-        assert_eq!(ColorAdd_RM, "ColorAdd_RM".try_into()?);
+        assert_eq!(ColorAdd_Ry, "ColorAdd_RY".try_into()?);
+        assert_eq!(ColorAdd_Gy, "ColorAdd_GY".try_into()?);
+        assert_eq!(ColorAdd_Gc, "ColorAdd_GC".try_into()?);
+        assert_eq!(ColorAdd_Bc, "ColorAdd_BC".try_into()?);
+        assert_eq!(ColorAdd_Bm, "ColorAdd_BM".try_into()?);
+        assert_eq!(ColorAdd_Rm, "ColorAdd_RM".try_into()?);
         assert_eq!(ColorAdd_W, "ColorAdd_W".try_into()?);
-        assert_eq!(ColorAdd_WW, "ColorAdd_WW".try_into()?);
-        assert_eq!(ColorAdd_CW, "ColorAdd_CW".try_into()?);
-        assert_eq!(ColorAdd_UV, "ColorAdd_UV".try_into()?);
+        assert_eq!(ColorAdd_Ww, "ColorAdd_WW".try_into()?);
+        assert_eq!(ColorAdd_Cw, "ColorAdd_CW".try_into()?);
+        assert_eq!(ColorAdd_Uv, "ColorAdd_UV".try_into()?);
         assert_eq!(ColorSub_R, "ColorSub_R".try_into()?);
         assert_eq!(ColorSub_G, "ColorSub_G".try_into()?);
         assert_eq!(ColorSub_B, "ColorSub_B".try_into()?);
@@ -1167,24 +1167,24 @@ mod tests {
         assert_eq!(ColorMacro_n_Rate(1), "ColorMacro1Rate".try_into()?);
         assert_eq!(ColorMacro_n_Rate(2), "ColorMacro2Rate".try_into()?);
         assert_eq!(ColorMacro_n_Rate(120), "ColorMacro120Rate".try_into()?);
-        assert_eq!(CTO, "CTO".try_into()?);
-        assert_eq!(CTC, "CTC".try_into()?);
-        assert_eq!(CTB, "CTB".try_into()?);
+        assert_eq!(Cto, "CTO".try_into()?);
+        assert_eq!(Ctc, "CTC".try_into()?);
+        assert_eq!(Ctb, "CTB".try_into()?);
         assert_eq!(Tint, "Tint".try_into()?);
-        assert_eq!(HSB_Hue, "HSB_Hue".try_into()?);
-        assert_eq!(HSB_Saturation, "HSB_Saturation".try_into()?);
-        assert_eq!(HSB_Brightness, "HSB_Brightness".try_into()?);
-        assert_eq!(HSB_Quality, "HSB_Quality".try_into()?);
-        assert_eq!(CIE_X, "CIE_X".try_into()?);
-        assert_eq!(CIE_Y, "CIE_Y".try_into()?);
-        assert_eq!(CIE_Brightness, "CIE_Brightness".try_into()?);
-        assert_eq!(ColorRGB_Red, "ColorRGB_Red".try_into()?);
-        assert_eq!(ColorRGB_Green, "ColorRGB_Green".try_into()?);
-        assert_eq!(ColorRGB_Blue, "ColorRGB_Blue".try_into()?);
-        assert_eq!(ColorRGB_Cyan, "ColorRGB_Cyan".try_into()?);
-        assert_eq!(ColorRGB_Magenta, "ColorRGB_Magenta".try_into()?);
-        assert_eq!(ColorRGB_Yellow, "ColorRGB_Yellow".try_into()?);
-        assert_eq!(ColorRGB_Quality, "ColorRGB_Quality".try_into()?);
+        assert_eq!(Hsb_Hue, "HSB_Hue".try_into()?);
+        assert_eq!(Hsb_Saturation, "HSB_Saturation".try_into()?);
+        assert_eq!(Hsb_Brightness, "HSB_Brightness".try_into()?);
+        assert_eq!(Hsb_Quality, "HSB_Quality".try_into()?);
+        assert_eq!(Cie_X, "CIE_X".try_into()?);
+        assert_eq!(Cie_Y, "CIE_Y".try_into()?);
+        assert_eq!(Cie_Brightness, "CIE_Brightness".try_into()?);
+        assert_eq!(ColorRgb_Red, "ColorRGB_Red".try_into()?);
+        assert_eq!(ColorRgb_Green, "ColorRGB_Green".try_into()?);
+        assert_eq!(ColorRgb_Blue, "ColorRGB_Blue".try_into()?);
+        assert_eq!(ColorRgb_Cyan, "ColorRGB_Cyan".try_into()?);
+        assert_eq!(ColorRgb_Magenta, "ColorRGB_Magenta".try_into()?);
+        assert_eq!(ColorRgb_Yellow, "ColorRGB_Yellow".try_into()?);
+        assert_eq!(ColorRgb_Quality, "ColorRGB_Quality".try_into()?);
         assert_eq!(VideoBoost_R, "VideoBoost_R".try_into()?);
         assert_eq!(VideoBoost_G, "VideoBoost_G".try_into()?);
         assert_eq!(VideoBoost_B, "VideoBoost_B".try_into()?);
@@ -1307,8 +1307,8 @@ mod tests {
         assert_eq!(DimmerMode, "DimmerMode".try_into()?);
         assert_eq!(DimmerCurve, "DimmerCurve".try_into()?);
         assert_eq!(BlackoutMode, "BlackoutMode".try_into()?);
-        assert_eq!(LEDFrequency, "LEDFrequency".try_into()?);
-        assert_eq!(LEDZoneMode, "LEDZoneMode".try_into()?);
+        assert_eq!(LedFrequency, "LEDFrequency".try_into()?);
+        assert_eq!(LedZoneMode, "LEDZoneMode".try_into()?);
         assert_eq!(PixelMode, "PixelMode".try_into()?);
         assert_eq!(PanMode, "PanMode".try_into()?);
         assert_eq!(TiltMode, "TiltMode".try_into()?);
@@ -1336,9 +1336,9 @@ mod tests {
         assert_eq!(ColorModelMode, "ColorModelMode".try_into()?);
         assert_eq!(ColorSettingsReset, "ColorSettingsReset".try_into()?);
         assert_eq!(ColorUniformity, "ColorUniformity".try_into()?);
-        assert_eq!(CRIMode, "CRIMode".try_into()?);
+        assert_eq!(CriMode, "CRIMode".try_into()?);
         assert_eq!(CustomColor, "CustomColor".try_into()?);
-        assert_eq!(UVStability, "UVStability".try_into()?);
+        assert_eq!(UvStability, "UVStability".try_into()?);
         assert_eq!(WavelengthCorrection, "WavelengthCorrection".try_into()?);
         assert_eq!(WhiteCount, "WhiteCount".try_into()?);
         assert_eq!(StrobeMode, "StrobeMode".try_into()?);
@@ -1383,15 +1383,15 @@ mod tests {
         assert_eq!(PanReset, "PanReset".try_into()?);
         assert_eq!(TiltReset, "TiltReset".try_into()?);
         assert_eq!(ZoomReset, "ZoomReset".try_into()?);
-        assert_eq!(CTBReset, "CTBReset".try_into()?);
-        assert_eq!(CTOReset, "CTOReset".try_into()?);
-        assert_eq!(CTCReset, "CTCReset".try_into()?);
+        assert_eq!(CtbReset, "CTBReset".try_into()?);
+        assert_eq!(CtoReset, "CTOReset".try_into()?);
+        assert_eq!(CtcReset, "CTCReset".try_into()?);
         assert_eq!(AnimationSystemReset, "AnimationSystemReset".try_into()?);
         assert_eq!(FixtureCalibrationReset, "FixtureCalibrationReset".try_into()?);
         assert_eq!(Function, "Function".try_into()?);
         assert_eq!(LampControl, "LampControl".try_into()?);
         assert_eq!(DisplayIntensity, "DisplayIntensity".try_into()?);
-        assert_eq!(DMXInput, "DMXInput".try_into()?);
+        assert_eq!(DmxInput, "DMXInput".try_into()?);
         assert_eq!(NoFeature, "NoFeature".try_into()?);
         assert_eq!(Blower_n_(1), "Blower1".try_into()?);
         assert_eq!(Blower_n_(2), "Blower2".try_into()?);

@@ -21,23 +21,23 @@ pub struct Date {
 
 /// Parses a date from format yyyy-mm-ddThh:mm:ss
 impl TryFrom<&str> for Date {
-    type Error = GDTFDateError;
+    type Error = GdtfDateError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let value: Vec<&str> = value.split("T").collect();
+        let value: Vec<&str> = value.split('T').collect();
         if value.len() != 2 {
-            return Err(GDTFDateError {});
+            return Err(GdtfDateError {});
         }
         let date = value[0];
         let time = value[1];
 
-        let date: Vec<&str> = date.split("-").collect();
+        let date: Vec<&str> = date.split('-').collect();
         if date.len() != 3 {
-            return Err(GDTFDateError {});
+            return Err(GdtfDateError {});
         }
-        let time: Vec<&str> = time.split(":").collect();
+        let time: Vec<&str> = time.split(':').collect();
         if time.len() != 3 {
-            return Err(GDTFDateError {});
+            return Err(GdtfDateError {});
         }
 
         Ok(Date {
@@ -53,7 +53,7 @@ impl TryFrom<&str> for Date {
 
 /// Parses a date from an xml attribute formatted yyyy-mm-ddThh:mm:ss
 impl TryFrom<Attribute<'_>> for Date {
-    type Error = GDTFDateError;
+    type Error = GdtfDateError;
 
     fn try_from(attr: Attribute<'_>) -> Result<Self, Self::Error> {
         std::str::from_utf8(attr.value.borrow())?.try_into()
@@ -63,26 +63,26 @@ impl TryFrom<Attribute<'_>> for Date {
 
 #[derive(Debug)]
 /// Error that occures if the format of Date is wrong e.q. not yyyy-mm-ddThh:mm:ss
-pub struct GDTFDateError {}
+pub struct GdtfDateError {}
 
 
-impl Display for GDTFDateError {
+impl Display for GdtfDateError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "The Date must be formatted yyyy-mm-ddThh:mm:ss instance of T != 1")
     }
 }
 
-impl Error for GDTFDateError {}
+impl Error for GdtfDateError {}
 
-impl From<ParseIntError> for GDTFDateError {
+impl From<ParseIntError> for GdtfDateError {
     fn from(_: ParseIntError) -> Self {
-        GDTFDateError {}
+        GdtfDateError {}
     }
 }
 
-impl From<Utf8Error> for GDTFDateError {
+impl From<Utf8Error> for GdtfDateError {
     fn from(_: Utf8Error) -> Self {
-        GDTFDateError {}
+        GdtfDateError {}
     }
 }
 

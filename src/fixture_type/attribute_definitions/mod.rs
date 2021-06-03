@@ -12,7 +12,7 @@ use crate::utils::deparse::DeparseHashMap;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::errors::GdtfError::QuickXMLError;
+use crate::utils::errors::GdtfError::QuickXmlError;
 use crate::utils::units::attribute_name::AttributeName;
 use crate::utils::units::name::Name;
 
@@ -63,7 +63,7 @@ impl DeparseSingle for AttributeDefinitions {
                 Ok(Event::Eof) => {
                     break;
                 }
-                Err(e) => return Err(QuickXMLError(e)),
+                Err(e) => return Err(QuickXmlError(e)),
                 _ => {}
             }
         }

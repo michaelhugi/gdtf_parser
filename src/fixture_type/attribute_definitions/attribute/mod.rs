@@ -10,7 +10,7 @@ use crate::utils::deparse;
 use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
 use crate::utils::errors::GdtfError;
 use crate::utils::units::attribute_name::AttributeName;
-use crate::utils::units::color_cie::ColorCIE;
+use crate::utils::units::color_cie::ColorCie;
 use crate::utils::units::node::node_attribute_feature::NodeAttributeFeature;
 use crate::utils::units::physical_unit::PhysicalUnit;
 
@@ -22,11 +22,11 @@ pub struct Attribute {
     pub feature: NodeAttributeFeature,
     pub main_attribute: Option<String>,
     pub physical_unit: PhysicalUnit,
-    pub color: Option<ColorCIE>,
+    pub color: Option<ColorCie>,
 }
 
 impl Attribute {
-    pub fn new(pretty: &str, activation_group: Option<&str>, feature: NodeAttributeFeature, main_attribute: Option<&str>, physical_unit: PhysicalUnit, color: Option<ColorCIE>) -> Self {
+    pub fn new(pretty: &str, activation_group: Option<&str>, feature: NodeAttributeFeature, main_attribute: Option<&str>, physical_unit: PhysicalUnit, color: Option<ColorCie>) -> Self {
         let main_attribute = match main_attribute {
             None => None,
             Some(value) => Some(value.to_string())
@@ -50,7 +50,7 @@ impl DeparseSingle for Attribute {
         let mut feature = NodeAttributeFeature::default();
         let mut main_attribute = None;
         let mut physical_unit: PhysicalUnit = PhysicalUnit::None;
-        let mut color: Option<ColorCIE> = None;
+        let mut color: Option<ColorCie> = None;
 
         for attr in e.attributes().into_iter() {
             let attr = attr?;
@@ -105,7 +105,7 @@ mod tests {
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
     use crate::utils::units::attribute_name::AttributeName;
-    use crate::utils::units::color_cie::ColorCIE;
+    use crate::utils::units::color_cie::ColorCie;
     use crate::utils::units::name::Name;
     use crate::utils::units::physical_unit::PhysicalUnit;
 
@@ -117,7 +117,7 @@ mod tests {
             feature: "Control.Control".try_into()?,
             main_attribute: Some("Gobo1M".to_string()),
             physical_unit: PhysicalUnit::Angle,
-            color: Some(ColorCIE {
+            color: Some(ColorCie {
                 x: 0.312700,
                 y: 0.329000,
                 Y: 100.000000,
@@ -136,7 +136,7 @@ mod tests {
             feature: "Control.Control".try_into()?,
             main_attribute: Some("Gobo1M".to_string()),
             physical_unit: PhysicalUnit::Angle,
-            color: Some(ColorCIE {
+            color: Some(ColorCie {
                 x: 0.312700,
                 y: 0.329000,
                 Y: 100.000000,

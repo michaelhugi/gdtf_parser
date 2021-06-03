@@ -19,10 +19,10 @@ pub enum DataVersion {
 impl From<Attribute<'_>> for DataVersion {
     ///Deparses Version from Attribute safely. In case of error it will return Unknown
     fn from(attr: Attribute) -> Self {
-        let value = std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| "");
+        let value = std::str::from_utf8(attr.value.borrow()).unwrap_or("");
         let mut value = value.split('.');
-        let major = value.next().unwrap_or_else(|| "").parse::<i32>().unwrap_or_else(|_| -1);
-        let minor = value.next().unwrap_or_else(|| "").parse::<i32>().unwrap_or_else(|_| -1);
+        let major = value.next().unwrap_or("").parse::<i32>().unwrap_or(-1);
+        let minor = value.next().unwrap_or("").parse::<i32>().unwrap_or(-1);
         if value.next().is_some() { return DataVersion::Unknown; }
 
         match (major, minor) {

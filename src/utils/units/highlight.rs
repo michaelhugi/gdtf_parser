@@ -7,13 +7,13 @@ use std::convert::TryFrom;
 
 use quick_xml::events::attributes::Attribute;
 
-use crate::utils::units::dmx_value::DMXValue;
+use crate::utils::units::dmx_value::DmxValue;
 
 ///Highlight used for DMXChannel in GDTF
 #[derive(Debug, PartialEq, Clone)]
 pub enum Highlight {
     ///Highlight value for current channel;
-    Value(DMXValue),
+    Value(DmxValue),
     ///means that this number will be overwritten by Geometry Reference
     None,
 }
@@ -45,7 +45,7 @@ impl From<&str> for Highlight {
         if s == "None" {
             return None;
         }
-        match DMXValue::try_from(s) {
+        match DmxValue::try_from(s) {
             Ok(s) => Highlight::Value(s),
             Err(_) => Highlight::default()
         }
@@ -55,13 +55,13 @@ impl From<&str> for Highlight {
 #[cfg(test)]
 mod tests {
     use crate::utils::testdata;
-    use crate::utils::units::dmx_value::DMXValue;
+    use crate::utils::units::dmx_value::DmxValue;
     use crate::utils::units::highlight::Highlight;
 
     #[test]
     fn test_from_str_valid() {
         assert_eq!(
-            Highlight::Value(DMXValue {
+            Highlight::Value(DmxValue {
                 initial_value: 12,
                 n: 3,
                 is_byte_shifting: false,
@@ -69,7 +69,7 @@ mod tests {
             "12/3".into()
         );
         assert_eq!(
-            Highlight::Value(DMXValue {
+            Highlight::Value(DmxValue {
                 initial_value: 12,
                 n: 3,
                 is_byte_shifting: true,
@@ -85,7 +85,7 @@ mod tests {
     #[test]
     fn test_from_attr_owned_valid() {
         assert_eq!(
-            Highlight::Value(DMXValue {
+            Highlight::Value(DmxValue {
                 initial_value: 12,
                 n: 3,
                 is_byte_shifting: false,
@@ -93,7 +93,7 @@ mod tests {
             testdata::to_attr_owned(b"12/3").into()
         );
         assert_eq!(
-            Highlight::Value(DMXValue {
+            Highlight::Value(DmxValue {
                 initial_value: 12,
                 n: 3,
                 is_byte_shifting: true,
@@ -109,7 +109,7 @@ mod tests {
     #[test]
     fn test_from_attr_borrowed_valid() {
         assert_eq!(
-            Highlight::Value(DMXValue {
+            Highlight::Value(DmxValue {
                 initial_value: 12,
                 n: 3,
                 is_byte_shifting: false,
@@ -117,7 +117,7 @@ mod tests {
             testdata::to_attr_borrowed(b"12/3").into()
         );
         assert_eq!(
-            Highlight::Value(DMXValue {
+            Highlight::Value(DmxValue {
                 initial_value: 12,
                 n: 3,
                 is_byte_shifting: true,

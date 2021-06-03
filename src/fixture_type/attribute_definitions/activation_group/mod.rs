@@ -1,7 +1,7 @@
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
-use crate::utils::deparse::{DeparsePrimaryKey};
+use crate::utils::deparse::DeparsePrimaryKey;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
 
@@ -11,14 +11,11 @@ impl DeparsePrimaryKey<Name> for ActivationGroup {
     fn primary_key_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Name, GdtfError> {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
-            match attr.key {
-                b"Name" => {
-                    return Ok(attr.into());
-                }
-                _ => {}
+            if attr.key == b"Name" {
+                return Ok(attr.into());
             }
         }
-        return Ok(Default::default());
+        Ok(Default::default())
     }
 
 

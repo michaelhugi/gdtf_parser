@@ -5,7 +5,7 @@ use std::convert::TryFrom;
 use quick_xml::events::attributes::Attribute;
 
 use crate::utils::units::name::Name;
-use crate::utils::units::node::{GDTFNodeError, Node};
+use crate::utils::units::node::{GdtfNodeError, Node};
 
 #[derive(Debug, PartialEq, Clone)]
 ///Node used in DmxChannel.initial_function.Link to the channel function that will be activated by default for this DMXChannel;
@@ -13,8 +13,8 @@ pub struct NodeDmxChannelInitialFunction(Option<Vec<Name>>);
 
 impl NodeDmxChannelInitialFunction {
     ///New Node from str defined in GDTF-XML with checking if chars are valid for GDTF-Names
-    pub fn new_from_str(value: &str) -> Result<Self, GDTFNodeError> {
-        if value == "" {
+    pub fn new_from_str(value: &str) -> Result<Self, GdtfNodeError> {
+        if value.is_empty() {
             return Ok(Self(None));
         }
         Ok(Self(Some(Self::str_to_names_vec(value)?)))
@@ -22,7 +22,7 @@ impl NodeDmxChannelInitialFunction {
 
     ///New Node from str defined in GDTF-XML without checking if chars are valid for GDTF-Names
     pub fn new_from_str_unchecked(value: &str) -> Self {
-        if value == "" {
+        if value.is_empty() {
             return Self(None);
         }
         Self(Some(Name::str_to_names_vec_unchecked(value)))
@@ -42,7 +42,7 @@ impl Node for NodeDmxChannelInitialFunction {}
 
 ///Parses a str directly to a Node. This function will not allow invalid chars due to GDTF specs.
 impl TryFrom<&str> for NodeDmxChannelInitialFunction {
-    type Error = GDTFNodeError;
+    type Error = GdtfNodeError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         Self::new_from_str(value)
@@ -52,7 +52,7 @@ impl TryFrom<&str> for NodeDmxChannelInitialFunction {
 ///Parses an xml attribute directly to a Node. In case of an error, the function will return a Node with None. This function will allow invalid chars for Name due to GDTF specs because Rust can handle it.
 impl From<Attribute<'_>> for NodeDmxChannelInitialFunction {
     fn from(attr: Attribute<'_>) -> Self {
-        Self::new_from_str_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| ""))
+        Self::new_from_str_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or( ""))
     }
 }
 

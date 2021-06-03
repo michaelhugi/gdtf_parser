@@ -279,7 +279,7 @@ pub(crate) trait TestDeparseHashMap: DeparseHashMap + TestDeparseSingle {
 }
 
 pub(crate) fn attr_to_str<'a>(attr: &'a Attribute) -> &'a str {
-    std::str::from_utf8(attr.value.borrow()).unwrap_or_else(|_| "")
+    std::str::from_utf8(attr.value.borrow()).unwrap_or("")
 }
 
 pub(crate) fn attr_try_to_str<'a>(attr: &'a Attribute) -> Result<&'a str, GdtfError> {
@@ -287,25 +287,25 @@ pub(crate) fn attr_try_to_str<'a>(attr: &'a Attribute) -> Result<&'a str, GdtfEr
 }
 
 pub(crate) fn attr_to_f32(attr: &Attribute) -> f32 {
-    f32::from_str(attr_try_to_str(attr).unwrap_or_else(|_| "")).unwrap_or_else(|_| 0.)
+    f32::from_str(attr_try_to_str(attr).unwrap_or("")).unwrap_or(0_f32)
 }
 
 pub(crate) fn attr_to_f32_option(attr: &Attribute) -> Option<f32> {
-    match f32::from_str(attr_try_to_str(attr).unwrap_or_else(|_| "")) {
+    match f32::from_str(attr_try_to_str(attr).unwrap_or("")) {
         Ok(f) => Some(f),
         Err(_) => None
     }
 }
 
 pub(crate) fn attr_to_string_option(attr: &Attribute) -> Option<String> {
-    match attr_try_to_str(attr).unwrap_or_else(|_| "") {
+    match attr_try_to_str(attr).unwrap_or("") {
         "" => None,
         s => Some(s.to_owned())
     }
 }
 
 pub(crate) fn attr_to_string(attr: &Attribute) -> String {
-    attr_try_to_str(attr).unwrap_or_else(|_| "").to_owned()
+    attr_try_to_str(attr).unwrap_or("").to_owned()
 }
 
 pub(crate) fn attr_try_to_name(attr: &Attribute) -> Result<Name, GdtfError> {
@@ -313,14 +313,14 @@ pub(crate) fn attr_try_to_name(attr: &Attribute) -> Result<Name, GdtfError> {
 }
 
 pub(crate) fn attr_to_str_option<'a>(attr: &'a Attribute) -> Option<&'a str> {
-    match attr_try_to_str(attr).unwrap_or_else(|_| "") {
+    match attr_try_to_str(attr).unwrap_or("") {
         "" => None,
         s => Some(s)
     }
 }
 
 pub(crate) fn attr_to_u8_option(attr: &Attribute) -> Option<u8> {
-    match u8::from_str(attr_try_to_str(attr).unwrap_or_else(|_| "")) {
+    match u8::from_str(attr_try_to_str(attr).unwrap_or("")) {
         Ok(f) => Some(f),
         Err(_) => None
     }

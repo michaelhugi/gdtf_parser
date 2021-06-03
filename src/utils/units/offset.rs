@@ -27,7 +27,7 @@ impl From<&str> for Offset {
             return None;
         }
         let mut v = Vec::new();
-        for s in s.split(",").into_iter() {
+        for s in s.split(',').into_iter() {
             match u32::from_str(s) {
                 Ok(s) => v.push(s),
                 Err(_) => return Self::default()

@@ -45,27 +45,27 @@ const CHAR_F_AS_U8: u8 = 0x46;
 
 ///GUID representation used in GDTF
 #[derive(Debug, PartialEq, Clone)]
-pub enum GUID {
+pub enum Guid {
     ///The bytes value of the GUID
-    GUID([u8; 16]),
+    Guid([u8; 16]),
     ///Representation for empty GUID (e.q. "")
     Empty,
 }
 
 ///Default vaule for GUID is Empty
-impl Default for GUID {
+impl Default for Guid {
     fn default() -> Self {
         Self::Empty
     }
 }
 
 /// converts a string in format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format to a GUID. Retunrs an error if the format is not correct
-impl TryFrom<&str> for GUID {
-    type Error = GDTFGUIDError;
+impl TryFrom<&str> for Guid {
+    type Error = GdtfGuidError;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
-        if s == "" {
-            return Ok(GUID::Empty);
+        if s.is_empty() {
+            return Ok(Guid::Empty);
         }
         let s: Vec<char> = s.chars().collect();
         let mut s = s.iter().map(|c| *c as u8).collect::<Vec<_>>();
@@ -86,7 +86,7 @@ impl TryFrom<&str> for GUID {
         //Is safe because only 0..F and - chars will succeed anyway
         match s.pop() {
             Some(CHAR_MINUS_AS_U8) => {}
-            _ => return Err(GDTFGUIDError {}),
+            _ => return Err(GdtfGuidError {}),
         }
         //Is safe because only 0..F and - chars will succeed anyway
         bytes[9] = pop_last_byte(&mut s)?;
@@ -95,7 +95,7 @@ impl TryFrom<&str> for GUID {
         //Is safe because only 0..F and - chars will succeed anyway
         match s.pop() {
             Some(CHAR_MINUS_AS_U8) => {}
-            _ => return Err(GDTFGUIDError {}),
+            _ => return Err(GdtfGuidError {}),
         }
         //Is safe because only 0..F and - chars will succeed anyway
         bytes[7] = pop_last_byte(&mut s)?;
@@ -104,7 +104,7 @@ impl TryFrom<&str> for GUID {
         //Is safe because only 0..F and - chars will succeed anyway
         match s.pop() {
             Some(CHAR_MINUS_AS_U8) => {}
-            _ => return Err(GDTFGUIDError {}),
+            _ => return Err(GdtfGuidError {}),
         }
         //Is safe because only 0..F and - chars will succeed anyway
         bytes[5] = pop_last_byte(&mut s)?;
@@ -113,7 +113,7 @@ impl TryFrom<&str> for GUID {
         //Is safe because only 0..F and - chars will succeed anyway
         match s.pop() {
             Some(CHAR_MINUS_AS_U8) => {}
-            _ => return Err(GDTFGUIDError {}),
+            _ => return Err(GdtfGuidError {}),
         }
         //Is safe because only 0..F and - chars will succeed anyway
         bytes[3] = pop_last_byte(&mut s)?;
@@ -124,30 +124,30 @@ impl TryFrom<&str> for GUID {
         //Is safe because only 0..F and - chars will succeed anyway
         bytes[0] = pop_last_byte(&mut s)?;
 
-        return Ok(GUID::GUID(bytes));
+        Ok(Guid::Guid(bytes))
     }
 }
 
 ///Reads the GUID from an attribute of xml. In case of an error this method will return an Empty GUID
-impl From<Attribute<'_>> for GUID {
+impl From<Attribute<'_>> for Guid {
     fn from(attr: Attribute<'_>) -> Self {
         match std::str::from_utf8(attr.value.borrow()) {
             Ok(v) => match Self::try_from(v) {
                 Ok(guid) => guid,
-                Err(_) => GUID::Empty
+                Err(_) => Guid::Empty
             }
-            Err(_) => GUID::Empty
+            Err(_) => Guid::Empty
         }
     }
 }
 
 ///Helper method to convert a str to GUID. It pops the last byte from a str in format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format and returns it's value as u8. This method will always pop the last two chars who represent a byte.
-fn pop_last_byte(vec: &mut Vec<u8>) -> Result<u8, GDTFGUIDError> {
+fn pop_last_byte(vec: &mut Vec<u8>) -> Result<u8, GdtfGuidError> {
     let (first, second) = match vec.pop() {
-        None => Err(GDTFGUIDError {}),
+        None => Err(GdtfGuidError {}),
         Some(val2) => {
             match vec.pop() {
-                None => Err(GDTFGUIDError {}),
+                None => Err(GdtfGuidError {}),
                 Some(val1) => Ok((val1, val2))
             }
         }
@@ -156,11 +156,11 @@ fn pop_last_byte(vec: &mut Vec<u8>) -> Result<u8, GDTFGUIDError> {
 }
 
 
-impl GUID {
+impl Guid {
     ///Returns the GUID as a string in format  XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format or "" if GUID is empty
-    fn to_str(&self) -> Result<String, GDTFGUIDError> {
+    fn to_str(&self) -> Result<String, GdtfGuidError> {
         Ok(match self {
-            GUID::GUID(val) => unsafe {
+            Guid::Guid(val) => unsafe {
                 let mut v = [0_u8; 36];
 
                 let (v1, v2) = split_into_two_halfbytes(val[0])?;
@@ -227,13 +227,13 @@ impl GUID {
 
                 std::str::from_utf8_unchecked(&v).to_string()
             }
-            GUID::Empty => "".to_string()
+            Guid::Empty => "".to_string()
         })
     }
 }
 
 //Displays a GUID in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format
-impl Display for GUID {
+impl Display for Guid {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self.to_str() {
             Ok(s) => write!(f, "{}", s),
@@ -245,7 +245,7 @@ impl Display for GUID {
 ///Interprets a UTF8 formated hex charbyte to a halfbyte.
 ///assert_eq!(hexcharbyte_to_halfbyte(0x39).unwrap(), 9);
 //assert_eq!(hexcharbyte_to_halfbyte(0x41).unwrap(), 10);
-fn hexcharbyte_to_halfbyte(c: u8) -> Result<u8, GDTFGUIDError> {
+fn hexcharbyte_to_halfbyte(c: u8) -> Result<u8, GdtfGuidError> {
     match c {
         CHAR_0_AS_U8 => Ok(0),
         CHAR_1_AS_U8 => Ok(1),
@@ -263,7 +263,7 @@ fn hexcharbyte_to_halfbyte(c: u8) -> Result<u8, GDTFGUIDError> {
         CHAR_D_AS_U8 => Ok(13),
         CHAR_E_AS_U8 => Ok(14),
         CHAR_F_AS_U8 => Ok(15),
-        _ => Err(GDTFGUIDError {})
+        _ => Err(GdtfGuidError {})
     }
 }
 
@@ -271,7 +271,7 @@ fn hexcharbyte_to_halfbyte(c: u8) -> Result<u8, GDTFGUIDError> {
 ///Interprets a u8 as UTF8 formated hex charbyte to a halfbyte.
 ///assert_eq!(halfbyte_to_hexcharbyte(13).unwrap(), 0x44);
 //assert_eq!(halfbyte_to_hexcharbyte(14).unwrap(), 0x45);
-fn halfbyte_to_hexcharbyte(c: u8) -> Result<u8, GDTFGUIDError> {
+fn halfbyte_to_hexcharbyte(c: u8) -> Result<u8, GdtfGuidError> {
     match c {
         0 => Ok(CHAR_0_AS_U8),
         1 => Ok(CHAR_1_AS_U8),
@@ -289,7 +289,7 @@ fn halfbyte_to_hexcharbyte(c: u8) -> Result<u8, GDTFGUIDError> {
         13 => Ok(CHAR_D_AS_U8),
         14 => Ok(CHAR_E_AS_U8),
         15 => Ok(CHAR_F_AS_U8),
-        _ => Err(GDTFGUIDError {})
+        _ => Err(GdtfGuidError {})
     }
 }
 
@@ -298,7 +298,7 @@ fn halfbyte_to_hexcharbyte(c: u8) -> Result<u8, GDTFGUIDError> {
 /// assert_eq!(is_byte_one_at_index(0b0001_0101,0).unwrap(),false)
 /// assert_eq!(is_byte_one_at_index(0b1001_0101,3).unwrap(),true)
 /// assert_eq!(is_byte_one_at_index(0b1000_0101,3).unwrap(),false)
-fn is_byte_one_at_index(byte: u8, index: u8) -> Result<bool, GDTFGUIDError> {
+fn is_byte_one_at_index(byte: u8, index: u8) -> Result<bool, GdtfGuidError> {
     match index {
         0 => Ok(0b1000_0000_u8 & byte == 0b1000_0000_u8),
         1 => Ok(0b0100_0000_u8 & byte == 0b0100_0000_u8),
@@ -308,14 +308,14 @@ fn is_byte_one_at_index(byte: u8, index: u8) -> Result<bool, GDTFGUIDError> {
         5 => Ok(0b0000_0100_u8 & byte == 0b0000_0100_u8),
         6 => Ok(0b0000_0010_u8 & byte == 0b0000_0010_u8),
         7 => Ok(0b0000_0001_u8 & byte == 0b0000_0001_u8),
-        _ => Err(GDTFGUIDError {})
+        _ => Err(GdtfGuidError {})
     }
 }
 
 ///shifts bytes from lower to upper.
 /// assert_eq!(shift_byte_lower_to_upper(0b0000_0100).unwrap(),0b0100_0000)
 /// assert_eq!(shift_byte_lower_to_upper(0b0010_1100).unwrap(),0b1100_0000)
-fn shift_byte_lower_to_upper(byte: u8) -> Result<u8, GDTFGUIDError> {
+fn shift_byte_lower_to_upper(byte: u8) -> Result<u8, GdtfGuidError> {
     let s1 = if is_byte_one_at_index(byte, 4)? { 0b1000_0000_u8 } else { 0 };
     let s2 = if is_byte_one_at_index(byte, 5)? { 0b0100_0000_u8 } else { 0 };
     let s3 = if is_byte_one_at_index(byte, 6)? { 0b0010_0000_u8 } else { 0 };
@@ -327,7 +327,7 @@ fn shift_byte_lower_to_upper(byte: u8) -> Result<u8, GDTFGUIDError> {
 ///joins two halfbytes to one byte.
 ///assert_eq!(join_two_halfbytes(0b0000_0101,0b0000_0001).unwrap(),0b0101_0001)
 ///assert_eq!(join_two_halfbytes(0b0000_1101,0b0000_1001).unwrap(),0b1101_1001)
-fn join_two_halfbytes(first_half: u8, second_half: u8) -> Result<u8, GDTFGUIDError> {
+fn join_two_halfbytes(first_half: u8, second_half: u8) -> Result<u8, GdtfGuidError> {
     Ok(shift_byte_lower_to_upper(first_half)? + second_half)
 }
 
@@ -335,7 +335,7 @@ fn join_two_halfbytes(first_half: u8, second_half: u8) -> Result<u8, GDTFGUIDErr
 ///shifts bytes from upper to lower.
 /// assert_eq!(get_upper_halfbyte(0b0000_0100).unwrap(),0b0000_0000)
 /// assert_eq!(get_upper_halfbyte(0b0010_1100).unwrap(),0b0000_0010)
-fn get_upper_halfbyte(byte: u8) -> Result<u8, GDTFGUIDError> {
+fn get_upper_halfbyte(byte: u8) -> Result<u8, GdtfGuidError> {
     let s1 = if is_byte_one_at_index(byte, 0)? { 0b0000_1000_u8 } else { 0 };
     let s2 = if is_byte_one_at_index(byte, 1)? { 0b0000_0100_u8 } else { 0 };
     let s3 = if is_byte_one_at_index(byte, 2)? { 0b0000_0010_u8 } else { 0 };
@@ -347,7 +347,7 @@ fn get_upper_halfbyte(byte: u8) -> Result<u8, GDTFGUIDError> {
 ///removes the upper half of a byte.
 /// assert_eq!(get_lower_halfbyte(0b0000_0100).unwrap(),0b0000_0100)
 /// assert_eq!(get_lower_halfbyte(0b0010_1100).unwrap(),0b0000_1100)
-fn get_lower_halfbyte(byte: u8) -> Result<u8, GDTFGUIDError> {
+fn get_lower_halfbyte(byte: u8) -> Result<u8, GdtfGuidError> {
     let s1 = if is_byte_one_at_index(byte, 4)? { 0b0000_1000_u8 } else { 0 };
     let s2 = if is_byte_one_at_index(byte, 5)? { 0b0000_0100_u8 } else { 0 };
     let s3 = if is_byte_one_at_index(byte, 6)? { 0b0000_0010_u8 } else { 0 };
@@ -358,34 +358,34 @@ fn get_lower_halfbyte(byte: u8) -> Result<u8, GDTFGUIDError> {
 ///Splits a byte into two halfbytes.
 ///assert_eq!(split_into_two_halfbytes(0b0100_0101).unwrap(), (0b0000_0100,0b0000_0101));
 ///assert_eq!(split_into_two_halfbytes(0b1001_1101).unwrap(), (0b0000_1001,0b0000_1101));
-fn split_into_two_halfbytes(b: u8) -> Result<(u8, u8), GDTFGUIDError> {
+fn split_into_two_halfbytes(b: u8) -> Result<(u8, u8), GdtfGuidError> {
     Ok((get_upper_halfbyte(b)?, get_lower_halfbyte(b)?))
 }
 
 ///Interprets two UTF8 formated hex charbyte to a byte
 ///assert_eq!(hexcharbytes_to_byte(0x41,0x33).unwrap(),163_u8);
-fn hexcharbytes_to_byte(c1: u8, c2: u8) -> Result<u8, GDTFGUIDError> {
-    Ok(join_two_halfbytes(hexcharbyte_to_halfbyte(c1)?, hexcharbyte_to_halfbyte(c2)?)?)
+fn hexcharbytes_to_byte(c1: u8, c2: u8) -> Result<u8, GdtfGuidError> {
+    join_two_halfbytes(hexcharbyte_to_halfbyte(c1)?, hexcharbyte_to_halfbyte(c2)?)
 }
 
 #[derive(Debug)]
 /// Error that occures if the format of GUID is wrong e.q. not XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-pub struct GDTFGUIDError {}
+pub struct GdtfGuidError {}
 
-impl Display for GDTFGUIDError {
+impl Display for GdtfGuidError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Wrong argument for GUID in GDTF. Format must be RFC 4122. The format is XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format!")
     }
 }
 
-impl Error for GDTFGUIDError {}
+impl Error for GdtfGuidError {}
 
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
 
     use crate::utils::testdata;
-    use crate::utils::units::guid::{get_lower_halfbyte, get_upper_halfbyte, GUID, halfbyte_to_hexcharbyte, hexcharbyte_to_halfbyte, hexcharbytes_to_byte, is_byte_one_at_index, join_two_halfbytes, shift_byte_lower_to_upper, split_into_two_halfbytes};
+    use crate::utils::units::guid::{get_lower_halfbyte, get_upper_halfbyte, Guid, halfbyte_to_hexcharbyte, hexcharbyte_to_halfbyte, hexcharbytes_to_byte, is_byte_one_at_index, join_two_halfbytes, shift_byte_lower_to_upper, split_into_two_halfbytes};
 
     #[test]
     fn test_is_byte_one_at_index() {
@@ -602,15 +602,15 @@ mod tests {
     #[test]
     fn test_try_from_str_valid() {
         assert_eq!(
-            GUID::GUID([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
-            GUID::try_from("308EA87D-7164-42DE-8106-A6D273F57A51").unwrap()
+            Guid::Guid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
+            Guid::try_from("308EA87D-7164-42DE-8106-A6D273F57A51").unwrap()
         );
     }
 
     #[test]
     fn test_from_attr_valid_borrowed() {
         assert_eq!(
-            GUID::GUID([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
+            Guid::Guid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
             testdata::to_attr_borrowed(b"308EA87D-7164-42DE-8106-A6D273F57A51").into()
         );
     }
@@ -618,7 +618,7 @@ mod tests {
     #[test]
     fn test_from_attr_valid_owned() {
         assert_eq!(
-            GUID::GUID([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
+            Guid::Guid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
             testdata::to_attr_owned(b"308EA87D-7164-42DE-8106-A6D273F57A51").into()
         );
     }
@@ -626,7 +626,7 @@ mod tests {
     #[test]
     fn test_from_attr_empty_borrowed() {
         //Can't use partialEq because Empty will return false all the time
-        if let GUID::Empty = GUID::from(testdata::to_attr_borrowed(b"")) {} else {
+        if let Guid::Empty = Guid::from(testdata::to_attr_borrowed(b"")) {} else {
             panic!("\"\" to GUID should return Empty");
         }
     }
@@ -634,7 +634,7 @@ mod tests {
     #[test]
     fn test_from_attr_empty_owned() {
         //Can't use partialEq because Empty will return false all the time
-        if let GUID::Empty = GUID::from(testdata::to_attr_owned(b"")) {} else {
+        if let Guid::Empty = Guid::from(testdata::to_attr_owned(b"")) {} else {
             panic!("\"\" to GUID should return Empty");
         }
     }
@@ -642,7 +642,7 @@ mod tests {
     #[test]
     fn test_from_attr_invalid_borrowed() {
         //Can't use partialEq because Empty will return false all the time
-        if let GUID::Empty = GUID::from(testdata::to_attr_borrowed(b"something invalid")) {} else {
+        if let Guid::Empty = Guid::from(testdata::to_attr_borrowed(b"something invalid")) {} else {
             panic!("\"\" to GUID should return Empty");
         }
     }
@@ -650,7 +650,7 @@ mod tests {
     #[test]
     fn test_from_attr_invalid_owned() {
         //Can't use partialEq because Empty will return false all the time
-        if let GUID::Empty = GUID::from(testdata::to_attr_owned(b"something invalid")) {} else {
+        if let Guid::Empty = Guid::from(testdata::to_attr_owned(b"something invalid")) {} else {
             panic!("\"\" to GUID should return Empty");
         }
     }
@@ -659,42 +659,42 @@ mod tests {
     #[test]
     fn test_try_from_str_empty() {
         //Can't use partialEq because Empty will return false all the time
-        if let GUID::Empty = GUID::try_from("").unwrap() {} else {
+        if let Guid::Empty = Guid::try_from("").unwrap() {} else {
             panic!("\"\" to GUID should return Empty");
         }
     }
 
     #[test]
     fn test_try_from_str_invalid() {
-        assert!(GUID::try_from("something invalid").is_err());
+        assert!(Guid::try_from("something invalid").is_err());
     }
 
     #[test]
     fn test_try_from_str_slightly_invalid() {
-        assert!(GUID::try_from("308EA87D/7164-42DE-8106-A6D273F57A51").is_err());
-        assert!(GUID::try_from("308EA87D-7164_42DE-8106-A6D273F57A51").is_err());
-        assert!(GUID::try_from("308EA87D-7164-42DE/8106-A6D273F57A51").is_err());
-        assert!(GUID::try_from("308EA87D-7164-42DE-8106_A6D273F57A51").is_err());
+        assert!(Guid::try_from("308EA87D/7164-42DE-8106-A6D273F57A51").is_err());
+        assert!(Guid::try_from("308EA87D-7164_42DE-8106-A6D273F57A51").is_err());
+        assert!(Guid::try_from("308EA87D-7164-42DE/8106-A6D273F57A51").is_err());
+        assert!(Guid::try_from("308EA87D-7164-42DE-8106_A6D273F57A51").is_err());
     }
 
     #[test]
     fn test_try_from_str_invalid_2() {
-        assert!(GUID::try_from(" ").is_err());
+        assert!(Guid::try_from(" ").is_err());
     }
 
     #[test]
     fn test_display_guid() {
-        assert_eq!(format!("{}", GUID::GUID([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81])), "308EA87D-7164-42DE-8106-A6D273F57A51");
+        assert_eq!(format!("{}", Guid::Guid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81])), "308EA87D-7164-42DE-8106-A6D273F57A51");
     }
 
     #[test]
     fn test_display_empty() {
-        assert_eq!(format!("{}", GUID::Empty), "");
+        assert_eq!(format!("{}", Guid::Empty), "");
     }
 
     #[test]
     fn test_partial_ne() {
-        assert_ne!(GUID::GUID([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]), GUID::GUID([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 123, 81]));
+        assert_ne!(Guid::Guid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]), Guid::Guid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 123, 81]));
     }
 
     #[cfg(test)]

@@ -5,34 +5,34 @@ use std::str::Utf8Error;
 
 use zip::result::ZipError;
 
-use crate::utils::units::color_cie::GDTFColorCIEError;
-use crate::utils::units::dmx_value::GDTFDmxValueError;
-use crate::utils::units::guid::GDTFGUIDError;
-use crate::utils::units::name::GDTFNameError;
-use crate::utils::units::node::GDTFNodeError;
+use crate::utils::units::color_cie::GdtfColorCieError;
+use crate::utils::units::dmx_value::GdtfDmxValueError;
+use crate::utils::units::guid::GdtfGuidError;
+use crate::utils::units::name::GdtfNameError;
+use crate::utils::units::node::GdtfNodeError;
 
 #[derive(Debug)]
 pub enum GdtfError {
     Utf8Error(Utf8Error),
-    QuickXMLError(quick_xml::Error),
+    QuickXmlError(quick_xml::Error),
     RequiredValueNotFoundError(String),
-    ColorCIENotValidError(String),
+    ColorCieNotValidError(String),
     DateNotValidError(String),
-    DMXAddressNotValidError(String),
+    DmxAddressNotValidError(String),
     FileReadError(std::io::Error),
     ZipError(ZipError),
     ParseIntError(ParseIntError),
     ParseFloatError(ParseFloatError),
-    NameError(GDTFNameError),
-    GUIDError(GDTFGUIDError),
-    GDTFDmxValueError(GDTFDmxValueError),
-    GDTFNodeError(GDTFNodeError),
-    GDTFColorCIEError(GDTFColorCIEError),
+    NameError(GdtfNameError),
+    GuidError(GdtfGuidError),
+    GdtfDmxValueError(GdtfDmxValueError),
+    GdtfNodeError(GdtfNodeError),
+    GdtfColorCieError(GdtfColorCieError),
 }
 
-impl From<GDTFColorCIEError> for GdtfError {
-    fn from(e: GDTFColorCIEError) -> Self {
-        GdtfError::GDTFColorCIEError(e)
+impl From<GdtfColorCieError> for GdtfError {
+    fn from(e: GdtfColorCieError) -> Self {
+        GdtfError::GdtfColorCieError(e)
     }
 }
 
@@ -48,20 +48,20 @@ impl From<ParseFloatError> for GdtfError {
     }
 }
 
-impl From<GDTFNameError> for GdtfError {
-    fn from(e: GDTFNameError) -> Self {
+impl From<GdtfNameError> for GdtfError {
+    fn from(e: GdtfNameError) -> Self {
         GdtfError::NameError(e)
     }
 }
 
-impl From<GDTFDmxValueError> for GdtfError {
-    fn from(e: GDTFDmxValueError) -> Self {
-        GdtfError::GDTFDmxValueError(e)
+impl From<GdtfDmxValueError> for GdtfError {
+    fn from(e: GdtfDmxValueError) -> Self {
+        GdtfError::GdtfDmxValueError(e)
     }
 }
 
-impl From<GDTFNodeError> for GdtfError {
-    fn from(e: GDTFNodeError) -> Self { GdtfError::GDTFNodeError(e) }
+impl From<GdtfNodeError> for GdtfError {
+    fn from(e: GdtfNodeError) -> Self { GdtfError::GdtfNodeError(e) }
 }
 
 impl fmt::Display for GdtfError {
@@ -70,9 +70,9 @@ impl fmt::Display for GdtfError {
     }
 }
 
-impl From<GDTFGUIDError> for GdtfError {
-    fn from(e: GDTFGUIDError) -> Self {
-        GdtfError::GUIDError(e)
+impl From<GdtfGuidError> for GdtfError {
+    fn from(e: GdtfGuidError) -> Self {
+        GdtfError::GuidError(e)
     }
 }
 
@@ -90,7 +90,7 @@ impl From<Utf8Error> for GdtfError {
 
 impl From<quick_xml::Error> for GdtfError {
     fn from(e: quick_xml::Error) -> Self {
-        GdtfError::QuickXMLError(e)
+        GdtfError::QuickXmlError(e)
     }
 }
 
