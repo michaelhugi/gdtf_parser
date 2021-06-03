@@ -55,12 +55,11 @@ impl PhysicalUnit {
     /// ## Examples
     /// ```rust
     /// use gdtf_parser::utils::units::physical_unit::PhysicalUnit;
-    /// pub fn main(){
-    ///     assert_eq!(PhysicalUnit::Time, PhysicalUnit::new_from_str("Time"));
-    ///     assert_eq!(PhysicalUnit::ColorComponent, PhysicalUnit::new_from_str("ColorComponent"));
-    ///     assert_eq!(PhysicalUnit::None, PhysicalUnit::new_from_str("None"));
-    ///     assert_eq!(PhysicalUnit::None, PhysicalUnit::new_from_str("Something else"));
-    /// }
+    ///
+    /// assert_eq!(PhysicalUnit::Time, PhysicalUnit::new_from_str("Time"));
+    /// assert_eq!(PhysicalUnit::ColorComponent, PhysicalUnit::new_from_str("ColorComponent"));
+    /// assert_eq!(PhysicalUnit::None, PhysicalUnit::new_from_str("None"));
+    /// assert_eq!(PhysicalUnit::None, PhysicalUnit::new_from_str("Something else"));
     /// ```
     pub fn new_from_str(s: &str) -> Self {
         use PhysicalUnit::*;
@@ -96,12 +95,11 @@ impl PhysicalUnit {
     /// use gdtf_parser::utils::units::physical_unit::PhysicalUnit;
     /// use quick_xml::events::attributes::Attribute;
     /// use std::borrow::Cow;
-    /// pub fn main(){
-    ///     assert_eq!(PhysicalUnit::Time, PhysicalUnit::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Time")}));
-    ///     assert_eq!(PhysicalUnit::ColorComponent, PhysicalUnit::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"ColorComponent")}));
-    ///     assert_eq!(PhysicalUnit::None, PhysicalUnit::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"None")}));
-    ///     assert_eq!(PhysicalUnit::None, PhysicalUnit::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something else")}));
-    /// }
+    ///
+    /// assert_eq!(PhysicalUnit::Time, PhysicalUnit::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Time")}));
+    /// assert_eq!(PhysicalUnit::ColorComponent, PhysicalUnit::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"ColorComponent")}));
+    /// assert_eq!(PhysicalUnit::None, PhysicalUnit::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"None")}));
+    /// assert_eq!(PhysicalUnit::None, PhysicalUnit::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something else")}));
     /// ```
     pub fn new_from_attr(attr: Attribute) -> Self {
         Self::new_from_str(deparse::attr_to_str(&attr))

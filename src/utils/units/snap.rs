@@ -27,13 +27,12 @@ impl Snap {
     ///## Examples
     /// ```rust
     /// use gdtf_parser::utils::units::snap::Snap;
-    /// fn main(){
-    ///     assert_eq!(Snap::No,Snap::new_from_str("No"));
-    ///     assert_eq!(Snap::Yes,Snap::new_from_str("Yes"));
-    ///     assert_eq!(Snap::On,Snap::new_from_str("On"));
-    ///     assert_eq!(Snap::Off,Snap::new_from_str("Off"));
-    ///     assert_eq!(Snap::No,Snap::new_from_str("Anything else"));
-    /// }
+    ///
+    /// assert_eq!(Snap::No,Snap::new_from_str("No"));
+    /// assert_eq!(Snap::Yes,Snap::new_from_str("Yes"));
+    /// assert_eq!(Snap::On,Snap::new_from_str("On"));
+    /// assert_eq!(Snap::Off,Snap::new_from_str("Off"));
+    /// assert_eq!(Snap::No,Snap::new_from_str("Anything else"));
     /// ```
     pub fn new_from_str(s: &str) -> Self {
         use Snap::*;
@@ -51,13 +50,12 @@ impl Snap {
     /// use gdtf_parser::utils::units::snap::Snap;
     /// use quick_xml::events::attributes::Attribute;
     /// use std::borrow::Cow;
-    /// fn main(){
-    ///     assert_eq!(Snap::No,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"No") }));
-    ///     assert_eq!(Snap::Yes,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"Yes") }));
-    ///     assert_eq!(Snap::On,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"On") }));
-    ///     assert_eq!(Snap::Off,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"Off") }));
-    ///     assert_eq!(Snap::No,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"Anything else") }));
-    /// }
+    ///
+    /// assert_eq!(Snap::No,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"No") }));
+    /// assert_eq!(Snap::Yes,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"Yes") }));
+    /// assert_eq!(Snap::On,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"On") }));
+    /// assert_eq!(Snap::Off,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"Off") }));
+    /// assert_eq!(Snap::No,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"Anything else") }));
     /// ```
 
     pub fn new_from_attr(attr: Attribute) -> Self {
