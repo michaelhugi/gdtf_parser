@@ -1,6 +1,8 @@
-//TODO check
 //! Module for the unit PhysicalUnit used in GDTF
 
+use quick_xml::events::attributes::Attribute;
+
+use crate::utils::deparse;
 
 ///Physical Unit representation used in GDTF
 #[derive(Debug, PartialEq, Clone)]
@@ -48,8 +50,19 @@ pub enum PhysicalUnit {
     ColorComponent,
 }
 
-impl From<&str> for PhysicalUnit {
-    fn from(s: &str) -> Self {
+impl PhysicalUnit {
+    ///Creates a new Physical unit from a str defined in gdtf-xml.
+    /// ## Examples
+    /// ```rust
+    /// use gdtf_parser::utils::units::physical_unit::PhysicalUnit;
+    /// pub fn main(){
+    ///     assert_eq!(PhysicalUnit::Time, PhysicalUnit::new_from_str("Time"));
+    ///     assert_eq!(PhysicalUnit::ColorComponent, PhysicalUnit::new_from_str("ColorComponent"));
+    ///     assert_eq!(PhysicalUnit::None, PhysicalUnit::new_from_str("None"));
+    ///     assert_eq!(PhysicalUnit::None, PhysicalUnit::new_from_str("Something else"));
+    /// }
+    /// ```
+    pub fn new_from_str(s: &str) -> Self {
         use PhysicalUnit::*;
         match s {
             "Percent" => Percent,
@@ -76,45 +89,114 @@ impl From<&str> for PhysicalUnit {
             _ => None
         }
     }
-}
 
+    ///Creates a new Physical unit from an xml-attribute defined in gdtf-xml.
+    /// ## Examples
+    /// ```rust
+    /// use gdtf_parser::utils::units::physical_unit::PhysicalUnit;
+    /// use quick_xml::events::attributes::Attribute;
+    /// use std::borrow::Cow;
+    /// pub fn main(){
+    ///     assert_eq!(PhysicalUnit::Time, PhysicalUnit::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Time")}));
+    ///     assert_eq!(PhysicalUnit::ColorComponent, PhysicalUnit::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"ColorComponent")}));
+    ///     assert_eq!(PhysicalUnit::None, PhysicalUnit::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"None")}));
+    ///     assert_eq!(PhysicalUnit::None, PhysicalUnit::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something else")}));
+    /// }
+    /// ```
+    pub fn new_from_attr(attr: Attribute) -> Self {
+        Self::new_from_str(deparse::attr_to_str(&attr))
+    }
+}
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
-    use crate::utils::units::physical_unit::PhysicalUnit;
+    use crate::utils::testdata;
+    use crate::utils::units::physical_unit::PhysicalUnit as T;
 
     #[test]
-    fn test_valid() {
-        assert_eq!(
-            PhysicalUnit::Energy,
-            PhysicalUnit::try_from("Energy").unwrap()
-        );
+    fn test_new_from_str() {
+        use T::*;
+        assert_eq!(None, T::new_from_str("None"));
+        assert_eq!(None, T::new_from_str("Something else"));
+        assert_eq!(None, T::new_from_str(""));
+        assert_eq!(Percent, T::new_from_str("Percent"));
+        assert_eq!(Length, T::new_from_str("Length"));
+        assert_eq!(Mass, T::new_from_str("Mass"));
+        assert_eq!(Time, T::new_from_str("Time"));
+        assert_eq!(Temperature, T::new_from_str("Temperature"));
+        assert_eq!(LuminousIntensity, T::new_from_str("LuminousIntensity"));
+        assert_eq!(Angle, T::new_from_str("Angle"));
+        assert_eq!(Force, T::new_from_str("Force"));
+        assert_eq!(Frequency, T::new_from_str("Frequency"));
+        assert_eq!(Current, T::new_from_str("Current"));
+        assert_eq!(Voltage, T::new_from_str("Voltage"));
+        assert_eq!(Power, T::new_from_str("Power"));
+        assert_eq!(Energy, T::new_from_str("Energy"));
+        assert_eq!(Area, T::new_from_str("Area"));
+        assert_eq!(Volume, T::new_from_str("Volume"));
+        assert_eq!(Speed, T::new_from_str("Speed"));
+        assert_eq!(Acceleration, T::new_from_str("Acceleration"));
+        assert_eq!(AngularSpeed, T::new_from_str("AngularSpeed"));
+        assert_eq!(AngularAccc, T::new_from_str("AngularAccc"));
+        assert_eq!(WaveLength, T::new_from_str("WaveLength"));
+        assert_eq!(ColorComponent, T::new_from_str("ColorComponent"));
     }
 
     #[test]
-    fn test_valid_2() {
-        assert_eq!(
-            PhysicalUnit::None,
-            PhysicalUnit::try_from("None").unwrap()
-        );
+    fn test_new_from_attr_owned() {
+        use T::*;
+        assert_eq!(None, T::new_from_attr(testdata::to_attr_owned(b"None")));
+        assert_eq!(None, T::new_from_attr(testdata::to_attr_owned(b"Something else")));
+        assert_eq!(None, T::new_from_attr(testdata::to_attr_owned(b"")));
+        assert_eq!(Percent, T::new_from_attr(testdata::to_attr_owned(b"Percent")));
+        assert_eq!(Length, T::new_from_attr(testdata::to_attr_owned(b"Length")));
+        assert_eq!(Mass, T::new_from_attr(testdata::to_attr_owned(b"Mass")));
+        assert_eq!(Time, T::new_from_attr(testdata::to_attr_owned(b"Time")));
+        assert_eq!(Temperature, T::new_from_attr(testdata::to_attr_owned(b"Temperature")));
+        assert_eq!(LuminousIntensity, T::new_from_attr(testdata::to_attr_owned(b"LuminousIntensity")));
+        assert_eq!(Angle, T::new_from_attr(testdata::to_attr_owned(b"Angle")));
+        assert_eq!(Force, T::new_from_attr(testdata::to_attr_owned(b"Force")));
+        assert_eq!(Frequency, T::new_from_attr(testdata::to_attr_owned(b"Frequency")));
+        assert_eq!(Current, T::new_from_attr(testdata::to_attr_owned(b"Current")));
+        assert_eq!(Voltage, T::new_from_attr(testdata::to_attr_owned(b"Voltage")));
+        assert_eq!(Power, T::new_from_attr(testdata::to_attr_owned(b"Power")));
+        assert_eq!(Energy, T::new_from_attr(testdata::to_attr_owned(b"Energy")));
+        assert_eq!(Area, T::new_from_attr(testdata::to_attr_owned(b"Area")));
+        assert_eq!(Volume, T::new_from_attr(testdata::to_attr_owned(b"Volume")));
+        assert_eq!(Speed, T::new_from_attr(testdata::to_attr_owned(b"Speed")));
+        assert_eq!(Acceleration, T::new_from_attr(testdata::to_attr_owned(b"Acceleration")));
+        assert_eq!(AngularSpeed, T::new_from_attr(testdata::to_attr_owned(b"AngularSpeed")));
+        assert_eq!(AngularAccc, T::new_from_attr(testdata::to_attr_owned(b"AngularAccc")));
+        assert_eq!(WaveLength, T::new_from_attr(testdata::to_attr_owned(b"WaveLength")));
+        assert_eq!(ColorComponent, T::new_from_attr(testdata::to_attr_owned(b"ColorComponent")));
     }
 
-
     #[test]
-    fn test_invalid_2() {
-        assert_eq!(
-            PhysicalUnit::None,
-            PhysicalUnit::try_from("something invalid").unwrap()
-        );
-    }
-
-    #[test]
-    fn test_invalid_3() {
-        assert_eq!(
-            PhysicalUnit::None,
-            PhysicalUnit::try_from("").unwrap()
-        );
+    fn test_new_from_attr_borrowed() {
+        use T::*;
+        assert_eq!(None, T::new_from_attr(testdata::to_attr_borrowed(b"None")));
+        assert_eq!(None, T::new_from_attr(testdata::to_attr_borrowed(b"Something else")));
+        assert_eq!(None, T::new_from_attr(testdata::to_attr_borrowed(b"")));
+        assert_eq!(Percent, T::new_from_attr(testdata::to_attr_borrowed(b"Percent")));
+        assert_eq!(Length, T::new_from_attr(testdata::to_attr_borrowed(b"Length")));
+        assert_eq!(Mass, T::new_from_attr(testdata::to_attr_borrowed(b"Mass")));
+        assert_eq!(Time, T::new_from_attr(testdata::to_attr_borrowed(b"Time")));
+        assert_eq!(Temperature, T::new_from_attr(testdata::to_attr_borrowed(b"Temperature")));
+        assert_eq!(LuminousIntensity, T::new_from_attr(testdata::to_attr_borrowed(b"LuminousIntensity")));
+        assert_eq!(Angle, T::new_from_attr(testdata::to_attr_borrowed(b"Angle")));
+        assert_eq!(Force, T::new_from_attr(testdata::to_attr_borrowed(b"Force")));
+        assert_eq!(Frequency, T::new_from_attr(testdata::to_attr_borrowed(b"Frequency")));
+        assert_eq!(Current, T::new_from_attr(testdata::to_attr_borrowed(b"Current")));
+        assert_eq!(Voltage, T::new_from_attr(testdata::to_attr_borrowed(b"Voltage")));
+        assert_eq!(Power, T::new_from_attr(testdata::to_attr_borrowed(b"Power")));
+        assert_eq!(Energy, T::new_from_attr(testdata::to_attr_borrowed(b"Energy")));
+        assert_eq!(Area, T::new_from_attr(testdata::to_attr_borrowed(b"Area")));
+        assert_eq!(Volume, T::new_from_attr(testdata::to_attr_borrowed(b"Volume")));
+        assert_eq!(Speed, T::new_from_attr(testdata::to_attr_borrowed(b"Speed")));
+        assert_eq!(Acceleration, T::new_from_attr(testdata::to_attr_borrowed(b"Acceleration")));
+        assert_eq!(AngularSpeed, T::new_from_attr(testdata::to_attr_borrowed(b"AngularSpeed")));
+        assert_eq!(AngularAccc, T::new_from_attr(testdata::to_attr_borrowed(b"AngularAccc")));
+        assert_eq!(WaveLength, T::new_from_attr(testdata::to_attr_borrowed(b"WaveLength")));
+        assert_eq!(ColorComponent, T::new_from_attr(testdata::to_attr_borrowed(b"ColorComponent")));
     }
 }
