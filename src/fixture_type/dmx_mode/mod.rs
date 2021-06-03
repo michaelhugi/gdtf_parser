@@ -5,7 +5,7 @@ use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::DMXChannel;
-use crate::utils::deparse::{DeparseSingle, DeparseVec};
+use crate::utils::deparse::{DeparseHashMap, DeparseSingle, DeparseVec};
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
@@ -16,8 +16,6 @@ pub mod dmx_channel;
 ///Each DMX mode describes logical control a part of the device in a specific mode
 #[derive(Debug, PartialEq, Clone)]
 pub struct DMXMode {
-    ///The unique name of the DMX mode
-    pub name: Name,
     ///Name of the first geometry in the device; Only top level geometries are allowed to be linked.
     pub geometry: Name,
     ///Description of all DMX channels used in the mode
@@ -29,7 +27,7 @@ pub struct DMXMode {
 }
 
 impl DeparseSingle for DMXMode {
-    type PrimaryKey = ();
+    type PrimaryKey = Name;
 
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
@@ -70,10 +68,9 @@ impl DeparseSingle for DMXMode {
         buf.clear();
 
         Ok((Self {
-            name,
             geometry,
             dmx_channels,
-        }, None))
+        }, Some(name)))
     }
 
     fn is_single_event_name(event_name: &[u8]) -> bool {
@@ -85,7 +82,7 @@ impl DeparseSingle for DMXMode {
     }
 }
 
-impl DeparseVec for DMXMode {
+impl DeparseHashMap for DMXMode {
     fn is_group_event_name(event_name: &[u8]) -> bool {
         event_name == b"DMXModes"
     }
@@ -110,7 +107,6 @@ mod tests {
     #[test]
     fn test_normal() -> Result<(), GdtfError> {
         DMXMode {
-            name: Name::new("Mode 1 12 DMX")?,
             geometry: Name::new("Base")?,
             dmx_channels: vec![
                 DMXChannel {
@@ -129,7 +125,7 @@ mod tests {
                     logical_channels: vec![],
                 }
             ],
-        }.test(None,
+        }.test(Some(Name::new("Mode 1 12 DMX")?),
                r#"
       <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
         <DMXChannels>

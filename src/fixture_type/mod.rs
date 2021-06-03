@@ -1,4 +1,5 @@
 //! Holds the GDTF FixtureType and it's children
+use std::collections::HashMap;
 use std::fmt::Debug;
 
 use quick_xml::events::{BytesStart, Event};
@@ -7,7 +8,7 @@ use quick_xml::Reader;
 use crate::fixture_type::attribute_definitions::AttributeDefinitions;
 use crate::fixture_type::dmx_mode::DMXMode;
 use crate::utils::deparse;
-use crate::utils::deparse::{DeparseSingle, DeparseVec};
+use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
@@ -48,7 +49,7 @@ pub struct FixtureType {
     //Describes physically separated parts of the device.
     //pub geometries: Geometries,
     ///Contains descriptions of the DMX modes.
-    pub dmx_modes: Vec<DMXMode>,
+    pub dmx_modes: HashMap<Name, DMXMode>,
     //Describe the history of the fixture type.
     //pub revisions: Option<Revisions>,
     //Is used to transfer user - defined and fixture type specific presets to other show files.
@@ -92,7 +93,7 @@ impl DeparseSingle for FixtureType {
 
         let mut buf: Vec<u8> = Vec::new();
         let mut attribute_definitions: Option<AttributeDefinitions> = None;
-        let mut dmx_modes: Option<Vec<DMXMode>> = None;
+        let mut dmx_modes: Option<HashMap<Name, DMXMode>> = None;
         let mut tree_down = 0;
         loop {
             match reader.read_event(&mut buf) {
@@ -100,7 +101,7 @@ impl DeparseSingle for FixtureType {
                     match e.name() {
                         b"AttributeDefinitions" => attribute_definitions = Some(AttributeDefinitions::single_from_event(reader, e)?.0),
                         b"DMXModes" => {
-                            dmx_modes = Some(DMXMode::vec_from_event(reader, e)?);
+                            dmx_modes = Some(DMXMode::hash_map_from_event(reader, e)?);
                         }
                         _ => tree_down += 1
                     }
@@ -157,10 +158,8 @@ impl TestDeparseSingle for FixtureType {}
 mod tests {
     use std::convert::TryInto;
 
-    use crate::fixture_type::attribute_definitions::activation_group::ActivationGroup;
     use crate::fixture_type::attribute_definitions::attribute::Attribute;
     use crate::fixture_type::attribute_definitions::AttributeDefinitions;
-    use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
     use crate::fixture_type::dmx_mode::DMXMode;
     use crate::fixture_type::FixtureType;
@@ -183,16 +182,11 @@ mod tests {
             short_name: "ACME AE 610 BEAM".to_string(),
             thumbnail: Some("AE-610 BEAM".to_string()),
             attribute_definitions: AttributeDefinitions {
-                activation_groups: vec![ActivationGroup {
-                    name: "PanTilt".try_into().unwrap()
-                }],
-                feature_groups: vec![FeatureGroup {
-                    name: "Position".try_into().unwrap(),
+                activation_groups: vec![Name::new_unchecked("PanTilt")],
+                feature_groups: testdata::vec_to_hash_map(vec![Name::new_unchecked("Position")], vec![FeatureGroup {
                     pretty: "PositionP".to_string(),
-                    features: vec![Feature {
-                        name: "PanTilt".try_into().unwrap()
-                    }],
-                }],
+                    features: vec![Name::new_unchecked("PanTilt")],
+                }]),
                 attributes: testdata::vec_to_hash_map(vec![AttributeName::Pan], vec![
                     Attribute::new(
                         "P",
@@ -203,14 +197,13 @@ mod tests {
                         None)
                 ]),
             },
-            dmx_modes: vec![DMXMode {
-                name: Name::new_unchecked("Mode 1 12 DMX"),
+            dmx_modes: testdata::vec_to_hash_map(vec![Name::new_unchecked("Mode 1 12 DMX")], vec![DMXMode {
                 geometry: Name::new_unchecked("Base"),
                 dmx_channels: vec![],
-            }],
+            }]),
 
         }.test(None,
-            r#"
+               r#"
         <FixtureType Description="ACME AE-610 BEAM" FixtureTypeID="E62F2ECF-2A08-491D-BEEC-F5C491B89784" LongName="ACME AE 610 BEAM" Manufacturer="ACME" Name="ACME AE-610 BEAM" RefFT="8F54E11C-4C91-11E9-80BC-F1DFE217E634" ShortName="ACME AE 610 BEAM" Thumbnail="AE-610 BEAM">
             <AttributeDefinitions>
                     <ActivationGroups>

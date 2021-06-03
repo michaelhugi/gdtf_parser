@@ -7,14 +7,14 @@ use quick_xml::Reader;
 use crate::fixture_type::attribute_definitions::activation_group::ActivationGroup;
 use crate::fixture_type::attribute_definitions::attribute::Attribute;
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
-use crate::utils::compare_hashmap::hashmap_eq;
-use crate::utils::deparse::{DeparseSingle, DeparseVec};
+use crate::utils::deparse::{DeparsePrimaryKey, DeparseSingle};
 use crate::utils::deparse::DeparseHashMap;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXMLError;
 use crate::utils::units::attribute_name::AttributeName;
+use crate::utils::units::name::Name;
 
 pub mod feature_group;
 pub mod attribute;
@@ -23,15 +23,15 @@ pub mod activation_group;
 
 #[derive(Debug, Clone)]
 pub struct AttributeDefinitions {
-    pub feature_groups: Vec<FeatureGroup>,
+    pub feature_groups: HashMap<Name, FeatureGroup>,
     pub attributes: HashMap<AttributeName, Attribute>,
-    pub activation_groups: Vec<ActivationGroup>,
+    pub activation_groups: Vec<Name>,
 }
 
 impl PartialEq for AttributeDefinitions {
     fn eq(&self, other: &Self) -> bool {
         self.feature_groups == other.feature_groups &&
-            hashmap_eq(&self.attributes, &other.attributes) &&
+            self.attributes == other.attributes &&
             self.activation_groups == other.activation_groups
     }
 }
@@ -42,17 +42,17 @@ impl DeparseSingle for AttributeDefinitions {
     fn single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut buf: Vec<u8> = Vec::new();
-        let mut feature_groups: Vec<FeatureGroup> = Vec::new();
+        let mut feature_groups: HashMap<Name, FeatureGroup> = HashMap::new();
         let mut attributes: HashMap<AttributeName, Attribute> = HashMap::new();
-        let mut activation_groups: Vec<ActivationGroup> = Vec::new();
+        let mut activation_groups: Vec<Name> = Vec::new();
         let mut tree_down = 0;
         loop {
             match reader.read_event(&mut buf) {
                 Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
                     match e.name() {
-                        b"FeatureGroups" => feature_groups = FeatureGroup::vec_from_event(reader, e)?,
+                        b"FeatureGroups" => feature_groups = FeatureGroup::hash_map_from_event(reader, e)?,
                         b"Attributes" => attributes = Attribute::hash_map_from_event(reader, e)?,
-                        b"ActivationGroups" => activation_groups = ActivationGroup::vec_from_event(reader, e)?,
+                        b"ActivationGroups" => activation_groups = ActivationGroup::primary_key_vec_from_event(reader, e)?,
                         _ => { tree_down += 1; }
                     }
                 }
@@ -91,10 +91,8 @@ impl TestDeparseSingle for AttributeDefinitions {}
 mod tests {
     use std::convert::TryInto;
 
-    use crate::fixture_type::attribute_definitions::activation_group::ActivationGroup;
     use crate::fixture_type::attribute_definitions::attribute::Attribute;
     use crate::fixture_type::attribute_definitions::AttributeDefinitions;
-    use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
@@ -106,28 +104,18 @@ mod tests {
     #[test]
     fn test_some() -> Result<(), GdtfError> {
         AttributeDefinitions {
-            feature_groups: vec![
+            feature_groups: testdata::vec_to_hash_map(vec![Name::new_unchecked("PositionG"), Name::new_unchecked("GoboG")], vec![
                 FeatureGroup {
-                    name: "PositionG".try_into().unwrap(),
                     pretty: "PositionP".to_string(),
-                    features: vec![
-                        Feature {
-                            name: "PanTiltF".try_into().unwrap()
-                        }
-                    ],
+                    features: vec![Name::new_unchecked("PanTiltF")],
                 },
                 FeatureGroup {
-                    name: "GoboG".try_into().unwrap(),
                     pretty: "GoboP".to_string(),
                     features: vec![
-                        Feature {
-                            name: "GoboF".try_into().unwrap()
-                        },
-                        Feature {
-                            name: "Gobo2F".try_into().unwrap()
-                        }
+                        Name::new_unchecked("GoboF"),
+                        Name::new_unchecked("Gobo2F")
                     ],
-                }],
+                }]),
             attributes: testdata::vec_to_hash_map(vec![AttributeName::Pan, AttributeName::Tilt, AttributeName::Gobo_n_(1)], vec![
                 Attribute {
                     pretty: "P".to_string(),
@@ -155,12 +143,8 @@ mod tests {
                 }
             ]),
             activation_groups: vec![
-                ActivationGroup {
-                    name: "PanTilt".try_into().unwrap()
-                },
-                ActivationGroup {
-                    name: "Gobo1".try_into().unwrap()
-                }
+                Name::new_unchecked("PanTilt"),
+                Name::new_unchecked("Gobo1")
             ],
         }.test(None,
                r#"
@@ -192,25 +176,15 @@ mod tests {
     #[test]
     fn test_min() -> Result<(), GdtfError> {
         AttributeDefinitions {
-            feature_groups: vec![
+            feature_groups: testdata::vec_to_hash_map(vec![Name::new_unchecked(""), Name::new_unchecked("")], vec![
                 FeatureGroup {
-                    name: "".try_into().unwrap(),
                     pretty: "".to_string(),
-                    features: vec![
-                        Feature {
-                            name: "".try_into().unwrap()
-                        }
-                    ],
+                    features: vec![Name::new_unchecked("")],
                 },
                 FeatureGroup {
-                    name: "".try_into().unwrap(),
                     pretty: "".to_string(),
-                    features: vec![
-                        Feature {
-                            name: "".try_into().unwrap()
-                        }
-                    ],
-                }],
+                    features: vec![Name::new_unchecked("")],
+                }]),
             attributes: testdata::vec_to_hash_map(vec![AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?)], vec![
                 Attribute {
                     pretty: "".to_string(),
@@ -239,12 +213,8 @@ mod tests {
                 }
             ]),
             activation_groups: vec![
-                ActivationGroup {
-                    name: "".try_into().unwrap()
-                },
-                ActivationGroup {
-                    name: "".try_into().unwrap()
-                }
+                Name::new_unchecked(""),
+                Name::new_unchecked("")
             ],
         }.test(None,
                r#"
@@ -276,25 +246,15 @@ mod tests {
     #[test]
     fn test_empty() -> Result<(), GdtfError> {
         AttributeDefinitions {
-            feature_groups: vec![
+            feature_groups: testdata::vec_to_hash_map(vec![Name::new_unchecked(""), Name::new_unchecked("")], vec![
                 FeatureGroup {
-                    name: "".try_into().unwrap(),
                     pretty: "".to_string(),
-                    features: vec![
-                        Feature {
-                            name: "".try_into().unwrap()
-                        }
-                    ],
+                    features: vec![Name::new_unchecked("")],
                 },
                 FeatureGroup {
-                    name: "".try_into().unwrap(),
                     pretty: "".to_string(),
-                    features: vec![
-                        Feature {
-                            name: "".try_into().unwrap()
-                        }
-                    ],
-                }],
+                    features: vec![Name::new_unchecked("")],
+                }]),
             attributes: testdata::vec_to_hash_map(vec![AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?)], vec![
                 Attribute {
                     pretty: "".to_string(),
@@ -322,12 +282,8 @@ mod tests {
                 }
             ]),
             activation_groups: vec![
-                ActivationGroup {
-                    name: "".try_into().unwrap()
-                },
-                ActivationGroup {
-                    name: "".try_into().unwrap()
-                }
+                Name::new_unchecked(""),
+                Name::new_unchecked("")
             ],
         }.test(None,
                r#"

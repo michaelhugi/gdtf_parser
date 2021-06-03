@@ -14,7 +14,6 @@ use crate::utils::units::name::Name;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ChannelSet {
-    pub name: Name,
     pub dmx_from: DMXValue,
     pub physical_from: Option<f32>,
     pub physical_to: Option<f32>,
@@ -22,7 +21,7 @@ pub struct ChannelSet {
 }
 
 impl DeparseSingle for ChannelSet {
-    type PrimaryKey = ();
+    type PrimaryKey = Name;
 
     fn single_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
@@ -44,12 +43,11 @@ impl DeparseSingle for ChannelSet {
             }
         }
         Ok((ChannelSet {
-            name,
             dmx_from,
             physical_from,
             physical_to,
             wheel_slot_index,
-        }, None))
+        }, Some(name)))
     }
 
     fn is_single_event_name(event_name: &[u8]) -> bool {
@@ -66,16 +64,14 @@ impl TestDeparseSingle for ChannelSet {}
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::units::dmx_value::DMXValue;
+    use crate::utils::units::name::Name;
 
     #[test]
     fn test_max() {
         ChannelSet {
-            name: "Slow".try_into().unwrap(),
             dmx_from: DMXValue {
                 is_byte_shifting: false,
                 initial_value: 55,
@@ -84,14 +80,13 @@ mod tests {
             physical_from: Some(23.1),
             physical_to: Some(23.4),
             wheel_slot_index: Some(0),
-        }.test(None,
+        }.test(Some(Name::new_unchecked("Slow")),
                r#"<ChannelSet DMXFrom="55/1" Name="Slow" WheelSlotIndex="0" PhysicalFrom="23.1" PhysicalTo="23.4" />"#)
     }
 
     #[test]
     fn test_min() {
         ChannelSet {
-            name: "Slow".try_into().unwrap(),
             dmx_from: DMXValue {
                 is_byte_shifting: true,
                 initial_value: 55,
@@ -100,14 +95,13 @@ mod tests {
             physical_from: None,
             physical_to: None,
             wheel_slot_index: None,
-        }.test(None,
+        }.test(Some(Name::new_unchecked("Slow")),
                r#"<ChannelSet DMXFrom="55/2s" Name="Slow"/>"#)
     }
 
     #[test]
     fn test_min_2() {
         ChannelSet {
-            name: "Slow".try_into().unwrap(),
             dmx_from: DMXValue {
                 is_byte_shifting: true,
                 initial_value: 55,
@@ -116,7 +110,7 @@ mod tests {
             physical_from: None,
             physical_to: None,
             wheel_slot_index: None,
-        }.test(None,
+        }.test(Some(Name::new_unchecked("Slow")),
                r#"<ChannelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#)
     }
 

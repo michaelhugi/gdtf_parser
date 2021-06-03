@@ -4,12 +4,10 @@ use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
 use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
-use crate::utils::deparse::{DeparseSingle, DeparseVec};
+use crate::utils::deparse::{DeparseHashMap, DeparsePrimaryKey, DeparseSingle};
 use crate::utils::deparse;
 #[cfg(test)]
-use crate::utils::deparse::TestDeparseSingle;
-#[cfg(test)]
-use crate::utils::deparse::TestDeparseVec;
+use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
 
@@ -18,13 +16,12 @@ pub mod feature;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct FeatureGroup {
-    pub name: Name,
     pub pretty: String,
-    pub features: Vec<Feature>,
+    pub features: Vec<Name>,
 }
 
 impl DeparseSingle for FeatureGroup {
-    type PrimaryKey = ();
+    type PrimaryKey = Name;
 
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
@@ -40,13 +37,13 @@ impl DeparseSingle for FeatureGroup {
         }
 
         let mut buf: Vec<u8> = Vec::new();
-        let mut features: Vec<Feature> = Vec::new();
+        let mut features: Vec<Name> = Vec::new();
         let mut tree_down = 0;
         loop {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"Feature" {
-                        features.push(Feature::single_from_event(reader, e)?.0);
+                        features.push(Feature::primary_key_from_event(reader, e)?);
                     } else {
                         tree_down += 1;
                     }
@@ -66,10 +63,9 @@ impl DeparseSingle for FeatureGroup {
         buf.clear();
 
         Ok((FeatureGroup {
-            name,
             pretty,
             features,
-        }, None))
+        }, Some(name)))
     }
 
     fn is_single_event_name(event_name: &[u8]) -> bool {
@@ -81,7 +77,7 @@ impl DeparseSingle for FeatureGroup {
     }
 }
 
-impl DeparseVec for FeatureGroup {
+impl DeparseHashMap for FeatureGroup {
     fn is_group_event_name(event_name: &[u8]) -> bool {
         event_name == b"FeatureGroups"
     }
@@ -91,24 +87,21 @@ impl DeparseVec for FeatureGroup {
 impl TestDeparseSingle for FeatureGroup {}
 
 #[cfg(test)]
-impl TestDeparseVec for FeatureGroup {}
+impl TestDeparseHashMap for FeatureGroup {}
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
-    use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
-    use crate::utils::deparse::TestDeparseSingle;
-    use crate::utils::deparse::TestDeparseVec;
+    use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
+    use crate::utils::testdata;
+    use crate::utils::units::name::Name;
 
     #[test]
     fn test_feature_group_no_child() {
         FeatureGroup {
             pretty: "PositionPretty".to_string(),
-            name: "Position".try_into().unwrap(),
             features: vec![],
-        }.test(None,
+        }.test(Some(Name::new_unchecked("Position")),
                r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
               </FeatureGroup>"#,
         );
@@ -118,9 +111,8 @@ mod tests {
     fn test_feature_group_no_child_min() {
         FeatureGroup {
             pretty: "".to_string(),
-            name: "".try_into().unwrap(),
             features: vec![],
-        }.test(None,
+        }.test(Some(Name::new_unchecked("")),
                r#"<FeatureGroup Name="" Pretty="">
               </FeatureGroup>"#,
         );
@@ -130,9 +122,8 @@ mod tests {
     fn test_feature_group_no_child_empty() {
         FeatureGroup {
             pretty: "".to_string(),
-            name: "".try_into().unwrap(),
             features: vec![],
-        }.test(None,
+        }.test(Some(Name::new_unchecked("")),
                r#"<FeatureGroup/>"#,
         );
     }
@@ -141,9 +132,8 @@ mod tests {
     fn test_feature_group_one_child() {
         FeatureGroup {
             pretty: "PositionPretty".to_string(),
-            name: "Position".try_into().unwrap(),
-            features: vec![Feature { name: "PanTilt".try_into().unwrap() }],
-        }.test(None,
+            features: vec![Name::new_unchecked("PanTilt")],
+        }.test(Some(Name::new_unchecked("Position")),
                r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
               <Feature Name="PanTilt"/>
               </FeatureGroup>"#,
@@ -154,9 +144,8 @@ mod tests {
     fn test_feature_group_one_child_min() {
         FeatureGroup {
             pretty: "".to_string(),
-            name: "".try_into().unwrap(),
-            features: vec![Feature { name: "".try_into().unwrap() }],
-        }.test(None,
+            features: vec![Name::new_unchecked("")],
+        }.test(Some(Name::new_unchecked("")),
                r#"<FeatureGroup Name="" Pretty="">
               <Feature Name=""/>
               </FeatureGroup>"#,
@@ -167,9 +156,8 @@ mod tests {
     fn test_feature_group_one_child_empty() {
         FeatureGroup {
             pretty: "".to_string(),
-            name: "".try_into().unwrap(),
-            features: vec![Feature { name: "".try_into().unwrap() }],
-        }.test(None,
+            features: vec![Name::new_unchecked("")],
+        }.test(Some(Name::new_unchecked("")),
                r#"<FeatureGroup>
               <Feature/>
               </FeatureGroup>"#,
@@ -181,12 +169,8 @@ mod tests {
     fn test_feature_group_two_children() {
         FeatureGroup {
             pretty: "PositionPretty".to_string(),
-            name: "Position".try_into().unwrap(),
-            features: vec![
-                Feature { name: "PanTilt".try_into().unwrap() },
-                Feature { name: "Other".try_into().unwrap() }
-            ],
-        }.test(None,
+            features: vec![Name::new_unchecked("PanTilt"), Name::new_unchecked("Other")],
+        }.test(Some(Name::new_unchecked("Position")),
                r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
               <Feature Name="PanTilt"/>
               <Feature Name="Other"/>
@@ -198,12 +182,8 @@ mod tests {
     fn test_feature_group_two_children_min() {
         FeatureGroup {
             pretty: "".to_string(),
-            name: "".try_into().unwrap(),
-            features: vec![
-                Feature { name: "".try_into().unwrap() },
-                Feature { name: "".try_into().unwrap() }
-            ],
-        }.test(None,
+            features: vec![Name::new_unchecked(""), Name::new_unchecked("")],
+        }.test(Some(Name::new_unchecked("")),
                r#"<FeatureGroup Name="" Pretty="">
               <Feature Name=""/>
               <Feature Name=""/>
@@ -215,12 +195,8 @@ mod tests {
     fn test_feature_group_two_children_empty() {
         FeatureGroup {
             pretty: "".to_string(),
-            name: "".try_into().unwrap(),
-            features: vec![
-                Feature { name: "".try_into().unwrap() },
-                Feature { name: "".try_into().unwrap() }
-            ],
-        }.test(None,
+            features: vec![Name::new_unchecked(""), Name::new_unchecked("")],
+        }.test(Some(Name::new_unchecked("")),
                r#"<FeatureGroup>
               <Feature/>
               <Feature/>
@@ -231,22 +207,16 @@ mod tests {
     #[test]
     fn test_feature_group_list() {
         FeatureGroup::test_group(
-            vec![
+            testdata::vec_to_hash_map(vec![Name::new_unchecked("BeamG"), Name::new_unchecked("DimmerG")], vec![
                 FeatureGroup {
-                    name: "BeamG".try_into().unwrap(),
                     pretty: "BeamP".to_string(),
-                    features: vec![Feature {
-                        name: "BeamF".try_into().unwrap()
-                    }],
+                    features: vec![Name::new_unchecked("BeamF")],
                 },
                 FeatureGroup {
-                    name: "DimmerG".try_into().unwrap(),
                     pretty: "DimmerP".to_string(),
-                    features: vec![Feature {
-                        name: "DimmerF".try_into().unwrap()
-                    }],
+                    features: vec![Name::new_unchecked("DimmerF")],
                 }
-            ],
+            ]),
             r#"<FeatureGroups>
                                 <FeatureGroup Name="BeamG" Pretty="BeamP">
                                     <Feature Name="BeamF"/>
@@ -261,22 +231,16 @@ mod tests {
     #[test]
     fn test_feature_group_list_min() {
         FeatureGroup::test_group(
-            vec![
+            testdata::vec_to_hash_map(vec![Name::new_unchecked(""), Name::new_unchecked("")], vec![
                 FeatureGroup {
-                    name: "".try_into().unwrap(),
                     pretty: "".to_string(),
-                    features: vec![Feature {
-                        name: "".try_into().unwrap()
-                    }],
+                    features: vec![Name::new_unchecked("")],
                 },
                 FeatureGroup {
-                    name: "".try_into().unwrap(),
                     pretty: "".to_string(),
-                    features: vec![Feature {
-                        name: "".try_into().unwrap()
-                    }],
+                    features: vec![Name::new_unchecked("")],
                 }
-            ],
+            ]),
             r#"<FeatureGroups>
                                 <FeatureGroup Name="" Pretty="">
                                     <Feature Name=""/>
@@ -291,22 +255,16 @@ mod tests {
     #[test]
     fn test_feature_group_list_empty() {
         FeatureGroup::test_group(
-            vec![
+            testdata::vec_to_hash_map(vec![Name::new_unchecked(""), Name::new_unchecked("")], vec![
                 FeatureGroup {
-                    name: "".try_into().unwrap(),
                     pretty: "".to_string(),
-                    features: vec![Feature {
-                        name: "".try_into().unwrap()
-                    }],
+                    features: vec![Name::new_unchecked("")],
                 },
                 FeatureGroup {
-                    name: "".try_into().unwrap(),
                     pretty: "".to_string(),
-                    features: vec![Feature {
-                        name: "".try_into().unwrap()
-                    }],
+                    features: vec![Name::new_unchecked("")],
                 }
-            ],
+            ]),
             r#"<FeatureGroups>
                                 <FeatureGroup >
                                     <Feature/>
@@ -319,7 +277,7 @@ mod tests {
 
     #[test]
     fn test_feature_group_list_faulty() {
-        match FeatureGroup::vec_from_xml(
+        assert!(FeatureGroup::hash_map_from_xml(
             r#"<FeatureGroups>
                                 FeatureGroup >
                                     <Feature/>
@@ -327,10 +285,7 @@ mod tests {
                                 <FeatureGroup>
                                     <Feature/>
                                 </FeatureGroup>"#
-        ) {
-            Ok(_) => { panic!("test_feature_group_list_faulty should return an error"); }
-            Err(_) => {}
-        }
+        ).is_err());
     }
 
     #[test]

@@ -130,6 +130,7 @@ mod tests {
     use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
     use crate::utils::units::offset::Offset;
     use crate::utils::units::snap::Snap;
+    use std::collections::HashMap;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {
@@ -150,7 +151,7 @@ mod tests {
                     master: Master::None,
                     mib_fade: 0.0,
                     dmx_change_time_limit: 0.0,
-                    channel_functions: vec![],
+                    channel_functions: HashMap::new(),
                 }
             ],
         }.test(None,
@@ -182,7 +183,7 @@ mod tests {
                     master: Master::None,
                     mib_fade: 0.0,
                     dmx_change_time_limit: 0.0,
-                    channel_functions: vec![],
+                    channel_functions: HashMap::new(),
                 }
             ],
         }.test(None,
@@ -214,7 +215,7 @@ mod tests {
                     master: Master::None,
                     mib_fade: 0.0,
                     dmx_change_time_limit: 0.0,
-                    channel_functions: vec![],
+                    channel_functions: HashMap::new(),
                 }
             ],
         }.test(None,
@@ -242,7 +243,7 @@ mod tests {
                     master: Master::None,
                     mib_fade: 0.0,
                     dmx_change_time_limit: 0.0,
-                    channel_functions: vec![],
+                    channel_functions: HashMap::new(),
                 },
                 LogicalChannel {
                     attribute: NodeLogicalChannelAttribute::new_from_attribute_names(vec![AttributeName::Shutter_n_(1)])?,
@@ -250,7 +251,7 @@ mod tests {
                     master: Master::None,
                     mib_fade: 0.0,
                     dmx_change_time_limit: 0.0,
-                    channel_functions: vec![],
+                    channel_functions: HashMap::new(),
                 }
             ],
         }.test(None,

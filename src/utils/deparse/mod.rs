@@ -113,6 +113,42 @@ pub(crate) trait DeparseHashMap: DeparseSingle {
     fn is_group_event_name(event_name: &[u8]) -> bool;
 }
 
+pub(crate) trait DeparsePrimaryKey<P: Eq + Hash + Debug + Clone> {
+    fn primary_key_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<P, GdtfError>;
+
+
+    fn primary_key_vec_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<Vec<P>, GdtfError> where
+        Self: Sized {
+        let mut buf: Vec<u8> = Vec::new();
+        let mut out: Vec<P> = Vec::new();
+        let mut tree_down = 0;
+        loop {
+            match reader.read_event(&mut buf)? {
+                Event::Start(e) | Event::Empty(e) => {
+                    if Self::is_single_event_name(e.name()) {
+                        out.push(Self::primary_key_from_event(reader, e)?);
+                    } else {
+                        tree_down += 1;
+                    }
+                }
+                Event::End(_) => {
+                    tree_down -= 1;
+                    if tree_down <= 0 {
+                        break;
+                    }
+                }
+                Event::Eof => {
+                    break;
+                }
+                _ => {}
+            }
+        }
+        Ok(out)
+    }
+
+    fn is_single_event_name(event_name: &[u8]) -> bool;
+}
+
 pub(crate) trait DeparseVec: DeparseSingle {
     fn vec_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Vec<Self>, GdtfError> where
         Self: Sized {

@@ -4,4 +4,3 @@ pub mod units;
 pub mod testdata;
 pub mod errors;
 pub(crate) mod deparse;
-pub mod compare_hashmap;
