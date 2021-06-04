@@ -111,14 +111,14 @@ mod tests {
             dmx_channels: vec![
                 DmxChannel {
                     dmx_break: DmxBreak::Overwrite,
-                    offset: Offset::Value(vec![1, 2]),
+                    offset: Some(Offset(vec![1, 2])),
                     initial_function: Default::default(),
                     highlight: Highlight::None,
                     geometry: "Yoke".try_into().unwrap(),
                     logical_channels: vec![],
                 }, DmxChannel {
                     dmx_break: DmxBreak::Value(1),
-                    offset: Offset::Value(vec![3, 4]),
+                    offset: Some(Offset(vec![3, 4])),
                     initial_function: Default::default(),
                     highlight: Highlight::None,
                     geometry: "Head".try_into().unwrap(),

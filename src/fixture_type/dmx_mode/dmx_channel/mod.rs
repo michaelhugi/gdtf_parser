@@ -24,7 +24,7 @@ pub struct DmxChannel {
     ///Number of the DMXBreak; Default value: 1; Special value: “Overwrite” – means that this number will be overwritten by Geometry Reference; Size: 4 bytes
     pub dmx_break: DmxBreak,
     ///Relative addresses of the current DMX channel from highest to least significant
-    pub offset: Offset,
+    pub offset: Option<Offset>,
     ///Link to the channel function that will be activated by default for this DMXChannel;
     pub initial_function: NodeDmxChannelInitialFunction,
     ///Highlight value for current channel; Special value: “None”. Default value: “None”.
@@ -41,7 +41,7 @@ impl DeparseSingle for DmxChannel {
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut dmx_break = DmxBreak::default();
-        let mut offset = Offset::default();
+        let mut offset = None;
         let mut initial_function: NodeDmxChannelInitialFunction = Default::default();
         let mut highlight = Highlight::default();
         let mut geometry = Default::default();
@@ -51,7 +51,7 @@ impl DeparseSingle for DmxChannel {
             let attr = attr?;
             match attr.key {
                 b"DMXBreak" => dmx_break = deparse::attr_to_str(&attr).into(),
-                b"Offset" => offset = deparse::attr_to_str(&attr).into(),
+                b"Offset" => offset = Offset::new_from_attr(attr),
                 b"InitialFunction" => initial_function = attr.into(),
                 b"Highlight" => highlight = deparse::attr_to_str(&attr).into(),
                 b"Geometry" => geometry = attr.into(),
@@ -116,6 +116,8 @@ impl TestDeparseSingle for DmxChannel {}
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use crate::fixture_type::dmx_mode::dmx_channel::DmxChannel;
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
     use crate::utils::deparse::TestDeparseSingle;
@@ -130,13 +132,12 @@ mod tests {
     use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
     use crate::utils::units::offset::Offset;
     use crate::utils::units::snap::Snap;
-    use std::collections::HashMap;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {
         DmxChannel {
             dmx_break: DmxBreak::Value(1),
-            offset: Offset::Value(vec![1]),
+            offset: Some(Offset(vec![1])),
             initial_function: NodeDmxChannelInitialFunction::new_from_strs_unchecked(vec!["Beam_Shutter1", "Shutter1", "Open"]),
             highlight: Highlight::Value(DmxValue {
                 initial_value: 8,
@@ -168,7 +169,7 @@ mod tests {
     fn test_normal_2() -> Result<(), GdtfError> {
         DmxChannel {
             dmx_break: DmxBreak::Value(2),
-            offset: Offset::Value(vec![1, 2]),
+            offset: Some(Offset(vec![1, 2])),
             initial_function: NodeDmxChannelInitialFunction::new_from_strs_unchecked(vec!["Beam_Shutter1", "Shutter1", "Open"]),
             highlight: Highlight::Value(DmxValue {
                 initial_value: 8,
@@ -200,7 +201,7 @@ mod tests {
     fn test_normal_3() -> Result<(), GdtfError> {
         DmxChannel {
             dmx_break: DmxBreak::Overwrite,
-            offset: Offset::Value(vec![1, 2]),
+            offset: Some(Offset(vec![1, 2])),
             initial_function: NodeDmxChannelInitialFunction::new_from_strs_unchecked(vec!["Beam_Shutter1", "Shutter1", "Open"]),
             highlight: Highlight::Value(DmxValue {
                 initial_value: 8,
@@ -232,7 +233,7 @@ mod tests {
     fn test_min() -> Result<(), GdtfError> {
         DmxChannel {
             dmx_break: DmxBreak::Value(1),
-            offset: Offset::None,
+            offset: None,
             initial_function: NodeDmxChannelInitialFunction::none(),
             highlight: Highlight::None,
             geometry: Name::new("")?,
@@ -269,7 +270,7 @@ mod tests {
     fn test_faulty() -> Result<(), GdtfError> {
         DmxChannel {
             dmx_break: DmxBreak::Value(1),
-            offset: Offset::None,
+            offset: None,
             initial_function: NodeDmxChannelInitialFunction::none(),
             highlight: Highlight::None,
             geometry: Name::new("")?,
