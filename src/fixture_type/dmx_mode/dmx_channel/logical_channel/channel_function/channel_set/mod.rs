@@ -34,7 +34,7 @@ impl DeparseSingle for ChannelSet {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = attr.into(),
+                b"Name" => name = Name::new_from_attr(attr)?,
                 b"DMXFrom" => dmx_from = deparse::attr_to_str(&attr).try_into()?,
                 b"PhysicalFrom" => physical_from = deparse::attr_to_f32_option(&attr),
                 b"PhysicalTo" => physical_to = deparse::attr_to_f32_option(&attr),
@@ -66,11 +66,12 @@ impl TestDeparseSingle for ChannelSet {}
 mod tests {
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
     use crate::utils::deparse::TestDeparseSingle;
+    use crate::utils::errors::GdtfError;
     use crate::utils::units::dmx_value::DmxValue;
     use crate::utils::units::name::Name;
 
     #[test]
-    fn test_max() {
+    fn test_max() -> Result<(), GdtfError> {
         ChannelSet {
             dmx_from: DmxValue {
                 is_byte_shifting: false,
@@ -80,12 +81,13 @@ mod tests {
             physical_from: Some(23.1),
             physical_to: Some(23.4),
             wheel_slot_index: Some(0),
-        }.test(Some(Name::new_unchecked("Slow")),
-               r#"<ChannelSet DMXFrom="55/1" Name="Slow" WheelSlotIndex="0" PhysicalFrom="23.1" PhysicalTo="23.4" />"#)
+        }.test(Some(Name::new("Slow")?),
+               r#"<ChannelSet DMXFrom="55/1" Name="Slow" WheelSlotIndex="0" PhysicalFrom="23.1" PhysicalTo="23.4" />"#);
+        Ok(())
     }
 
     #[test]
-    fn test_min() {
+    fn test_min() -> Result<(), GdtfError> {
         ChannelSet {
             dmx_from: DmxValue {
                 is_byte_shifting: true,
@@ -95,12 +97,13 @@ mod tests {
             physical_from: None,
             physical_to: None,
             wheel_slot_index: None,
-        }.test(Some(Name::new_unchecked("Slow")),
-               r#"<ChannelSet DMXFrom="55/2s" Name="Slow"/>"#)
+        }.test(Some(Name::new("Slow")?),
+               r#"<ChannelSet DMXFrom="55/2s" Name="Slow"/>"#);
+        Ok(())
     }
 
     #[test]
-    fn test_min_2() {
+    fn test_min_2() -> Result<(), GdtfError> {
         ChannelSet {
             dmx_from: DmxValue {
                 is_byte_shifting: true,
@@ -110,15 +113,13 @@ mod tests {
             physical_from: None,
             physical_to: None,
             wheel_slot_index: None,
-        }.test(Some(Name::new_unchecked("Slow")),
-               r#"<ChannelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#)
+        }.test(Some(Name::new("Slow")?),
+               r#"<ChannelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#);
+        Ok(())
     }
 
     #[test]
     fn test_invald() {
-        match ChannelSet::single_from_xml(r#"<ChnnelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#) {
-            Ok(_) => { panic!("test_invalid should return an error"); }
-            Err(_) => {}
-        }
+        assert!(ChannelSet::single_from_xml(r#"<ChnnelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#).is_err());
     }
 }

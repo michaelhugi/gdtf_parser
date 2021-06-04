@@ -1,34 +1,106 @@
-//TODO check
 //! Module for the unit Name used in GDTF
-use std::borrow::Borrow;
-use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
+use unicode_segmentation::UnicodeSegmentation;
 
-///Name representation used in GDTF
+use crate::utils::deparse;
+
+///Name representation used in GDTF spec
+///Name contains a String that only can hold letters with restricted literals `[32..=122] = (SPACE..='z')` due to GDTF specifications.
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-pub struct Name(String);
+pub struct Name(pub String);
 
 ///Default is an empty Name
+/// ```rust
+/// use gdtf_parser::utils::units::name::Name;
+/// assert_eq!(Name::new("").unwrap(), Default::default());
+/// ```
 impl Default for Name {
-    ///Default is an empty Name
     fn default() -> Self {
         Name("".to_string())
     }
 }
 
-///Deparses Name from Attribute safely. In case of error it will return default. It will also allow not valid chars from GDTF-Spec because Rust can handle it!
-impl From<Attribute<'_>> for Name {
-    ///Depares Name safely from Attribute. In case of error it returns default. It will also allow not valid chars from GDTF-Spec because Rust can handle it!
-    fn from(attr: Attribute) -> Self {
-        Name::new_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or(""))
+
+impl Name {
+    ///Creates a new instance of Name from a str. Only chars `[32..=122] = (SPACE..='z')` are allowed. If one of these chars is passed to the function, it will return an Error
+    /// ## Examples
+    /// ```rust
+    /// use gdtf_parser::utils::units::name::Name;
+    /// assert_eq!(Name("".to_string()), Name::new("").unwrap());
+    /// assert_eq!(Name("Some Name".to_string()), Name::new("Some Name").unwrap());
+    /// assert!(Name::new("Some Name with invalid char {").is_err());
+    /// assert!(Name::new("Some Name with invalid char ȸ").is_err());
+    ///
+    /// ```
+    pub fn new(name: &str) -> Result<Self, GdtfNameError> {
+        Self::validate_chars(name)?;
+        Ok(Self(name.to_string()))
+    }
+
+    ///Creates a new instance of Name from a fast-xml Attribute. Only chars `[32..=122] = (SPACE..='z')` are allowed. If one of these chars is passed to the function, it will return an Error
+    /// ## Examples
+    /// ```rust
+    /// use gdtf_parser::utils::units::name::Name;
+    /// use quick_xml::events::attributes::Attribute;
+    /// use std::borrow::Cow;
+    /// assert_eq!(Name("".to_string()), Name::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"")}).unwrap());
+    /// assert_eq!(Name("Some Name".to_string()), Name::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Some Name")}).unwrap());
+    /// assert!(Name::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Some Name with invalid char {")}).is_err());
+    /// ```
+    pub fn new_from_attr(attr: Attribute) -> Result<Self, GdtfNameError> {
+        Self::new(deparse::attr_to_str(&attr))
+    }
+
+    ///Validates if all chars in a string are in `[32..=122] = (SPACE..='z')` due to GDTF specifications for Name
+    /// ## Examples
+    /// ```rust
+    /// use gdtf_parser::utils::units::name::Name;
+    /// assert!(Name::validate_chars("").is_ok());
+    /// assert!(Name::validate_chars("Some String").is_ok());
+    /// assert!(Name::validate_chars("Some String with invalid char {").is_err());
+    /// assert!(Name::validate_chars("Some String with invalid char ȸ").is_err());
+    /// ```
+    /// ## Usage
+    /// ```rust
+    /// use gdtf_parser::utils::errors::GdtfError;
+    /// use gdtf_parser::utils::units::name::Name;
+    /// fn main() -> Result<(),GdtfError>{
+    ///     let test_string: &str = "Some String";
+    ///     Name::validate_chars(test_string)?;
+    ///     //String is valid for Name
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn validate_chars(s: &str) -> Result<(), GdtfNameError> {
+        for grapheme in s.graphemes(true) {
+            if grapheme.len() != 1 {
+                return Err(GdtfNameError::NotAllowedCharError(grapheme.to_string()));
+            } else {
+                for char in grapheme.chars() {
+                    let char = char as u8;
+                    if !(32..=122).contains(&char) {
+                        let char = [char];
+                        match std::str::from_utf8(&char) {
+                            Ok(char) => return Err(GdtfNameError::NotAllowedCharError(char.to_string())),
+                            Err(_) => return Err(GdtfNameError::NotAllowedCharError("Invalid char for Name in GDTF found".to_string()))
+                        }
+                    }
+                }
+            }
+        }
+
+
+        Ok(())
     }
 }
 
 #[derive(Debug)]
+///Error used to indicate an Error during creating of Name
 pub enum GdtfNameError {
+    ///Error used when a Name was tried to be created with a &str that contains a char out of the scope `[32..=122] = (SPACE..='z')` defined by Gdtf-specifications for Name
     NotAllowedCharError(String)
 }
 
@@ -39,143 +111,127 @@ impl fmt::Display for GdtfNameError {
         use GdtfNameError::*;
         match self {
             //GDTFNameError(_) => write!(f, "ColorCIE Error. Utf8 Error"),
-            NotAllowedCharError(s) => write!(f, "GdtfNameError: {}", s)
+            NotAllowedCharError(s) => write!(f, "GdtfNameError: '{}' is not an allowed char for Name in GDTF", s)
         }
-    }
-}
-
-impl TryFrom<&str> for Name {
-    type Error = GdtfNameError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        Self::new(s)
-    }
-}
-
-impl Name {
-    ///Creates a new instance of name. Only chars to GDTF Spec are allowed
-    pub fn new(name: &str) -> Result<Self, GdtfNameError> {
-        Self::validate_chars(name)?;
-        Ok(Self(name.to_string()))
-    }
-    ///Creates an new_unchecked name with any given char allowed
-    pub(crate) fn new_unchecked(name: &str) -> Self {
-        Self(name.to_string())
-    }
-
-    pub fn validate_chars(s: &str) -> Result<(), GdtfNameError> {
-        for char in s.chars() {
-            let char = char as u8;
-            if !(32..=122).contains(&char) {
-                let char = [char];
-                match std::str::from_utf8(&char) {
-                    Ok(char) => return Err(GdtfNameError::NotAllowedCharError(format!(" '{}' is not an allowed char for Name in GDTF", char))),
-                    Err(_) => return Err(GdtfNameError::NotAllowedCharError("Invalid char for Name in GDTF found".to_string()))
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    ///creates a new vec of Nams from single str where name is not checked for validity defined by GDTF
-    pub fn str_to_names_vec_unchecked(value: &str) -> Vec<Name> {
-        if value.is_empty() {
-            return vec![];
-        }
-        let value = value.split('.');
-        let mut tree: Vec<Name> = vec![];
-        for value in value.into_iter() {
-            tree.push(Name::new_unchecked(value));
-        }
-        tree
-    }
-
-    #[cfg(test)]
-    ///creates a new vec of Name from vec of str  where names are not checked for validity defined by GDTF
-    pub fn strs_to_names_vec_unchecked(names: Vec<&str>) -> Vec<Name> {
-        let mut ns = vec![];
-        for name in names.iter() {
-            ns.push(Name::new_unchecked(name))
-        }
-        ns
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::convert::{TryFrom, TryInto};
+    use std::num::ParseIntError;
 
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
     use crate::utils::units::name::{GdtfNameError, Name};
 
     #[test]
-    fn test_default() -> Result<(), GdtfError> {
-        assert_eq!(Name::new("")?, Default::default());
+    fn test_new() -> Result<(), GdtfError> {
+        assert_eq!(Name("".to_string()), Name::new("")?);
+        assert_eq!(Name("Some Name".to_string()), Name::new("Some Name")?);
+        assert!(Name::new("Some Name with invalid char {").is_err());
+        assert!(Name::new("Some Name with invalid char ȸ").is_err());
+        assert!(Name::new(std::str::from_utf8(&[20, 19, 21])?).is_err());
         Ok(())
     }
 
     #[test]
-    fn test_new() -> Result<(), GdtfNameError> {
-        assert_eq!(Name::new("test")?, Name::new("test")?);
-        assert_eq!(Name::new("")?, Name::new("")?);
-        assert!(Name::new("asd{").is_err());
+    fn test_new_from_attr_owned() -> Result<(), GdtfNameError> {
+        assert_eq!(Name("".to_string()), Name::new_from_attr(testdata::to_attr_owned(b""))?);
+        assert_eq!(Name("Some Name".to_string()), Name::new_from_attr(testdata::to_attr_owned(b"Some Name"))?);
+        assert!(Name::new_from_attr(testdata::to_attr_owned(b"Some Name with invalid char {")).is_err());
+        assert!(Name::new_from_attr(testdata::to_attr_owned(&[20, 19, 21])).is_err());
         Ok(())
     }
 
     #[test]
-    fn test_new_unchecked() -> Result<(), GdtfNameError> {
-        assert_eq!(Name("test".to_string()), Name::new_unchecked("test"));
-        assert_eq!(Name("".to_string()), Name::new_unchecked(""));
-        assert_eq!(Name("asd{".to_string()), Name::new_unchecked("asd{"));
+    fn test_new_from_attr_borrowed() -> Result<(), GdtfNameError> {
+        assert_eq!(Name("".to_string()), Name::new_from_attr(testdata::to_attr_borrowed(b""))?);
+        assert_eq!(Name("Some Name".to_string()), Name::new_from_attr(testdata::to_attr_borrowed(b"Some Name"))?);
+        assert!(Name::new_from_attr(testdata::to_attr_borrowed(b"Some Name with invalid char {")).is_err());
+        assert!(Name::new_from_attr(testdata::to_attr_borrowed(&[20, 19, 21])).is_err());
         Ok(())
     }
 
     #[test]
-    fn test_try_from_str() -> Result<(), GdtfError> {
-        //Name has restricted set of valid chars
-        assert!(Name::try_from(std::str::from_utf8(&[19]).unwrap()).is_err());
-        //Name has restricted set of valid chars
-        assert!(Name::try_from("{").is_err());
-        //Name has restricted set of valid chars
-        assert!(Name::try_from("Some {Name").is_err());
-        assert_eq!(Name::new("")?, "".try_into().unwrap());
-        assert_eq!(Name::new(" ")?, " ".try_into().unwrap());
-        assert_eq!(Name::new("  ")?, "  ".try_into().unwrap());
-        assert_eq!(Name::new("Some Name")?, "Some Name".try_into().unwrap());
-        assert_eq!(Name::new("Some Other Name")?, "Some Other Name".try_into().unwrap());
-        assert_eq!(Name::new("  Some  Name  ")?, "  Some  Name  ".try_into().unwrap());
-        Ok(())
+    fn test_display_error() {
+        match Name::new("Some Name with the invalid char { in the middle") {
+            Ok(_) => panic!("Should return an error"),
+            Err(e) => assert_eq!(format!("{}", e), "GdtfNameError: '{' is not an allowed char for Name in GDTF")
+        }
+        match Name::new("Some Name with the invalid char ȸ in the middle") {
+            Ok(_) => panic!("Should return an error"),
+            Err(e) => assert_eq!(format!("{}", e), "GdtfNameError: 'ȸ' is not an allowed char for Name in GDTF")
+        }
     }
 
     #[test]
-    fn test_from_attr_borrowed() -> Result<(), GdtfError> {
-        //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
-        assert_eq!(Name::new_unchecked("{"), testdata::to_attr_borrowed(b"{").into());
-        //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
-        assert_eq!(Name::new_unchecked("Some {Name"), testdata::to_attr_borrowed(b"Some {Name").into());
-        assert_eq!(Name::new("")?, testdata::to_attr_borrowed(b"").into());
-        assert_eq!(Name::new(" ")?, testdata::to_attr_borrowed(b" ").into());
-        assert_eq!(Name::new("  ")?, testdata::to_attr_borrowed(b"  ").into());
-        assert_eq!(Name::new("Some Name")?, testdata::to_attr_borrowed(b"Some Name").into());
-        assert_eq!(Name::new("Some Other Name")?, testdata::to_attr_borrowed(b"Some Other Name").into());
-        assert_eq!(Name::new("  Some  Name  ")?, testdata::to_attr_borrowed(b"  Some  Name  ").into());
-        Ok(())
+    fn test_validate_chars() {
+        let one_byte = vec![0, 127];
+        for i in one_byte[0]..one_byte[1] {
+            let mut first = format!("{:X}", i);
+            first = make_even(first);
+            test_validate_char(first);
+        }
+        let two_bytes = vec![192, 223, 64, 191];
+        for i in two_bytes[0]..two_bytes[1] {
+            for j in two_bytes[2]..two_bytes[3] {
+                let mut first = format!("{:X}", i);
+                let mut second = format!("{:X}", j);
+
+                first = make_even(first);
+                second = make_even(second);
+
+                test_validate_char(first.to_string() + &second.to_string());
+            }
+        }
+        let three_bytes = vec![224, 239, 64, 191, 64, 191];
+        for i in three_bytes[0]..three_bytes[1] {
+            for j in three_bytes[2]..three_bytes[3] {
+                for k in three_bytes[4]..three_bytes[5] {
+                    let mut first = format!("{:X}", i);
+                    let mut second = format!("{:X}", j);
+                    let mut third = format!("{:X}", k);
+
+                    first = make_even(first);
+                    second = make_even(second);
+                    third = make_even(third);
+
+                    test_validate_char(first.to_string() + &second.to_string() + &third.to_string());
+                }
+            }
+        }
     }
 
-    #[test]
-    fn test_from_attr_owned() -> Result<(), GdtfError> {
-        //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
-        assert_eq!(Name::new_unchecked("{"), testdata::to_attr_owned(b"{").into());
-        //Name has restricted set of valid chars but it's allowed when coming from xml because Rust can handle it
-        assert_eq!(Name::new_unchecked("Some {Name"), testdata::to_attr_owned(b"Some {Name").into());
-        assert_eq!(Name::new("")?, testdata::to_attr_owned(b"").into());
-        assert_eq!(Name::new(" ")?, testdata::to_attr_owned(b" ").into());
-        assert_eq!(Name::new("  ")?, testdata::to_attr_owned(b"  ").into());
-        assert_eq!(Name::new("Some Name")?, testdata::to_attr_owned(b"Some Name").into());
-        assert_eq!(Name::new("Some Other Name")?, testdata::to_attr_owned(b"Some Other Name").into());
-        assert_eq!(Name::new("  Some  Name  ")?, testdata::to_attr_owned(b"  Some  Name  ").into());
-        Ok(())
+    fn make_even(mut s: String) -> String {
+        if s.len() % 2 == 1 {
+            s = "0".to_string() + &s.to_string();
+        }
+        return s;
+    }
+
+    fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
+        (0..s.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&s[i..i + 2], 16))
+            .collect()
+    }
+
+    fn test_validate_char(hex: String) {
+        match &decode_hex(&hex) {
+            Ok(dh) => match std::str::from_utf8(dh) {
+                Ok(v) => {
+                    if format!("{:?}", v).len() < 7 {
+                        let z = i64::from_str_radix(&hex, 16).unwrap();
+                        if z >= 20 && z <= 122 {
+                            assert!(Name::validate_chars(v).is_ok());
+                        } else {
+                            assert!(Name::validate_chars(v).is_err());
+                        }
+                    }
+                }
+                _ => {}
+            },
+            _ => {}
+        }
     }
 }

@@ -94,19 +94,19 @@ impl DeparseSingle for ChannelFunction {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = attr.into(),
-                b"Attribute" => attribute = attr.into(),
+                b"Name" => name = Name::new_from_attr(attr)?,
+                b"Attribute" => attribute = attr.try_into()?,
                 b"OriginalAttribute" => original_attribute = deparse::attr_to_string(&attr),
-                b"DMXFrom" => dmx_from = attr.try_into().unwrap_or( DEFAULT_DMX_FROM),
-                b"Default" => default = attr.try_into().unwrap_or( DEFAULT_DMX_DEFAULT),
+                b"DMXFrom" => dmx_from = attr.try_into().unwrap_or(DEFAULT_DMX_FROM),
+                b"Default" => default = attr.try_into().unwrap_or(DEFAULT_DMX_DEFAULT),
                 b"PhysicalFrom" => physical_from = deparse::attr_to_f32(&attr),
                 b"PhysicalTo" => physical_to = deparse::attr_to_f32(&attr),
                 b"RealFade" => real_fade = deparse::attr_to_f32(&attr),
                 b"RealAcceleration" => real_acceleration = deparse::attr_to_f32(&attr),
-                b"Wheel" => wheel = attr.into(),
-                b"Emitter" => emitter = attr.into(),
-                b"Filter" => filter = attr.into(),
-                b"ModeMaster" => mode_master = attr.into(),
+                b"Wheel" => wheel = attr.try_into()?,
+                b"Emitter" => emitter = attr.try_into()?,
+                b"Filter" => filter = attr.try_into()?,
+                b"ModeMaster" => mode_master = attr.try_into()?,
                 b"ModeFrom" => mode_from = match deparse::attr_to_str_option(&attr) {
                     None => None,
                     Some(v) => Some(v.try_into()?)
@@ -210,9 +210,9 @@ mod tests {
             mode_from: Some("0/1".try_into().unwrap()),
             mode_to: Some("0/1".try_into().unwrap()),
             channel_sets: testdata::vec_to_hash_map(vec![
-                Name::new_unchecked("min"),
-                Name::new_unchecked(""),
-                Name::new_unchecked("max"),
+                Name::new("min")?,
+                Name::new("")?,
+                Name::new("max")?,
             ], vec![
                 ChannelSet {
                     dmx_from: "0/1".try_into().unwrap(),
@@ -233,7 +233,7 @@ mod tests {
                     wheel_slot_index: Some(0),
                 },
             ]),
-        }.test(Some(Name::new_unchecked("Magenta")),
+        }.test(Some(Name::new("Magenta")?),
                r#"
             <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" ModeFrom="0/1" ModeMaster="Base_ColorMacro1" ModeTo="0/1" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
                 <ChannelSet DMXFrom="0/1" Name="min" WheelSlotIndex="0"/>
@@ -262,7 +262,7 @@ mod tests {
             mode_from: Some("0/1".try_into().unwrap()),
             mode_to: Some("0/1".try_into().unwrap()),
             channel_sets: HashMap::new(),
-        }.test(Some(Name::new_unchecked("Magenta")),
+        }.test(Some(Name::new("Magenta")?),
                r#"
             <ChannelFunction Wheel="Wheel1" Emitter="Emitter1" Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" ModeFrom="0/1" ModeMaster="Base_ColorMacro1" ModeTo="0/1" Name="Magenta" OriginalAttribute="orig" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="4.001000" RealFade="3.000000">
             </ChannelFunction>
@@ -271,7 +271,7 @@ mod tests {
     }
 
     #[test]
-    fn test_min_1() {
+    fn test_min_1() -> Result<(), GdtfError> {
         ChannelFunction {
             attribute: "ColorSub_M".try_into().unwrap(),
             original_attribute: "orig".to_string(),
@@ -288,15 +288,16 @@ mod tests {
             mode_from: None,
             mode_to: None,
             channel_sets: HashMap::new(),
-        }.test(Some(Name::new_unchecked("Magenta")),
+        }.test(Some(Name::new("Magenta")?),
                r#"
             <ChannelFunction Wheel="" Emitter="" Filter="" ModeFrom="" ModeMaster="" ModeTo=""  Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Name="Magenta" OriginalAttribute="orig" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="4.001000" RealFade="3.000000">
             </ChannelFunction>
-            "#)
+            "#);
+        Ok(())
     }
 
     #[test]
-    fn test_min_2() {
+    fn test_min_2() -> Result<(), GdtfError> {
         ChannelFunction {
             attribute: "ColorSub_M".try_into().unwrap(),
             original_attribute: "orig".to_string(),
@@ -313,10 +314,11 @@ mod tests {
             mode_from: None,
             mode_to: None,
             channel_sets: HashMap::new(),
-        }.test(Some(Name::new_unchecked("Magenta")),
+        }.test(Some(Name::new("Magenta")?),
                r#"
             <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Name="Magenta" OriginalAttribute="orig" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="4.001000" RealFade="3.000000">
             </ChannelFunction>
-            "#)
+            "#);
+        Ok(())
     }
 }

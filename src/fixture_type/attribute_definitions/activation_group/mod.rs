@@ -12,7 +12,7 @@ impl DeparsePrimaryKey<Name> for ActivationGroup {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             if attr.key == b"Name" {
-                return Ok(attr.into());
+                return Ok(Name::new_from_attr(attr)?);
             }
         }
         Ok(Default::default())

@@ -66,6 +66,17 @@ impl Offset {
     pub fn new_from_attr(attr: Attribute) -> Option<Self> {
         Self::new_from_str(deparse::attr_to_str(&attr))
     }
+    /// Creates a new Offset from a Vec<i32>
+    /// ## Examples
+    /// ```rust
+    ///  use gdtf_parser::utils::units::offset::Offset;
+    ///  assert_eq!(Offset(vec![]), Offset::new(vec![]));
+    ///  assert_eq!(Offset(vec![1]), Offset::new(vec![1]));
+    ///  assert_eq!(Offset(vec![1, 3]), Offset::new(vec![1, 3]));
+    /// ```
+    pub fn new(offsets: Vec<i32>) -> Self {
+        Self(offsets)
+    }
 }
 
 #[cfg(test)]
@@ -119,5 +130,12 @@ mod tests {
         assert!(Offset::new_from_attr(testdata::to_attr_borrowed(b"Something else")).is_none());
         assert!(Offset::new_from_attr(testdata::to_attr_borrowed(b"2147483648,-2147483648")).is_none());
         assert!(Offset::new_from_attr(testdata::to_attr_borrowed(b"2147483648,-2147483649")).is_none());
+    }
+
+    #[test]
+    fn test_new() {
+        assert_eq!(Offset(vec![]), Offset::new(vec![]));
+        assert_eq!(Offset(vec![1]), Offset::new(vec![1]));
+        assert_eq!(Offset(vec![1, 3]), Offset::new(vec![1, 3]));
     }
 }

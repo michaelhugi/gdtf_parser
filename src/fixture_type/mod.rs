@@ -75,7 +75,7 @@ impl DeparseSingle for FixtureType {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = deparse::attr_try_to_name(&attr)?,
+                b"Name" => name = Name::new_from_attr(attr)?,
                 b"ShortName" => short_name = deparse::attr_to_string(&attr),
                 b"LongName" => long_name = deparse::attr_to_string(&attr),
                 b"Manufacturer" => manufacturer = deparse::attr_to_string(&attr),
@@ -164,6 +164,7 @@ mod tests {
     use crate::fixture_type::dmx_mode::DmxMode;
     use crate::fixture_type::FixtureType;
     use crate::utils::deparse::TestDeparseSingle;
+    use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
     use crate::utils::units::attribute_name::AttributeName;
     use crate::utils::units::name::Name;
@@ -171,34 +172,34 @@ mod tests {
     use crate::utils::units::physical_unit::PhysicalUnit;
 
     #[test]
-    fn test_fixture_type() {
+    fn test_fixture_type() -> Result<(), GdtfError> {
         FixtureType {
             description: "ACME AE-610 BEAM".to_string(),
             fixture_type_id: "E62F2ECF-2A08-491D-BEEC-F5C491B89784".try_into().unwrap(),
             long_name: "ACME AE 610 BEAM".to_string(),
             manufacturer: "ACME".to_string(),
-            name: "ACME AE-610 BEAM".try_into().unwrap(),
+            name: Name::new("ACME AE-610 BEAM")?,
             ref_ft: Some("8F54E11C-4C91-11E9-80BC-F1DFE217E634".try_into().unwrap()),
             short_name: "ACME AE 610 BEAM".to_string(),
             thumbnail: Some("AE-610 BEAM".to_string()),
             attribute_definitions: AttributeDefinitions {
-                activation_groups: vec![Name::new_unchecked("PanTilt")],
-                feature_groups: testdata::vec_to_hash_map(vec![Name::new_unchecked("Position")], vec![FeatureGroup {
+                activation_groups: vec![Name::new("PanTilt")?],
+                feature_groups: testdata::vec_to_hash_map(vec![Name::new("Position")?], vec![FeatureGroup {
                     pretty: "PositionP".to_string(),
-                    features: vec![Name::new_unchecked("PanTilt")],
+                    features: vec![Name::new("PanTilt")?],
                 }]),
                 attributes: testdata::vec_to_hash_map(vec![AttributeName::Pan], vec![
                     Attribute::new(
                         "P",
                         Some("PanTilt"),
-                        NodeAttributeFeature::new_from_strs_unchecked(vec!["Position", "PanTilt"]),
+                        NodeAttributeFeature::new_from_strs(vec!["Position", "PanTilt"])?,
                         None,
                         PhysicalUnit::Angle,
                         None)
                 ]),
             },
-            dmx_modes: testdata::vec_to_hash_map(vec![Name::new_unchecked("Mode 1 12 DMX")], vec![DmxMode {
-                geometry: Name::new_unchecked("Base"),
+            dmx_modes: testdata::vec_to_hash_map(vec![Name::new("Mode 1 12 DMX")?], vec![DmxMode {
+                geometry: Name::new("Base")?,
                 dmx_channels: vec![],
             }]),
 
@@ -226,6 +227,7 @@ mod tests {
                 </DMXMode>
             </DMXModes>
         </FixtureType>
-    "#)
+    "#);
+        Ok(())
     }
 }

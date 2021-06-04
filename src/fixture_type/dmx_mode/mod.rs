@@ -38,8 +38,8 @@ impl DeparseSingle for DmxMode {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = attr.into(),
-                b"Geometry" => geometry = attr.into(),
+                b"Name" => name = Name::new_from_attr(attr)?,
+                b"Geometry" => geometry = Name::new_from_attr(attr)?,
                 _ => {}
             }
         }
@@ -93,8 +93,6 @@ impl TestDeparseSingle for DmxMode {}
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
     use crate::fixture_type::dmx_mode::dmx_channel::DmxChannel;
     use crate::fixture_type::dmx_mode::DmxMode;
     use crate::utils::deparse::TestDeparseSingle;
@@ -111,17 +109,17 @@ mod tests {
             dmx_channels: vec![
                 DmxChannel {
                     dmx_break: DmxBreak::Overwrite,
-                    offset: Some(Offset(vec![1, 2])),
+                    offset: Some(Offset::new(vec![1, 2])),
                     initial_function: Default::default(),
                     highlight: Highlight::None,
-                    geometry: "Yoke".try_into().unwrap(),
+                    geometry: Name::new("Yoke")?,
                     logical_channels: vec![],
                 }, DmxChannel {
                     dmx_break: DmxBreak::Value(1),
-                    offset: Some(Offset(vec![3, 4])),
+                    offset: Some(Offset::new(vec![3, 4])),
                     initial_function: Default::default(),
                     highlight: Highlight::None,
-                    geometry: "Head".try_into().unwrap(),
+                    geometry: Name::new("Head")?,
                     logical_channels: vec![],
                 }
             ],

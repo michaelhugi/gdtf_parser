@@ -55,10 +55,10 @@ impl DeparseSingle for Attribute {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = attr.into(),
+                b"Name" => name = attr.try_into()?,
                 b"Pretty" => pretty = deparse::attr_to_string(&attr),
                 b"ActivationGroup" => activation_group = deparse::attr_to_string_option(&attr),
-                b"Feature" => feature = attr.into(),
+                b"Feature" => feature = attr.try_into()?,
                 b"MainAttribute" => main_attribute = deparse::attr_to_string_option(&attr),
                 b"PhysicalUnit" => physical_unit = PhysicalUnit::new_from_attr(attr),
                 b"Color" => color = attr.try_into().ok(),
@@ -122,7 +122,7 @@ mod tests {
                 y: 0.329000,
                 Y: 100.000000,
             }),
-        }.test(Some(AttributeName::UserDefined(Name::new_unchecked("Sound"))),
+        }.test(Some(AttributeName::UserDefined(Name::new("Sound")?)),
                r#"<Attribute Color="0.312700,0.329000,100.000000" Feature="Control.Control" Name="Sound" PhysicalUnit="Angle" Pretty="SoundP" ActivationGroup="Gobo1"  MainAttribute="Gobo1M" />"#,
         );
         Ok(())
@@ -156,7 +156,7 @@ mod tests {
             main_attribute: None,
             physical_unit: PhysicalUnit::Angle,
             color: None,
-        }.test(Some(AttributeName::UserDefined(Name::new_unchecked("Sound"))),
+        }.test(Some(AttributeName::UserDefined(Name::new("Sound")?)),
                r#"<Attribute Feature="Control.Control" Name="Sound" PhysicalUnit="Angle" Pretty="SoundP"/>"#,
         );
         Ok(())
@@ -171,7 +171,7 @@ mod tests {
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
-        }.test(Some(AttributeName::UserDefined(Name::new_unchecked(""))),
+        }.test(Some(AttributeName::UserDefined(Name::new("")?)),
                r#"<Attribute Feature="" Name="" MainAttribute="" ActivationGroup="" PhysicalUnit="" Pretty=""/>"#,
         );
         Ok(())
@@ -186,7 +186,7 @@ mod tests {
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
-        }.test(Some(AttributeName::UserDefined(Name::new_unchecked(""))),
+        }.test(Some(AttributeName::UserDefined(Name::new("")?)),
                r#"<Attribute/>"#,
         );
         Ok(())

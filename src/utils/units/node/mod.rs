@@ -91,26 +91,4 @@ mod tests {
         assert!(T::str_to_names_vec("Test.Te{.Test").is_err());
         Ok(())
     }
-
-    #[test]
-    fn test_strs_to_names_vec_unchecked() -> Result<(), GdtfNodeError> {
-        assert_eq!(vec![Name::new("Test")?, Name::new("Test2")?, Name::new("Test3")?], Name::strs_to_names_vec_unchecked(vec!["Test", "Test2", "Test3"]));
-        assert_eq!(vec![Name::new("Test")?, Name::new("Test3")?], Name::strs_to_names_vec_unchecked(vec!["Test", "Test3"]));
-        assert_eq!(vec![Name::new("Test")?], Name::strs_to_names_vec_unchecked(vec!["Test"]));
-        assert_eq!(vec![Name::new("Test")?, Name::new_unchecked("Te{")], Name::strs_to_names_vec_unchecked(vec!["Test", "Te{"]));
-        assert_eq!(vec![Name::new_unchecked("Te{")], Name::strs_to_names_vec_unchecked(vec!["Te{"]));
-        Ok(())
-    }
-
-    #[test]
-    fn test_str_to_names_vec_unchecked() -> Result<(), GdtfNodeError> {
-        assert_eq!(vec![Name::new("Test")?, Name::new("Test2")?, Name::new("Test3")?], Name::str_to_names_vec_unchecked("Test.Test2.Test3"));
-        assert_eq!(vec![Name::new("Test")?, Name::new("Test3")?], Name::str_to_names_vec_unchecked("Test.Test3"));
-        assert_eq!(vec![Name::new("Test")?], Name::str_to_names_vec_unchecked("Test"));
-        assert_eq!(vec![Name::new_unchecked("Te{")], Name::str_to_names_vec_unchecked("Te{"));
-        assert_eq!(vec![Name::new("Test")?, Name::new_unchecked("Test2{"), Name::new("Test3")?], Name::str_to_names_vec_unchecked("Test.Test2{.Test3"));
-        assert_eq!(vec![Name::new_unchecked("Tes{t"), Name::new("Test3")?], Name::str_to_names_vec_unchecked("Tes{t.Test3"));
-
-        Ok(())
-    }
 }

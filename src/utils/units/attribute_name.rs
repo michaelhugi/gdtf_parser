@@ -549,16 +549,16 @@ pub enum AttributeName {
 ///Default is an Empty user defined name
 impl Default for AttributeName {
     fn default() -> Self {
-        AttributeName::new_from_str_unchecked("")
+        AttributeName::new_from_str("").unwrap()
     }
 }
 
 
 impl AttributeName {
     ///Creates an new AttributeName of &str defined by xml of GDTF. This method does not check if all chars are valid for Name defined by GDTF spec
-    pub(crate) fn new_from_str_unchecked(value: &str) -> Self {
+    pub(crate) fn new_from_str(value: &str) -> Result<Self, GdtfNameError> {
         use AttributeName::*;
-        match value {
+        Ok(match value {
             "Dimmer" => Dimmer,
             "Pan" => Pan,
             "Tilt" => Tilt,
@@ -727,7 +727,7 @@ impl AttributeName {
             "VideoBlendMode" => VideoBlendMode,
             "InputSource" => InputSource,
             "FieldOfView" => FieldOfView,
-            "" => UserDefined(Name::new_unchecked(value)),
+            "" => UserDefined(Name::new(value)?),
             _ => {
                 lazy_static! {
                     static ref REGEX1: RegexSet = RegexSet::new(&[
@@ -831,7 +831,7 @@ impl AttributeName {
                 }
                 let matches: SetMatches = REGEX1.matches(value);
                 if !matches.matched_any() {
-                    UserDefined(Name::new_unchecked(value))
+                    UserDefined(Name::new(value)?)
                 } else {
                     lazy_static! {
                         static ref RE2: Regex = Regex::new(r"\d{1,}").unwrap();
@@ -841,113 +841,107 @@ impl AttributeName {
                     let n = caps.next().map_or(0_u8, |m| u8::from_str(&m[0]).unwrap());
                     let m = caps.next().map_or(0_u8, |m| u8::from_str(&m[0]).unwrap());
 
-                    if matches.matched(0) { return Gobo_n_(n); }
-                    if matches.matched(1) { return Gobo_n_SelectSpin(n); }
-                    if matches.matched(2) { return Gobo_n_SelectShake(n); }
-                    if matches.matched(3) { return Gobo_n_SelectEffects(n); }
-                    if matches.matched(4) { return Gobo_n_WheelIndex(n); }
-                    if matches.matched(5) { return Gobo_n_WheelSpin(n); }
-                    if matches.matched(6) { return Gobo_n_WheelShake(n); }
-                    if matches.matched(7) { return Gobo_n_WheelRandom(n); }
-                    if matches.matched(8) { return Gobo_n_WheelAudio(n); }
-                    if matches.matched(9) { return Gobo_n_Pos(n); }
-                    if matches.matched(10) { return Gobo_n_PosRotate(n); }
-                    if matches.matched(11) { return Gobo_n_PosShake(n); }
-                    if matches.matched(12) { return AnimationWheel_n_(n); }
-                    if matches.matched(13) { return AnimationWheel_n_Audio(n); }
-                    if matches.matched(14) { return AnimationWheel_n_Macro(n); }
-                    if matches.matched(15) { return AnimationWheel_n_Random(n); }
-                    if matches.matched(16) { return AnimationWheel_n_SelectEffects(n); }
-                    if matches.matched(17) { return AnimationWheel_n_SelectShake(n); }
-                    if matches.matched(18) { return AnimationWheel_n_SelectSpin(n); }
-                    if matches.matched(19) { return AnimationWheel_n_Pos(n); }
-                    if matches.matched(20) { return AnimationWheel_n_PosRotate(n); }
-                    if matches.matched(21) { return AnimationWheel_n_PosShake(n); }
-                    if matches.matched(22) { return AnimationSystem_n_(n); }
-                    if matches.matched(23) { return AnimationSystem_n_Ramp(n); }
-                    if matches.matched(24) { return AnimationSystem_n_Shake(n); }
-                    if matches.matched(25) { return AnimationSystem_n_Audio(n); }
-                    if matches.matched(26) { return AnimationSystem_n_Random(n); }
-                    if matches.matched(27) { return AnimationSystem_n_Pos(n); }
-                    if matches.matched(28) { return AnimationSystem_n_PosRotate(n); }
-                    if matches.matched(29) { return AnimationSystem_n_PosShake(n); }
-                    if matches.matched(30) { return AnimationSystem_n_PosRandom(n); }
-                    if matches.matched(31) { return AnimationSystem_n_PosAudio(n); }
-                    if matches.matched(32) { return AnimationSystem_n_Macro(n); }
-                    if matches.matched(33) { return MediaFolder_n_(n); }
-                    if matches.matched(34) { return MediaContent_n_(n); }
-                    if matches.matched(35) { return ModelFolder_n_(n); }
-                    if matches.matched(36) { return ModelContent_n_(n); }
-                    if matches.matched(37) { return ColorEffects_n_(n); }
-                    if matches.matched(38) { return Color_n_(n); }
-                    if matches.matched(39) { return Color_n_WheelIndex(n); }
-                    if matches.matched(40) { return Color_n_WheelSpin(n); }
-                    if matches.matched(41) { return Color_n_WheelRandom(n); }
-                    if matches.matched(42) { return Color_n_WheelAudio(n); }
-                    if matches.matched(43) { return ColorMacro_n_(n); }
-                    if matches.matched(44) { return ColorMacro_n_Rate(n); }
-                    if matches.matched(45) { return Shutter_n_(n); }
-                    if matches.matched(46) { return Shutter_n_Strobe(n); }
-                    if matches.matched(47) { return Shutter_n_StrobePulse(n); }
-                    if matches.matched(48) { return Shutter_n_StrobePulseClose(n); }
-                    if matches.matched(49) { return Shutter_n_StrobePulseOpen(n); }
-                    if matches.matched(50) { return Shutter_n_StrobeRandom(n); }
-                    if matches.matched(51) { return Shutter_n_StrobeRandomPulse(n); }
-                    if matches.matched(52) { return Shutter_n_StrobeRandomPulseClose(n); }
-                    if matches.matched(53) { return Shutter_n_StrobeRandomPulseOpen(n); }
-                    if matches.matched(54) { return Shutter_n_StrobeEffect(n); }
-                    if matches.matched(55) { return Frost_n_(n); }
-                    if matches.matched(56) { return Frost_n_PulseOpen(n); }
-                    if matches.matched(57) { return Frost_n_PulseClose(n); }
-                    if matches.matched(58) { return Frost_n_Ramp(n); }
-                    if matches.matched(59) { return Prism_n_(n); }
-                    if matches.matched(60) { return Prism_n_SelectSpin(n); }
-                    if matches.matched(61) { return Prism_n_Macro(n); }
-                    if matches.matched(62) { return Prism_n_Pos(n); }
-                    if matches.matched(63) { return Prism_n_PosRotate(n); }
-                    if matches.matched(64) { return Effects_n_(n); }
-                    if matches.matched(65) { return Effects_n_Rate(n); }
-                    if matches.matched(66) { return Effects_n_Fade(n); }
-                    if matches.matched(67) { return Effects_n_Adjust_m_(n, m); }
-                    if matches.matched(68) { return Effects_n_Pos(n); }
-                    if matches.matched(69) { return Effects_n_PosRotate(n); }
-                    if matches.matched(70) { return Focus_n_(n); }
-                    if matches.matched(71) { return Focus_n_Adjust(n); }
-                    if matches.matched(72) { return Focus_n_Distance(n); }
-                    if matches.matched(73) { return Control_n_(n); }
-                    if matches.matched(74) { return Gobo_n_WheelMode(n); }
-                    if matches.matched(75) { return AnimationWheel_n_Mode(n); }
-                    if matches.matched(76) { return Color_n_Mode(n); }
-                    if matches.matched(77) { return Fan_n_Mode(n); }
-                    if matches.matched(78) { return GoboWheel_n_MSpeed(n); }
-                    if matches.matched(79) { return Prism_n_MSpeed(n); }
-                    if matches.matched(80) { return Frost_n_MSpeed(n); }
-                    if matches.matched(81) { return Blower_n_(n); }
-                    if matches.matched(82) { return Fan_n_(n); }
-                    if matches.matched(83) { return Fog_n_(n); }
-                    if matches.matched(84) { return Haze_n_(n); }
-                    if matches.matched(85) { return Blade_n_A(n); }
-                    if matches.matched(86) { return Blade_n_B(n); }
-                    if matches.matched(87) { return Blade_n_Rot(n); }
-                    if matches.matched(88) { return BladeSoft_n_A(n); }
-                    if matches.matched(89) { return BladeSoft_n_B(n); }
-                    if matches.matched(90) { return KeyStone_n_A(n); }
-                    if matches.matched(91) { return KeyStone_n_B(n); }
-                    if matches.matched(92) { return VideoEffect_n_Type(n); }
-                    if matches.matched(93) { return VideoEffect_n_Parameter_m_(n, m); }
-                    if matches.matched(94) { return VideoCamera_n_(n); }
-                    if matches.matched(95) { return VideoSoundVolume_n_(n); }
+                    if matches.matched(0) { return Ok(Gobo_n_(n)); }
+                    if matches.matched(1) { return Ok(Gobo_n_SelectSpin(n)); }
+                    if matches.matched(2) { return Ok(Gobo_n_SelectShake(n)); }
+                    if matches.matched(3) { return Ok(Gobo_n_SelectEffects(n)); }
+                    if matches.matched(4) { return Ok(Gobo_n_WheelIndex(n)); }
+                    if matches.matched(5) { return Ok(Gobo_n_WheelSpin(n)); }
+                    if matches.matched(6) { return Ok(Gobo_n_WheelShake(n)); }
+                    if matches.matched(7) { return Ok(Gobo_n_WheelRandom(n)); }
+                    if matches.matched(8) { return Ok(Gobo_n_WheelAudio(n)); }
+                    if matches.matched(9) { return Ok(Gobo_n_Pos(n)); }
+                    if matches.matched(10) { return Ok(Gobo_n_PosRotate(n)); }
+                    if matches.matched(11) { return Ok(Gobo_n_PosShake(n)); }
+                    if matches.matched(12) { return Ok(AnimationWheel_n_(n)); }
+                    if matches.matched(13) { return Ok(AnimationWheel_n_Audio(n)); }
+                    if matches.matched(14) { return Ok(AnimationWheel_n_Macro(n)); }
+                    if matches.matched(15) { return Ok(AnimationWheel_n_Random(n)); }
+                    if matches.matched(16) { return Ok(AnimationWheel_n_SelectEffects(n)); }
+                    if matches.matched(17) { return Ok(AnimationWheel_n_SelectShake(n)); }
+                    if matches.matched(18) { return Ok(AnimationWheel_n_SelectSpin(n)); }
+                    if matches.matched(19) { return Ok(AnimationWheel_n_Pos(n)); }
+                    if matches.matched(20) { return Ok(AnimationWheel_n_PosRotate(n)); }
+                    if matches.matched(21) { return Ok(AnimationWheel_n_PosShake(n)); }
+                    if matches.matched(22) { return Ok(AnimationSystem_n_(n)); }
+                    if matches.matched(23) { return Ok(AnimationSystem_n_Ramp(n)); }
+                    if matches.matched(24) { return Ok(AnimationSystem_n_Shake(n)); }
+                    if matches.matched(25) { return Ok(AnimationSystem_n_Audio(n)); }
+                    if matches.matched(26) { return Ok(AnimationSystem_n_Random(n)); }
+                    if matches.matched(27) { return Ok(AnimationSystem_n_Pos(n)); }
+                    if matches.matched(28) { return Ok(AnimationSystem_n_PosRotate(n)); }
+                    if matches.matched(29) { return Ok(AnimationSystem_n_PosShake(n)); }
+                    if matches.matched(30) { return Ok(AnimationSystem_n_PosRandom(n)); }
+                    if matches.matched(31) { return Ok(AnimationSystem_n_PosAudio(n)); }
+                    if matches.matched(32) { return Ok(AnimationSystem_n_Macro(n)); }
+                    if matches.matched(33) { return Ok(MediaFolder_n_(n)); }
+                    if matches.matched(34) { return Ok(MediaContent_n_(n)); }
+                    if matches.matched(35) { return Ok(ModelFolder_n_(n)); }
+                    if matches.matched(36) { return Ok(ModelContent_n_(n)); }
+                    if matches.matched(37) { return Ok(ColorEffects_n_(n)); }
+                    if matches.matched(38) { return Ok(Color_n_(n)); }
+                    if matches.matched(39) { return Ok(Color_n_WheelIndex(n)); }
+                    if matches.matched(40) { return Ok(Color_n_WheelSpin(n)); }
+                    if matches.matched(41) { return Ok(Color_n_WheelRandom(n)); }
+                    if matches.matched(42) { return Ok(Color_n_WheelAudio(n)); }
+                    if matches.matched(43) { return Ok(ColorMacro_n_(n)); }
+                    if matches.matched(44) { return Ok(ColorMacro_n_Rate(n)); }
+                    if matches.matched(45) { return Ok(Shutter_n_(n)); }
+                    if matches.matched(46) { return Ok(Shutter_n_Strobe(n)); }
+                    if matches.matched(47) { return Ok(Shutter_n_StrobePulse(n)); }
+                    if matches.matched(48) { return Ok(Shutter_n_StrobePulseClose(n)); }
+                    if matches.matched(49) { return Ok(Shutter_n_StrobePulseOpen(n)); }
+                    if matches.matched(50) { return Ok(Shutter_n_StrobeRandom(n)); }
+                    if matches.matched(51) { return Ok(Shutter_n_StrobeRandomPulse(n)); }
+                    if matches.matched(52) { return Ok(Shutter_n_StrobeRandomPulseClose(n)); }
+                    if matches.matched(53) { return Ok(Shutter_n_StrobeRandomPulseOpen(n)); }
+                    if matches.matched(54) { return Ok(Shutter_n_StrobeEffect(n)); }
+                    if matches.matched(55) { return Ok(Frost_n_(n)); }
+                    if matches.matched(56) { return Ok(Frost_n_PulseOpen(n)); }
+                    if matches.matched(57) { return Ok(Frost_n_PulseClose(n)); }
+                    if matches.matched(58) { return Ok(Frost_n_Ramp(n)); }
+                    if matches.matched(59) { return Ok(Prism_n_(n)); }
+                    if matches.matched(60) { return Ok(Prism_n_SelectSpin(n)); }
+                    if matches.matched(61) { return Ok(Prism_n_Macro(n)); }
+                    if matches.matched(62) { return Ok(Prism_n_Pos(n)); }
+                    if matches.matched(63) { return Ok(Prism_n_PosRotate(n)); }
+                    if matches.matched(64) { return Ok(Effects_n_(n)); }
+                    if matches.matched(65) { return Ok(Effects_n_Rate(n)); }
+                    if matches.matched(66) { return Ok(Effects_n_Fade(n)); }
+                    if matches.matched(67) { return Ok(Effects_n_Adjust_m_(n, m)); }
+                    if matches.matched(68) { return Ok(Effects_n_Pos(n)); }
+                    if matches.matched(69) { return Ok(Effects_n_PosRotate(n)); }
+                    if matches.matched(70) { return Ok(Focus_n_(n)); }
+                    if matches.matched(71) { return Ok(Focus_n_Adjust(n)); }
+                    if matches.matched(72) { return Ok(Focus_n_Distance(n)); }
+                    if matches.matched(73) { return Ok(Control_n_(n)); }
+                    if matches.matched(74) { return Ok(Gobo_n_WheelMode(n)); }
+                    if matches.matched(75) { return Ok(AnimationWheel_n_Mode(n)); }
+                    if matches.matched(76) { return Ok(Color_n_Mode(n)); }
+                    if matches.matched(77) { return Ok(Fan_n_Mode(n)); }
+                    if matches.matched(78) { return Ok(GoboWheel_n_MSpeed(n)); }
+                    if matches.matched(79) { return Ok(Prism_n_MSpeed(n)); }
+                    if matches.matched(80) { return Ok(Frost_n_MSpeed(n)); }
+                    if matches.matched(81) { return Ok(Blower_n_(n)); }
+                    if matches.matched(82) { return Ok(Fan_n_(n)); }
+                    if matches.matched(83) { return Ok(Fog_n_(n)); }
+                    if matches.matched(84) { return Ok(Haze_n_(n)); }
+                    if matches.matched(85) { return Ok(Blade_n_A(n)); }
+                    if matches.matched(86) { return Ok(Blade_n_B(n)); }
+                    if matches.matched(87) { return Ok(Blade_n_Rot(n)); }
+                    if matches.matched(88) { return Ok(BladeSoft_n_A(n)); }
+                    if matches.matched(89) { return Ok(BladeSoft_n_B(n)); }
+                    if matches.matched(90) { return Ok(KeyStone_n_A(n)); }
+                    if matches.matched(91) { return Ok(KeyStone_n_B(n)); }
+                    if matches.matched(92) { return Ok(VideoEffect_n_Type(n)); }
+                    if matches.matched(93) { return Ok(VideoEffect_n_Parameter_m_(n, m)); }
+                    if matches.matched(94) { return Ok(VideoCamera_n_(n)); }
+                    if matches.matched(95) { return Ok(VideoSoundVolume_n_(n)); }
 
-                    UserDefined(Name::new_unchecked(value))
+                    UserDefined(Name::new(value)?)
                 }
             }
-        }
-    }
-
-    ///Creates an new AttributeName of &str defined by xml of GDTF. This method does check if all chars are valid for Name defined by GDTF spec
-    pub fn new_from_str(name: &str) -> Result<Self, GdtfNameError> {
-        Name::validate_chars(name)?;
-        Ok(Self::new_from_str_unchecked(name))
+        })
     }
 }
 
@@ -961,9 +955,11 @@ impl TryFrom<&str> for AttributeName {
 }
 
 ///Creates an new AttributeName of an xml-attribute defined by xml of GDTF. This method does check if all chars are valid for Name defined by GDTF spec
-impl From<Attribute<'_>> for AttributeName {
-    fn from(attr: Attribute) -> Self {
-        AttributeName::new_from_str_unchecked(std::str::from_utf8(attr.value.borrow()).unwrap_or(""))
+impl TryFrom<Attribute<'_>> for AttributeName {
+    type Error = GdtfNameError;
+
+    fn try_from(attr: Attribute<'_>) -> Result<Self, Self::Error> {
+        AttributeName::new_from_str(std::str::from_utf8(attr.value.borrow()).unwrap_or(""))
     }
 }
 
@@ -1453,7 +1449,7 @@ mod tests {
         assert_eq!(FieldOfView, "FieldOfView".try_into()?);
 
         assert!(AttributeName::try_from("something{invalid").is_err());
-
+        assert!(AttributeName::try_from("something௸invalid").is_err());
         Ok(())
     }
 
@@ -1468,24 +1464,22 @@ mod tests {
         } else {
             panic!("empty str was not parsed to empty user defined");
         }
-        assert_eq!(Dimmer, testdata::to_attr_owned(b"Dimmer").into());
-        assert_eq!(Pan, testdata::to_attr_owned(b"Pan").into());
-        assert_eq!(Tilt, testdata::to_attr_owned(b"Tilt").into());
-        assert_eq!(Gobo_n_(1), testdata::to_attr_owned(b"Gobo1").into());
-        assert_eq!(Gobo_n_SelectSpin(2), testdata::to_attr_owned(b"Gobo2SelectSpin").into());
-        assert_eq!(Gobo_n_SelectShake(120), testdata::to_attr_owned(b"Gobo120SelectShake").into());
-        assert_eq!(Dimmer, testdata::to_attr_owned(b"Dimmer").into());
-        assert_eq!(Dimmer, testdata::to_attr_owned(b"Dimmer").into());
+        assert_eq!(Dimmer, testdata::to_attr_owned(b"Dimmer").try_into()?);
+        assert_eq!(Pan, testdata::to_attr_owned(b"Pan").try_into()?);
+        assert_eq!(Tilt, testdata::to_attr_owned(b"Tilt").try_into()?);
+        assert_eq!(Gobo_n_(1), testdata::to_attr_owned(b"Gobo1").try_into()?);
+        assert_eq!(Gobo_n_SelectSpin(2), testdata::to_attr_owned(b"Gobo2SelectSpin").try_into()?);
+        assert_eq!(Gobo_n_SelectShake(120), testdata::to_attr_owned(b"Gobo120SelectShake").try_into()?);
+        assert_eq!(Dimmer, testdata::to_attr_owned(b"Dimmer").try_into()?);
+        assert_eq!(Dimmer, testdata::to_attr_owned(b"Dimmer").try_into()?);
 
-        assert_eq!(Effects_n_Adjust_m_(1, 1), testdata::to_attr_owned(b"Effects1Adjust1").into());
-        assert_eq!(Effects_n_Adjust_m_(1, 2), testdata::to_attr_owned(b"Effects1Adjust2").into());
-        assert_eq!(Effects_n_Adjust_m_(2, 1), testdata::to_attr_owned(b"Effects2Adjust1").into());
-        assert_eq!(Effects_n_Adjust_m_(2, 2), testdata::to_attr_owned(b"Effects2Adjust2").into());
-        assert_eq!(Effects_n_Adjust_m_(2, 120), testdata::to_attr_owned(b"Effects2Adjust120").into());
-        assert_eq!(Effects_n_Adjust_m_(120, 2), testdata::to_attr_owned(b"Effects120Adjust2").into());
-        assert_eq!(Effects_n_Adjust_m_(120, 120), testdata::to_attr_owned(b"Effects120Adjust120").into());
-
-        assert_eq!(UserDefined(Name::new_unchecked("something{invalid")), testdata::to_attr_owned(b"something{invalid").into());
+        assert_eq!(Effects_n_Adjust_m_(1, 1), testdata::to_attr_owned(b"Effects1Adjust1").try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(1, 2), testdata::to_attr_owned(b"Effects1Adjust2").try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(2, 1), testdata::to_attr_owned(b"Effects2Adjust1").try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(2, 2), testdata::to_attr_owned(b"Effects2Adjust2").try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(2, 120), testdata::to_attr_owned(b"Effects2Adjust120").try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(120, 2), testdata::to_attr_owned(b"Effects120Adjust2").try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(120, 120), testdata::to_attr_owned(b"Effects120Adjust120").try_into()?);
 
         Ok(())
     }
@@ -1500,24 +1494,22 @@ mod tests {
         } else {
             panic!("empty str was not parsed to empty user defined");
         }
-        assert_eq!(Dimmer, testdata::to_attr_borrowed(b"Dimmer").into());
-        assert_eq!(Pan, testdata::to_attr_borrowed(b"Pan").into());
-        assert_eq!(Tilt, testdata::to_attr_borrowed(b"Tilt").into());
-        assert_eq!(Gobo_n_(1), testdata::to_attr_borrowed(b"Gobo1").into());
-        assert_eq!(Gobo_n_SelectSpin(2), testdata::to_attr_borrowed(b"Gobo2SelectSpin").into());
-        assert_eq!(Gobo_n_SelectShake(120), testdata::to_attr_borrowed(b"Gobo120SelectShake").into());
-        assert_eq!(Dimmer, testdata::to_attr_borrowed(b"Dimmer").into());
-        assert_eq!(Dimmer, testdata::to_attr_borrowed(b"Dimmer").into());
+        assert_eq!(Dimmer, testdata::to_attr_borrowed(b"Dimmer").try_into()?);
+        assert_eq!(Pan, testdata::to_attr_borrowed(b"Pan").try_into()?);
+        assert_eq!(Tilt, testdata::to_attr_borrowed(b"Tilt").try_into()?);
+        assert_eq!(Gobo_n_(1), testdata::to_attr_borrowed(b"Gobo1").try_into()?);
+        assert_eq!(Gobo_n_SelectSpin(2), testdata::to_attr_borrowed(b"Gobo2SelectSpin").try_into()?);
+        assert_eq!(Gobo_n_SelectShake(120), testdata::to_attr_borrowed(b"Gobo120SelectShake").try_into()?);
+        assert_eq!(Dimmer, testdata::to_attr_borrowed(b"Dimmer").try_into()?);
+        assert_eq!(Dimmer, testdata::to_attr_borrowed(b"Dimmer").try_into()?);
 
-        assert_eq!(Effects_n_Adjust_m_(1, 1), testdata::to_attr_borrowed(b"Effects1Adjust1").into());
-        assert_eq!(Effects_n_Adjust_m_(1, 2), testdata::to_attr_borrowed(b"Effects1Adjust2").into());
-        assert_eq!(Effects_n_Adjust_m_(2, 1), testdata::to_attr_borrowed(b"Effects2Adjust1").into());
-        assert_eq!(Effects_n_Adjust_m_(2, 2), testdata::to_attr_borrowed(b"Effects2Adjust2").into());
-        assert_eq!(Effects_n_Adjust_m_(2, 120), testdata::to_attr_borrowed(b"Effects2Adjust120").into());
-        assert_eq!(Effects_n_Adjust_m_(120, 2), testdata::to_attr_borrowed(b"Effects120Adjust2").into());
-        assert_eq!(Effects_n_Adjust_m_(120, 120), testdata::to_attr_borrowed(b"Effects120Adjust120").into());
-
-        assert_eq!(UserDefined(Name::new_unchecked("something{invalid")), testdata::to_attr_borrowed(b"something{invalid").into());
+        assert_eq!(Effects_n_Adjust_m_(1, 1), testdata::to_attr_borrowed(b"Effects1Adjust1").try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(1, 2), testdata::to_attr_borrowed(b"Effects1Adjust2").try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(2, 1), testdata::to_attr_borrowed(b"Effects2Adjust1").try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(2, 2), testdata::to_attr_borrowed(b"Effects2Adjust2").try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(2, 120), testdata::to_attr_borrowed(b"Effects2Adjust120").try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(120, 2), testdata::to_attr_borrowed(b"Effects120Adjust2").try_into()?);
+        assert_eq!(Effects_n_Adjust_m_(120, 120), testdata::to_attr_borrowed(b"Effects120Adjust120").try_into()?);
 
         Ok(())
     }
@@ -1530,17 +1522,6 @@ mod tests {
         assert_eq!(AttributeName::UserDefined(Name::new("")?), AttributeName::new_from_str("")?);
         assert_eq!(AttributeName::UserDefined(Name::new("Something weird")?), AttributeName::new_from_str("Something weird")?);
         assert!(Name::new("asdf{").is_err());
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_from_str_unchecked() -> Result<(), GdtfError> {
-        assert_eq!(AttributeName::Effects_n_(2), AttributeName::new_from_str_unchecked("Effects2"));
-        assert_eq!(AttributeName::Control_n_(3), AttributeName::new_from_str_unchecked("Control3"));
-        assert_eq!(AttributeName::Dimmer, AttributeName::new_from_str_unchecked("Dimmer"));
-        assert_eq!(AttributeName::UserDefined(Name::new("")?), AttributeName::new_from_str_unchecked(""));
-        assert_eq!(AttributeName::UserDefined(Name::new("Something weird")?), AttributeName::new_from_str_unchecked("Something weird"));
-        assert_eq!(AttributeName::UserDefined(Name::new_unchecked("asdf{")), AttributeName::new_from_str_unchecked("asdf{"));
         Ok(())
     }
 }

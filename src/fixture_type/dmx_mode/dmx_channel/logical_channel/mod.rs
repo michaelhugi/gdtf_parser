@@ -15,6 +15,7 @@ use crate::utils::units::master::Master;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
 use crate::utils::units::snap::Snap;
+use std::convert::TryInto;
 
 pub mod channel_function;
 
@@ -50,7 +51,7 @@ impl DeparseSingle for LogicalChannel {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Attribute" => attribute = attr.into(),
+                b"Attribute" => attribute = attr.try_into()?,
                 b"Snap" => snap = Snap::new_from_attr(attr),
                 b"Master" => master = deparse::attr_to_str(&attr).into(),
                 b"MibFade" => mib_fade = deparse::attr_to_f32(&attr),
@@ -138,8 +139,8 @@ mod tests {
             dmx_change_time_limit: 0.0,
             channel_functions: testdata::vec_to_hash_map(
                 vec![
-                    Name::new_unchecked("Magenta"),
-                    Name::new_unchecked("NoFeature")],
+                    Name::new("Magenta")?,
+                    Name::new("NoFeature")?],
                 vec![
                     ChannelFunction {
                         attribute: "ColorSub_M".try_into().unwrap(),
@@ -197,8 +198,8 @@ mod tests {
             dmx_change_time_limit: 0.0,
             channel_functions: testdata::vec_to_hash_map(
                 vec![
-                    Name::new_unchecked("Magenta"),
-                    Name::new_unchecked("NoFeature")
+                    Name::new("Magenta")?,
+                    Name::new("NoFeature")?
                 ],
                 vec![
                     ChannelFunction {

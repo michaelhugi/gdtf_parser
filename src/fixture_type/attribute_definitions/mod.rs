@@ -104,16 +104,16 @@ mod tests {
     #[test]
     fn test_some() -> Result<(), GdtfError> {
         AttributeDefinitions {
-            feature_groups: testdata::vec_to_hash_map(vec![Name::new_unchecked("PositionG"), Name::new_unchecked("GoboG")], vec![
+            feature_groups: testdata::vec_to_hash_map(vec![Name::new("PositionG")?, Name::new("GoboG")?], vec![
                 FeatureGroup {
                     pretty: "PositionP".to_string(),
-                    features: vec![Name::new_unchecked("PanTiltF")],
+                    features: vec![Name::new("PanTiltF")?],
                 },
                 FeatureGroup {
                     pretty: "GoboP".to_string(),
                     features: vec![
-                        Name::new_unchecked("GoboF"),
-                        Name::new_unchecked("Gobo2F")
+                        Name::new("GoboF")?,
+                        Name::new("Gobo2F")?
                     ],
                 }]),
             attributes: testdata::vec_to_hash_map(vec![AttributeName::Pan, AttributeName::Tilt, AttributeName::Gobo_n_(1)], vec![
@@ -143,8 +143,8 @@ mod tests {
                 }
             ]),
             activation_groups: vec![
-                Name::new_unchecked("PanTilt"),
-                Name::new_unchecked("Gobo1")
+                Name::new("PanTilt")?,
+                Name::new("Gobo1")?
             ],
         }.test(None,
                r#"
@@ -176,14 +176,14 @@ mod tests {
     #[test]
     fn test_min() -> Result<(), GdtfError> {
         AttributeDefinitions {
-            feature_groups: testdata::vec_to_hash_map(vec![Name::new_unchecked(""), Name::new_unchecked("")], vec![
+            feature_groups: testdata::vec_to_hash_map(vec![Name::new("")?, Name::new("")?], vec![
                 FeatureGroup {
                     pretty: "".to_string(),
-                    features: vec![Name::new_unchecked("")],
+                    features: vec![Name::new("")?],
                 },
                 FeatureGroup {
                     pretty: "".to_string(),
-                    features: vec![Name::new_unchecked("")],
+                    features: vec![Name::new("")?],
                 }]),
             attributes: testdata::vec_to_hash_map(vec![AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?)], vec![
                 Attribute {
@@ -213,8 +213,8 @@ mod tests {
                 }
             ]),
             activation_groups: vec![
-                Name::new_unchecked(""),
-                Name::new_unchecked("")
+                Name::new("")?,
+                Name::new("")?
             ],
         }.test(None,
                r#"
@@ -246,14 +246,14 @@ mod tests {
     #[test]
     fn test_empty() -> Result<(), GdtfError> {
         AttributeDefinitions {
-            feature_groups: testdata::vec_to_hash_map(vec![Name::new_unchecked(""), Name::new_unchecked("")], vec![
+            feature_groups: testdata::vec_to_hash_map(vec![Name::new("")?, Name::new("")?], vec![
                 FeatureGroup {
                     pretty: "".to_string(),
-                    features: vec![Name::new_unchecked("")],
+                    features: vec![Name::new("")?],
                 },
                 FeatureGroup {
                     pretty: "".to_string(),
-                    features: vec![Name::new_unchecked("")],
+                    features: vec![Name::new("")?],
                 }]),
             attributes: testdata::vec_to_hash_map(vec![AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?)], vec![
                 Attribute {
@@ -282,8 +282,8 @@ mod tests {
                 }
             ]),
             activation_groups: vec![
-                Name::new_unchecked(""),
-                Name::new_unchecked("")
+                Name::new("")?,
+                Name::new("")?
             ],
         }.test(None,
                r#"

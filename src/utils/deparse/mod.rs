@@ -1,6 +1,5 @@
 use std::borrow::Borrow;
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::str::FromStr;
@@ -11,7 +10,6 @@ use quick_xml::events::Event;
 use quick_xml::Reader;
 
 use crate::utils::errors::GdtfError;
-use crate::utils::units::name::Name;
 
 pub(crate) trait DeparseSingle: std::fmt::Debug + Sized {
     type PrimaryKey: Eq + Hash + Debug + Clone;
@@ -306,10 +304,6 @@ pub(crate) fn attr_to_string_option(attr: &Attribute) -> Option<String> {
 
 pub(crate) fn attr_to_string(attr: &Attribute) -> String {
     attr_try_to_str(attr).unwrap_or("").to_owned()
-}
-
-pub(crate) fn attr_try_to_name(attr: &Attribute) -> Result<Name, GdtfError> {
-    Ok(attr_to_str(attr).try_into()?)
 }
 
 pub(crate) fn attr_to_str_option<'a>(attr: &'a Attribute) -> Option<&'a str> {

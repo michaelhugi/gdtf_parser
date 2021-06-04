@@ -30,7 +30,7 @@ impl DeparseSingle for FeatureGroup {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = attr.into(),
+                b"Name" => name = Name::new_from_attr(attr)?,
                 b"Pretty" => pretty = deparse::attr_to_string(&attr),
                 _ => {}
             }
@@ -93,128 +93,138 @@ impl TestDeparseHashMap for FeatureGroup {}
 mod tests {
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
     use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
+    use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
     use crate::utils::units::name::Name;
 
     #[test]
-    fn test_feature_group_no_child() {
+    fn test_feature_group_no_child() -> Result<(), GdtfError> {
         FeatureGroup {
             pretty: "PositionPretty".to_string(),
             features: vec![],
-        }.test(Some(Name::new_unchecked("Position")),
+        }.test(Some(Name::new("Position")?),
                r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
               </FeatureGroup>"#,
         );
+        Ok(())
     }
 
     #[test]
-    fn test_feature_group_no_child_min() {
+    fn test_feature_group_no_child_min() -> Result<(), GdtfError> {
         FeatureGroup {
             pretty: "".to_string(),
             features: vec![],
-        }.test(Some(Name::new_unchecked("")),
+        }.test(Some(Name::new("")?),
                r#"<FeatureGroup Name="" Pretty="">
               </FeatureGroup>"#,
         );
+        Ok(())
     }
 
     #[test]
-    fn test_feature_group_no_child_empty() {
+    fn test_feature_group_no_child_empty() -> Result<(), GdtfError> {
         FeatureGroup {
             pretty: "".to_string(),
             features: vec![],
-        }.test(Some(Name::new_unchecked("")),
+        }.test(Some(Name::new("")?),
                r#"<FeatureGroup/>"#,
         );
+        Ok(())
     }
 
     #[test]
-    fn test_feature_group_one_child() {
+    fn test_feature_group_one_child() -> Result<(), GdtfError> {
         FeatureGroup {
             pretty: "PositionPretty".to_string(),
-            features: vec![Name::new_unchecked("PanTilt")],
-        }.test(Some(Name::new_unchecked("Position")),
+            features: vec![Name::new("PanTilt")?],
+        }.test(Some(Name::new("Position")?),
                r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
               <Feature Name="PanTilt"/>
               </FeatureGroup>"#,
         );
+        Ok(())
     }
 
     #[test]
-    fn test_feature_group_one_child_min() {
+    fn test_feature_group_one_child_min() -> Result<(), GdtfError> {
         FeatureGroup {
             pretty: "".to_string(),
-            features: vec![Name::new_unchecked("")],
-        }.test(Some(Name::new_unchecked("")),
+            features: vec![Name::new("")?],
+        }.test(Some(Name::new("")?),
                r#"<FeatureGroup Name="" Pretty="">
               <Feature Name=""/>
               </FeatureGroup>"#,
         );
+        Ok(())
     }
 
     #[test]
-    fn test_feature_group_one_child_empty() {
+    fn test_feature_group_one_child_empty() -> Result<(), GdtfError> {
         FeatureGroup {
             pretty: "".to_string(),
-            features: vec![Name::new_unchecked("")],
-        }.test(Some(Name::new_unchecked("")),
+            features: vec![Name::new("")?],
+        }.test(Some(Name::new("")?),
                r#"<FeatureGroup>
               <Feature/>
               </FeatureGroup>"#,
         );
+        Ok(())
     }
 
 
     #[test]
-    fn test_feature_group_two_children() {
+    fn test_feature_group_two_children() -> Result<(), GdtfError> {
         FeatureGroup {
             pretty: "PositionPretty".to_string(),
-            features: vec![Name::new_unchecked("PanTilt"), Name::new_unchecked("Other")],
-        }.test(Some(Name::new_unchecked("Position")),
+            features: vec![Name::new("PanTilt")?, Name::new("Other")?],
+        }.test(Some(Name::new("Position")?),
                r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
               <Feature Name="PanTilt"/>
               <Feature Name="Other"/>
               </FeatureGroup>"#,
         );
+        Ok(())
     }
 
     #[test]
-    fn test_feature_group_two_children_min() {
+    fn test_feature_group_two_children_min() -> Result<(), GdtfError> {
         FeatureGroup {
             pretty: "".to_string(),
-            features: vec![Name::new_unchecked(""), Name::new_unchecked("")],
-        }.test(Some(Name::new_unchecked("")),
+            features: vec![Name::new("")?, Name::new("")?],
+        }.test(Some(Name::new("")?),
                r#"<FeatureGroup Name="" Pretty="">
               <Feature Name=""/>
               <Feature Name=""/>
               </FeatureGroup>"#,
         );
+        Ok(())
     }
 
     #[test]
-    fn test_feature_group_two_children_empty() {
+    fn test_feature_group_two_children_empty() -> Result<(), GdtfError> {
         FeatureGroup {
             pretty: "".to_string(),
-            features: vec![Name::new_unchecked(""), Name::new_unchecked("")],
-        }.test(Some(Name::new_unchecked("")),
+            features: vec![Name::new("")?, Name::new("")?],
+        }.test(Some(Name::new("")?),
                r#"<FeatureGroup>
               <Feature/>
               <Feature/>
               </FeatureGroup>"#,
         );
+        Ok(())
     }
 
     #[test]
-    fn test_feature_group_list() {
+    fn test_feature_group_list() -> Result<(), GdtfError> {
         FeatureGroup::test_group(
-            testdata::vec_to_hash_map(vec![Name::new_unchecked("BeamG"), Name::new_unchecked("DimmerG")], vec![
+            testdata::vec_to_hash_map(vec![Name::new("BeamG")?, Name::new("DimmerG")?], vec![
                 FeatureGroup {
                     pretty: "BeamP".to_string(),
-                    features: vec![Name::new_unchecked("BeamF")],
+                    features: vec![Name::new("BeamF")?],
                 },
                 FeatureGroup {
                     pretty: "DimmerP".to_string(),
-                    features: vec![Name::new_unchecked("DimmerF")],
+                    features: vec![Name::new("DimmerF")?],
                 }
             ]),
             r#"<FeatureGroups>
@@ -225,20 +235,21 @@ mod tests {
                                     <Feature Name="DimmerF"/>
                                 </FeatureGroup>"#,
         );
+        Ok(())
     }
 
 
     #[test]
-    fn test_feature_group_list_min() {
+    fn test_feature_group_list_min() -> Result<(), GdtfError> {
         FeatureGroup::test_group(
-            testdata::vec_to_hash_map(vec![Name::new_unchecked(""), Name::new_unchecked("")], vec![
+            testdata::vec_to_hash_map(vec![Name::new("")?, Name::new("")?], vec![
                 FeatureGroup {
                     pretty: "".to_string(),
-                    features: vec![Name::new_unchecked("")],
+                    features: vec![Name::new("")?],
                 },
                 FeatureGroup {
                     pretty: "".to_string(),
-                    features: vec![Name::new_unchecked("")],
+                    features: vec![Name::new("")?],
                 }
             ]),
             r#"<FeatureGroups>
@@ -249,20 +260,21 @@ mod tests {
                                     <Feature Name=""/>
                                 </FeatureGroup>"#,
         );
+        Ok(())
     }
 
 
     #[test]
-    fn test_feature_group_list_empty() {
+    fn test_feature_group_list_empty() -> Result<(), GdtfError> {
         FeatureGroup::test_group(
-            testdata::vec_to_hash_map(vec![Name::new_unchecked(""), Name::new_unchecked("")], vec![
+            testdata::vec_to_hash_map(vec![Name::new("")?, Name::new("")?], vec![
                 FeatureGroup {
                     pretty: "".to_string(),
-                    features: vec![Name::new_unchecked("")],
+                    features: vec![Name::new("")?],
                 },
                 FeatureGroup {
                     pretty: "".to_string(),
-                    features: vec![Name::new_unchecked("")],
+                    features: vec![Name::new("")?],
                 }
             ]),
             r#"<FeatureGroups>
@@ -273,6 +285,7 @@ mod tests {
                                     <Feature/>
                                 </FeatureGroup>"#,
         );
+        Ok(())
     }
 
     #[test]

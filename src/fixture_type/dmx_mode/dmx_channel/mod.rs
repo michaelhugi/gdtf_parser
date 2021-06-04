@@ -15,6 +15,7 @@ use crate::utils::units::highlight::Highlight;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::node_dmx_channel_initial_function::NodeDmxChannelInitialFunction;
 use crate::utils::units::offset::Offset;
+use std::convert::TryInto;
 
 pub mod logical_channel;
 
@@ -52,9 +53,9 @@ impl DeparseSingle for DmxChannel {
             match attr.key {
                 b"DMXBreak" => dmx_break = deparse::attr_to_str(&attr).into(),
                 b"Offset" => offset = Offset::new_from_attr(attr),
-                b"InitialFunction" => initial_function = attr.into(),
+                b"InitialFunction" => initial_function = attr.try_into()?,
                 b"Highlight" => highlight = deparse::attr_to_str(&attr).into(),
-                b"Geometry" => geometry = attr.into(),
+                b"Geometry" => geometry = Name::new_from_attr(attr)?,
                 _ => {}
             }
         }
@@ -137,8 +138,8 @@ mod tests {
     fn test_normal() -> Result<(), GdtfError> {
         DmxChannel {
             dmx_break: DmxBreak::Value(1),
-            offset: Some(Offset(vec![1])),
-            initial_function: NodeDmxChannelInitialFunction::new_from_strs_unchecked(vec!["Beam_Shutter1", "Shutter1", "Open"]),
+            offset: Some(Offset::new(vec![1])),
+            initial_function: NodeDmxChannelInitialFunction::new_from_strs(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
             highlight: Highlight::Value(DmxValue {
                 initial_value: 8,
                 n: 1,
@@ -169,8 +170,8 @@ mod tests {
     fn test_normal_2() -> Result<(), GdtfError> {
         DmxChannel {
             dmx_break: DmxBreak::Value(2),
-            offset: Some(Offset(vec![1, 2])),
-            initial_function: NodeDmxChannelInitialFunction::new_from_strs_unchecked(vec!["Beam_Shutter1", "Shutter1", "Open"]),
+            offset: Some(Offset::new(vec![1, 2])),
+            initial_function: NodeDmxChannelInitialFunction::new_from_strs(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
             highlight: Highlight::Value(DmxValue {
                 initial_value: 8,
                 n: 1,
@@ -201,8 +202,8 @@ mod tests {
     fn test_normal_3() -> Result<(), GdtfError> {
         DmxChannel {
             dmx_break: DmxBreak::Overwrite,
-            offset: Some(Offset(vec![1, 2])),
-            initial_function: NodeDmxChannelInitialFunction::new_from_strs_unchecked(vec!["Beam_Shutter1", "Shutter1", "Open"]),
+            offset: Some(Offset::new(vec![1, 2])),
+            initial_function: NodeDmxChannelInitialFunction::new_from_strs(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
             highlight: Highlight::Value(DmxValue {
                 initial_value: 8,
                 n: 1,
