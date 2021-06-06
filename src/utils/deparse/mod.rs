@@ -306,13 +306,6 @@ pub(crate) fn attr_to_string(attr: &Attribute) -> String {
     attr_try_to_str(attr).unwrap_or("").to_owned()
 }
 
-pub(crate) fn attr_to_str_option<'a>(attr: &'a Attribute) -> Option<&'a str> {
-    match attr_try_to_str(attr).unwrap_or("") {
-        "" => None,
-        s => Some(s)
-    }
-}
-
 pub(crate) fn attr_to_u8_option(attr: &Attribute) -> Option<u8> {
     match u8::from_str(attr_try_to_str(attr).unwrap_or("")) {
         Ok(f) => Some(f),

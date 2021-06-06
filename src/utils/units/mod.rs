@@ -10,6 +10,5 @@ pub mod snap;
 pub mod master;
 pub mod dmx_break;
 pub mod offset;
-pub mod highlight;
 pub mod node;
 pub mod attribute_name;

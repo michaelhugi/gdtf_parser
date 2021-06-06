@@ -1,4 +1,5 @@
 //!Holds the DMXChannel and it's children
+use std::convert::TryInto;
 use std::fmt::Debug;
 
 use quick_xml::events::{BytesStart, Event};
@@ -11,11 +12,10 @@ use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::dmx_break::DmxBreak;
-use crate::utils::units::highlight::Highlight;
+use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::node_dmx_channel_initial_function::NodeDmxChannelInitialFunction;
 use crate::utils::units::offset::Offset;
-use std::convert::TryInto;
 
 pub mod logical_channel;
 
@@ -29,7 +29,7 @@ pub struct DmxChannel {
     ///Link to the channel function that will be activated by default for this DMXChannel;
     pub initial_function: NodeDmxChannelInitialFunction,
     ///Highlight value for current channel; Special value: “None”. Default value: “None”.
-    pub highlight: Highlight,
+    pub highlight: Option<DmxValue>,
     ///Name of the geometry the current channel controls.
     pub geometry: Name,
     ///List of logical channels
@@ -44,7 +44,7 @@ impl DeparseSingle for DmxChannel {
         let mut dmx_break = DmxBreak::default();
         let mut offset = None;
         let mut initial_function: NodeDmxChannelInitialFunction = Default::default();
-        let mut highlight = Highlight::default();
+        let mut highlight = None;
         let mut geometry = Default::default();
         let mut logical_channels: Vec<LogicalChannel> = Vec::new();
 
@@ -54,7 +54,10 @@ impl DeparseSingle for DmxChannel {
                 b"DMXBreak" => dmx_break = deparse::attr_to_str(&attr).into(),
                 b"Offset" => offset = Offset::new_from_attr(attr),
                 b"InitialFunction" => initial_function = attr.try_into()?,
-                b"Highlight" => highlight = deparse::attr_to_str(&attr).into(),
+                b"Highlight" => highlight = match DmxValue::new_from_attr(attr) {
+                    Ok(attr) => Some(attr),
+                    Err(_) => None
+                },
                 b"Geometry" => geometry = Name::new_from_attr(attr)?,
                 _ => {}
             }
@@ -126,7 +129,6 @@ mod tests {
     use crate::utils::units::attribute_name::AttributeName;
     use crate::utils::units::dmx_break::DmxBreak;
     use crate::utils::units::dmx_value::DmxValue;
-    use crate::utils::units::highlight::Highlight;
     use crate::utils::units::master::Master;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::node_dmx_channel_initial_function::NodeDmxChannelInitialFunction;
@@ -140,7 +142,7 @@ mod tests {
             dmx_break: DmxBreak::Value(1),
             offset: Some(Offset::new(vec![1])),
             initial_function: NodeDmxChannelInitialFunction::new_from_strs(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
-            highlight: Highlight::Value(DmxValue {
+            highlight: Some(DmxValue {
                 initial_value: 8,
                 n: 1,
                 is_byte_shifting: false,
@@ -172,7 +174,7 @@ mod tests {
             dmx_break: DmxBreak::Value(2),
             offset: Some(Offset::new(vec![1, 2])),
             initial_function: NodeDmxChannelInitialFunction::new_from_strs(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
-            highlight: Highlight::Value(DmxValue {
+            highlight: Some(DmxValue {
                 initial_value: 8,
                 n: 1,
                 is_byte_shifting: false,
@@ -204,7 +206,7 @@ mod tests {
             dmx_break: DmxBreak::Overwrite,
             offset: Some(Offset::new(vec![1, 2])),
             initial_function: NodeDmxChannelInitialFunction::new_from_strs(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
-            highlight: Highlight::Value(DmxValue {
+            highlight: Some(DmxValue {
                 initial_value: 8,
                 n: 1,
                 is_byte_shifting: false,
@@ -236,7 +238,7 @@ mod tests {
             dmx_break: DmxBreak::Value(1),
             offset: None,
             initial_function: NodeDmxChannelInitialFunction::none(),
-            highlight: Highlight::None,
+            highlight: None,
             geometry: Name::new("")?,
             logical_channels: vec![
                 LogicalChannel {
@@ -273,7 +275,7 @@ mod tests {
             dmx_break: DmxBreak::Value(1),
             offset: None,
             initial_function: NodeDmxChannelInitialFunction::none(),
-            highlight: Highlight::None,
+            highlight: None,
             geometry: Name::new("")?,
             logical_channels: vec![],
         }.test(None,

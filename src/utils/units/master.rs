@@ -1,10 +1,11 @@
-//TODO check
-//! Module for the unit Master for LogicalChannel used in GDTF
-use std::borrow::Borrow;
+//! Module for the unit Master for LogicalChannel in GDTF
 
 use quick_xml::events::attributes::Attribute;
 
-///Master representation for logicalChannel used in GDTF
+use crate::utils::deparse;
+
+///Master representation for logicalChannel in GDTF
+///Defines if all the subordinate channel functions react to a Group Control defined by the control system
 #[derive(Debug, PartialEq, Clone)]
 pub enum Master {
     None,
@@ -12,35 +13,46 @@ pub enum Master {
     Group,
 }
 
-///Default value of master is None
+///Default value of Master is None
 impl Default for Master {
     fn default() -> Self {
         Master::None
     }
 }
 
-///Parses a str to Master in case of an error it returns default
-impl From<&str> for Master {
-    fn from(s: &str) -> Self {
+impl Master {
+    ///Parses a string defined in gdtf-xml-description to a Master
+    /// ```rust
+    /// use gdtf_parser::utils::units::master::Master;
+    /// assert_eq!(Master::None, Master::new_from_str("None"));
+    /// assert_eq!(Master::Grand, Master::new_from_str("Grand"));
+    /// assert_eq!(Master::Group, Master::new_from_str("Group"));
+    /// assert_eq!(Master::None, Master::new_from_str("Anything strange like ȸ"));
+    /// ```
+    pub fn new_from_str(s: &str) -> Self {
         use Master::*;
         match s {
-            "None" => None,
             "Grand" => Grand,
             "Group" => Group,
             _ => None
         }
     }
-}
 
-///Parses am xml attribute to Master in case of an error it returns default
-impl From<Attribute<'_>> for Master {
-    fn from(attr: Attribute<'_>) -> Self {
-        match std::str::from_utf8(attr.value.borrow()) {
-            Ok(attr) => attr.into(),
-            Err(_) => Self::default()
-        }
+    ///Parses a quick-xml-attribute defined in gdtf-xml-description to a Master
+    /// ```rust
+    /// use gdtf_parser::utils::units::master::Master;
+    /// use quick_xml::events::attributes::Attribute;
+    /// use std::borrow::Cow;
+    /// assert_eq!(Master::None, Master::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"None")}));
+    /// assert_eq!(Master::Grand, Master::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Grand")}));
+    /// assert_eq!(Master::Group, Master::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Group")}));
+    /// assert_eq!(Master::None, Master::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Anything strange like {")}));
+    /// ```
+    pub fn new_from_attr(attr: Attribute<'_>) -> Self {
+        Self::new_from_str(deparse::attr_to_str(&attr))
     }
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -53,26 +65,26 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() {
-        assert_eq!(Master::Grand, "Grand".into());
-        assert_eq!(Master::Group, "Group".into());
-        assert_eq!(Master::None, "None".into());
-        assert_eq!(Master::default(), "Something else".into());
+    fn test_new_from_str() {
+        assert_eq!(Master::None, Master::new_from_str("None"));
+        assert_eq!(Master::Grand, Master::new_from_str("Grand"));
+        assert_eq!(Master::Group, Master::new_from_str("Group"));
+        assert_eq!(Master::None, Master::new_from_str("Anything strange like ȸ"));
     }
 
     #[test]
-    fn test_from_attr_owned() {
-        assert_eq!(Master::Grand, testdata::to_attr_owned(b"Grand").into());
-        assert_eq!(Master::Group, testdata::to_attr_owned(b"Group").into());
-        assert_eq!(Master::None, testdata::to_attr_owned(b"None").into());
-        assert_eq!(Master::default(), testdata::to_attr_owned(b"Something else").into());
+    fn test_new_from_attr_owned() {
+        assert_eq!(Master::None, Master::new_from_attr(testdata::to_attr_owned(b"None")));
+        assert_eq!(Master::Grand, Master::new_from_attr(testdata::to_attr_owned(b"Grand")));
+        assert_eq!(Master::Group, Master::new_from_attr(testdata::to_attr_owned(b"Group")));
+        assert_eq!(Master::None, Master::new_from_attr(testdata::to_attr_owned(b"Anything strange like {")));
     }
 
     #[test]
-    fn test_from_attr_borrowed() {
-        assert_eq!(Master::Grand, testdata::to_attr_borrowed(b"Grand").into());
-        assert_eq!(Master::Group, testdata::to_attr_borrowed(b"Group").into());
-        assert_eq!(Master::None, testdata::to_attr_borrowed(b"None").into());
-        assert_eq!(Master::default(), testdata::to_attr_borrowed(b"Something else").into());
+    fn test_new_from_attr_borrowed() {
+        assert_eq!(Master::None, Master::new_from_attr(testdata::to_attr_borrowed(b"None")));
+        assert_eq!(Master::Grand, Master::new_from_attr(testdata::to_attr_borrowed(b"Grand")));
+        assert_eq!(Master::Group, Master::new_from_attr(testdata::to_attr_borrowed(b"Group")));
+        assert_eq!(Master::None, Master::new_from_attr(testdata::to_attr_borrowed(b"Anything strange like {")));
     }
 }

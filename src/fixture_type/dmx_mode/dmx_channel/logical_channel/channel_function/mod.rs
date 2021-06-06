@@ -97,8 +97,8 @@ impl DeparseSingle for ChannelFunction {
                 b"Name" => name = Name::new_from_attr(attr)?,
                 b"Attribute" => attribute = attr.try_into()?,
                 b"OriginalAttribute" => original_attribute = deparse::attr_to_string(&attr),
-                b"DMXFrom" => dmx_from = attr.try_into().unwrap_or(DEFAULT_DMX_FROM),
-                b"Default" => default = attr.try_into().unwrap_or(DEFAULT_DMX_DEFAULT),
+                b"DMXFrom" => dmx_from = DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_FROM),
+                b"Default" => default = DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_DEFAULT),
                 b"PhysicalFrom" => physical_from = deparse::attr_to_f32(&attr),
                 b"PhysicalTo" => physical_to = deparse::attr_to_f32(&attr),
                 b"RealFade" => real_fade = deparse::attr_to_f32(&attr),
@@ -107,13 +107,13 @@ impl DeparseSingle for ChannelFunction {
                 b"Emitter" => emitter = attr.try_into()?,
                 b"Filter" => filter = attr.try_into()?,
                 b"ModeMaster" => mode_master = attr.try_into()?,
-                b"ModeFrom" => mode_from = match deparse::attr_to_str_option(&attr) {
-                    None => None,
-                    Some(v) => Some(v.try_into()?)
+                b"ModeFrom" => mode_from = match DmxValue::new_from_attr(attr) {
+                    Ok(val) => Some(val),
+                    Err(_) => None
                 },
-                b"ModeTo" => mode_to = match deparse::attr_to_str_option(&attr) {
-                    None => None,
-                    Some(v) => Some(v.try_into()?)
+                b"ModeTo" => mode_to = match DmxValue::new_from_attr(attr) {
+                    Ok(val) => Some(val),
+                    Err(_) => None
                 },
                 _ => {}
             }
@@ -186,6 +186,7 @@ mod tests {
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
+    use crate::utils::units::dmx_value::DmxValue;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::node_channel_function_emitter::NodeChannelFunctionEmitter;
     use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;
@@ -197,8 +198,8 @@ mod tests {
         ChannelFunction {
             attribute: "ColorSub_M".try_into().unwrap(),
             original_attribute: "".to_string(),
-            dmx_from: "0/1".try_into().unwrap(),
-            default: "0/1".try_into().unwrap(),
+            dmx_from: DmxValue::new_from_str("0/1")?,
+            default: DmxValue::new_from_str("0/1")?,
             physical_from: 0.000000,
             physical_to: 1.000000,
             real_fade: 0.000000,
@@ -207,27 +208,27 @@ mod tests {
             emitter: NodeChannelFunctionEmitter::none(),
             filter: NodeChannelFunctionFilter::new_from_str("Magenta")?,
             mode_master: NodeChannelFunctionModeMaster::new_from_str("Base_ColorMacro1")?,
-            mode_from: Some("0/1".try_into().unwrap()),
-            mode_to: Some("0/1".try_into().unwrap()),
+            mode_from: Some(DmxValue::new_from_str("0/1")?),
+            mode_to: Some(DmxValue::new_from_str("0/1")?),
             channel_sets: testdata::vec_to_hash_map(vec![
                 Name::new("min")?,
                 Name::new("")?,
                 Name::new("max")?,
             ], vec![
                 ChannelSet {
-                    dmx_from: "0/1".try_into().unwrap(),
+                    dmx_from: DmxValue::new_from_str("0/1")?,
                     physical_from: None,
                     physical_to: None,
                     wheel_slot_index: Some(0),
                 },
                 ChannelSet {
-                    dmx_from: "1/1".try_into().unwrap(),
+                    dmx_from: DmxValue::new_from_str("1/1")?,
                     physical_from: None,
                     physical_to: None,
                     wheel_slot_index: Some(0),
                 },
                 ChannelSet {
-                    dmx_from: "255/1".try_into().unwrap(),
+                    dmx_from: DmxValue::new_from_str("255/1")?,
                     physical_from: None,
                     physical_to: None,
                     wheel_slot_index: Some(0),
@@ -249,8 +250,8 @@ mod tests {
         ChannelFunction {
             attribute: "ColorSub_M".try_into().unwrap(),
             original_attribute: "orig".to_string(),
-            dmx_from: "0/1".try_into().unwrap(),
-            default: "0/1".try_into().unwrap(),
+            dmx_from: DmxValue::new_from_str("0/1")?,
+            default: DmxValue::new_from_str("0/1")?,
             physical_from: 0.000000,
             physical_to: 1.000000,
             real_fade: 3.000000,
@@ -259,8 +260,8 @@ mod tests {
             emitter: NodeChannelFunctionEmitter::new_from_str("Emitter1")?,
             filter: NodeChannelFunctionFilter::new_from_str("Magenta")?,
             mode_master: NodeChannelFunctionModeMaster::new_from_str("Base_ColorMacro1")?,
-            mode_from: Some("0/1".try_into().unwrap()),
-            mode_to: Some("0/1".try_into().unwrap()),
+            mode_from: Some(DmxValue::new_from_str("0/1")?),
+            mode_to: Some(DmxValue::new_from_str("0/1")?),
             channel_sets: HashMap::new(),
         }.test(Some(Name::new("Magenta")?),
                r#"
@@ -275,8 +276,8 @@ mod tests {
         ChannelFunction {
             attribute: "ColorSub_M".try_into().unwrap(),
             original_attribute: "orig".to_string(),
-            dmx_from: "0/1".try_into().unwrap(),
-            default: "0/1".try_into().unwrap(),
+            dmx_from: DmxValue::new_from_str("0/1")?,
+            default: DmxValue::new_from_str("0/1")?,
             physical_from: 0.000000,
             physical_to: 1.000000,
             real_fade: 3.000000,
@@ -301,8 +302,8 @@ mod tests {
         ChannelFunction {
             attribute: "ColorSub_M".try_into().unwrap(),
             original_attribute: "orig".to_string(),
-            dmx_from: "0/1".try_into().unwrap(),
-            default: "0/1".try_into().unwrap(),
+            dmx_from: DmxValue::new_from_str("0/1")?,
+            default: DmxValue::new_from_str("0/1")?,
             physical_from: 0.000000,
             physical_to: 1.000000,
             real_fade: 3.000000,

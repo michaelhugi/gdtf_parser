@@ -1,4 +1,3 @@
-use std::convert::TryInto;
 use std::fmt::Debug;
 
 use quick_xml::events::BytesStart;
@@ -26,7 +25,7 @@ impl DeparseSingle for ChannelSet {
     fn single_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
-        let mut dmx_from: DmxValue = "1/1".try_into().unwrap();
+        let mut dmx_from: DmxValue = DmxValue::new_from_str("1/1").unwrap();
         let mut physical_from: Option<f32> = None;
         let mut physical_to: Option<f32> = None;
         let mut wheel_slot_index: Option<u8> = None;
@@ -35,7 +34,7 @@ impl DeparseSingle for ChannelSet {
             let attr = attr?;
             match attr.key {
                 b"Name" => name = Name::new_from_attr(attr)?,
-                b"DMXFrom" => dmx_from = deparse::attr_to_str(&attr).try_into()?,
+                b"DMXFrom" => dmx_from = DmxValue::new_from_attr(attr)?,
                 b"PhysicalFrom" => physical_from = deparse::attr_to_f32_option(&attr),
                 b"PhysicalTo" => physical_to = deparse::attr_to_f32_option(&attr),
                 b"WheelSlotIndex" => wheel_slot_index = deparse::attr_to_u8_option(&attr),
