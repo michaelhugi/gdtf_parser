@@ -1,3 +1,6 @@
+//! # Definition of Feature
+//! groups the Fixture Type Attributes into a structured way for easier access and search
+//!
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 

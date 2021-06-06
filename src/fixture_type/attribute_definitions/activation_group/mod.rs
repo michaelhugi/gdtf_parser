@@ -1,3 +1,7 @@
+//! # Definition of ActivationGroup
+//! Attributes which need to be activated together to gain control over one logical function
+//! Note 1 to entry: As example Pan & Tilt are paired to gain control over Position.
+
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 

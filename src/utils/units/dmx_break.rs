@@ -1,5 +1,8 @@
 //TODO check
 //! Module for the unit DMXBreak used for DMXChannel used in GDTF
+//!
+//! # Definition of DMXBreak
+//! term used when a fixture needs more than one DMX start address
 
 
 use std::borrow::Borrow;

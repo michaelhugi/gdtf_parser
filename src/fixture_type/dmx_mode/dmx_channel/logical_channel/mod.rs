@@ -12,10 +12,10 @@ use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::units::master::Master;
+use crate::utils::units::master::LogicalChannelMaster;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
-use crate::utils::units::snap::Snap;
+use crate::utils::units::snap::LogicalChannelSnap;
 
 pub mod channel_function;
 
@@ -25,9 +25,9 @@ pub struct LogicalChannel {
     ///Link to the attribute; The starting point is the Attribute Collect
     pub attribute: NodeLogicalChannelAttribute,
     ///If snap is enabled, the logical channel will not fade between values. Instead, it will jump directly to the new value.; Value: “Yes”, “No”, “On”, “Off”. Default value: “No”
-    pub snap: Snap,
+    pub snap: LogicalChannelSnap,
     ///Defines if all the subordinate channel functions react to a Group Control defined by the control system. Values: “None”, “Grand”, “Group”; Default value: “None”.
-    pub master: Master,
+    pub master: LogicalChannelMaster,
     ///Minimum fade time for moves in black action. MibFade is defined for the complete DMX range. Default value: 0; Unit: second
     pub mib_fade: f32,
     ///Minimum fade time for the subordinate channel functions to change DMX values by the control system. DMXChangeTimeLimit is defined for the complete DMX range. Default value: 0; Unit: second
@@ -42,8 +42,8 @@ impl DeparseSingle for LogicalChannel {
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut attribute: NodeLogicalChannelAttribute = Default::default();
-        let mut snap: Snap = Snap::default();
-        let mut master: Master = Master::default();
+        let mut snap: LogicalChannelSnap = LogicalChannelSnap::default();
+        let mut master: LogicalChannelMaster = LogicalChannelMaster::default();
         let mut mib_fade: f32 = 0.;
         let mut dmx_change_time_limit: f32 = 0.;
         let mut channel_functions: HashMap<Name, ChannelFunction> = HashMap::new();
@@ -52,8 +52,8 @@ impl DeparseSingle for LogicalChannel {
             let attr = attr?;
             match attr.key {
                 b"Attribute" => attribute = attr.try_into()?,
-                b"Snap" => snap = Snap::new_from_attr(attr),
-                b"Master" => master = Master::new_from_attr(attr),
+                b"Snap" => snap = LogicalChannelSnap::new_from_attr(attr),
+                b"Master" => master = LogicalChannelMaster::new_from_attr(attr),
                 b"MibFade" => mib_fade = deparse::attr_to_f32(&attr),
                 b"DMXChangeTimeLimit" => dmx_change_time_limit = deparse::attr_to_f32(&attr),
                 _ => {}
@@ -122,20 +122,20 @@ mod tests {
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
     use crate::utils::units::dmx_value::DmxValue;
-    use crate::utils::units::master::Master;
+    use crate::utils::units::master::LogicalChannelMaster;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::node_channel_function_emitter::NodeChannelFunctionEmitter;
     use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;
     use crate::utils::units::node::node_channel_function_mode_master::NodeChannelFunctionModeMaster;
     use crate::utils::units::node::node_channel_function_wheel::NodeChannelFunctionWheel;
-    use crate::utils::units::snap::Snap;
+    use crate::utils::units::snap::LogicalChannelSnap;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {
         LogicalChannel {
             attribute: "ColorSub_M".try_into().unwrap(),
-            snap: Snap::Yes,
-            master: Master::Grand,
+            snap: LogicalChannelSnap::Yes,
+            master: LogicalChannelMaster::Grand,
             mib_fade: 0.1,
             dmx_change_time_limit: 0.0,
             channel_functions: testdata::vec_to_hash_map(
@@ -193,8 +193,8 @@ mod tests {
     fn test_min() -> Result<(), GdtfError> {
         LogicalChannel {
             attribute: "".try_into().unwrap(),
-            snap: Snap::No,
-            master: Master::None,
+            snap: LogicalChannelSnap::No,
+            master: LogicalChannelMaster::None,
             mib_fade: 0.0,
             dmx_change_time_limit: 0.0,
             channel_functions: testdata::vec_to_hash_map(

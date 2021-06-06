@@ -1,3 +1,7 @@
+//! # Definition of Feature Groups
+//! groups the logical control elements called Feature into a structured way for easier access and finding
+//!
+
 use std::fmt::Debug;
 
 use quick_xml::events::{BytesStart, Event};
