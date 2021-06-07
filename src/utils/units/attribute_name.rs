@@ -1,14 +1,13 @@
-//! TODO AttributeName is a preferred Name for Attributes in GDTF Format.
+//!AttributeName is a preferred Name for Attributes in GDTF Format.
 #![allow(non_camel_case_types)]
 
-use std::borrow::Borrow;
-use std::convert::TryFrom;
 use std::str::FromStr;
 
 use lazy_static::lazy_static;
 use quick_xml::events::attributes::Attribute;
 use regex::{Regex, RegexSet, SetMatches};
 
+use crate::utils::deparse;
 use crate::utils::units::name::{GdtfNameError, Name};
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
@@ -546,7 +545,11 @@ pub enum AttributeName {
     FieldOfView,
 }
 
-///Default is an Empty user defined name
+///```rust
+/// use gdtf_parser::utils::units::attribute_name::AttributeName;
+/// use gdtf_parser::utils::units::name::Name;
+/// assert_eq!(AttributeName::UserDefined(Name("".to_string())), Default::default())
+///```
 impl Default for AttributeName {
     fn default() -> Self {
         AttributeName::new_from_str("").unwrap()
@@ -555,8 +558,18 @@ impl Default for AttributeName {
 
 
 impl AttributeName {
-    ///Creates an new AttributeName of &str defined by xml of GDTF. This method does not check if all chars are valid for Name defined by GDTF spec
-    pub(crate) fn new_from_str(value: &str) -> Result<Self, GdtfNameError> {
+    ///Parses a string from gdtf-xml-description into an AttributeName. Only chars `[32..=122] = (SPACE..='z')` are allowed. If one of these chars is passed to the function, it will return an Error
+    ///```rust
+    /// use gdtf_parser::utils::units::attribute_name::AttributeName;
+    /// use gdtf_parser::utils::units::name::Name;
+    /// assert_eq!(AttributeName::new_from_str("Tilt").unwrap(), AttributeName::Tilt);
+    /// assert_eq!(AttributeName::new_from_str("PanTiltMode").unwrap(), AttributeName::PanTiltMode);
+    /// assert_eq!(AttributeName::new_from_str("Effects1Adjust2").unwrap(), AttributeName::Effects_n_Adjust_m_(1,2));
+    /// assert_eq!(AttributeName::new_from_str("Something else").unwrap(), AttributeName::UserDefined(Name("Something else".to_string())));
+    /// assert!(AttributeName::new_from_str("Name with invalid char {").is_err());
+    /// assert!(AttributeName::new_from_str("Name with invalid char ȸ").is_err());
+    ///```
+    pub fn new_from_str(value: &str) -> Result<Self, GdtfNameError> {
         use AttributeName::*;
         Ok(match value {
             "Dimmer" => Dimmer,
@@ -943,585 +956,559 @@ impl AttributeName {
             }
         })
     }
-}
 
-///Creates an new AttributeName of &str defined by xml of GDTF. This method does check if all chars are valid for Name defined by GDTF spec
-impl TryFrom<&str> for AttributeName {
-    type Error = GdtfNameError;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        AttributeName::new_from_str(value)
-    }
-}
-
-///Creates an new AttributeName of an xml-attribute defined by xml of GDTF. This method does check if all chars are valid for Name defined by GDTF spec
-impl TryFrom<Attribute<'_>> for AttributeName {
-    type Error = GdtfNameError;
-
-    fn try_from(attr: Attribute<'_>) -> Result<Self, Self::Error> {
-        AttributeName::new_from_str(std::str::from_utf8(attr.value.borrow()).unwrap_or(""))
+    ///Parses a quick-xml-attribute from gdtf-xml-description into an AttributeName. Only chars `[32..=122] = (SPACE..='z')` are allowed. If one of these chars is passed to the function, it will return an Error
+    ///```rust
+    /// use gdtf_parser::utils::units::attribute_name::AttributeName;
+    /// use gdtf_parser::utils::units::name::Name;
+    /// use quick_xml::events::attributes::Attribute;
+    /// use std::borrow::Cow;
+    /// assert_eq!(AttributeName::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Tilt")}).unwrap(), AttributeName::Tilt);
+    /// assert_eq!(AttributeName::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"PanTiltMode")}).unwrap(), AttributeName::PanTiltMode);
+    /// assert_eq!(AttributeName::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Effects1Adjust2")}).unwrap(), AttributeName::Effects_n_Adjust_m_(1,2));
+    /// assert_eq!(AttributeName::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something else")}).unwrap(), AttributeName::UserDefined(Name("Something else".to_string())));
+    /// assert!(AttributeName::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Name with invalid char {")}).is_err());
+    ///```
+    pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfNameError> {
+        Self::new_from_str(deparse::attr_to_str(&attr))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::convert::{TryFrom, TryInto};
-
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
-    use crate::utils::units::attribute_name::AttributeName;
+    use crate::utils::units::attribute_name::AttributeName as T;
     use crate::utils::units::name::Name;
 
     #[test]
     fn test_default() -> Result<(), GdtfError> {
-        use AttributeName::*;
-        assert_eq!(UserDefined(Name::new("")?), AttributeName::default());
-        Ok(())
-    }
-
-    #[test]
-    fn test_try_from_str() -> Result<(), GdtfError> {
-        use AttributeName::*;
-        assert_eq!(UserDefined(Name::new("test")?), "test".try_into()?);
-        assert_eq!(AttributeName::UserDefined(Name::new("")?), AttributeName::try_from("")?);
-        assert_eq!(Dimmer, "Dimmer".try_into()?);
-        assert_eq!(Pan, "Pan".try_into()?);
-        assert_eq!(Tilt, "Tilt".try_into()?);
-        assert_eq!(PanRotate, "PanRotate".try_into()?);
-        assert_eq!(TiltRotate, "TiltRotate".try_into()?);
-        assert_eq!(PositionEffect, "PositionEffect".try_into()?);
-        assert_eq!(PositionEffectRate, "PositionEffectRate".try_into()?);
-        assert_eq!(PositionEffectFade, "PositionEffectFade".try_into()?);
-        assert_eq!(Xyz_X, "XYZ_X".try_into()?);
-        assert_eq!(Xyz_Y, "XYZ_Y".try_into()?);
-        assert_eq!(Xyz_Z, "XYZ_Z".try_into()?);
-        assert_eq!(Rot_X, "Rot_X".try_into()?);
-        assert_eq!(Rot_Y, "Rot_Y".try_into()?);
-        assert_eq!(Rot_Z, "Rot_Z".try_into()?);
-        assert_eq!(Scale_X, "Scale_X".try_into()?);
-        assert_eq!(Scale_Y, "Scale_Y".try_into()?);
-        assert_eq!(Scale_Z, "Scale_Z".try_into()?);
-        assert_eq!(Scale_Xyz, "Scale_XYZ".try_into()?);
-        assert_eq!(Gobo_n_(1), "Gobo1".try_into()?);
-        assert_eq!(Gobo_n_(2), "Gobo2".try_into()?);
-        assert_eq!(Gobo_n_(120), "Gobo120".try_into()?);
-        assert_eq!(Gobo_n_SelectSpin(1), "Gobo1SelectSpin".try_into()?);
-        assert_eq!(Gobo_n_SelectSpin(2), "Gobo2SelectSpin".try_into()?);
-        assert_eq!(Gobo_n_SelectSpin(120), "Gobo120SelectSpin".try_into()?);
-        assert_eq!(Gobo_n_SelectShake(1), "Gobo1SelectShake".try_into()?);
-        assert_eq!(Gobo_n_SelectShake(2), "Gobo2SelectShake".try_into()?);
-        assert_eq!(Gobo_n_SelectShake(120), "Gobo120SelectShake".try_into()?);
-        assert_eq!(Gobo_n_SelectEffects(1), "Gobo1SelectEffects".try_into()?);
-        assert_eq!(Gobo_n_SelectEffects(2), "Gobo2SelectEffects".try_into()?);
-        assert_eq!(Gobo_n_SelectEffects(120), "Gobo120SelectEffects".try_into()?);
-        assert_eq!(Gobo_n_WheelIndex(1), "Gobo1WheelIndex".try_into()?);
-        assert_eq!(Gobo_n_WheelIndex(2), "Gobo2WheelIndex".try_into()?);
-        assert_eq!(Gobo_n_WheelIndex(120), "Gobo120WheelIndex".try_into()?);
-        assert_eq!(Gobo_n_WheelSpin(1), "Gobo1WheelSpin".try_into()?);
-        assert_eq!(Gobo_n_WheelSpin(2), "Gobo2WheelSpin".try_into()?);
-        assert_eq!(Gobo_n_WheelSpin(120), "Gobo120WheelSpin".try_into()?);
-        assert_eq!(Gobo_n_WheelShake(1), "Gobo1WheelShake".try_into()?);
-        assert_eq!(Gobo_n_WheelShake(2), "Gobo2WheelShake".try_into()?);
-        assert_eq!(Gobo_n_WheelShake(120), "Gobo120WheelShake".try_into()?);
-        assert_eq!(Gobo_n_WheelRandom(1), "Gobo1WheelRandom".try_into()?);
-        assert_eq!(Gobo_n_WheelRandom(2), "Gobo2WheelRandom".try_into()?);
-        assert_eq!(Gobo_n_WheelRandom(120), "Gobo120WheelRandom".try_into()?);
-        assert_eq!(Gobo_n_WheelAudio(1), "Gobo1WheelAudio".try_into()?);
-        assert_eq!(Gobo_n_WheelAudio(2), "Gobo2WheelAudio".try_into()?);
-        assert_eq!(Gobo_n_WheelAudio(120), "Gobo120WheelAudio".try_into()?);
-        assert_eq!(Gobo_n_Pos(1), "Gobo1Pos".try_into()?);
-        assert_eq!(Gobo_n_Pos(2), "Gobo2Pos".try_into()?);
-        assert_eq!(Gobo_n_Pos(120), "Gobo120Pos".try_into()?);
-        assert_eq!(Gobo_n_PosRotate(1), "Gobo1PosRotate".try_into()?);
-        assert_eq!(Gobo_n_PosRotate(2), "Gobo2PosRotate".try_into()?);
-        assert_eq!(Gobo_n_PosRotate(120), "Gobo120PosRotate".try_into()?);
-        assert_eq!(Gobo_n_PosShake(1), "Gobo1PosShake".try_into()?);
-        assert_eq!(Gobo_n_PosShake(2), "Gobo2PosShake".try_into()?);
-        assert_eq!(Gobo_n_PosShake(120), "Gobo120PosShake".try_into()?);
-        assert_eq!(AnimationWheel_n_(1), "AnimationWheel1".try_into()?);
-        assert_eq!(AnimationWheel_n_(2), "AnimationWheel2".try_into()?);
-        assert_eq!(AnimationWheel_n_(120), "AnimationWheel120".try_into()?);
-        assert_eq!(AnimationWheel_n_Audio(1), "AnimationWheel1Audio".try_into()?);
-        assert_eq!(AnimationWheel_n_Audio(2), "AnimationWheel2Audio".try_into()?);
-        assert_eq!(AnimationWheel_n_Audio(120), "AnimationWheel120Audio".try_into()?);
-        assert_eq!(AnimationWheel_n_Macro(1), "AnimationWheel1Macro".try_into()?);
-        assert_eq!(AnimationWheel_n_Macro(2), "AnimationWheel2Macro".try_into()?);
-        assert_eq!(AnimationWheel_n_Macro(120), "AnimationWheel120Macro".try_into()?);
-        assert_eq!(AnimationWheel_n_Random(1), "AnimationWheel1Random".try_into()?);
-        assert_eq!(AnimationWheel_n_Random(2), "AnimationWheel2Random".try_into()?);
-        assert_eq!(AnimationWheel_n_Random(120), "AnimationWheel120Random".try_into()?);
-        assert_eq!(AnimationWheel_n_SelectEffects(1), "AnimationWheel1SelectEffects".try_into()?);
-        assert_eq!(AnimationWheel_n_SelectEffects(2), "AnimationWheel2SelectEffects".try_into()?);
-        assert_eq!(AnimationWheel_n_SelectEffects(120), "AnimationWheel120SelectEffects".try_into()?);
-        assert_eq!(AnimationWheel_n_SelectShake(1), "AnimationWheel1SelectShake".try_into()?);
-        assert_eq!(AnimationWheel_n_SelectShake(2), "AnimationWheel2SelectShake".try_into()?);
-        assert_eq!(AnimationWheel_n_SelectShake(120), "AnimationWheel120SelectShake".try_into()?);
-        assert_eq!(AnimationWheel_n_SelectSpin(1), "AnimationWheel1SelectSpin".try_into()?);
-        assert_eq!(AnimationWheel_n_SelectSpin(2), "AnimationWheel2SelectSpin".try_into()?);
-        assert_eq!(AnimationWheel_n_SelectSpin(120), "AnimationWheel120SelectSpin".try_into()?);
-        assert_eq!(AnimationWheel_n_Pos(1), "AnimationWheel1Pos".try_into()?);
-        assert_eq!(AnimationWheel_n_Pos(2), "AnimationWheel2Pos".try_into()?);
-        assert_eq!(AnimationWheel_n_Pos(120), "AnimationWheel120Pos".try_into()?);
-        assert_eq!(AnimationWheel_n_PosRotate(1), "AnimationWheel1PosRotate".try_into()?);
-        assert_eq!(AnimationWheel_n_PosRotate(2), "AnimationWheel2PosRotate".try_into()?);
-        assert_eq!(AnimationWheel_n_PosRotate(120), "AnimationWheel120PosRotate".try_into()?);
-        assert_eq!(AnimationWheel_n_PosShake(1), "AnimationWheel1PosShake".try_into()?);
-        assert_eq!(AnimationWheel_n_PosShake(2), "AnimationWheel2PosShake".try_into()?);
-        assert_eq!(AnimationWheel_n_PosShake(120), "AnimationWheel120PosShake".try_into()?);
-        assert_eq!(AnimationSystem_n_(1), "AnimationSystem1".try_into()?);
-        assert_eq!(AnimationSystem_n_(2), "AnimationSystem2".try_into()?);
-        assert_eq!(AnimationSystem_n_(120), "AnimationSystem120".try_into()?);
-        assert_eq!(AnimationSystem_n_Ramp(1), "AnimationSystem1Ramp".try_into()?);
-        assert_eq!(AnimationSystem_n_Ramp(2), "AnimationSystem2Ramp".try_into()?);
-        assert_eq!(AnimationSystem_n_Ramp(120), "AnimationSystem120Ramp".try_into()?);
-        assert_eq!(AnimationSystem_n_Shake(1), "AnimationSystem1Shake".try_into()?);
-        assert_eq!(AnimationSystem_n_Shake(2), "AnimationSystem2Shake".try_into()?);
-        assert_eq!(AnimationSystem_n_Shake(120), "AnimationSystem120Shake".try_into()?);
-        assert_eq!(AnimationSystem_n_Audio(1), "AnimationSystem1Audio".try_into()?);
-        assert_eq!(AnimationSystem_n_Audio(2), "AnimationSystem2Audio".try_into()?);
-        assert_eq!(AnimationSystem_n_Audio(120), "AnimationSystem120Audio".try_into()?);
-        assert_eq!(AnimationSystem_n_Random(1), "AnimationSystem1Random".try_into()?);
-        assert_eq!(AnimationSystem_n_Random(2), "AnimationSystem2Random".try_into()?);
-        assert_eq!(AnimationSystem_n_Random(120), "AnimationSystem120Random".try_into()?);
-        assert_eq!(AnimationSystem_n_Pos(1), "AnimationSystem1Pos".try_into()?);
-        assert_eq!(AnimationSystem_n_Pos(2), "AnimationSystem2Pos".try_into()?);
-        assert_eq!(AnimationSystem_n_Pos(120), "AnimationSystem120Pos".try_into()?);
-        assert_eq!(AnimationSystem_n_PosRotate(1), "AnimationSystem1PosRotate".try_into()?);
-        assert_eq!(AnimationSystem_n_PosRotate(2), "AnimationSystem2PosRotate".try_into()?);
-        assert_eq!(AnimationSystem_n_PosRotate(120), "AnimationSystem120PosRotate".try_into()?);
-        assert_eq!(AnimationSystem_n_PosShake(1), "AnimationSystem1PosShake".try_into()?);
-        assert_eq!(AnimationSystem_n_PosShake(2), "AnimationSystem2PosShake".try_into()?);
-        assert_eq!(AnimationSystem_n_PosShake(120), "AnimationSystem120PosShake".try_into()?);
-        assert_eq!(AnimationSystem_n_PosRandom(1), "AnimationSystem1PosRandom".try_into()?);
-        assert_eq!(AnimationSystem_n_PosRandom(2), "AnimationSystem2PosRandom".try_into()?);
-        assert_eq!(AnimationSystem_n_PosRandom(120), "AnimationSystem120PosRandom".try_into()?);
-        assert_eq!(AnimationSystem_n_PosAudio(1), "AnimationSystem1PosAudio".try_into()?);
-        assert_eq!(AnimationSystem_n_PosAudio(2), "AnimationSystem2PosAudio".try_into()?);
-        assert_eq!(AnimationSystem_n_PosAudio(120), "AnimationSystem120PosAudio".try_into()?);
-        assert_eq!(AnimationSystem_n_Macro(1), "AnimationSystem1Macro".try_into()?);
-        assert_eq!(AnimationSystem_n_Macro(2), "AnimationSystem2Macro".try_into()?);
-        assert_eq!(AnimationSystem_n_Macro(120), "AnimationSystem120Macro".try_into()?);
-        assert_eq!(MediaFolder_n_(1), "MediaFolder1".try_into()?);
-        assert_eq!(MediaFolder_n_(2), "MediaFolder2".try_into()?);
-        assert_eq!(MediaFolder_n_(120), "MediaFolder120".try_into()?);
-        assert_eq!(MediaContent_n_(1), "MediaContent1".try_into()?);
-        assert_eq!(MediaContent_n_(2), "MediaContent2".try_into()?);
-        assert_eq!(MediaContent_n_(120), "MediaContent120".try_into()?);
-        assert_eq!(ModelFolder_n_(1), "ModelFolder1".try_into()?);
-        assert_eq!(ModelFolder_n_(2), "ModelFolder2".try_into()?);
-        assert_eq!(ModelFolder_n_(120), "ModelFolder120".try_into()?);
-        assert_eq!(ModelContent_n_(1), "ModelContent1".try_into()?);
-        assert_eq!(ModelContent_n_(2), "ModelContent2".try_into()?);
-        assert_eq!(ModelContent_n_(120), "ModelContent120".try_into()?);
-        assert_eq!(PlayMode, "PlayMode".try_into()?);
-        assert_eq!(PlayBegin, "PlayBegin".try_into()?);
-        assert_eq!(PlayEnd, "PlayEnd".try_into()?);
-        assert_eq!(PlaySpeed, "PlaySpeed".try_into()?);
-        assert_eq!(ColorEffects_n_(1), "ColorEffects1".try_into()?);
-        assert_eq!(ColorEffects_n_(2), "ColorEffects2".try_into()?);
-        assert_eq!(ColorEffects_n_(120), "ColorEffects120".try_into()?);
-        assert_eq!(Color_n_(1), "Color1".try_into()?);
-        assert_eq!(Color_n_(2), "Color2".try_into()?);
-        assert_eq!(Color_n_(120), "Color120".try_into()?);
-        assert_eq!(Color_n_WheelIndex(1), "Color1WheelIndex".try_into()?);
-        assert_eq!(Color_n_WheelIndex(2), "Color2WheelIndex".try_into()?);
-        assert_eq!(Color_n_WheelIndex(120), "Color120WheelIndex".try_into()?);
-        assert_eq!(Color_n_WheelSpin(1), "Color1WheelSpin".try_into()?);
-        assert_eq!(Color_n_WheelSpin(2), "Color2WheelSpin".try_into()?);
-        assert_eq!(Color_n_WheelSpin(120), "Color120WheelSpin".try_into()?);
-        assert_eq!(Color_n_WheelRandom(1), "Color1WheelRandom".try_into()?);
-        assert_eq!(Color_n_WheelRandom(2), "Color2WheelRandom".try_into()?);
-        assert_eq!(Color_n_WheelRandom(120), "Color120WheelRandom".try_into()?);
-        assert_eq!(Color_n_WheelAudio(1), "Color1WheelAudio".try_into()?);
-        assert_eq!(Color_n_WheelAudio(2), "Color2WheelAudio".try_into()?);
-        assert_eq!(Color_n_WheelAudio(120), "Color120WheelAudio".try_into()?);
-        assert_eq!(ColorAdd_R, "ColorAdd_R".try_into()?);
-        assert_eq!(ColorAdd_G, "ColorAdd_G".try_into()?);
-        assert_eq!(ColorAdd_B, "ColorAdd_B".try_into()?);
-        assert_eq!(ColorAdd_C, "ColorAdd_C".try_into()?);
-        assert_eq!(ColorAdd_M, "ColorAdd_M".try_into()?);
-        assert_eq!(ColorAdd_Y, "ColorAdd_Y".try_into()?);
-        assert_eq!(ColorAdd_Ry, "ColorAdd_RY".try_into()?);
-        assert_eq!(ColorAdd_Gy, "ColorAdd_GY".try_into()?);
-        assert_eq!(ColorAdd_Gc, "ColorAdd_GC".try_into()?);
-        assert_eq!(ColorAdd_Bc, "ColorAdd_BC".try_into()?);
-        assert_eq!(ColorAdd_Bm, "ColorAdd_BM".try_into()?);
-        assert_eq!(ColorAdd_Rm, "ColorAdd_RM".try_into()?);
-        assert_eq!(ColorAdd_W, "ColorAdd_W".try_into()?);
-        assert_eq!(ColorAdd_Ww, "ColorAdd_WW".try_into()?);
-        assert_eq!(ColorAdd_Cw, "ColorAdd_CW".try_into()?);
-        assert_eq!(ColorAdd_Uv, "ColorAdd_UV".try_into()?);
-        assert_eq!(ColorSub_R, "ColorSub_R".try_into()?);
-        assert_eq!(ColorSub_G, "ColorSub_G".try_into()?);
-        assert_eq!(ColorSub_B, "ColorSub_B".try_into()?);
-        assert_eq!(ColorSub_C, "ColorSub_C".try_into()?);
-        assert_eq!(ColorSub_M, "ColorSub_M".try_into()?);
-        assert_eq!(ColorSub_Y, "ColorSub_Y".try_into()?);
-        assert_eq!(ColorMacro_n_(1), "ColorMacro1".try_into()?);
-        assert_eq!(ColorMacro_n_(2), "ColorMacro2".try_into()?);
-        assert_eq!(ColorMacro_n_(120), "ColorMacro120".try_into()?);
-        assert_eq!(ColorMacro_n_Rate(1), "ColorMacro1Rate".try_into()?);
-        assert_eq!(ColorMacro_n_Rate(2), "ColorMacro2Rate".try_into()?);
-        assert_eq!(ColorMacro_n_Rate(120), "ColorMacro120Rate".try_into()?);
-        assert_eq!(Cto, "CTO".try_into()?);
-        assert_eq!(Ctc, "CTC".try_into()?);
-        assert_eq!(Ctb, "CTB".try_into()?);
-        assert_eq!(Tint, "Tint".try_into()?);
-        assert_eq!(Hsb_Hue, "HSB_Hue".try_into()?);
-        assert_eq!(Hsb_Saturation, "HSB_Saturation".try_into()?);
-        assert_eq!(Hsb_Brightness, "HSB_Brightness".try_into()?);
-        assert_eq!(Hsb_Quality, "HSB_Quality".try_into()?);
-        assert_eq!(Cie_X, "CIE_X".try_into()?);
-        assert_eq!(Cie_Y, "CIE_Y".try_into()?);
-        assert_eq!(Cie_Brightness, "CIE_Brightness".try_into()?);
-        assert_eq!(ColorRgb_Red, "ColorRGB_Red".try_into()?);
-        assert_eq!(ColorRgb_Green, "ColorRGB_Green".try_into()?);
-        assert_eq!(ColorRgb_Blue, "ColorRGB_Blue".try_into()?);
-        assert_eq!(ColorRgb_Cyan, "ColorRGB_Cyan".try_into()?);
-        assert_eq!(ColorRgb_Magenta, "ColorRGB_Magenta".try_into()?);
-        assert_eq!(ColorRgb_Yellow, "ColorRGB_Yellow".try_into()?);
-        assert_eq!(ColorRgb_Quality, "ColorRGB_Quality".try_into()?);
-        assert_eq!(VideoBoost_R, "VideoBoost_R".try_into()?);
-        assert_eq!(VideoBoost_G, "VideoBoost_G".try_into()?);
-        assert_eq!(VideoBoost_B, "VideoBoost_B".try_into()?);
-        assert_eq!(VideoHueShift, "VideoHueShift".try_into()?);
-        assert_eq!(VideoSaturation, "VideoSaturation".try_into()?);
-        assert_eq!(VideoBrightness, "VideoBrightness".try_into()?);
-        assert_eq!(VideoContrast, "VideoContrast".try_into()?);
-        assert_eq!(VideoKeyColor_R, "VideoKeyColor_R".try_into()?);
-        assert_eq!(VideoKeyColor_G, "VideoKeyColor_G".try_into()?);
-        assert_eq!(VideoKeyColor_B, "VideoKeyColor_B".try_into()?);
-        assert_eq!(VideoKeyIntensity, "VideoKeyIntensity".try_into()?);
-        assert_eq!(VideoKeyTolerance, "VideoKeyTolerance".try_into()?);
-        assert_eq!(StrobeDuration, "StrobeDuration".try_into()?);
-        assert_eq!(StrobeRate, "StrobeRate".try_into()?);
-        assert_eq!(Shutter_n_(1), "Shutter1".try_into()?);
-        assert_eq!(Shutter_n_(2), "Shutter2".try_into()?);
-        assert_eq!(Shutter_n_(120), "Shutter120".try_into()?);
-        assert_eq!(Shutter_n_Strobe(1), "Shutter1Strobe".try_into()?);
-        assert_eq!(Shutter_n_Strobe(2), "Shutter2Strobe".try_into()?);
-        assert_eq!(Shutter_n_Strobe(120), "Shutter120Strobe".try_into()?);
-        assert_eq!(Shutter_n_StrobePulse(1), "Shutter1StrobePulse".try_into()?);
-        assert_eq!(Shutter_n_StrobePulse(2), "Shutter2StrobePulse".try_into()?);
-        assert_eq!(Shutter_n_StrobePulse(120), "Shutter120StrobePulse".try_into()?);
-        assert_eq!(Shutter_n_StrobePulseClose(1), "Shutter1StrobePulseClose".try_into()?);
-        assert_eq!(Shutter_n_StrobePulseClose(2), "Shutter2StrobePulseClose".try_into()?);
-        assert_eq!(Shutter_n_StrobePulseOpen(1), "Shutter1StrobePulseOpen".try_into()?);
-        assert_eq!(Shutter_n_StrobePulseOpen(2), "Shutter2StrobePulseOpen".try_into()?);
-        assert_eq!(Shutter_n_StrobePulseOpen(120), "Shutter120StrobePulseOpen".try_into()?);
-        assert_eq!(Shutter_n_StrobeRandom(1), "Shutter1StrobeRandom".try_into()?);
-        assert_eq!(Shutter_n_StrobeRandom(2), "Shutter2StrobeRandom".try_into()?);
-        assert_eq!(Shutter_n_StrobeRandom(120), "Shutter120StrobeRandom".try_into()?);
-        assert_eq!(Shutter_n_StrobeRandomPulse(1), "Shutter1StrobeRandomPulse".try_into()?);
-        assert_eq!(Shutter_n_StrobeRandomPulse(2), "Shutter2StrobeRandomPulse".try_into()?);
-        assert_eq!(Shutter_n_StrobeRandomPulse(120), "Shutter120StrobeRandomPulse".try_into()?);
-        assert_eq!(Shutter_n_StrobeRandomPulseClose(1), "Shutter1StrobeRandomPulseClose".try_into()?);
-        assert_eq!(Shutter_n_StrobeRandomPulseClose(2), "Shutter2StrobeRandomPulseClose".try_into()?);
-        assert_eq!(Shutter_n_StrobeRandomPulseClose(120), "Shutter120StrobeRandomPulseClose".try_into()?);
-        assert_eq!(Shutter_n_StrobeRandomPulseOpen(1), "Shutter1StrobeRandomPulseOpen".try_into()?);
-        assert_eq!(Shutter_n_StrobeRandomPulseOpen(2), "Shutter2StrobeRandomPulseOpen".try_into()?);
-        assert_eq!(Shutter_n_StrobeRandomPulseOpen(120), "Shutter120StrobeRandomPulseOpen".try_into()?);
-        assert_eq!(Shutter_n_StrobeEffect(1), "Shutter1StrobeEffect".try_into()?);
-        assert_eq!(Shutter_n_StrobeEffect(2), "Shutter2StrobeEffect".try_into()?);
-        assert_eq!(Shutter_n_StrobeEffect(120), "Shutter120StrobeEffect".try_into()?);
-        assert_eq!(Iris, "Iris".try_into()?);
-        assert_eq!(IrisStrobe, "IrisStrobe".try_into()?);
-        assert_eq!(IrisStrobeRandom, "IrisStrobeRandom".try_into()?);
-        assert_eq!(IrisPulseClose, "IrisPulseClose".try_into()?);
-        assert_eq!(IrisPulseOpen, "IrisPulseOpen".try_into()?);
-        assert_eq!(IrisRandomPulseClose, "IrisRandomPulseClose".try_into()?);
-        assert_eq!(IrisRandomPulseOpen, "IrisRandomPulseOpen".try_into()?);
-        assert_eq!(Frost_n_(1), "Frost1".try_into()?);
-        assert_eq!(Frost_n_(2), "Frost2".try_into()?);
-        assert_eq!(Frost_n_(120), "Frost120".try_into()?);
-        assert_eq!(Frost_n_PulseOpen(1), "Frost1PulseOpen".try_into()?);
-        assert_eq!(Frost_n_PulseOpen(2), "Frost2PulseOpen".try_into()?);
-        assert_eq!(Frost_n_PulseOpen(120), "Frost120PulseOpen".try_into()?);
-        assert_eq!(Frost_n_PulseClose(1), "Frost1PulseClose".try_into()?);
-        assert_eq!(Frost_n_PulseClose(2), "Frost2PulseClose".try_into()?);
-        assert_eq!(Frost_n_PulseClose(120), "Frost120PulseClose".try_into()?);
-        assert_eq!(Frost_n_Ramp(1), "Frost1Ramp".try_into()?);
-        assert_eq!(Frost_n_Ramp(2), "Frost2Ramp".try_into()?);
-        assert_eq!(Frost_n_Ramp(120), "Frost120Ramp".try_into()?);
-        assert_eq!(Prism_n_(1), "Prism1".try_into()?);
-        assert_eq!(Prism_n_(2), "Prism2".try_into()?);
-        assert_eq!(Prism_n_(120), "Prism120".try_into()?);
-        assert_eq!(Prism_n_SelectSpin(1), "Prism1SelectSpin".try_into()?);
-        assert_eq!(Prism_n_SelectSpin(2), "Prism2SelectSpin".try_into()?);
-        assert_eq!(Prism_n_SelectSpin(120), "Prism120SelectSpin".try_into()?);
-        assert_eq!(Prism_n_Macro(1), "Prism1Macro".try_into()?);
-        assert_eq!(Prism_n_Macro(2), "Prism2Macro".try_into()?);
-        assert_eq!(Prism_n_Macro(120), "Prism120Macro".try_into()?);
-        assert_eq!(Prism_n_Pos(1), "Prism1Pos".try_into()?);
-        assert_eq!(Prism_n_Pos(2), "Prism2Pos".try_into()?);
-        assert_eq!(Prism_n_Pos(120), "Prism120Pos".try_into()?);
-        assert_eq!(Prism_n_PosRotate(1), "Prism1PosRotate".try_into()?);
-        assert_eq!(Prism_n_PosRotate(2), "Prism2PosRotate".try_into()?);
-        assert_eq!(Prism_n_PosRotate(120), "Prism120PosRotate".try_into()?);
-        assert_eq!(Effects_n_(1), "Effects1".try_into()?);
-        assert_eq!(Effects_n_(2), "Effects2".try_into()?);
-        assert_eq!(Effects_n_(120), "Effects120".try_into()?);
-        assert_eq!(Effects_n_Rate(1), "Effects1Rate".try_into()?);
-        assert_eq!(Effects_n_Rate(2), "Effects2Rate".try_into()?);
-        assert_eq!(Effects_n_Rate(120), "Effects120Rate".try_into()?);
-        assert_eq!(Effects_n_Fade(1), "Effects1Fade".try_into()?);
-        assert_eq!(Effects_n_Fade(2), "Effects2Fade".try_into()?);
-        assert_eq!(Effects_n_Fade(120), "Effects120Fade".try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(1, 1), "Effects1Adjust1".try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(1, 2), "Effects1Adjust2".try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(2, 1), "Effects2Adjust1".try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(2, 2), "Effects2Adjust2".try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(2, 120), "Effects2Adjust120".try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(120, 2), "Effects120Adjust2".try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(120, 120), "Effects120Adjust120".try_into()?);
-        assert_eq!(Effects_n_Pos(1), "Effects1Pos".try_into()?);
-        assert_eq!(Effects_n_Pos(2), "Effects2Pos".try_into()?);
-        assert_eq!(Effects_n_Pos(120), "Effects120Pos".try_into()?);
-        assert_eq!(Effects_n_PosRotate(1), "Effects1PosRotate".try_into()?);
-        assert_eq!(Effects_n_PosRotate(2), "Effects2PosRotate".try_into()?);
-        assert_eq!(Effects_n_PosRotate(120), "Effects120PosRotate".try_into()?);
-        assert_eq!(EffectsSync, "EffectsSync".try_into()?);
-        assert_eq!(BeamShaper, "BeamShaper".try_into()?);
-        assert_eq!(BeamShaperMacro, "BeamShaperMacro".try_into()?);
-        assert_eq!(BeamShaperPos, "BeamShaperPos".try_into()?);
-        assert_eq!(BeamShaperPosRotate, "BeamShaperPosRotate".try_into()?);
-        assert_eq!(Zoom, "Zoom".try_into()?);
-        assert_eq!(ZoomModeSpot, "ZoomModeSpot".try_into()?);
-        assert_eq!(ZoomModeBeam, "ZoomModeBeam".try_into()?);
-        assert_eq!(Focus_n_(1), "Focus1".try_into()?);
-        assert_eq!(Focus_n_(2), "Focus2".try_into()?);
-        assert_eq!(Focus_n_(120), "Focus120".try_into()?);
-        assert_eq!(Focus_n_Adjust(1), "Focus1Adjust".try_into()?);
-        assert_eq!(Focus_n_Adjust(2), "Focus2Adjust".try_into()?);
-        assert_eq!(Focus_n_Adjust(120), "Focus120Adjust".try_into()?);
-        assert_eq!(Focus_n_Distance(1), "Focus1Distance".try_into()?);
-        assert_eq!(Focus_n_Distance(2), "Focus2Distance".try_into()?);
-        assert_eq!(Focus_n_Distance(120), "Focus120Distance".try_into()?);
-        assert_eq!(Control_n_(1), "Control1".try_into()?);
-        assert_eq!(Control_n_(2), "Control2".try_into()?);
-        assert_eq!(Control_n_(120), "Control120".try_into()?);
-        assert_eq!(DimmerMode, "DimmerMode".try_into()?);
-        assert_eq!(DimmerCurve, "DimmerCurve".try_into()?);
-        assert_eq!(BlackoutMode, "BlackoutMode".try_into()?);
-        assert_eq!(LedFrequency, "LEDFrequency".try_into()?);
-        assert_eq!(LedZoneMode, "LEDZoneMode".try_into()?);
-        assert_eq!(PixelMode, "PixelMode".try_into()?);
-        assert_eq!(PanMode, "PanMode".try_into()?);
-        assert_eq!(TiltMode, "TiltMode".try_into()?);
-        assert_eq!(PanTiltMode, "PanTiltMode".try_into()?);
-        assert_eq!(PositionModes, "PositionModes".try_into()?);
-        assert_eq!(Gobo_n_WheelMode(1), "Gobo1WheelMode".try_into()?);
-        assert_eq!(Gobo_n_WheelMode(2), "Gobo2WheelMode".try_into()?);
-        assert_eq!(Gobo_n_WheelMode(120), "Gobo120WheelMode".try_into()?);
-        assert_eq!(AnimationWheel_n_Mode(1), "AnimationWheel1Mode".try_into()?);
-        assert_eq!(AnimationWheel_n_Mode(2), "AnimationWheel2Mode".try_into()?);
-        assert_eq!(AnimationWheel_n_Mode(120), "AnimationWheel120Mode".try_into()?);
-        assert_eq!(AnimationWheelShortcutMode, "AnimationWheelShortcutMode".try_into()?);
-        assert_eq!(Color_n_Mode(1), "Color1Mode".try_into()?);
-        assert_eq!(Color_n_Mode(2), "Color2Mode".try_into()?);
-        assert_eq!(Color_n_Mode(120), "Color120Mode".try_into()?);
-        assert_eq!(ColorWheelShortcutMode, "ColorWheelShortcutMode".try_into()?);
-        assert_eq!(CyanMode, "CyanMode".try_into()?);
-        assert_eq!(MagentaMode, "MagentaMode".try_into()?);
-        assert_eq!(YellowMode, "YellowMode".try_into()?);
-        assert_eq!(ColorMixMode, "ColorMixMode".try_into()?);
-        assert_eq!(ChromaticMode, "ChromaticMode".try_into()?);
-        assert_eq!(ColorCalibrationMode, "ColorCalibrationMode".try_into()?);
-        assert_eq!(ColorConsistency, "ColorConsistency".try_into()?);
-        assert_eq!(ColorControl, "ColorControl".try_into()?);
-        assert_eq!(ColorModelMode, "ColorModelMode".try_into()?);
-        assert_eq!(ColorSettingsReset, "ColorSettingsReset".try_into()?);
-        assert_eq!(ColorUniformity, "ColorUniformity".try_into()?);
-        assert_eq!(CriMode, "CRIMode".try_into()?);
-        assert_eq!(CustomColor, "CustomColor".try_into()?);
-        assert_eq!(UvStability, "UVStability".try_into()?);
-        assert_eq!(WavelengthCorrection, "WavelengthCorrection".try_into()?);
-        assert_eq!(WhiteCount, "WhiteCount".try_into()?);
-        assert_eq!(StrobeMode, "StrobeMode".try_into()?);
-        assert_eq!(ZoomMode, "ZoomMode".try_into()?);
-        assert_eq!(FocusMode, "FocusMode".try_into()?);
-        assert_eq!(IrisMode, "IrisMode".try_into()?);
-        assert_eq!(Fan_n_Mode(1), "Fan1Mode".try_into()?);
-        assert_eq!(Fan_n_Mode(2), "Fan2Mode".try_into()?);
-        assert_eq!(Fan_n_Mode(120), "Fan120Mode".try_into()?);
-        assert_eq!(FollowSpotMode, "FollowSpotMode".try_into()?);
-        assert_eq!(BeamEffectIndexRotateMode, "BeamEffectIndexRotateMode".try_into()?);
-        assert_eq!(IntensityMSpeed, "IntensityMSpeed".try_into()?);
-        assert_eq!(PositionMSpeed, "PositionMSpeed".try_into()?);
-        assert_eq!(ColorMixMSpeed, "ColorMixMSpeed".try_into()?);
-        assert_eq!(ColorWheelSelectMSpeed, "ColorWheelSelectMSpeed".try_into()?);
-        assert_eq!(GoboWheel_n_MSpeed(1), "GoboWheel1MSpeed".try_into()?);
-        assert_eq!(GoboWheel_n_MSpeed(2), "GoboWheel2MSpeed".try_into()?);
-        assert_eq!(GoboWheel_n_MSpeed(120), "GoboWheel120MSpeed".try_into()?);
-        assert_eq!(IrisMSpeed, "IrisMSpeed".try_into()?);
-        assert_eq!(Prism_n_MSpeed(1), "Prism1MSpeed".try_into()?);
-        assert_eq!(Prism_n_MSpeed(2), "Prism2MSpeed".try_into()?);
-        assert_eq!(Prism_n_MSpeed(120), "Prism120MSpeed".try_into()?);
-        assert_eq!(FocusMSpeed, "FocusMSpeed".try_into()?);
-        assert_eq!(Frost_n_MSpeed(1), "Frost1MSpeed".try_into()?);
-        assert_eq!(Frost_n_MSpeed(2), "Frost2MSpeed".try_into()?);
-        assert_eq!(Frost_n_MSpeed(120), "Frost120MSpeed".try_into()?);
-        assert_eq!(ZoomMSpeed, "ZoomMSpeed".try_into()?);
-        assert_eq!(FrameMSpeed, "FrameMSpeed".try_into()?);
-        assert_eq!(GlobalMSpeed, "GlobalMSpeed".try_into()?);
-        assert_eq!(ReflectorAdjust, "ReflectorAdjust".try_into()?);
-        assert_eq!(FixtureGlobalReset, "FixtureGlobalReset".try_into()?);
-        assert_eq!(ShutterReset, "ShutterReset".try_into()?);
-        assert_eq!(BeamReset, "BeamReset".try_into()?);
-        assert_eq!(ColorMixReset, "ColorMixReset".try_into()?);
-        assert_eq!(ColorWheelReset, "ColorWheelReset".try_into()?);
-        assert_eq!(FocusReset, "FocusReset".try_into()?);
-        assert_eq!(FrameReset, "FrameReset".try_into()?);
-        assert_eq!(GoboWheelReset, "GoboWheelReset".try_into()?);
-        assert_eq!(IntensityReset, "IntensityReset".try_into()?);
-        assert_eq!(IrisReset, "IrisReset".try_into()?);
-        assert_eq!(PositionReset, "PositionReset".try_into()?);
-        assert_eq!(PanReset, "PanReset".try_into()?);
-        assert_eq!(TiltReset, "TiltReset".try_into()?);
-        assert_eq!(ZoomReset, "ZoomReset".try_into()?);
-        assert_eq!(CtbReset, "CTBReset".try_into()?);
-        assert_eq!(CtoReset, "CTOReset".try_into()?);
-        assert_eq!(CtcReset, "CTCReset".try_into()?);
-        assert_eq!(AnimationSystemReset, "AnimationSystemReset".try_into()?);
-        assert_eq!(FixtureCalibrationReset, "FixtureCalibrationReset".try_into()?);
-        assert_eq!(Function, "Function".try_into()?);
-        assert_eq!(LampControl, "LampControl".try_into()?);
-        assert_eq!(DisplayIntensity, "DisplayIntensity".try_into()?);
-        assert_eq!(DmxInput, "DMXInput".try_into()?);
-        assert_eq!(NoFeature, "NoFeature".try_into()?);
-        assert_eq!(Blower_n_(1), "Blower1".try_into()?);
-        assert_eq!(Blower_n_(2), "Blower2".try_into()?);
-        assert_eq!(Blower_n_(120), "Blower120".try_into()?);
-        assert_eq!(Fan_n_(1), "Fan1".try_into()?);
-        assert_eq!(Fan_n_(2), "Fan2".try_into()?);
-        assert_eq!(Fan_n_(120), "Fan120".try_into()?);
-        assert_eq!(Fog_n_(1), "Fog1".try_into()?);
-        assert_eq!(Fog_n_(2), "Fog2".try_into()?);
-        assert_eq!(Fog_n_(120), "Fog120".try_into()?);
-        assert_eq!(Haze_n_(1), "Haze1".try_into()?);
-        assert_eq!(Haze_n_(2), "Haze2".try_into()?);
-        assert_eq!(Haze_n_(120), "Haze120".try_into()?);
-        assert_eq!(LampPowerMode, "LampPowerMode".try_into()?);
-        assert_eq!(Fans, "Fans".try_into()?);
-        assert_eq!(Blade_n_A(1), "Blade1A".try_into()?);
-        assert_eq!(Blade_n_A(2), "Blade2A".try_into()?);
-        assert_eq!(Blade_n_A(120), "Blade120A".try_into()?);
-        assert_eq!(Blade_n_B(1), "Blade1B".try_into()?);
-        assert_eq!(Blade_n_B(2), "Blade2B".try_into()?);
-        assert_eq!(Blade_n_B(120), "Blade120B".try_into()?);
-        assert_eq!(Blade_n_Rot(1), "Blade1Rot".try_into()?);
-        assert_eq!(Blade_n_Rot(2), "Blade2Rot".try_into()?);
-        assert_eq!(Blade_n_Rot(120), "Blade120Rot".try_into()?);
-        assert_eq!(ShaperRot, "ShaperRot".try_into()?);
-        assert_eq!(ShaperMacros, "ShaperMacros".try_into()?);
-        assert_eq!(ShaperMacrosSpeed, "ShaperMacrosSpeed".try_into()?);
-        assert_eq!(BladeSoft_n_A(1), "BladeSoft1A".try_into()?);
-        assert_eq!(BladeSoft_n_A(2), "BladeSoft2A".try_into()?);
-        assert_eq!(BladeSoft_n_A(120), "BladeSoft120A".try_into()?);
-        assert_eq!(BladeSoft_n_B(1), "BladeSoft1B".try_into()?);
-        assert_eq!(BladeSoft_n_B(2), "BladeSoft2B".try_into()?);
-        assert_eq!(BladeSoft_n_B(120), "BladeSoft120B".try_into()?);
-        assert_eq!(KeyStone_n_A(1), "KeyStone1A".try_into()?);
-        assert_eq!(KeyStone_n_A(2), "KeyStone2A".try_into()?);
-        assert_eq!(KeyStone_n_A(120), "KeyStone120A".try_into()?);
-        assert_eq!(KeyStone_n_B(1), "KeyStone1B".try_into()?);
-        assert_eq!(KeyStone_n_B(2), "KeyStone2B".try_into()?);
-        assert_eq!(KeyStone_n_B(120), "KeyStone120B".try_into()?);
-        assert_eq!(Video, "Video".try_into()?);
-        assert_eq!(VideoEffect_n_Type(1), "VideoEffect1Type".try_into()?);
-        assert_eq!(VideoEffect_n_Type(2), "VideoEffect2Type".try_into()?);
-        assert_eq!(VideoEffect_n_Type(120), "VideoEffect120Type".try_into()?);
-        assert_eq!(VideoEffect_n_Parameter_m_(1, 1), "VideoEffect1Parameter1".try_into()?);
-        assert_eq!(VideoEffect_n_Parameter_m_(1, 2), "VideoEffect1Parameter2".try_into()?);
-        assert_eq!(VideoEffect_n_Parameter_m_(2, 1), "VideoEffect2Parameter1".try_into()?);
-        assert_eq!(VideoEffect_n_Parameter_m_(2, 2), "VideoEffect2Parameter2".try_into()?);
-        assert_eq!(VideoEffect_n_Parameter_m_(2, 120), "VideoEffect2Parameter120".try_into()?);
-        assert_eq!(VideoEffect_n_Parameter_m_(120, 2), "VideoEffect120Parameter2".try_into()?);
-        assert_eq!(VideoEffect_n_Parameter_m_(120, 120), "VideoEffect120Parameter120".try_into()?);
-        assert_eq!(VideoCamera_n_(1), "VideoCamera1".try_into()?);
-        assert_eq!(VideoCamera_n_(2), "VideoCamera2".try_into()?);
-        assert_eq!(VideoCamera_n_(120), "VideoCamera120".try_into()?);
-        assert_eq!(VideoSoundVolume_n_(1), "VideoSoundVolume1".try_into()?);
-        assert_eq!(VideoSoundVolume_n_(2), "VideoSoundVolume2".try_into()?);
-        assert_eq!(VideoSoundVolume_n_(120), "VideoSoundVolume120".try_into()?);
-        assert_eq!(VideoBlendMode, "VideoBlendMode".try_into()?);
-        assert_eq!(InputSource, "InputSource".try_into()?);
-        assert_eq!(FieldOfView, "FieldOfView".try_into()?);
-
-        assert!(AttributeName::try_from("something{invalid").is_err());
-        assert!(AttributeName::try_from("something௸invalid").is_err());
-        Ok(())
-    }
-
-
-    #[test]
-    fn test_from_attr_owned() -> Result<(), GdtfError> {
-        use AttributeName::*;
-        assert_eq!(UserDefined(Name::new("test")?), "test".try_into()?);
-
-        if let UserDefined(n) = AttributeName::try_from("")? {
-            assert_eq!(n, Name::new("")?);
-        } else {
-            panic!("empty str was not parsed to empty user defined");
-        }
-        assert_eq!(Dimmer, testdata::to_attr_owned(b"Dimmer").try_into()?);
-        assert_eq!(Pan, testdata::to_attr_owned(b"Pan").try_into()?);
-        assert_eq!(Tilt, testdata::to_attr_owned(b"Tilt").try_into()?);
-        assert_eq!(Gobo_n_(1), testdata::to_attr_owned(b"Gobo1").try_into()?);
-        assert_eq!(Gobo_n_SelectSpin(2), testdata::to_attr_owned(b"Gobo2SelectSpin").try_into()?);
-        assert_eq!(Gobo_n_SelectShake(120), testdata::to_attr_owned(b"Gobo120SelectShake").try_into()?);
-        assert_eq!(Dimmer, testdata::to_attr_owned(b"Dimmer").try_into()?);
-        assert_eq!(Dimmer, testdata::to_attr_owned(b"Dimmer").try_into()?);
-
-        assert_eq!(Effects_n_Adjust_m_(1, 1), testdata::to_attr_owned(b"Effects1Adjust1").try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(1, 2), testdata::to_attr_owned(b"Effects1Adjust2").try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(2, 1), testdata::to_attr_owned(b"Effects2Adjust1").try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(2, 2), testdata::to_attr_owned(b"Effects2Adjust2").try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(2, 120), testdata::to_attr_owned(b"Effects2Adjust120").try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(120, 2), testdata::to_attr_owned(b"Effects120Adjust2").try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(120, 120), testdata::to_attr_owned(b"Effects120Adjust120").try_into()?);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_from_attr_borrowed() -> Result<(), GdtfError> {
-        use AttributeName::*;
-        assert_eq!(UserDefined(Name::new("test")?), "test".try_into()?);
-
-        if let UserDefined(n) = AttributeName::try_from("")? {
-            assert_eq!(n, Name::new("")?);
-        } else {
-            panic!("empty str was not parsed to empty user defined");
-        }
-        assert_eq!(Dimmer, testdata::to_attr_borrowed(b"Dimmer").try_into()?);
-        assert_eq!(Pan, testdata::to_attr_borrowed(b"Pan").try_into()?);
-        assert_eq!(Tilt, testdata::to_attr_borrowed(b"Tilt").try_into()?);
-        assert_eq!(Gobo_n_(1), testdata::to_attr_borrowed(b"Gobo1").try_into()?);
-        assert_eq!(Gobo_n_SelectSpin(2), testdata::to_attr_borrowed(b"Gobo2SelectSpin").try_into()?);
-        assert_eq!(Gobo_n_SelectShake(120), testdata::to_attr_borrowed(b"Gobo120SelectShake").try_into()?);
-        assert_eq!(Dimmer, testdata::to_attr_borrowed(b"Dimmer").try_into()?);
-        assert_eq!(Dimmer, testdata::to_attr_borrowed(b"Dimmer").try_into()?);
-
-        assert_eq!(Effects_n_Adjust_m_(1, 1), testdata::to_attr_borrowed(b"Effects1Adjust1").try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(1, 2), testdata::to_attr_borrowed(b"Effects1Adjust2").try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(2, 1), testdata::to_attr_borrowed(b"Effects2Adjust1").try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(2, 2), testdata::to_attr_borrowed(b"Effects2Adjust2").try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(2, 120), testdata::to_attr_borrowed(b"Effects2Adjust120").try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(120, 2), testdata::to_attr_borrowed(b"Effects120Adjust2").try_into()?);
-        assert_eq!(Effects_n_Adjust_m_(120, 120), testdata::to_attr_borrowed(b"Effects120Adjust120").try_into()?);
-
+        use T::*;
+        assert_eq!(UserDefined(Name::new("")?), T::default());
         Ok(())
     }
 
     #[test]
     fn test_new_from_str() -> Result<(), GdtfError> {
-        assert_eq!(AttributeName::Effects_n_(2), AttributeName::new_from_str("Effects2")?);
-        assert_eq!(AttributeName::Control_n_(3), AttributeName::new_from_str("Control3")?);
-        assert_eq!(AttributeName::Dimmer, AttributeName::new_from_str("Dimmer")?);
-        assert_eq!(AttributeName::UserDefined(Name::new("")?), AttributeName::new_from_str("")?);
-        assert_eq!(AttributeName::UserDefined(Name::new("Something weird")?), AttributeName::new_from_str("Something weird")?);
-        assert!(Name::new("asdf{").is_err());
+        use T::*;
+        assert_eq!(UserDefined(Name::new("test")?), T::new_from_str("test")?);
+        assert_eq!(UserDefined(Name::new("")?), T::new_from_str("")?);
+        assert_eq!(Dimmer, T::new_from_str("Dimmer")?);
+        assert_eq!(Pan, T::new_from_str("Pan")?);
+        assert_eq!(Tilt, T::new_from_str("Tilt")?);
+        assert_eq!(PanRotate, T::new_from_str("PanRotate")?);
+        assert_eq!(TiltRotate, T::new_from_str("TiltRotate")?);
+        assert_eq!(PositionEffect, T::new_from_str("PositionEffect")?);
+        assert_eq!(PositionEffectRate, T::new_from_str("PositionEffectRate")?);
+        assert_eq!(PositionEffectFade, T::new_from_str("PositionEffectFade")?);
+        assert_eq!(Xyz_X, T::new_from_str("XYZ_X")?);
+        assert_eq!(Xyz_Y, T::new_from_str("XYZ_Y")?);
+        assert_eq!(Xyz_Z, T::new_from_str("XYZ_Z")?);
+        assert_eq!(Rot_X, T::new_from_str("Rot_X")?);
+        assert_eq!(Rot_Y, T::new_from_str("Rot_Y")?);
+        assert_eq!(Rot_Z, T::new_from_str("Rot_Z")?);
+        assert_eq!(Scale_X, T::new_from_str("Scale_X")?);
+        assert_eq!(Scale_Y, T::new_from_str("Scale_Y")?);
+        assert_eq!(Scale_Z, T::new_from_str("Scale_Z")?);
+        assert_eq!(Scale_Xyz, T::new_from_str("Scale_XYZ")?);
+        assert_eq!(Gobo_n_(1), T::new_from_str("Gobo1")?);
+        assert_eq!(Gobo_n_(2), T::new_from_str("Gobo2")?);
+        assert_eq!(Gobo_n_(120), T::new_from_str("Gobo120")?);
+        assert_eq!(Gobo_n_SelectSpin(1), T::new_from_str("Gobo1SelectSpin")?);
+        assert_eq!(Gobo_n_SelectSpin(2), T::new_from_str("Gobo2SelectSpin")?);
+        assert_eq!(Gobo_n_SelectSpin(120), T::new_from_str("Gobo120SelectSpin")?);
+        assert_eq!(Gobo_n_SelectShake(1), T::new_from_str("Gobo1SelectShake")?);
+        assert_eq!(Gobo_n_SelectShake(2), T::new_from_str("Gobo2SelectShake")?);
+        assert_eq!(Gobo_n_SelectShake(120), T::new_from_str("Gobo120SelectShake")?);
+        assert_eq!(Gobo_n_SelectEffects(1), T::new_from_str("Gobo1SelectEffects")?);
+        assert_eq!(Gobo_n_SelectEffects(2), T::new_from_str("Gobo2SelectEffects")?);
+        assert_eq!(Gobo_n_SelectEffects(120), T::new_from_str("Gobo120SelectEffects")?);
+        assert_eq!(Gobo_n_WheelIndex(1), T::new_from_str("Gobo1WheelIndex")?);
+        assert_eq!(Gobo_n_WheelIndex(2), T::new_from_str("Gobo2WheelIndex")?);
+        assert_eq!(Gobo_n_WheelIndex(120), T::new_from_str("Gobo120WheelIndex")?);
+        assert_eq!(Gobo_n_WheelSpin(1), T::new_from_str("Gobo1WheelSpin")?);
+        assert_eq!(Gobo_n_WheelSpin(2), T::new_from_str("Gobo2WheelSpin")?);
+        assert_eq!(Gobo_n_WheelSpin(120), T::new_from_str("Gobo120WheelSpin")?);
+        assert_eq!(Gobo_n_WheelShake(1), T::new_from_str("Gobo1WheelShake")?);
+        assert_eq!(Gobo_n_WheelShake(2), T::new_from_str("Gobo2WheelShake")?);
+        assert_eq!(Gobo_n_WheelShake(120), T::new_from_str("Gobo120WheelShake")?);
+        assert_eq!(Gobo_n_WheelRandom(1), T::new_from_str("Gobo1WheelRandom")?);
+        assert_eq!(Gobo_n_WheelRandom(2), T::new_from_str("Gobo2WheelRandom")?);
+        assert_eq!(Gobo_n_WheelRandom(120), T::new_from_str("Gobo120WheelRandom")?);
+        assert_eq!(Gobo_n_WheelAudio(1), T::new_from_str("Gobo1WheelAudio")?);
+        assert_eq!(Gobo_n_WheelAudio(2), T::new_from_str("Gobo2WheelAudio")?);
+        assert_eq!(Gobo_n_WheelAudio(120), T::new_from_str("Gobo120WheelAudio")?);
+        assert_eq!(Gobo_n_Pos(1), T::new_from_str("Gobo1Pos")?);
+        assert_eq!(Gobo_n_Pos(2), T::new_from_str("Gobo2Pos")?);
+        assert_eq!(Gobo_n_Pos(120), T::new_from_str("Gobo120Pos")?);
+        assert_eq!(Gobo_n_PosRotate(1), T::new_from_str("Gobo1PosRotate")?);
+        assert_eq!(Gobo_n_PosRotate(2), T::new_from_str("Gobo2PosRotate")?);
+        assert_eq!(Gobo_n_PosRotate(120), T::new_from_str("Gobo120PosRotate")?);
+        assert_eq!(Gobo_n_PosShake(1), T::new_from_str("Gobo1PosShake")?);
+        assert_eq!(Gobo_n_PosShake(2), T::new_from_str("Gobo2PosShake")?);
+        assert_eq!(Gobo_n_PosShake(120), T::new_from_str("Gobo120PosShake")?);
+        assert_eq!(AnimationWheel_n_(1), T::new_from_str("AnimationWheel1")?);
+        assert_eq!(AnimationWheel_n_(2), T::new_from_str("AnimationWheel2")?);
+        assert_eq!(AnimationWheel_n_(120), T::new_from_str("AnimationWheel120")?);
+        assert_eq!(AnimationWheel_n_Audio(1), T::new_from_str("AnimationWheel1Audio")?);
+        assert_eq!(AnimationWheel_n_Audio(2), T::new_from_str("AnimationWheel2Audio")?);
+        assert_eq!(AnimationWheel_n_Audio(120), T::new_from_str("AnimationWheel120Audio")?);
+        assert_eq!(AnimationWheel_n_Macro(1), T::new_from_str("AnimationWheel1Macro")?);
+        assert_eq!(AnimationWheel_n_Macro(2), T::new_from_str("AnimationWheel2Macro")?);
+        assert_eq!(AnimationWheel_n_Macro(120), T::new_from_str("AnimationWheel120Macro")?);
+        assert_eq!(AnimationWheel_n_Random(1), T::new_from_str("AnimationWheel1Random")?);
+        assert_eq!(AnimationWheel_n_Random(2), T::new_from_str("AnimationWheel2Random")?);
+        assert_eq!(AnimationWheel_n_Random(120), T::new_from_str("AnimationWheel120Random")?);
+        assert_eq!(AnimationWheel_n_SelectEffects(1), T::new_from_str("AnimationWheel1SelectEffects")?);
+        assert_eq!(AnimationWheel_n_SelectEffects(2), T::new_from_str("AnimationWheel2SelectEffects")?);
+        assert_eq!(AnimationWheel_n_SelectEffects(120), T::new_from_str("AnimationWheel120SelectEffects")?);
+        assert_eq!(AnimationWheel_n_SelectShake(1), T::new_from_str("AnimationWheel1SelectShake")?);
+        assert_eq!(AnimationWheel_n_SelectShake(2), T::new_from_str("AnimationWheel2SelectShake")?);
+        assert_eq!(AnimationWheel_n_SelectShake(120), T::new_from_str("AnimationWheel120SelectShake")?);
+        assert_eq!(AnimationWheel_n_SelectSpin(1), T::new_from_str("AnimationWheel1SelectSpin")?);
+        assert_eq!(AnimationWheel_n_SelectSpin(2), T::new_from_str("AnimationWheel2SelectSpin")?);
+        assert_eq!(AnimationWheel_n_SelectSpin(120), T::new_from_str("AnimationWheel120SelectSpin")?);
+        assert_eq!(AnimationWheel_n_Pos(1), T::new_from_str("AnimationWheel1Pos")?);
+        assert_eq!(AnimationWheel_n_Pos(2), T::new_from_str("AnimationWheel2Pos")?);
+        assert_eq!(AnimationWheel_n_Pos(120), T::new_from_str("AnimationWheel120Pos")?);
+        assert_eq!(AnimationWheel_n_PosRotate(1), T::new_from_str("AnimationWheel1PosRotate")?);
+        assert_eq!(AnimationWheel_n_PosRotate(2), T::new_from_str("AnimationWheel2PosRotate")?);
+        assert_eq!(AnimationWheel_n_PosRotate(120), T::new_from_str("AnimationWheel120PosRotate")?);
+        assert_eq!(AnimationWheel_n_PosShake(1), T::new_from_str("AnimationWheel1PosShake")?);
+        assert_eq!(AnimationWheel_n_PosShake(2), T::new_from_str("AnimationWheel2PosShake")?);
+        assert_eq!(AnimationWheel_n_PosShake(120), T::new_from_str("AnimationWheel120PosShake")?);
+        assert_eq!(AnimationSystem_n_(1), T::new_from_str("AnimationSystem1")?);
+        assert_eq!(AnimationSystem_n_(2), T::new_from_str("AnimationSystem2")?);
+        assert_eq!(AnimationSystem_n_(120), T::new_from_str("AnimationSystem120")?);
+        assert_eq!(AnimationSystem_n_Ramp(1), T::new_from_str("AnimationSystem1Ramp")?);
+        assert_eq!(AnimationSystem_n_Ramp(2), T::new_from_str("AnimationSystem2Ramp")?);
+        assert_eq!(AnimationSystem_n_Ramp(120), T::new_from_str("AnimationSystem120Ramp")?);
+        assert_eq!(AnimationSystem_n_Shake(1), T::new_from_str("AnimationSystem1Shake")?);
+        assert_eq!(AnimationSystem_n_Shake(2), T::new_from_str("AnimationSystem2Shake")?);
+        assert_eq!(AnimationSystem_n_Shake(120), T::new_from_str("AnimationSystem120Shake")?);
+        assert_eq!(AnimationSystem_n_Audio(1), T::new_from_str("AnimationSystem1Audio")?);
+        assert_eq!(AnimationSystem_n_Audio(2), T::new_from_str("AnimationSystem2Audio")?);
+        assert_eq!(AnimationSystem_n_Audio(120), T::new_from_str("AnimationSystem120Audio")?);
+        assert_eq!(AnimationSystem_n_Random(1), T::new_from_str("AnimationSystem1Random")?);
+        assert_eq!(AnimationSystem_n_Random(2), T::new_from_str("AnimationSystem2Random")?);
+        assert_eq!(AnimationSystem_n_Random(120), T::new_from_str("AnimationSystem120Random")?);
+        assert_eq!(AnimationSystem_n_Pos(1), T::new_from_str("AnimationSystem1Pos")?);
+        assert_eq!(AnimationSystem_n_Pos(2), T::new_from_str("AnimationSystem2Pos")?);
+        assert_eq!(AnimationSystem_n_Pos(120), T::new_from_str("AnimationSystem120Pos")?);
+        assert_eq!(AnimationSystem_n_PosRotate(1), T::new_from_str("AnimationSystem1PosRotate")?);
+        assert_eq!(AnimationSystem_n_PosRotate(2), T::new_from_str("AnimationSystem2PosRotate")?);
+        assert_eq!(AnimationSystem_n_PosRotate(120), T::new_from_str("AnimationSystem120PosRotate")?);
+        assert_eq!(AnimationSystem_n_PosShake(1), T::new_from_str("AnimationSystem1PosShake")?);
+        assert_eq!(AnimationSystem_n_PosShake(2), T::new_from_str("AnimationSystem2PosShake")?);
+        assert_eq!(AnimationSystem_n_PosShake(120), T::new_from_str("AnimationSystem120PosShake")?);
+        assert_eq!(AnimationSystem_n_PosRandom(1), T::new_from_str("AnimationSystem1PosRandom")?);
+        assert_eq!(AnimationSystem_n_PosRandom(2), T::new_from_str("AnimationSystem2PosRandom")?);
+        assert_eq!(AnimationSystem_n_PosRandom(120), T::new_from_str("AnimationSystem120PosRandom")?);
+        assert_eq!(AnimationSystem_n_PosAudio(1), T::new_from_str("AnimationSystem1PosAudio")?);
+        assert_eq!(AnimationSystem_n_PosAudio(2), T::new_from_str("AnimationSystem2PosAudio")?);
+        assert_eq!(AnimationSystem_n_PosAudio(120), T::new_from_str("AnimationSystem120PosAudio")?);
+        assert_eq!(AnimationSystem_n_Macro(1), T::new_from_str("AnimationSystem1Macro")?);
+        assert_eq!(AnimationSystem_n_Macro(2), T::new_from_str("AnimationSystem2Macro")?);
+        assert_eq!(AnimationSystem_n_Macro(120), T::new_from_str("AnimationSystem120Macro")?);
+        assert_eq!(MediaFolder_n_(1), T::new_from_str("MediaFolder1")?);
+        assert_eq!(MediaFolder_n_(2), T::new_from_str("MediaFolder2")?);
+        assert_eq!(MediaFolder_n_(120), T::new_from_str("MediaFolder120")?);
+        assert_eq!(MediaContent_n_(1), T::new_from_str("MediaContent1")?);
+        assert_eq!(MediaContent_n_(2), T::new_from_str("MediaContent2")?);
+        assert_eq!(MediaContent_n_(120), T::new_from_str("MediaContent120")?);
+        assert_eq!(ModelFolder_n_(1), T::new_from_str("ModelFolder1")?);
+        assert_eq!(ModelFolder_n_(2), T::new_from_str("ModelFolder2")?);
+        assert_eq!(ModelFolder_n_(120), T::new_from_str("ModelFolder120")?);
+        assert_eq!(ModelContent_n_(1), T::new_from_str("ModelContent1")?);
+        assert_eq!(ModelContent_n_(2), T::new_from_str("ModelContent2")?);
+        assert_eq!(ModelContent_n_(120), T::new_from_str("ModelContent120")?);
+        assert_eq!(PlayMode, T::new_from_str("PlayMode")?);
+        assert_eq!(PlayBegin, T::new_from_str("PlayBegin")?);
+        assert_eq!(PlayEnd, T::new_from_str("PlayEnd")?);
+        assert_eq!(PlaySpeed, T::new_from_str("PlaySpeed")?);
+        assert_eq!(ColorEffects_n_(1), T::new_from_str("ColorEffects1")?);
+        assert_eq!(ColorEffects_n_(2), T::new_from_str("ColorEffects2")?);
+        assert_eq!(ColorEffects_n_(120), T::new_from_str("ColorEffects120")?);
+        assert_eq!(Color_n_(1), T::new_from_str("Color1")?);
+        assert_eq!(Color_n_(2), T::new_from_str("Color2")?);
+        assert_eq!(Color_n_(120), T::new_from_str("Color120")?);
+        assert_eq!(Color_n_WheelIndex(1), T::new_from_str("Color1WheelIndex")?);
+        assert_eq!(Color_n_WheelIndex(2), T::new_from_str("Color2WheelIndex")?);
+        assert_eq!(Color_n_WheelIndex(120), T::new_from_str("Color120WheelIndex")?);
+        assert_eq!(Color_n_WheelSpin(1), T::new_from_str("Color1WheelSpin")?);
+        assert_eq!(Color_n_WheelSpin(2), T::new_from_str("Color2WheelSpin")?);
+        assert_eq!(Color_n_WheelSpin(120), T::new_from_str("Color120WheelSpin")?);
+        assert_eq!(Color_n_WheelRandom(1), T::new_from_str("Color1WheelRandom")?);
+        assert_eq!(Color_n_WheelRandom(2), T::new_from_str("Color2WheelRandom")?);
+        assert_eq!(Color_n_WheelRandom(120), T::new_from_str("Color120WheelRandom")?);
+        assert_eq!(Color_n_WheelAudio(1), T::new_from_str("Color1WheelAudio")?);
+        assert_eq!(Color_n_WheelAudio(2), T::new_from_str("Color2WheelAudio")?);
+        assert_eq!(Color_n_WheelAudio(120), T::new_from_str("Color120WheelAudio")?);
+        assert_eq!(ColorAdd_R, T::new_from_str("ColorAdd_R")?);
+        assert_eq!(ColorAdd_G, T::new_from_str("ColorAdd_G")?);
+        assert_eq!(ColorAdd_B, T::new_from_str("ColorAdd_B")?);
+        assert_eq!(ColorAdd_C, T::new_from_str("ColorAdd_C")?);
+        assert_eq!(ColorAdd_M, T::new_from_str("ColorAdd_M")?);
+        assert_eq!(ColorAdd_Y, T::new_from_str("ColorAdd_Y")?);
+        assert_eq!(ColorAdd_Ry, T::new_from_str("ColorAdd_RY")?);
+        assert_eq!(ColorAdd_Gy, T::new_from_str("ColorAdd_GY")?);
+        assert_eq!(ColorAdd_Gc, T::new_from_str("ColorAdd_GC")?);
+        assert_eq!(ColorAdd_Bc, T::new_from_str("ColorAdd_BC")?);
+        assert_eq!(ColorAdd_Bm, T::new_from_str("ColorAdd_BM")?);
+        assert_eq!(ColorAdd_Rm, T::new_from_str("ColorAdd_RM")?);
+        assert_eq!(ColorAdd_W, T::new_from_str("ColorAdd_W")?);
+        assert_eq!(ColorAdd_Ww, T::new_from_str("ColorAdd_WW")?);
+        assert_eq!(ColorAdd_Cw, T::new_from_str("ColorAdd_CW")?);
+        assert_eq!(ColorAdd_Uv, T::new_from_str("ColorAdd_UV")?);
+        assert_eq!(ColorSub_R, T::new_from_str("ColorSub_R")?);
+        assert_eq!(ColorSub_G, T::new_from_str("ColorSub_G")?);
+        assert_eq!(ColorSub_B, T::new_from_str("ColorSub_B")?);
+        assert_eq!(ColorSub_C, T::new_from_str("ColorSub_C")?);
+        assert_eq!(ColorSub_M, T::new_from_str("ColorSub_M")?);
+        assert_eq!(ColorSub_Y, T::new_from_str("ColorSub_Y")?);
+        assert_eq!(ColorMacro_n_(1), T::new_from_str("ColorMacro1")?);
+        assert_eq!(ColorMacro_n_(2), T::new_from_str("ColorMacro2")?);
+        assert_eq!(ColorMacro_n_(120), T::new_from_str("ColorMacro120")?);
+        assert_eq!(ColorMacro_n_Rate(1), T::new_from_str("ColorMacro1Rate")?);
+        assert_eq!(ColorMacro_n_Rate(2), T::new_from_str("ColorMacro2Rate")?);
+        assert_eq!(ColorMacro_n_Rate(120), T::new_from_str("ColorMacro120Rate")?);
+        assert_eq!(Cto, T::new_from_str("CTO")?);
+        assert_eq!(Ctc, T::new_from_str("CTC")?);
+        assert_eq!(Ctb, T::new_from_str("CTB")?);
+        assert_eq!(Tint, T::new_from_str("Tint")?);
+        assert_eq!(Hsb_Hue, T::new_from_str("HSB_Hue")?);
+        assert_eq!(Hsb_Saturation, T::new_from_str("HSB_Saturation")?);
+        assert_eq!(Hsb_Brightness, T::new_from_str("HSB_Brightness")?);
+        assert_eq!(Hsb_Quality, T::new_from_str("HSB_Quality")?);
+        assert_eq!(Cie_X, T::new_from_str("CIE_X")?);
+        assert_eq!(Cie_Y, T::new_from_str("CIE_Y")?);
+        assert_eq!(Cie_Brightness, T::new_from_str("CIE_Brightness")?);
+        assert_eq!(ColorRgb_Red, T::new_from_str("ColorRGB_Red")?);
+        assert_eq!(ColorRgb_Green, T::new_from_str("ColorRGB_Green")?);
+        assert_eq!(ColorRgb_Blue, T::new_from_str("ColorRGB_Blue")?);
+        assert_eq!(ColorRgb_Cyan, T::new_from_str("ColorRGB_Cyan")?);
+        assert_eq!(ColorRgb_Magenta, T::new_from_str("ColorRGB_Magenta")?);
+        assert_eq!(ColorRgb_Yellow, T::new_from_str("ColorRGB_Yellow")?);
+        assert_eq!(ColorRgb_Quality, T::new_from_str("ColorRGB_Quality")?);
+        assert_eq!(VideoBoost_R, T::new_from_str("VideoBoost_R")?);
+        assert_eq!(VideoBoost_G, T::new_from_str("VideoBoost_G")?);
+        assert_eq!(VideoBoost_B, T::new_from_str("VideoBoost_B")?);
+        assert_eq!(VideoHueShift, T::new_from_str("VideoHueShift")?);
+        assert_eq!(VideoSaturation, T::new_from_str("VideoSaturation")?);
+        assert_eq!(VideoBrightness, T::new_from_str("VideoBrightness")?);
+        assert_eq!(VideoContrast, T::new_from_str("VideoContrast")?);
+        assert_eq!(VideoKeyColor_R, T::new_from_str("VideoKeyColor_R")?);
+        assert_eq!(VideoKeyColor_G, T::new_from_str("VideoKeyColor_G")?);
+        assert_eq!(VideoKeyColor_B, T::new_from_str("VideoKeyColor_B")?);
+        assert_eq!(VideoKeyIntensity, T::new_from_str("VideoKeyIntensity")?);
+        assert_eq!(VideoKeyTolerance, T::new_from_str("VideoKeyTolerance")?);
+        assert_eq!(StrobeDuration, T::new_from_str("StrobeDuration")?);
+        assert_eq!(StrobeRate, T::new_from_str("StrobeRate")?);
+        assert_eq!(Shutter_n_(1), T::new_from_str("Shutter1")?);
+        assert_eq!(Shutter_n_(2), T::new_from_str("Shutter2")?);
+        assert_eq!(Shutter_n_(120), T::new_from_str("Shutter120")?);
+        assert_eq!(Shutter_n_Strobe(1), T::new_from_str("Shutter1Strobe")?);
+        assert_eq!(Shutter_n_Strobe(2), T::new_from_str("Shutter2Strobe")?);
+        assert_eq!(Shutter_n_Strobe(120), T::new_from_str("Shutter120Strobe")?);
+        assert_eq!(Shutter_n_StrobePulse(1), T::new_from_str("Shutter1StrobePulse")?);
+        assert_eq!(Shutter_n_StrobePulse(2), T::new_from_str("Shutter2StrobePulse")?);
+        assert_eq!(Shutter_n_StrobePulse(120), T::new_from_str("Shutter120StrobePulse")?);
+        assert_eq!(Shutter_n_StrobePulseClose(1), T::new_from_str("Shutter1StrobePulseClose")?);
+        assert_eq!(Shutter_n_StrobePulseClose(2), T::new_from_str("Shutter2StrobePulseClose")?);
+        assert_eq!(Shutter_n_StrobePulseOpen(1), T::new_from_str("Shutter1StrobePulseOpen")?);
+        assert_eq!(Shutter_n_StrobePulseOpen(2), T::new_from_str("Shutter2StrobePulseOpen")?);
+        assert_eq!(Shutter_n_StrobePulseOpen(120), T::new_from_str("Shutter120StrobePulseOpen")?);
+        assert_eq!(Shutter_n_StrobeRandom(1), T::new_from_str("Shutter1StrobeRandom")?);
+        assert_eq!(Shutter_n_StrobeRandom(2), T::new_from_str("Shutter2StrobeRandom")?);
+        assert_eq!(Shutter_n_StrobeRandom(120), T::new_from_str("Shutter120StrobeRandom")?);
+        assert_eq!(Shutter_n_StrobeRandomPulse(1), T::new_from_str("Shutter1StrobeRandomPulse")?);
+        assert_eq!(Shutter_n_StrobeRandomPulse(2), T::new_from_str("Shutter2StrobeRandomPulse")?);
+        assert_eq!(Shutter_n_StrobeRandomPulse(120), T::new_from_str("Shutter120StrobeRandomPulse")?);
+        assert_eq!(Shutter_n_StrobeRandomPulseClose(1), T::new_from_str("Shutter1StrobeRandomPulseClose")?);
+        assert_eq!(Shutter_n_StrobeRandomPulseClose(2), T::new_from_str("Shutter2StrobeRandomPulseClose")?);
+        assert_eq!(Shutter_n_StrobeRandomPulseClose(120), T::new_from_str("Shutter120StrobeRandomPulseClose")?);
+        assert_eq!(Shutter_n_StrobeRandomPulseOpen(1), T::new_from_str("Shutter1StrobeRandomPulseOpen")?);
+        assert_eq!(Shutter_n_StrobeRandomPulseOpen(2), T::new_from_str("Shutter2StrobeRandomPulseOpen")?);
+        assert_eq!(Shutter_n_StrobeRandomPulseOpen(120), T::new_from_str("Shutter120StrobeRandomPulseOpen")?);
+        assert_eq!(Shutter_n_StrobeEffect(1), T::new_from_str("Shutter1StrobeEffect")?);
+        assert_eq!(Shutter_n_StrobeEffect(2), T::new_from_str("Shutter2StrobeEffect")?);
+        assert_eq!(Shutter_n_StrobeEffect(120), T::new_from_str("Shutter120StrobeEffect")?);
+        assert_eq!(Iris, T::new_from_str("Iris")?);
+        assert_eq!(IrisStrobe, T::new_from_str("IrisStrobe")?);
+        assert_eq!(IrisStrobeRandom, T::new_from_str("IrisStrobeRandom")?);
+        assert_eq!(IrisPulseClose, T::new_from_str("IrisPulseClose")?);
+        assert_eq!(IrisPulseOpen, T::new_from_str("IrisPulseOpen")?);
+        assert_eq!(IrisRandomPulseClose, T::new_from_str("IrisRandomPulseClose")?);
+        assert_eq!(IrisRandomPulseOpen, T::new_from_str("IrisRandomPulseOpen")?);
+        assert_eq!(Frost_n_(1), T::new_from_str("Frost1")?);
+        assert_eq!(Frost_n_(2), T::new_from_str("Frost2")?);
+        assert_eq!(Frost_n_(120), T::new_from_str("Frost120")?);
+        assert_eq!(Frost_n_PulseOpen(1), T::new_from_str("Frost1PulseOpen")?);
+        assert_eq!(Frost_n_PulseOpen(2), T::new_from_str("Frost2PulseOpen")?);
+        assert_eq!(Frost_n_PulseOpen(120), T::new_from_str("Frost120PulseOpen")?);
+        assert_eq!(Frost_n_PulseClose(1), T::new_from_str("Frost1PulseClose")?);
+        assert_eq!(Frost_n_PulseClose(2), T::new_from_str("Frost2PulseClose")?);
+        assert_eq!(Frost_n_PulseClose(120), T::new_from_str("Frost120PulseClose")?);
+        assert_eq!(Frost_n_Ramp(1), T::new_from_str("Frost1Ramp")?);
+        assert_eq!(Frost_n_Ramp(2), T::new_from_str("Frost2Ramp")?);
+        assert_eq!(Frost_n_Ramp(120), T::new_from_str("Frost120Ramp")?);
+        assert_eq!(Prism_n_(1), T::new_from_str("Prism1")?);
+        assert_eq!(Prism_n_(2), T::new_from_str("Prism2")?);
+        assert_eq!(Prism_n_(120), T::new_from_str("Prism120")?);
+        assert_eq!(Prism_n_SelectSpin(1), T::new_from_str("Prism1SelectSpin")?);
+        assert_eq!(Prism_n_SelectSpin(2), T::new_from_str("Prism2SelectSpin")?);
+        assert_eq!(Prism_n_SelectSpin(120), T::new_from_str("Prism120SelectSpin")?);
+        assert_eq!(Prism_n_Macro(1), T::new_from_str("Prism1Macro")?);
+        assert_eq!(Prism_n_Macro(2), T::new_from_str("Prism2Macro")?);
+        assert_eq!(Prism_n_Macro(120), T::new_from_str("Prism120Macro")?);
+        assert_eq!(Prism_n_Pos(1), T::new_from_str("Prism1Pos")?);
+        assert_eq!(Prism_n_Pos(2), T::new_from_str("Prism2Pos")?);
+        assert_eq!(Prism_n_Pos(120), T::new_from_str("Prism120Pos")?);
+        assert_eq!(Prism_n_PosRotate(1), T::new_from_str("Prism1PosRotate")?);
+        assert_eq!(Prism_n_PosRotate(2), T::new_from_str("Prism2PosRotate")?);
+        assert_eq!(Prism_n_PosRotate(120), T::new_from_str("Prism120PosRotate")?);
+        assert_eq!(Effects_n_(1), T::new_from_str("Effects1")?);
+        assert_eq!(Effects_n_(2), T::new_from_str("Effects2")?);
+        assert_eq!(Effects_n_(120), T::new_from_str("Effects120")?);
+        assert_eq!(Effects_n_Rate(1), T::new_from_str("Effects1Rate")?);
+        assert_eq!(Effects_n_Rate(2), T::new_from_str("Effects2Rate")?);
+        assert_eq!(Effects_n_Rate(120), T::new_from_str("Effects120Rate")?);
+        assert_eq!(Effects_n_Fade(1), T::new_from_str("Effects1Fade")?);
+        assert_eq!(Effects_n_Fade(2), T::new_from_str("Effects2Fade")?);
+        assert_eq!(Effects_n_Fade(120), T::new_from_str("Effects120Fade")?);
+        assert_eq!(Effects_n_Adjust_m_(1, 1), T::new_from_str("Effects1Adjust1")?);
+        assert_eq!(Effects_n_Adjust_m_(1, 2), T::new_from_str("Effects1Adjust2")?);
+        assert_eq!(Effects_n_Adjust_m_(2, 1), T::new_from_str("Effects2Adjust1")?);
+        assert_eq!(Effects_n_Adjust_m_(2, 2), T::new_from_str("Effects2Adjust2")?);
+        assert_eq!(Effects_n_Adjust_m_(2, 120), T::new_from_str("Effects2Adjust120")?);
+        assert_eq!(Effects_n_Adjust_m_(120, 2), T::new_from_str("Effects120Adjust2")?);
+        assert_eq!(Effects_n_Adjust_m_(120, 120), T::new_from_str("Effects120Adjust120")?);
+        assert_eq!(Effects_n_Pos(1), T::new_from_str("Effects1Pos")?);
+        assert_eq!(Effects_n_Pos(2), T::new_from_str("Effects2Pos")?);
+        assert_eq!(Effects_n_Pos(120), T::new_from_str("Effects120Pos")?);
+        assert_eq!(Effects_n_PosRotate(1), T::new_from_str("Effects1PosRotate")?);
+        assert_eq!(Effects_n_PosRotate(2), T::new_from_str("Effects2PosRotate")?);
+        assert_eq!(Effects_n_PosRotate(120), T::new_from_str("Effects120PosRotate")?);
+        assert_eq!(EffectsSync, T::new_from_str("EffectsSync")?);
+        assert_eq!(BeamShaper, T::new_from_str("BeamShaper")?);
+        assert_eq!(BeamShaperMacro, T::new_from_str("BeamShaperMacro")?);
+        assert_eq!(BeamShaperPos, T::new_from_str("BeamShaperPos")?);
+        assert_eq!(BeamShaperPosRotate, T::new_from_str("BeamShaperPosRotate")?);
+        assert_eq!(Zoom, T::new_from_str("Zoom")?);
+        assert_eq!(ZoomModeSpot, T::new_from_str("ZoomModeSpot")?);
+        assert_eq!(ZoomModeBeam, T::new_from_str("ZoomModeBeam")?);
+        assert_eq!(Focus_n_(1), T::new_from_str("Focus1")?);
+        assert_eq!(Focus_n_(2), T::new_from_str("Focus2")?);
+        assert_eq!(Focus_n_(120), T::new_from_str("Focus120")?);
+        assert_eq!(Focus_n_Adjust(1), T::new_from_str("Focus1Adjust")?);
+        assert_eq!(Focus_n_Adjust(2), T::new_from_str("Focus2Adjust")?);
+        assert_eq!(Focus_n_Adjust(120), T::new_from_str("Focus120Adjust")?);
+        assert_eq!(Focus_n_Distance(1), T::new_from_str("Focus1Distance")?);
+        assert_eq!(Focus_n_Distance(2), T::new_from_str("Focus2Distance")?);
+        assert_eq!(Focus_n_Distance(120), T::new_from_str("Focus120Distance")?);
+        assert_eq!(Control_n_(1), T::new_from_str("Control1")?);
+        assert_eq!(Control_n_(2), T::new_from_str("Control2")?);
+        assert_eq!(Control_n_(120), T::new_from_str("Control120")?);
+        assert_eq!(DimmerMode, T::new_from_str("DimmerMode")?);
+        assert_eq!(DimmerCurve, T::new_from_str("DimmerCurve")?);
+        assert_eq!(BlackoutMode, T::new_from_str("BlackoutMode")?);
+        assert_eq!(LedFrequency, T::new_from_str("LEDFrequency")?);
+        assert_eq!(LedZoneMode, T::new_from_str("LEDZoneMode")?);
+        assert_eq!(PixelMode, T::new_from_str("PixelMode")?);
+        assert_eq!(PanMode, T::new_from_str("PanMode")?);
+        assert_eq!(TiltMode, T::new_from_str("TiltMode")?);
+        assert_eq!(PanTiltMode, T::new_from_str("PanTiltMode")?);
+        assert_eq!(PositionModes, T::new_from_str("PositionModes")?);
+        assert_eq!(Gobo_n_WheelMode(1), T::new_from_str("Gobo1WheelMode")?);
+        assert_eq!(Gobo_n_WheelMode(2), T::new_from_str("Gobo2WheelMode")?);
+        assert_eq!(Gobo_n_WheelMode(120), T::new_from_str("Gobo120WheelMode")?);
+        assert_eq!(AnimationWheel_n_Mode(1), T::new_from_str("AnimationWheel1Mode")?);
+        assert_eq!(AnimationWheel_n_Mode(2), T::new_from_str("AnimationWheel2Mode")?);
+        assert_eq!(AnimationWheel_n_Mode(120), T::new_from_str("AnimationWheel120Mode")?);
+        assert_eq!(AnimationWheelShortcutMode, T::new_from_str("AnimationWheelShortcutMode")?);
+        assert_eq!(Color_n_Mode(1), T::new_from_str("Color1Mode")?);
+        assert_eq!(Color_n_Mode(2), T::new_from_str("Color2Mode")?);
+        assert_eq!(Color_n_Mode(120), T::new_from_str("Color120Mode")?);
+        assert_eq!(ColorWheelShortcutMode, T::new_from_str("ColorWheelShortcutMode")?);
+        assert_eq!(CyanMode, T::new_from_str("CyanMode")?);
+        assert_eq!(MagentaMode, T::new_from_str("MagentaMode")?);
+        assert_eq!(YellowMode, T::new_from_str("YellowMode")?);
+        assert_eq!(ColorMixMode, T::new_from_str("ColorMixMode")?);
+        assert_eq!(ChromaticMode, T::new_from_str("ChromaticMode")?);
+        assert_eq!(ColorCalibrationMode, T::new_from_str("ColorCalibrationMode")?);
+        assert_eq!(ColorConsistency, T::new_from_str("ColorConsistency")?);
+        assert_eq!(ColorControl, T::new_from_str("ColorControl")?);
+        assert_eq!(ColorModelMode, T::new_from_str("ColorModelMode")?);
+        assert_eq!(ColorSettingsReset, T::new_from_str("ColorSettingsReset")?);
+        assert_eq!(ColorUniformity, T::new_from_str("ColorUniformity")?);
+        assert_eq!(CriMode, T::new_from_str("CRIMode")?);
+        assert_eq!(CustomColor, T::new_from_str("CustomColor")?);
+        assert_eq!(UvStability, T::new_from_str("UVStability")?);
+        assert_eq!(WavelengthCorrection, T::new_from_str("WavelengthCorrection")?);
+        assert_eq!(WhiteCount, T::new_from_str("WhiteCount")?);
+        assert_eq!(StrobeMode, T::new_from_str("StrobeMode")?);
+        assert_eq!(ZoomMode, T::new_from_str("ZoomMode")?);
+        assert_eq!(FocusMode, T::new_from_str("FocusMode")?);
+        assert_eq!(IrisMode, T::new_from_str("IrisMode")?);
+        assert_eq!(Fan_n_Mode(1), T::new_from_str("Fan1Mode")?);
+        assert_eq!(Fan_n_Mode(2), T::new_from_str("Fan2Mode")?);
+        assert_eq!(Fan_n_Mode(120), T::new_from_str("Fan120Mode")?);
+        assert_eq!(FollowSpotMode, T::new_from_str("FollowSpotMode")?);
+        assert_eq!(BeamEffectIndexRotateMode, T::new_from_str("BeamEffectIndexRotateMode")?);
+        assert_eq!(IntensityMSpeed, T::new_from_str("IntensityMSpeed")?);
+        assert_eq!(PositionMSpeed, T::new_from_str("PositionMSpeed")?);
+        assert_eq!(ColorMixMSpeed, T::new_from_str("ColorMixMSpeed")?);
+        assert_eq!(ColorWheelSelectMSpeed, T::new_from_str("ColorWheelSelectMSpeed")?);
+        assert_eq!(GoboWheel_n_MSpeed(1), T::new_from_str("GoboWheel1MSpeed")?);
+        assert_eq!(GoboWheel_n_MSpeed(2), T::new_from_str("GoboWheel2MSpeed")?);
+        assert_eq!(GoboWheel_n_MSpeed(120), T::new_from_str("GoboWheel120MSpeed")?);
+        assert_eq!(IrisMSpeed, T::new_from_str("IrisMSpeed")?);
+        assert_eq!(Prism_n_MSpeed(1), T::new_from_str("Prism1MSpeed")?);
+        assert_eq!(Prism_n_MSpeed(2), T::new_from_str("Prism2MSpeed")?);
+        assert_eq!(Prism_n_MSpeed(120), T::new_from_str("Prism120MSpeed")?);
+        assert_eq!(FocusMSpeed, T::new_from_str("FocusMSpeed")?);
+        assert_eq!(Frost_n_MSpeed(1), T::new_from_str("Frost1MSpeed")?);
+        assert_eq!(Frost_n_MSpeed(2), T::new_from_str("Frost2MSpeed")?);
+        assert_eq!(Frost_n_MSpeed(120), T::new_from_str("Frost120MSpeed")?);
+        assert_eq!(ZoomMSpeed, T::new_from_str("ZoomMSpeed")?);
+        assert_eq!(FrameMSpeed, T::new_from_str("FrameMSpeed")?);
+        assert_eq!(GlobalMSpeed, T::new_from_str("GlobalMSpeed")?);
+        assert_eq!(ReflectorAdjust, T::new_from_str("ReflectorAdjust")?);
+        assert_eq!(FixtureGlobalReset, T::new_from_str("FixtureGlobalReset")?);
+        assert_eq!(ShutterReset, T::new_from_str("ShutterReset")?);
+        assert_eq!(BeamReset, T::new_from_str("BeamReset")?);
+        assert_eq!(ColorMixReset, T::new_from_str("ColorMixReset")?);
+        assert_eq!(ColorWheelReset, T::new_from_str("ColorWheelReset")?);
+        assert_eq!(FocusReset, T::new_from_str("FocusReset")?);
+        assert_eq!(FrameReset, T::new_from_str("FrameReset")?);
+        assert_eq!(GoboWheelReset, T::new_from_str("GoboWheelReset")?);
+        assert_eq!(IntensityReset, T::new_from_str("IntensityReset")?);
+        assert_eq!(IrisReset, T::new_from_str("IrisReset")?);
+        assert_eq!(PositionReset, T::new_from_str("PositionReset")?);
+        assert_eq!(PanReset, T::new_from_str("PanReset")?);
+        assert_eq!(TiltReset, T::new_from_str("TiltReset")?);
+        assert_eq!(ZoomReset, T::new_from_str("ZoomReset")?);
+        assert_eq!(CtbReset, T::new_from_str("CTBReset")?);
+        assert_eq!(CtoReset, T::new_from_str("CTOReset")?);
+        assert_eq!(CtcReset, T::new_from_str("CTCReset")?);
+        assert_eq!(AnimationSystemReset, T::new_from_str("AnimationSystemReset")?);
+        assert_eq!(FixtureCalibrationReset, T::new_from_str("FixtureCalibrationReset")?);
+        assert_eq!(Function, T::new_from_str("Function")?);
+        assert_eq!(LampControl, T::new_from_str("LampControl")?);
+        assert_eq!(DisplayIntensity, T::new_from_str("DisplayIntensity")?);
+        assert_eq!(DmxInput, T::new_from_str("DMXInput")?);
+        assert_eq!(NoFeature, T::new_from_str("NoFeature")?);
+        assert_eq!(Blower_n_(1), T::new_from_str("Blower1")?);
+        assert_eq!(Blower_n_(2), T::new_from_str("Blower2")?);
+        assert_eq!(Blower_n_(120), T::new_from_str("Blower120")?);
+        assert_eq!(Fan_n_(1), T::new_from_str("Fan1")?);
+        assert_eq!(Fan_n_(2), T::new_from_str("Fan2")?);
+        assert_eq!(Fan_n_(120), T::new_from_str("Fan120")?);
+        assert_eq!(Fog_n_(1), T::new_from_str("Fog1")?);
+        assert_eq!(Fog_n_(2), T::new_from_str("Fog2")?);
+        assert_eq!(Fog_n_(120), T::new_from_str("Fog120")?);
+        assert_eq!(Haze_n_(1), T::new_from_str("Haze1")?);
+        assert_eq!(Haze_n_(2), T::new_from_str("Haze2")?);
+        assert_eq!(Haze_n_(120), T::new_from_str("Haze120")?);
+        assert_eq!(LampPowerMode, T::new_from_str("LampPowerMode")?);
+        assert_eq!(Fans, T::new_from_str("Fans")?);
+        assert_eq!(Blade_n_A(1), T::new_from_str("Blade1A")?);
+        assert_eq!(Blade_n_A(2), T::new_from_str("Blade2A")?);
+        assert_eq!(Blade_n_A(120), T::new_from_str("Blade120A")?);
+        assert_eq!(Blade_n_B(1), T::new_from_str("Blade1B")?);
+        assert_eq!(Blade_n_B(2), T::new_from_str("Blade2B")?);
+        assert_eq!(Blade_n_B(120), T::new_from_str("Blade120B")?);
+        assert_eq!(Blade_n_Rot(1), T::new_from_str("Blade1Rot")?);
+        assert_eq!(Blade_n_Rot(2), T::new_from_str("Blade2Rot")?);
+        assert_eq!(Blade_n_Rot(120), T::new_from_str("Blade120Rot")?);
+        assert_eq!(ShaperRot, T::new_from_str("ShaperRot")?);
+        assert_eq!(ShaperMacros, T::new_from_str("ShaperMacros")?);
+        assert_eq!(ShaperMacrosSpeed, T::new_from_str("ShaperMacrosSpeed")?);
+        assert_eq!(BladeSoft_n_A(1), T::new_from_str("BladeSoft1A")?);
+        assert_eq!(BladeSoft_n_A(2), T::new_from_str("BladeSoft2A")?);
+        assert_eq!(BladeSoft_n_A(120), T::new_from_str("BladeSoft120A")?);
+        assert_eq!(BladeSoft_n_B(1), T::new_from_str("BladeSoft1B")?);
+        assert_eq!(BladeSoft_n_B(2), T::new_from_str("BladeSoft2B")?);
+        assert_eq!(BladeSoft_n_B(120), T::new_from_str("BladeSoft120B")?);
+        assert_eq!(KeyStone_n_A(1), T::new_from_str("KeyStone1A")?);
+        assert_eq!(KeyStone_n_A(2), T::new_from_str("KeyStone2A")?);
+        assert_eq!(KeyStone_n_A(120), T::new_from_str("KeyStone120A")?);
+        assert_eq!(KeyStone_n_B(1), T::new_from_str("KeyStone1B")?);
+        assert_eq!(KeyStone_n_B(2), T::new_from_str("KeyStone2B")?);
+        assert_eq!(KeyStone_n_B(120), T::new_from_str("KeyStone120B")?);
+        assert_eq!(Video, T::new_from_str("Video")?);
+        assert_eq!(VideoEffect_n_Type(1), T::new_from_str("VideoEffect1Type")?);
+        assert_eq!(VideoEffect_n_Type(2), T::new_from_str("VideoEffect2Type")?);
+        assert_eq!(VideoEffect_n_Type(120), T::new_from_str("VideoEffect120Type")?);
+        assert_eq!(VideoEffect_n_Parameter_m_(1, 1), T::new_from_str("VideoEffect1Parameter1")?);
+        assert_eq!(VideoEffect_n_Parameter_m_(1, 2), T::new_from_str("VideoEffect1Parameter2")?);
+        assert_eq!(VideoEffect_n_Parameter_m_(2, 1), T::new_from_str("VideoEffect2Parameter1")?);
+        assert_eq!(VideoEffect_n_Parameter_m_(2, 2), T::new_from_str("VideoEffect2Parameter2")?);
+        assert_eq!(VideoEffect_n_Parameter_m_(2, 120), T::new_from_str("VideoEffect2Parameter120")?);
+        assert_eq!(VideoEffect_n_Parameter_m_(120, 2), T::new_from_str("VideoEffect120Parameter2")?);
+        assert_eq!(VideoEffect_n_Parameter_m_(120, 120), T::new_from_str("VideoEffect120Parameter120")?);
+        assert_eq!(VideoCamera_n_(1), T::new_from_str("VideoCamera1")?);
+        assert_eq!(VideoCamera_n_(2), T::new_from_str("VideoCamera2")?);
+        assert_eq!(VideoCamera_n_(120), T::new_from_str("VideoCamera120")?);
+        assert_eq!(VideoSoundVolume_n_(1), T::new_from_str("VideoSoundVolume1")?);
+        assert_eq!(VideoSoundVolume_n_(2), T::new_from_str("VideoSoundVolume2")?);
+        assert_eq!(VideoSoundVolume_n_(120), T::new_from_str("VideoSoundVolume120")?);
+        assert_eq!(VideoBlendMode, T::new_from_str("VideoBlendMode")?);
+        assert_eq!(InputSource, T::new_from_str("InputSource")?);
+        assert_eq!(FieldOfView, T::new_from_str("FieldOfView")?);
+
+        assert!(T::new_from_str("something{invalid").is_err());
+        assert!(T::new_from_str("something௸invalid").is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_new_from_attr_owned() -> Result<(), GdtfError> {
+        use T::*;
+        assert_eq!(UserDefined(Name::new("test")?), T::new_from_attr(testdata::to_attr_owned(b"test"))?);
+        assert_eq!(UserDefined(Name::new("")?), T::new_from_attr(testdata::to_attr_owned(b""))?);
+        assert_eq!(Dimmer, T::new_from_attr(testdata::to_attr_owned(b"Dimmer"))?);
+        assert_eq!(Pan, T::new_from_attr(testdata::to_attr_owned(b"Pan"))?);
+        assert_eq!(Tilt, T::new_from_attr(testdata::to_attr_owned(b"Tilt"))?);
+        assert_eq!(Gobo_n_(1), T::new_from_attr(testdata::to_attr_owned(b"Gobo1"))?);
+        assert_eq!(Gobo_n_SelectSpin(2), T::new_from_attr(testdata::to_attr_owned(b"Gobo2SelectSpin"))?);
+        assert_eq!(Gobo_n_SelectShake(120), T::new_from_attr(testdata::to_attr_owned(b"Gobo120SelectShake"))?);
+        assert_eq!(Dimmer, T::new_from_attr(testdata::to_attr_owned(b"Dimmer"))?);
+        assert_eq!(Dimmer, T::new_from_attr(testdata::to_attr_owned(b"Dimmer"))?);
+
+        assert_eq!(Effects_n_Adjust_m_(1, 1), T::new_from_attr(testdata::to_attr_owned(b"Effects1Adjust1"))?);
+        assert_eq!(Effects_n_Adjust_m_(1, 2), T::new_from_attr(testdata::to_attr_owned(b"Effects1Adjust2"))?);
+        assert_eq!(Effects_n_Adjust_m_(2, 1), T::new_from_attr(testdata::to_attr_owned(b"Effects2Adjust1"))?);
+        assert_eq!(Effects_n_Adjust_m_(2, 2), T::new_from_attr(testdata::to_attr_owned(b"Effects2Adjust2"))?);
+        assert_eq!(Effects_n_Adjust_m_(2, 120), T::new_from_attr(testdata::to_attr_owned(b"Effects2Adjust120"))?);
+        assert_eq!(Effects_n_Adjust_m_(120, 2), T::new_from_attr(testdata::to_attr_owned(b"Effects120Adjust2"))?);
+        assert_eq!(Effects_n_Adjust_m_(120, 120), T::new_from_attr(testdata::to_attr_owned(b"Effects120Adjust120"))?);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_new_from_attr_borrowed() -> Result<(), GdtfError> {
+        use T::*;
+        assert_eq!(UserDefined(Name::new("test")?), T::new_from_attr(testdata::to_attr_borrowed(b"test"))?);
+        assert_eq!(UserDefined(Name::new("")?), T::new_from_attr(testdata::to_attr_borrowed(b""))?);
+        assert_eq!(Dimmer, T::new_from_attr(testdata::to_attr_borrowed(b"Dimmer"))?);
+        assert_eq!(Pan, T::new_from_attr(testdata::to_attr_borrowed(b"Pan"))?);
+        assert_eq!(Tilt, T::new_from_attr(testdata::to_attr_borrowed(b"Tilt"))?);
+        assert_eq!(Gobo_n_(1), T::new_from_attr(testdata::to_attr_borrowed(b"Gobo1"))?);
+        assert_eq!(Gobo_n_SelectSpin(2), T::new_from_attr(testdata::to_attr_borrowed(b"Gobo2SelectSpin"))?);
+        assert_eq!(Gobo_n_SelectShake(120), T::new_from_attr(testdata::to_attr_borrowed(b"Gobo120SelectShake"))?);
+        assert_eq!(Dimmer, T::new_from_attr(testdata::to_attr_borrowed(b"Dimmer"))?);
+        assert_eq!(Dimmer, T::new_from_attr(testdata::to_attr_borrowed(b"Dimmer"))?);
+
+        assert_eq!(Effects_n_Adjust_m_(1, 1), T::new_from_attr(testdata::to_attr_borrowed(b"Effects1Adjust1"))?);
+        assert_eq!(Effects_n_Adjust_m_(1, 2), T::new_from_attr(testdata::to_attr_borrowed(b"Effects1Adjust2"))?);
+        assert_eq!(Effects_n_Adjust_m_(2, 1), T::new_from_attr(testdata::to_attr_borrowed(b"Effects2Adjust1"))?);
+        assert_eq!(Effects_n_Adjust_m_(2, 2), T::new_from_attr(testdata::to_attr_borrowed(b"Effects2Adjust2"))?);
+        assert_eq!(Effects_n_Adjust_m_(2, 120), T::new_from_attr(testdata::to_attr_borrowed(b"Effects2Adjust120"))?);
+        assert_eq!(Effects_n_Adjust_m_(120, 2), T::new_from_attr(testdata::to_attr_borrowed(b"Effects120Adjust2"))?);
+        assert_eq!(Effects_n_Adjust_m_(120, 120), T::new_from_attr(testdata::to_attr_borrowed(b"Effects120Adjust120"))?);
+
         Ok(())
     }
 }

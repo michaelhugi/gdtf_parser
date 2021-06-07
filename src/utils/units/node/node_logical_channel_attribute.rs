@@ -1,6 +1,6 @@
 //!Module for Node used in LogicalChannel.attribute
 use std::borrow::Borrow;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryFrom;
 
 use quick_xml::events::attributes::Attribute;
 
@@ -31,7 +31,7 @@ impl NodeLogicalChannelAttribute {
         let value = value.split('.');
         let mut tree: Vec<AttributeName> = vec![];
         for value in value.into_iter() {
-            tree.push(value.try_into()?);
+            tree.push(AttributeName::new_from_str(value)?);
         }
         Ok(Self(Some(tree)))
     }

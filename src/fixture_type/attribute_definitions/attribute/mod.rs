@@ -55,7 +55,7 @@ impl DeparseSingle for Attribute {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Name" => name = attr.try_into()?,
+                b"Name" => name = AttributeName::new_from_attr(attr)?,
                 b"Pretty" => pretty = deparse::attr_to_string(&attr),
                 b"ActivationGroup" => activation_group = deparse::attr_to_string_option(&attr),
                 b"Feature" => feature = attr.try_into()?,
