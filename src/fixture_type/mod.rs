@@ -13,7 +13,7 @@ use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXmlError;
-use crate::utils::units::fixture_type_guid::FixtureTypeGuid;
+use crate::utils::units::guid::Guid;
 use crate::utils::units::name::Name;
 
 pub mod attribute_definitions;
@@ -33,11 +33,11 @@ pub struct FixtureType {
     /// Description of the fixture type.
     pub description: String,
     ///Unique number of the fixture type.
-    pub fixture_type_id: FixtureTypeGuid,
+    pub fixture_type_id: Guid,
     /// File name without extension containing description of the thumbnail.Use the following as a resource file:
     pub thumbnail: Option<String>,
     ///GUID of the referenced fixture type
-    pub ref_ft: Option<FixtureTypeGuid>,
+    pub ref_ft: Option<Guid>,
     ///This section defines all attributes that are used in the fixture type.
     pub attribute_definitions: AttributeDefinitions,
     //Defines the physical or virtual color wheels, gobo wheels, media server content and others.
@@ -68,9 +68,9 @@ impl DeparseSingle for FixtureType {
         let mut long_name = String::new();
         let mut manufacturer = String::new();
         let mut description = String::new();
-        let mut fixture_type_id = FixtureTypeGuid::dummy();
+        let mut fixture_type_id = Guid::dummy();
         let mut thumbnail = None;
-        let mut ref_ft: Option<FixtureTypeGuid> = None;
+        let mut ref_ft: Option<Guid> = None;
 
         for attr in e.attributes().into_iter() {
             let attr = attr?;
@@ -80,9 +80,9 @@ impl DeparseSingle for FixtureType {
                 b"LongName" => long_name = deparse::attr_to_string(&attr),
                 b"Manufacturer" => manufacturer = deparse::attr_to_string(&attr),
                 b"Description" => description = deparse::attr_to_string(&attr),
-                b"FixtureTypeID" => fixture_type_id = FixtureTypeGuid::new_from_attr(attr)?,
+                b"FixtureTypeID" => fixture_type_id = Guid::new_from_attr(attr)?,
                 b"Thumbnail" => thumbnail = deparse::attr_to_string_option(&attr),
-                b"RefFT" => ref_ft = match FixtureTypeGuid::new_from_attr(attr) {
+                b"RefFT" => ref_ft = match Guid::new_from_attr(attr) {
                     Ok(guid) => Some(guid),
                     Err(_) => None
                 },
@@ -165,7 +165,7 @@ mod tests {
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
     use crate::utils::units::attribute_name::AttributeName;
-    use crate::utils::units::fixture_type_guid::FixtureTypeGuid;
+    use crate::utils::units::guid::Guid;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::node_attribute_feature::NodeAttributeFeature;
     use crate::utils::units::physical_unit::PhysicalUnit;
@@ -174,11 +174,11 @@ mod tests {
     fn test_fixture_type() -> Result<(), GdtfError> {
         FixtureType {
             description: "ACME AE-610 BEAM".to_string(),
-            fixture_type_id: FixtureTypeGuid::new_from_str("E62F2ECF-2A08-491D-BEEC-F5C491B89784")?,
+            fixture_type_id: Guid::new_from_str("E62F2ECF-2A08-491D-BEEC-F5C491B89784")?,
             long_name: "ACME AE 610 BEAM".to_string(),
             manufacturer: "ACME".to_string(),
             name: Name::new("ACME AE-610 BEAM")?,
-            ref_ft: Some(FixtureTypeGuid::new_from_str("8F54E11C-4C91-11E9-80BC-F1DFE217E634")?),
+            ref_ft: Some(Guid::new_from_str("8F54E11C-4C91-11E9-80BC-F1DFE217E634")?),
             short_name: "ACME AE 610 BEAM".to_string(),
             thumbnail: Some("AE-610 BEAM".to_string()),
             attribute_definitions: AttributeDefinitions {

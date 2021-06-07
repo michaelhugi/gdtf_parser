@@ -45,13 +45,13 @@ const CHAR_F_AS_U8: u8 = 0x46;
 
 ///GUID representation used in FixtureType in GDTF
 #[derive(Debug, PartialEq, Clone)]
-pub struct FixtureTypeGuid(pub [u8; 16]);
+pub struct Guid(pub [u8; 16]);
 
-impl FixtureTypeGuid {
+impl Guid {
     ///Returns a dummy FixtureType_Guid with all zeros
     /// ```rust
-    /// use gdtf_parser::utils::units::fixture_type_guid::FixtureTypeGuid;
-    /// assert_eq!(FixtureTypeGuid([0; 16]), FixtureTypeGuid::dummy());
+    /// use gdtf_parser::utils::units::guid::Guid;
+    /// assert_eq!(Guid([0; 16]), Guid::dummy());
     /// ```
     pub fn dummy() -> Self {
         Self([0; 16])
@@ -59,12 +59,12 @@ impl FixtureTypeGuid {
 
     /// converts a string in format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format to a GUID. Retunrs an error if the format is not correct
     /// ```rust
-    /// use gdtf_parser::utils::units::fixture_type_guid::FixtureTypeGuid;
+    /// use gdtf_parser::utils::units::guid::Guid;
     /// assert_eq!(
-    ///     FixtureTypeGuid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
-    ///     FixtureTypeGuid::new_from_str("308EA87D-7164-42DE-8106-A6D273F57A51").unwrap()
+    ///     Guid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
+    ///     Guid::new_from_str("308EA87D-7164-42DE-8106-A6D273F57A51").unwrap()
     /// );
-    /// assert!(FixtureTypeGuid::new_from_str("Somthing invalid").is_err());
+    /// assert!(Guid::new_from_str("Somthing invalid").is_err());
     /// ```
     pub fn new_from_str(s: &str) -> Result<Self, GdtfGuidError> {
         let s: Vec<char> = s.chars().collect();
@@ -124,19 +124,19 @@ impl FixtureTypeGuid {
         //Is safe because only 0..F and - chars will succeed anyway
         bytes[0] = Self::pop_last_byte(&mut s)?;
 
-        Ok(FixtureTypeGuid(bytes))
+        Ok(Guid(bytes))
     }
 
     /// Converts a quick-xml-attribute from gdtf-xml-description to a FixtureType_Guid. Returns an error if the format is not correct.
     /// ```rust
-    /// use gdtf_parser::utils::units::fixture_type_guid::FixtureTypeGuid;
+    /// use gdtf_parser::utils::units::guid::Guid;
     /// use quick_xml::events::attributes::Attribute;
     /// use std::borrow::Cow;
     /// assert_eq!(
-    ///     FixtureTypeGuid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
-    ///     FixtureTypeGuid::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"308EA87D-7164-42DE-8106-A6D273F57A51")}).unwrap()
+    ///     Guid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
+    ///     Guid::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"308EA87D-7164-42DE-8106-A6D273F57A51")}).unwrap()
     /// );
-    /// assert!(FixtureTypeGuid::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something invalid")}).is_err());
+    /// assert!(Guid::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something invalid")}).is_err());
     /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfGuidError> {
         Self::new_from_str(deparse::attr_to_str(&attr))
@@ -144,8 +144,8 @@ impl FixtureTypeGuid {
 
     ///Returns the GUID as a string in format  XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format or "" if GUID is empty
     ///```rust
-    /// use gdtf_parser::utils::units::fixture_type_guid::FixtureTypeGuid;
-    /// assert_eq!( FixtureTypeGuid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]).to_str().unwrap(), "308EA87D-7164-42DE-8106-A6D273F57A51".to_string());
+    /// use gdtf_parser::utils::units::guid::Guid;
+    /// assert_eq!( Guid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]).to_str().unwrap(), "308EA87D-7164-42DE-8106-A6D273F57A51".to_string());
     ///```
     pub fn to_str(&self) -> Result<String, GdtfGuidError> {
         let val = self.0;
@@ -233,9 +233,9 @@ impl FixtureTypeGuid {
 
     ///Interprets a UTF8 formated hex charbyte to a halfbyte.
     /// ```ignore
-    /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
-    /// assert_eq!(FixtureTypeGuid::hexcharbyte_to_halfbyte(0x39).unwrap(), 9);
-    /// assert_eq!(FixtureTypeGuid::hexcharbyte_to_halfbyte(0x41).unwrap(), 10);
+    /// use gdtf_parser::utils::units::guid::Guid;
+    /// assert_eq!(Guid::hexcharbyte_to_halfbyte(0x39).unwrap(), 9);
+    /// assert_eq!(Guid::hexcharbyte_to_halfbyte(0x41).unwrap(), 10);
     /// ```
     fn hexcharbyte_to_halfbyte(c: u8) -> Result<u8, GdtfGuidError> {
         match c {
@@ -262,9 +262,9 @@ impl FixtureTypeGuid {
 
     ///Interprets a u8 as UTF8 formated hex charbyte to a halfbyte.
     /// ```ignore
-    /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
-    /// assert_eq!(FixtureTypeGuid::halfbyte_to_hexcharbyte(13).unwrap(), 0x44);
-    /// assert_eq!(FixtureTypeGuid::halfbyte_to_hexcharbyte(14).unwrap(), 0x45);
+    /// use gdtf_parser::utils::units::guid::Guid;
+    /// assert_eq!(Guid::halfbyte_to_hexcharbyte(13).unwrap(), 0x44);
+    /// assert_eq!(Guid::halfbyte_to_hexcharbyte(14).unwrap(), 0x45);
     ///  ```
     fn halfbyte_to_hexcharbyte(c: u8) -> Result<u8, GdtfGuidError> {
         match c {
@@ -290,11 +290,11 @@ impl FixtureTypeGuid {
 
     ///Tells if the bit of a byte is 1 at a specific index
     /// ```ignore
-    /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
-    /// assert_eq!(FixtureTypeGuid::is_byte_one_at_index(0b1001_0101,0).unwrap(),true);
-    /// assert_eq!(FixtureTypeGuid::is_byte_one_at_index(0b0001_0101,0).unwrap(),false);
-    /// assert_eq!(FixtureTypeGuid::is_byte_one_at_index(0b1001_0101,3).unwrap(),true);
-    /// assert_eq!(FixtureTypeGuid::is_byte_one_at_index(0b1000_0101,3).unwrap(),false);
+    /// use gdtf_parser::utils::units::guid::Guid;
+    /// assert_eq!(Guid::is_byte_one_at_index(0b1001_0101,0).unwrap(),true);
+    /// assert_eq!(Guid::is_byte_one_at_index(0b0001_0101,0).unwrap(),false);
+    /// assert_eq!(Guid::is_byte_one_at_index(0b1001_0101,3).unwrap(),true);
+    /// assert_eq!(Guid::is_byte_one_at_index(0b1000_0101,3).unwrap(),false);
     ///  ```
     fn is_byte_one_at_index(byte: u8, index: u8) -> Result<bool, GdtfGuidError> {
         match index {
@@ -312,8 +312,8 @@ impl FixtureTypeGuid {
 
     ///shifts bytes from lower to upper.
     /// ```ignore
-    /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
-    /// assert_eq!(FixtureTypeGuid::shift_byte_lower_to_upper(0b0100_0101).unwrap(), 0b0101_0000);
+    /// use gdtf_parser::utils::units::guid::Guid;
+    /// assert_eq!(Guid::shift_byte_lower_to_upper(0b0100_0101).unwrap(), 0b0101_0000);
     /// ```
     fn shift_byte_lower_to_upper(byte: u8) -> Result<u8, GdtfGuidError> {
         let s1 = if Self::is_byte_one_at_index(byte, 4)? { 0b1000_0000_u8 } else { 0 };
@@ -326,9 +326,9 @@ impl FixtureTypeGuid {
 
     ///joins two halfbytes to one byte.
     /// ```ignore
-    /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
-    /// assert_eq!(FixtureTypeGuid::join_two_halfbytes(0b0000_0101,0b0000_0001).unwrap(),0b0101_0001);
-    /// assert_eq!(FixtureTypeGuid::join_two_halfbytes(0b0000_1101,0b0000_1001).unwrap(),0b1101_1001);
+    /// use gdtf_parser::utils::units::guid::Guid;
+    /// assert_eq!(Guid::join_two_halfbytes(0b0000_0101,0b0000_0001).unwrap(),0b0101_0001);
+    /// assert_eq!(Guid::join_two_halfbytes(0b0000_1101,0b0000_1001).unwrap(),0b1101_1001);
     /// ```
     fn join_two_halfbytes(first_half: u8, second_half: u8) -> Result<u8, GdtfGuidError> {
         Ok(Self::shift_byte_lower_to_upper(first_half)? + second_half)
@@ -337,9 +337,9 @@ impl FixtureTypeGuid {
 
     ///shifts bytes from upper to lower.
     /// ```ignore
-    /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
-    /// assert_eq!(FixtureTypeGuid::get_upper_halfbyte(0b0000_0100).unwrap(),0b0000_0000);
-    /// assert_eq!(FixtureTypeGuid::get_upper_halfbyte(0b0010_1100).unwrap(),0b0000_0010);
+    /// use gdtf_parser::utils::units::guid::Guid;
+    /// assert_eq!(Guid::get_upper_halfbyte(0b0000_0100).unwrap(),0b0000_0000);
+    /// assert_eq!(Guid::get_upper_halfbyte(0b0010_1100).unwrap(),0b0000_0010);
     ///  ```
     fn get_upper_halfbyte(byte: u8) -> Result<u8, GdtfGuidError> {
         let s1 = if Self::is_byte_one_at_index(byte, 0)? { 0b0000_1000_u8 } else { 0 };
@@ -352,9 +352,9 @@ impl FixtureTypeGuid {
 
     ///removes the upper half of a byte.
     ///```ignore
-    /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
-    /// assert_eq!(FixtureTypeGuid::get_lower_halfbyte(0b0000_0100).unwrap(),0b0000_0100);
-    /// assert_eq!(FixtureTypeGuid::get_lower_halfbyte(0b0010_1100).unwrap(),0b0000_1100);
+    /// use gdtf_parser::utils::units::guid::Guid;
+    /// assert_eq!(Guid::get_lower_halfbyte(0b0000_0100).unwrap(),0b0000_0100);
+    /// assert_eq!(Guid::get_lower_halfbyte(0b0010_1100).unwrap(),0b0000_1100);
     ///  ```
     ///
     fn get_lower_halfbyte(byte: u8) -> Result<u8, GdtfGuidError> {
@@ -367,9 +367,9 @@ impl FixtureTypeGuid {
 
     ///Splits a byte into two halfbytes.
     /// ```ignore
-    /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
-    /// assert_eq!(FixtureTypeGuid::split_into_two_halfbytes(0b0100_0101).unwrap(), (0b0000_0100,0b0000_0101));
-    /// assert_eq!(FixtureTypeGuid::split_into_two_halfbytes(0b1001_1101).unwrap(), (0b0000_1001,0b0000_1101));
+    /// use gdtf_parser::utils::units::guid::Guid;
+    /// assert_eq!(Guid::split_into_two_halfbytes(0b0100_0101).unwrap(), (0b0000_0100,0b0000_0101));
+    /// assert_eq!(Guid::split_into_two_halfbytes(0b1001_1101).unwrap(), (0b0000_1001,0b0000_1101));
     ///  ```
     fn split_into_two_halfbytes(b: u8) -> Result<(u8, u8), GdtfGuidError> {
         Ok((Self::get_upper_halfbyte(b)?, Self::get_lower_halfbyte(b)?))
@@ -377,8 +377,8 @@ impl FixtureTypeGuid {
 
     ///Interprets two UTF8 formated hex charbyte to a byte
     /// ```ignore
-    /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
-    /// assert_eq!(FixtureTypeGuid::hexcharbytes_to_byte(0x41,0x33).unwrap(),163_u8);
+    /// use gdtf_parser::utils::units::guid::Guid;
+    /// assert_eq!(Guid::hexcharbytes_to_byte(0x41,0x33).unwrap(),163_u8);
     ///  ```
     fn hexcharbytes_to_byte(c1: u8, c2: u8) -> Result<u8, GdtfGuidError> {
         Self::join_two_halfbytes(Self::hexcharbyte_to_halfbyte(c1)?, Self::hexcharbyte_to_halfbyte(c2)?)
@@ -387,10 +387,10 @@ impl FixtureTypeGuid {
 
 ///Displays a GUID in the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format
 /// ```ignore
-/// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
-/// assert_eq!(format!("{}", FixtureTypeGuid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81])), "308EA87D-7164-42DE-8106-A6D273F57A51");
+/// use gdtf_parser::utils::units::guid::Guid;
+/// assert_eq!(format!("{}", Guid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81])), "308EA87D-7164-42DE-8106-A6D273F57A51");
 ///  ```
-impl Display for FixtureTypeGuid {
+impl Display for Guid {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self.to_str() {
             Ok(s) => write!(f, "{}", s),
@@ -420,7 +420,7 @@ impl Error for GdtfGuidError {}
 #[cfg(test)]
 mod tests {
     use crate::utils::testdata;
-    use crate::utils::units::fixture_type_guid::FixtureTypeGuid as T;
+    use crate::utils::units::guid::Guid as T;
 
     #[test]
     fn test_dummy() {
