@@ -15,7 +15,10 @@ pub enum LogicalChannelSnap {
     Off,
 }
 
-///Default for Snap is No
+///```rust
+/// use gdtf_parser::utils::units::snap::LogicalChannelSnap;
+/// assert_eq!(LogicalChannelSnap::No, Default::default());
+/// ```
 impl Default for LogicalChannelSnap {
     fn default() -> Self {
         LogicalChannelSnap::No

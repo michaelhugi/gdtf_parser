@@ -390,7 +390,6 @@ impl FixtureTypeGuid {
 /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
 /// assert_eq!(format!("{}", FixtureTypeGuid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81])), "308EA87D-7164-42DE-8106-A6D273F57A51");
 ///  ```
-
 impl Display for FixtureTypeGuid {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self.to_str() {

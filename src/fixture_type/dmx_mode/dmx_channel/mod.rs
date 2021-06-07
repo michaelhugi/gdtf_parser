@@ -6,12 +6,11 @@ use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
-use crate::utils::deparse;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::units::dmx_break::DmxBreak;
+use crate::utils::units::dmx_break::DmxChannelDmxBreak;
 use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::node_dmx_channel_initial_function::NodeDmxChannelInitialFunction;
@@ -23,7 +22,7 @@ pub mod logical_channel;
 #[derive(Debug, PartialEq, Clone)]
 pub struct DmxChannel {
     ///Number of the DMXBreak; Default value: 1; Special value: “Overwrite” – means that this number will be overwritten by Geometry Reference; Size: 4 bytes
-    pub dmx_break: DmxBreak,
+    pub dmx_break: DmxChannelDmxBreak,
     ///Relative addresses of the current DMX channel from highest to least significant
     pub offset: Option<DmxChannelOffset>,
     ///Link to the channel function that will be activated by default for this DMXChannel;
@@ -41,7 +40,7 @@ impl DeparseSingle for DmxChannel {
 
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
-        let mut dmx_break = DmxBreak::default();
+        let mut dmx_break = DmxChannelDmxBreak::default();
         let mut offset = None;
         let mut initial_function: NodeDmxChannelInitialFunction = Default::default();
         let mut highlight = None;
@@ -51,7 +50,7 @@ impl DeparseSingle for DmxChannel {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"DMXBreak" => dmx_break = deparse::attr_to_str(&attr).into(),
+                b"DMXBreak" => dmx_break = DmxChannelDmxBreak::new_from_attr(attr),
                 b"Offset" => offset = DmxChannelOffset::new_from_attr(attr),
                 b"InitialFunction" => initial_function = attr.try_into()?,
                 b"Highlight" => highlight = match DmxValue::new_from_attr(attr) {
@@ -127,7 +126,7 @@ mod tests {
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
     use crate::utils::units::attribute_name::AttributeName;
-    use crate::utils::units::dmx_break::DmxBreak;
+    use crate::utils::units::dmx_break::DmxChannelDmxBreak;
     use crate::utils::units::dmx_value::DmxValue;
     use crate::utils::units::master::LogicalChannelMaster;
     use crate::utils::units::name::Name;
@@ -139,7 +138,7 @@ mod tests {
     #[test]
     fn test_normal() -> Result<(), GdtfError> {
         DmxChannel {
-            dmx_break: DmxBreak::Value(1),
+            dmx_break: DmxChannelDmxBreak::Value(1),
             offset: Some(DmxChannelOffset::new(vec![1])),
             initial_function: NodeDmxChannelInitialFunction::new_from_strs(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
             highlight: Some(DmxValue {
@@ -171,7 +170,7 @@ mod tests {
     #[test]
     fn test_normal_2() -> Result<(), GdtfError> {
         DmxChannel {
-            dmx_break: DmxBreak::Value(2),
+            dmx_break: DmxChannelDmxBreak::Value(2),
             offset: Some(DmxChannelOffset::new(vec![1, 2])),
             initial_function: NodeDmxChannelInitialFunction::new_from_strs(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
             highlight: Some(DmxValue {
@@ -203,7 +202,7 @@ mod tests {
     #[test]
     fn test_normal_3() -> Result<(), GdtfError> {
         DmxChannel {
-            dmx_break: DmxBreak::Overwrite,
+            dmx_break: DmxChannelDmxBreak::Overwrite,
             offset: Some(DmxChannelOffset::new(vec![1, 2])),
             initial_function: NodeDmxChannelInitialFunction::new_from_strs(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
             highlight: Some(DmxValue {
@@ -235,7 +234,7 @@ mod tests {
     #[test]
     fn test_min() -> Result<(), GdtfError> {
         DmxChannel {
-            dmx_break: DmxBreak::Value(1),
+            dmx_break: DmxChannelDmxBreak::Value(1),
             offset: None,
             initial_function: NodeDmxChannelInitialFunction::none(),
             highlight: None,
@@ -272,7 +271,7 @@ mod tests {
     #[test]
     fn test_faulty() -> Result<(), GdtfError> {
         DmxChannel {
-            dmx_break: DmxBreak::Value(1),
+            dmx_break: DmxChannelDmxBreak::Value(1),
             offset: None,
             initial_function: NodeDmxChannelInitialFunction::none(),
             highlight: None,

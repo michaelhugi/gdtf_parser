@@ -21,14 +21,15 @@
 //! use std::path::Path;
 //! use gdtf_parser::Gdtf;
 //! use gdtf_parser::utils::errors::GdtfError;
-//! use gdtf_parser::utils::units::data_version::DataVersion;
+//! use gdtf_parser::utils::units::data_version::GdtfDataVersion;
 //! use gdtf_parser::utils::units::name::Name;
 //! use gdtf_parser::utils::units::attribute_name::AttributeName;
 //! use gdtf_parser::utils::units::physical_unit::PhysicalUnit;
+//!
 //! fn main() -> Result<(),GdtfError>{
 //!     let path: &Path = Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf");
 //!     let gdtf: Gdtf = Gdtf::try_from(path)?;
-//!     assert_eq!(gdtf.data_version, DataVersion::Version1_0);
+//!     assert_eq!(gdtf.data_version, GdtfDataVersion::Version1_0);
 //!     assert_eq!(gdtf.fixture_type.name, Name::new("ACME AE-610 BEAM")?);
 //!     assert_eq!(gdtf.fixture_type.attribute_definitions.attributes.get(&AttributeName::Gobo_n_WheelSpin(1)).unwrap().physical_unit, PhysicalUnit::AngularSpeed);
 //!     Ok(())
@@ -42,7 +43,7 @@
 //! use std::path::Path;
 //! use gdtf_parser::Gdtf;
 //! use gdtf_parser::utils::errors::GdtfError;
-//! use gdtf_parser::utils::units::data_version::DataVersion;
+//! use gdtf_parser::utils::units::data_version::GdtfDataVersion;
 //! use gdtf_parser::utils::units::name::Name;
 //! use gdtf_parser::utils::units::attribute_name::AttributeName;
 //! use gdtf_parser::utils::units::physical_unit::PhysicalUnit;
@@ -50,7 +51,7 @@
 //! fn main() -> Result<(),GdtfError> {
 //!     let path: &Path = Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf");
 //!     let gdtf: Gdtf = path.try_into()?;
-//!     assert_eq!(gdtf.data_version, DataVersion::Version1_0);
+//!     assert_eq!(gdtf.data_version, GdtfDataVersion::Version1_0);
 //!     assert_eq!(gdtf.fixture_type.name, Name::new("ACME AE-610 BEAM")?);
 //!     assert_eq!(gdtf.fixture_type.attribute_definitions.attributes.get(&AttributeName::Gobo_n_WheelSpin(1)).unwrap().physical_unit, PhysicalUnit::AngularSpeed);
 //!     Ok(())
@@ -72,7 +73,7 @@ use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::units::data_version::DataVersion;
+use crate::utils::units::data_version::GdtfDataVersion;
 
 pub mod fixture_type;
 pub mod utils;
@@ -80,7 +81,7 @@ pub mod utils;
 ///Describes the hierarchical and logical structure and controls of any type of controllable device (e.g. luminaires, fog machines, etc.) in the lighting and entertainment industry.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Gdtf {
-    pub data_version: DataVersion,
+    pub data_version: GdtfDataVersion,
     pub fixture_type: FixtureType,
 }
 
@@ -89,11 +90,11 @@ impl DeparseSingle for Gdtf {
 
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
-        let mut data_version = DataVersion::Unknown;
+        let mut data_version = GdtfDataVersion::dummy();
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             if attr.key == b"DataVersion" {
-                data_version = attr.into();
+                data_version = GdtfDataVersion::new_from_attr(attr);
             }
         }
 

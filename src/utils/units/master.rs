@@ -13,7 +13,10 @@ pub enum LogicalChannelMaster {
     Group,
 }
 
-///Default value of Master is None
+///```rust
+/// use gdtf_parser::utils::units::master::LogicalChannelMaster;
+/// assert_eq!(LogicalChannelMaster::None, Default::default());
+///```
 impl Default for LogicalChannelMaster {
     fn default() -> Self {
         LogicalChannelMaster::None

@@ -97,7 +97,7 @@ mod tests {
     use crate::fixture_type::dmx_mode::DmxMode;
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
-    use crate::utils::units::dmx_break::DmxBreak;
+    use crate::utils::units::dmx_break::DmxChannelDmxBreak;
     use crate::utils::units::name::Name;
     use crate::utils::units::offset::DmxChannelOffset;
 
@@ -107,14 +107,14 @@ mod tests {
             geometry: Name::new("Base")?,
             dmx_channels: vec![
                 DmxChannel {
-                    dmx_break: DmxBreak::Overwrite,
+                    dmx_break: DmxChannelDmxBreak::Overwrite,
                     offset: Some(DmxChannelOffset::new(vec![1, 2])),
                     initial_function: Default::default(),
                     highlight: None,
                     geometry: Name::new("Yoke")?,
                     logical_channels: vec![],
                 }, DmxChannel {
-                    dmx_break: DmxBreak::Value(1),
+                    dmx_break: DmxChannelDmxBreak::Value(1),
                     offset: Some(DmxChannelOffset::new(vec![3, 4])),
                     initial_function: Default::default(),
                     highlight: None,
