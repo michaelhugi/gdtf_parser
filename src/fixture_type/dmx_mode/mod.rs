@@ -93,13 +93,11 @@ impl TestDeparseSingle for DmxMode {}
 
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::dmx_mode::dmx_channel::DmxChannel;
+    use crate::fixture_type::dmx_mode::dmx_channel::{DmxChannel, Offset, DmxBreak};
     use crate::fixture_type::dmx_mode::DmxMode;
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
-    use crate::utils::units::dmx_channel_dmx_break::DmxChannelDmxBreak;
     use crate::utils::units::name::Name;
-    use crate::utils::units::dmx_channel_offset::DmxChannelOffset;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {
@@ -107,15 +105,15 @@ mod tests {
             geometry: Name::new("Base")?,
             dmx_channels: vec![
                 DmxChannel {
-                    dmx_break: DmxChannelDmxBreak::Overwrite,
-                    offset: Some(DmxChannelOffset::new(vec![1, 2])),
+                    dmx_break: DmxBreak::Overwrite,
+                    offset: Some(Offset::new(vec![1, 2])),
                     initial_function: Default::default(),
                     highlight: None,
                     geometry: Name::new("Yoke")?,
                     logical_channels: vec![],
                 }, DmxChannel {
-                    dmx_break: DmxChannelDmxBreak::Value(1),
-                    offset: Some(DmxChannelOffset::new(vec![3, 4])),
+                    dmx_break: DmxBreak::Value(1),
+                    offset: Some(Offset::new(vec![3, 4])),
                     initial_function: Default::default(),
                     highlight: None,
                     geometry: Name::new("Head")?,
