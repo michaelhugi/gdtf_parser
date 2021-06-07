@@ -21,7 +21,7 @@ pub enum DmxChannelDmxBreak {
 impl DmxChannelDmxBreak {
     ///Parses a string used in gdtf-xml-description to a DmxChannelDmxBreak
     /// ```rust
-    /// use gdtf_parser::utils::units::dmx_break::DmxChannelDmxBreak;
+    /// use gdtf_parser::utils::units::dmx_channel_dmx_break::DmxChannelDmxBreak;
     /// assert_eq!(DmxChannelDmxBreak::new_from_str("32"), DmxChannelDmxBreak::Value(32));
     /// assert_eq!(DmxChannelDmxBreak::new_from_str("Overwrite"), DmxChannelDmxBreak::Overwrite);
     /// assert_eq!(DmxChannelDmxBreak::new_from_str("Anything else"), DmxChannelDmxBreak::Value(1));
@@ -36,7 +36,7 @@ impl DmxChannelDmxBreak {
     }
     ///Parses a quick-xml-attribute from gdtf-xml-description to a DmxChannelDmxBreak
     /// ```rust
-    /// use gdtf_parser::utils::units::dmx_break::DmxChannelDmxBreak;
+    /// use gdtf_parser::utils::units::dmx_channel_dmx_break::DmxChannelDmxBreak;
     /// use quick_xml::events::attributes::Attribute;
     /// use std::borrow::Cow;
     /// assert_eq!(DmxChannelDmxBreak::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"32")}), DmxChannelDmxBreak::Value(32));
@@ -49,7 +49,7 @@ impl DmxChannelDmxBreak {
 }
 
 ///```rust
-/// use gdtf_parser::utils::units::dmx_break::DmxChannelDmxBreak;
+/// use gdtf_parser::utils::units::dmx_channel_dmx_break::DmxChannelDmxBreak;
 /// assert_eq!(DmxChannelDmxBreak::Value(1), Default::default());
 /// ```
 impl Default for DmxChannelDmxBreak {
@@ -62,7 +62,7 @@ impl Default for DmxChannelDmxBreak {
 #[cfg(test)]
 mod tests {
     use crate::utils::testdata;
-    use crate::utils::units::dmx_break::DmxChannelDmxBreak as T;
+    use crate::utils::units::dmx_channel_dmx_break::DmxChannelDmxBreak as T;
 
     #[test]
     fn test_new_from_str() {

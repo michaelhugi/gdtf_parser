@@ -16,7 +16,7 @@ pub enum LogicalChannelSnap {
 }
 
 ///```rust
-/// use gdtf_parser::utils::units::snap::LogicalChannelSnap;
+/// use gdtf_parser::utils::units::logical_channel_snap::LogicalChannelSnap;
 /// assert_eq!(LogicalChannelSnap::No, Default::default());
 /// ```
 impl Default for LogicalChannelSnap {
@@ -29,7 +29,7 @@ impl LogicalChannelSnap {
     ///Creates a new snap from a string defined in gdtf-xml
     ///## Examples
     /// ```rust
-    /// use gdtf_parser::utils::units::snap::LogicalChannelSnap;
+    /// use gdtf_parser::utils::units::logical_channel_snap::LogicalChannelSnap;
     ///
     /// assert_eq!(LogicalChannelSnap::No,LogicalChannelSnap::new_from_str("No"));
     /// assert_eq!(LogicalChannelSnap::Yes,LogicalChannelSnap::new_from_str("Yes"));
@@ -50,7 +50,7 @@ impl LogicalChannelSnap {
     ///Creates a new snap from an xml attribute deparsed by quick-xml
     /// ## Examples
     /// ```rust
-    /// use gdtf_parser::utils::units::snap::LogicalChannelSnap;
+    /// use gdtf_parser::utils::units::logical_channel_snap::LogicalChannelSnap;
     /// use quick_xml::events::attributes::Attribute;
     /// use std::borrow::Cow;
     ///
@@ -69,7 +69,7 @@ impl LogicalChannelSnap {
 #[cfg(test)]
 mod tests {
     use crate::utils::testdata;
-    use crate::utils::units::snap::LogicalChannelSnap;
+    use crate::utils::units::logical_channel_snap::LogicalChannelSnap;
 
     #[test]
     fn test_new_from_str() {

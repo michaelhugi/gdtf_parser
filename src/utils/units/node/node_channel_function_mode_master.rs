@@ -12,13 +12,7 @@ use crate::utils::units::node::{GdtfNodeError, Node};
 pub struct NodeChannelFunctionModeMaster(Option<Vec<Name>>);
 
 impl NodeChannelFunctionModeMaster {
-    ///New Node from str defined in GDTF-XML with checking if chars are valid for GDTF-Names
-    pub fn new_from_str(value: &str) -> Result<Self, GdtfNodeError> {
-        if value.is_empty() {
-            return Ok(Self(None));
-        }
-        Ok(Self(Some(Self::str_to_names_vec(value)?)))
-    }
+
     #[cfg(test)]
     ///New Node from a vec of str defined in GDTF-XML without checking if charse are valid for GDTF-Names
     pub fn new_from_strs(value: Vec<&str>) -> Result<Self, GdtfNodeError> {
@@ -30,7 +24,15 @@ impl NodeChannelFunctionModeMaster {
     }
 }
 
-impl Node for NodeChannelFunctionModeMaster {}
+impl Node for NodeChannelFunctionModeMaster {
+    ///New Node from str defined in GDTF-XML with checking if chars are valid for GDTF-Names
+    fn new_from_str(value: &str) -> Result<Self, GdtfNodeError> {
+        if value.is_empty() {
+            return Ok(Self(None));
+        }
+        Ok(Self(Some(Self::str_to_names_vec(value)?)))
+    }
+}
 
 ///Parses a str directly to a Node. This function will not allow invalid chars due to GDTF specs.
 impl TryFrom<&str> for NodeChannelFunctionModeMaster {

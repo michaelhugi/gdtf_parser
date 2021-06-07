@@ -97,9 +97,9 @@ mod tests {
     use crate::fixture_type::dmx_mode::DmxMode;
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
-    use crate::utils::units::dmx_break::DmxChannelDmxBreak;
+    use crate::utils::units::dmx_channel_dmx_break::DmxChannelDmxBreak;
     use crate::utils::units::name::Name;
-    use crate::utils::units::offset::DmxChannelOffset;
+    use crate::utils::units::dmx_channel_offset::DmxChannelOffset;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {

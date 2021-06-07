@@ -13,7 +13,7 @@ use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXmlError;
-use crate::utils::units::guid::FixtureTypeGuid;
+use crate::utils::units::fixture_type_guid::FixtureTypeGuid;
 use crate::utils::units::name::Name;
 
 pub mod attribute_definitions;
@@ -165,7 +165,7 @@ mod tests {
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
     use crate::utils::units::attribute_name::AttributeName;
-    use crate::utils::units::guid::FixtureTypeGuid;
+    use crate::utils::units::fixture_type_guid::FixtureTypeGuid;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::node_attribute_feature::NodeAttributeFeature;
     use crate::utils::units::physical_unit::PhysicalUnit;

@@ -558,7 +558,7 @@ impl Default for AttributeName {
 
 
 impl AttributeName {
-    ///Parses a string from gdtf-xml-description into an AttributeName. Only chars `[32..=122] = (SPACE..='z')` are allowed. If one of these chars is passed to the function, it will return an Error
+    ///Parses a string from gdtf-xml-description into an AttributeName. Only chars `[32..=122] = (SPACE..='z')` are allowed. if one of the other chars is passed to the function, it will return an Error
     ///```rust
     /// use gdtf_parser::utils::units::attribute_name::AttributeName;
     /// use gdtf_parser::utils::units::name::Name;
@@ -957,7 +957,7 @@ impl AttributeName {
         })
     }
 
-    ///Parses a quick-xml-attribute from gdtf-xml-description into an AttributeName. Only chars `[32..=122] = (SPACE..='z')` are allowed. If one of these chars is passed to the function, it will return an Error
+    ///Parses a quick-xml-attribute from gdtf-xml-description into an AttributeName. Only chars `[32..=122] = (SPACE..='z')` are allowed. if one of the other chars is passed to the function, it will return an Error
     ///```rust
     /// use gdtf_parser::utils::units::attribute_name::AttributeName;
     /// use gdtf_parser::utils::units::name::Name;

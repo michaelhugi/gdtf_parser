@@ -25,7 +25,7 @@ impl Default for Name {
 
 
 impl Name {
-    ///Creates a new instance of Name from a str. Only chars `[32..=122] = (SPACE..='z')` are allowed. If one of these chars is passed to the function, it will return an Error
+    ///Creates a new instance of Name from a str. Only chars `[32..=122] = (SPACE..='z')` are allowed. if one of the other chars is passed to the function, it will return an Error
     /// ## Examples
     /// ```rust
     /// use gdtf_parser::utils::units::name::Name;
@@ -40,7 +40,7 @@ impl Name {
         Ok(Self(name.to_string()))
     }
 
-    ///Creates a new instance of Name from a fast-xml Attribute. Only chars `[32..=122] = (SPACE..='z')` are allowed. If one of these chars is passed to the function, it will return an Error
+    ///Creates a new instance of Name from a fast-xml Attribute. Only chars `[32..=122] = (SPACE..='z')` are allowed. If one of other chars is passed to the function, it will return an Error
     /// ## Examples
     /// ```rust
     /// use gdtf_parser::utils::units::name::Name;

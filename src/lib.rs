@@ -21,7 +21,7 @@
 //! use std::path::Path;
 //! use gdtf_parser::Gdtf;
 //! use gdtf_parser::utils::errors::GdtfError;
-//! use gdtf_parser::utils::units::data_version::GdtfDataVersion;
+//! use gdtf_parser::utils::units::gdtf_data_version::GdtfDataVersion;
 //! use gdtf_parser::utils::units::name::Name;
 //! use gdtf_parser::utils::units::attribute_name::AttributeName;
 //! use gdtf_parser::utils::units::physical_unit::PhysicalUnit;
@@ -43,7 +43,7 @@
 //! use std::path::Path;
 //! use gdtf_parser::Gdtf;
 //! use gdtf_parser::utils::errors::GdtfError;
-//! use gdtf_parser::utils::units::data_version::GdtfDataVersion;
+//! use gdtf_parser::utils::units::gdtf_data_version::GdtfDataVersion;
 //! use gdtf_parser::utils::units::name::Name;
 //! use gdtf_parser::utils::units::attribute_name::AttributeName;
 //! use gdtf_parser::utils::units::physical_unit::PhysicalUnit;
@@ -73,7 +73,7 @@ use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::units::data_version::GdtfDataVersion;
+use crate::utils::units::gdtf_data_version::GdtfDataVersion;
 
 pub mod fixture_type;
 pub mod utils;

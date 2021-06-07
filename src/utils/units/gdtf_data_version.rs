@@ -19,7 +19,7 @@ pub enum GdtfDataVersion {
 impl GdtfDataVersion {
     ///Creates a dummy object to initiate if value is not yet defined
     /// ```rust
-    /// use gdtf_parser::utils::units::data_version::GdtfDataVersion;
+    /// use gdtf_parser::utils::units::gdtf_data_version::GdtfDataVersion;
     /// assert_eq!(GdtfDataVersion::dummy(), GdtfDataVersion::Unknown("?".to_string()));
     /// ```
     pub fn dummy() -> Self {
@@ -28,7 +28,7 @@ impl GdtfDataVersion {
 
     ///Parses a string defined in gdtf-xml-description to GdtfDataVersion.
     /// ```rust
-    /// use gdtf_parser::utils::units::data_version::GdtfDataVersion;
+    /// use gdtf_parser::utils::units::gdtf_data_version::GdtfDataVersion;
     /// assert_eq!(GdtfDataVersion::new_from_str("1.0"), GdtfDataVersion::Version1_0);
     /// assert_eq!(GdtfDataVersion::new_from_str("1.1"), GdtfDataVersion::Version1_1);
     /// assert_eq!(GdtfDataVersion::new_from_str("1.2"), GdtfDataVersion::Unknown("1.2".to_string()));
@@ -48,7 +48,7 @@ impl GdtfDataVersion {
     }
     ///Parses a string defined in gdtf-xml-description to GdtfDataVersion.
     /// ```rust
-    /// use gdtf_parser::utils::units::data_version::GdtfDataVersion;
+    /// use gdtf_parser::utils::units::gdtf_data_version::GdtfDataVersion;
     /// use quick_xml::events::attributes::Attribute;
     /// use std::borrow::Cow;
     /// assert_eq!(GdtfDataVersion::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"1.0")}), GdtfDataVersion::Version1_0);
@@ -65,7 +65,7 @@ impl GdtfDataVersion {
 #[cfg(test)]
 mod tests {
     use crate::utils::testdata;
-    use crate::utils::units::data_version::GdtfDataVersion as T;
+    use crate::utils::units::gdtf_data_version::GdtfDataVersion as T;
 
     #[test]
     fn test_new_from_str() {

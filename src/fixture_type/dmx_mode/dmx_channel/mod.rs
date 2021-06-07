@@ -10,11 +10,11 @@ use crate::utils::deparse::{DeparseSingle, DeparseVec};
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::units::dmx_break::DmxChannelDmxBreak;
+use crate::utils::units::dmx_channel_dmx_break::DmxChannelDmxBreak;
 use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::node_dmx_channel_initial_function::NodeDmxChannelInitialFunction;
-use crate::utils::units::offset::DmxChannelOffset;
+use crate::utils::units::dmx_channel_offset::DmxChannelOffset;
 
 pub mod logical_channel;
 
@@ -126,14 +126,14 @@ mod tests {
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
     use crate::utils::units::attribute_name::AttributeName;
-    use crate::utils::units::dmx_break::DmxChannelDmxBreak;
+    use crate::utils::units::dmx_channel_dmx_break::DmxChannelDmxBreak;
     use crate::utils::units::dmx_value::DmxValue;
-    use crate::utils::units::master::LogicalChannelMaster;
+    use crate::utils::units::logical_channel_master::LogicalChannelMaster;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::node_dmx_channel_initial_function::NodeDmxChannelInitialFunction;
     use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
-    use crate::utils::units::offset::DmxChannelOffset;
-    use crate::utils::units::snap::LogicalChannelSnap;
+    use crate::utils::units::dmx_channel_offset::DmxChannelOffset;
+    use crate::utils::units::logical_channel_snap::LogicalChannelSnap;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {

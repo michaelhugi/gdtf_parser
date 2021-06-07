@@ -192,6 +192,7 @@ mod tests {
     use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;
     use crate::utils::units::node::node_channel_function_mode_master::NodeChannelFunctionModeMaster;
     use crate::utils::units::node::node_channel_function_wheel::NodeChannelFunctionWheel;
+    use crate::utils::units::node::Node;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {

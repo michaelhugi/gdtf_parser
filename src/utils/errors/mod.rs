@@ -7,7 +7,7 @@ use zip::result::ZipError;
 
 use crate::utils::units::color_cie::GdtfColorCieError;
 use crate::utils::units::dmx_value::GdtfDmxValueError;
-use crate::utils::units::guid::GdtfGuidError;
+use crate::utils::units::fixture_type_guid::GdtfGuidError;
 use crate::utils::units::name::GdtfNameError;
 use crate::utils::units::node::GdtfNodeError;
 

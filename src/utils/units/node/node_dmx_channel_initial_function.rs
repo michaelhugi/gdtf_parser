@@ -12,13 +12,8 @@ use crate::utils::units::node::{GdtfNodeError, Node};
 pub struct NodeDmxChannelInitialFunction(Option<Vec<Name>>);
 
 impl NodeDmxChannelInitialFunction {
-    ///New Node from str defined in GDTF-XML with checking if chars are valid for GDTF-Names
-    pub fn new_from_str(value: &str) -> Result<Self, GdtfNodeError> {
-        if value.is_empty() {
-            return Ok(Self(None));
-        }
-        Ok(Self(Some(Self::str_to_names_vec(value)?)))
-    }
+
+
 
     #[cfg(test)]
     ///New Node from a vec of str defined in GDTF-XML without checking if charse are valid for GDTF-Names
@@ -31,7 +26,15 @@ impl NodeDmxChannelInitialFunction {
     }
 }
 
-impl Node for NodeDmxChannelInitialFunction {}
+impl Node for NodeDmxChannelInitialFunction {
+    ///New Node from str defined in GDTF-XML with checking if chars are valid for GDTF-Names
+    fn new_from_str(value: &str) -> Result<Self, GdtfNodeError> {
+        if value.is_empty() {
+            return Ok(Self(None));
+        }
+        Ok(Self(Some(Self::str_to_names_vec(value)?)))
+    }
+}
 
 ///Parses a str directly to a Node. This function will not allow invalid chars due to GDTF specs.
 impl TryFrom<&str> for NodeDmxChannelInitialFunction {

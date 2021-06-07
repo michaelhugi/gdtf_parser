@@ -14,7 +14,7 @@ pub enum LogicalChannelMaster {
 }
 
 ///```rust
-/// use gdtf_parser::utils::units::master::LogicalChannelMaster;
+/// use gdtf_parser::utils::units::logical_channel_master::LogicalChannelMaster;
 /// assert_eq!(LogicalChannelMaster::None, Default::default());
 ///```
 impl Default for LogicalChannelMaster {
@@ -26,7 +26,7 @@ impl Default for LogicalChannelMaster {
 impl LogicalChannelMaster {
     ///Parses a string defined in gdtf-xml-description to a Master
     /// ```rust
-    /// use gdtf_parser::utils::units::master::LogicalChannelMaster;
+    /// use gdtf_parser::utils::units::logical_channel_master::LogicalChannelMaster;
     /// assert_eq!(LogicalChannelMaster::None, LogicalChannelMaster::new_from_str("None"));
     /// assert_eq!(LogicalChannelMaster::Grand, LogicalChannelMaster::new_from_str("Grand"));
     /// assert_eq!(LogicalChannelMaster::Group, LogicalChannelMaster::new_from_str("Group"));
@@ -43,7 +43,7 @@ impl LogicalChannelMaster {
 
     ///Parses a quick-xml-attribute defined in gdtf-xml-description to a Master
     /// ```rust
-    /// use gdtf_parser::utils::units::master::LogicalChannelMaster;
+    /// use gdtf_parser::utils::units::logical_channel_master::LogicalChannelMaster;
     /// use quick_xml::events::attributes::Attribute;
     /// use std::borrow::Cow;
     /// assert_eq!(LogicalChannelMaster::None, LogicalChannelMaster::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"None")}));
@@ -60,7 +60,7 @@ impl LogicalChannelMaster {
 #[cfg(test)]
 mod tests {
     use crate::utils::testdata;
-    use crate::utils::units::master::LogicalChannelMaster;
+    use crate::utils::units::logical_channel_master::LogicalChannelMaster;
 
     #[test]
     fn test_default() {

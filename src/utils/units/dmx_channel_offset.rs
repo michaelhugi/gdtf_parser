@@ -16,7 +16,7 @@ impl DmxChannelOffset {
     /// ## Examples
     /// ```rust
     ///
-    /// use gdtf_parser::utils::units::offset::DmxChannelOffset;
+    /// use gdtf_parser::utils::units::dmx_channel_offset::DmxChannelOffset;
     /// assert!(DmxChannelOffset::new_from_str("None").is_none());
     /// assert_eq!(DmxChannelOffset(vec![1]), DmxChannelOffset::new_from_str("1").unwrap());
     /// assert_eq!(DmxChannelOffset(vec![0, 1, 2, -3]), DmxChannelOffset::new_from_str("0,1,2,-3").unwrap());
@@ -47,7 +47,7 @@ impl DmxChannelOffset {
     ///Creates a new Option<Offset> from a quick-xml-attribute defined in gdtf-xml
     /// ## Examples
     /// ```rust
-    /// use gdtf_parser::utils::units::offset::DmxChannelOffset;
+    /// use gdtf_parser::utils::units::dmx_channel_offset::DmxChannelOffset;
     /// use quick_xml::events::attributes::Attribute;
     /// use std::borrow::Cow;
     /// assert!(DmxChannelOffset::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"None")}).is_none());
@@ -69,7 +69,7 @@ impl DmxChannelOffset {
     /// Creates a new Offset from a Vec<i32>
     /// ## Examples
     /// ```rust
-    ///  use gdtf_parser::utils::units::offset::DmxChannelOffset;
+    ///  use gdtf_parser::utils::units::dmx_channel_offset::DmxChannelOffset;
     ///  assert_eq!(DmxChannelOffset(vec![]), DmxChannelOffset::new(vec![]));
     ///  assert_eq!(DmxChannelOffset(vec![1]), DmxChannelOffset::new(vec![1]));
     ///  assert_eq!(DmxChannelOffset(vec![1, 3]), DmxChannelOffset::new(vec![1, 3]));
@@ -82,7 +82,7 @@ impl DmxChannelOffset {
 #[cfg(test)]
 mod tests {
     use crate::utils::testdata;
-    use crate::utils::units::offset::DmxChannelOffset;
+    use crate::utils::units::dmx_channel_offset::DmxChannelOffset;
 
     #[test]
     fn test_new_from_str() {

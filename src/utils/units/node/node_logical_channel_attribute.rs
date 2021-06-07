@@ -11,7 +11,20 @@ use crate::utils::units::node::{GdtfNodeError, Node};
 ///Node used in LogicalChannel.attribute. Link to the channel function that will be activated by default for this DMXChannel;
 pub struct NodeLogicalChannelAttribute(Option<Vec<AttributeName>>);
 
-impl Node for NodeLogicalChannelAttribute {}
+impl Node for NodeLogicalChannelAttribute {
+    ///New Node from str defined in GDTF-XML with checking if chars are valid for GDTF-Names
+    fn new_from_str(value: &str) -> Result<Self, GdtfNodeError> {
+        if value.is_empty() {
+            return Ok(Self(None));
+        }
+        let value = value.split('.');
+        let mut tree: Vec<AttributeName> = vec![];
+        for value in value.into_iter() {
+            tree.push(AttributeName::new_from_str(value)?);
+        }
+        Ok(Self(Some(tree)))
+    }
+}
 
 ///Parses an xml attribute directly to a Node. In case of an error, the function will return a Node with None. This function will allow invalid chars for Name due to GDTF specs because Rust can handle it.
 impl TryFrom<Attribute<'_>> for NodeLogicalChannelAttribute {
@@ -23,19 +36,6 @@ impl TryFrom<Attribute<'_>> for NodeLogicalChannelAttribute {
 }
 
 impl NodeLogicalChannelAttribute {
-    ///New Node from str defined in GDTF-XML with checking if chars are valid for GDTF-Names
-    pub fn new_from_str(value: &str) -> Result<Self, GdtfNodeError> {
-        if value.is_empty() {
-            return Ok(Self(None));
-        }
-        let value = value.split('.');
-        let mut tree: Vec<AttributeName> = vec![];
-        for value in value.into_iter() {
-            tree.push(AttributeName::new_from_str(value)?);
-        }
-        Ok(Self(Some(tree)))
-    }
-
     ///New Node from a vec of AttributeNames
     pub fn new_from_attribute_names(names: Vec<AttributeName>) -> Result<Self, GdtfNodeError> {
         Ok(Self(Some(names)))

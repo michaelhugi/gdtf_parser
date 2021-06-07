@@ -12,10 +12,10 @@ use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::units::master::LogicalChannelMaster;
+use crate::utils::units::logical_channel_master::LogicalChannelMaster;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
-use crate::utils::units::snap::LogicalChannelSnap;
+use crate::utils::units::logical_channel_snap::LogicalChannelSnap;
 
 pub mod channel_function;
 
@@ -122,13 +122,14 @@ mod tests {
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
     use crate::utils::units::dmx_value::DmxValue;
-    use crate::utils::units::master::LogicalChannelMaster;
+    use crate::utils::units::logical_channel_master::LogicalChannelMaster;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::node_channel_function_emitter::NodeChannelFunctionEmitter;
     use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;
     use crate::utils::units::node::node_channel_function_mode_master::NodeChannelFunctionModeMaster;
     use crate::utils::units::node::node_channel_function_wheel::NodeChannelFunctionWheel;
-    use crate::utils::units::snap::LogicalChannelSnap;
+    use crate::utils::units::logical_channel_snap::LogicalChannelSnap;
+    use crate::utils::units::node::Node;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {

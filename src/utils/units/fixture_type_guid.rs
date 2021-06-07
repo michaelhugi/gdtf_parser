@@ -50,7 +50,7 @@ pub struct FixtureTypeGuid(pub [u8; 16]);
 impl FixtureTypeGuid {
     ///Returns a dummy FixtureType_Guid with all zeros
     /// ```rust
-    /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
+    /// use gdtf_parser::utils::units::fixture_type_guid::FixtureTypeGuid;
     /// assert_eq!(FixtureTypeGuid([0; 16]), FixtureTypeGuid::dummy());
     /// ```
     pub fn dummy() -> Self {
@@ -59,7 +59,7 @@ impl FixtureTypeGuid {
 
     /// converts a string in format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format to a GUID. Retunrs an error if the format is not correct
     /// ```rust
-    /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
+    /// use gdtf_parser::utils::units::fixture_type_guid::FixtureTypeGuid;
     /// assert_eq!(
     ///     FixtureTypeGuid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
     ///     FixtureTypeGuid::new_from_str("308EA87D-7164-42DE-8106-A6D273F57A51").unwrap()
@@ -129,7 +129,7 @@ impl FixtureTypeGuid {
 
     /// Converts a quick-xml-attribute from gdtf-xml-description to a FixtureType_Guid. Returns an error if the format is not correct.
     /// ```rust
-    /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
+    /// use gdtf_parser::utils::units::fixture_type_guid::FixtureTypeGuid;
     /// use quick_xml::events::attributes::Attribute;
     /// use std::borrow::Cow;
     /// assert_eq!(
@@ -144,7 +144,7 @@ impl FixtureTypeGuid {
 
     ///Returns the GUID as a string in format  XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format or "" if GUID is empty
     ///```rust
-    /// use gdtf_parser::utils::units::guid::FixtureTypeGuid;
+    /// use gdtf_parser::utils::units::fixture_type_guid::FixtureTypeGuid;
     /// assert_eq!( FixtureTypeGuid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]).to_str().unwrap(), "308EA87D-7164-42DE-8106-A6D273F57A51".to_string());
     ///```
     pub fn to_str(&self) -> Result<String, GdtfGuidError> {
@@ -420,7 +420,7 @@ impl Error for GdtfGuidError {}
 #[cfg(test)]
 mod tests {
     use crate::utils::testdata;
-    use crate::utils::units::guid::FixtureTypeGuid as T;
+    use crate::utils::units::fixture_type_guid::FixtureTypeGuid as T;
 
     #[test]
     fn test_dummy() {
