@@ -7,3 +7,5 @@ pub mod date;
 pub mod dmx_value;
 pub mod attribute_name;
 pub mod node;
+pub mod matrix;
+pub mod rotation;

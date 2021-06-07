@@ -1,6 +1,8 @@
 //! A fast and well tested GDTF-parser
 //!
-//! **gdtf-parser is in pre-release state. Any breaking changes may be implemented without further notice!**
+//! 🚧️ **gdtf-parser is in pre-release state. Any breaking changes may be implemented without further notice!** 🚧️
+//!
+//! ⚠️ **Implementation of Matrix and Rotation may be wrong** ⚠️
 //!
 //! ## Description
 //! GDTF stands for [`General Device Type Format`] and describes the hierarchical and logical structure and controls of any type of controllable device (e.g. luminaires, fog machines, etc.) in the lighting and entertainment industry.
