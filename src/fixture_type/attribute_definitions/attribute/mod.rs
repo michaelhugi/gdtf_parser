@@ -61,7 +61,7 @@ impl DeparseSingle for Attribute {
                 b"Feature" => feature = attr.try_into()?,
                 b"MainAttribute" => main_attribute = deparse::attr_to_string_option(&attr),
                 b"PhysicalUnit" => physical_unit = PhysicalUnit::new_from_attr(attr),
-                b"Color" => color = attr.try_into().ok(),
+                b"Color" => color = ColorCie::new_from_attr(attr).ok(),
                 _ => {}
             }
         }

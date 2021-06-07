@@ -1,12 +1,12 @@
 //! Module for the unit ColorCIE used in GDTF
-use std::borrow::Borrow;
-use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt;
 use std::fmt::Debug;
 use std::str::FromStr;
 
 use quick_xml::events::attributes::Attribute;
+
+use crate::utils::deparse;
 
 ///CIE color representation xyY 1931 used in GDTF
 #[derive(Debug, PartialEq, Clone)]
@@ -21,7 +21,12 @@ pub struct ColorCie {
 }
 
 impl ColorCie {
-    ///Creates a new ColorCIE from a &str defined by GDTF-XML.
+    ///Parses a string defined in gdtf-xml-description to ColorCie
+    /// ```rust
+    /// use gdtf_parser::utils::units::color_cie::ColorCie;
+    /// assert_eq!(ColorCie::new_from_str("1.2,3.5,8.2").unwrap(), ColorCie{ x: 1.2, y: 3.5, Y: 8.2});
+    /// assert!(ColorCie::new_from_str("Something invalid").is_err());
+    /// ```
     pub fn new_from_str(value: &str) -> Result<Self, GdtfColorCieError> {
         use GdtfColorCieError::*;
         let value: Vec<&str> = value.split(',').collect();
@@ -36,21 +41,17 @@ impl ColorCie {
             }
         )
     }
-}
 
-///Creates a new ColorCIE from an xml-attribute defined by GDTF-XML.
-impl TryFrom<Attribute<'_>> for ColorCie {
-    type Error = GdtfColorCieError;
-    fn try_from(attr: Attribute<'_>) -> Result<Self, Self::Error> {
-        Self::new_from_str(std::str::from_utf8(attr.value.borrow())?)
-    }
-}
-
-///Creates a new ColorCIE from a &str defined by GDTF-XML.
-impl TryFrom<&str> for ColorCie {
-    type Error = GdtfColorCieError;
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Self::new_from_str(value)
+    ///Parses a quick-xml-attribute defined in gdtf-xml-description to ColorCie
+    /// ```rust
+    /// use gdtf_parser::utils::units::color_cie::ColorCie;
+    /// use quick_xml::events::attributes::Attribute;
+    /// use std::borrow::Cow;
+    /// assert_eq!(ColorCie::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"1.2,3.5,8.2")}).unwrap(), ColorCie{ x: 1.2, y: 3.5, Y: 8.2});
+    /// assert!(ColorCie::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something invalid")}).is_err());
+    /// ```
+    pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfColorCieError> {
+        Self::new_from_str(deparse::attr_to_str(&attr))
     }
 }
 
@@ -84,30 +85,28 @@ impl Error for GdtfColorCieError {}
 
 #[cfg(test)]
 mod tests {
-    use std::convert::{TryFrom, TryInto};
-
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
     use crate::utils::units::color_cie::ColorCie;
 
     #[test]
-    fn test_try_from_str() -> Result<(), GdtfError> {
-        assert_eq!(ColorCie { x: 234.2, y: 123.123, Y: 123. }, ColorCie::try_from("234.2,123.123,123.000")?);
-        assert!(ColorCie::try_from("something invalid").is_err());
+    fn test_new_from_str() -> Result<(), GdtfError> {
+        assert_eq!(ColorCie { x: 234.2, y: 123.123, Y: 123. }, ColorCie::new_from_str("234.2,123.123,123.000")?);
+        assert!(ColorCie::new_from_str("something invalid").is_err());
         Ok(())
     }
 
     #[test]
-    fn test_try_from_attr_borrowed() -> Result<(), GdtfError> {
-        assert_eq!(ColorCie { x: 234.2, y: 123.123, Y: 123. }, testdata::to_attr_borrowed(b"234.2,123.123,123.000").try_into()?);
-        assert!(ColorCie::try_from(testdata::to_attr_borrowed(b"Something invalid")).is_err());
+    fn test_new_from_attr_borrowed() -> Result<(), GdtfError> {
+        assert_eq!(ColorCie { x: 234.2, y: 123.123, Y: 123. }, ColorCie::new_from_attr(testdata::to_attr_borrowed(b"234.2,123.123,123.000"))?);
+        assert!(ColorCie::new_from_attr(testdata::to_attr_borrowed(b"Something invalid")).is_err());
         Ok(())
     }
 
     #[test]
-    fn test_try_from_attr_owned() -> Result<(), GdtfError> {
-        assert_eq!(ColorCie { x: 234.2, y: 123.123, Y: 123. }, testdata::to_attr_owned(b"234.2,123.123,123.000").try_into()?);
-        assert!(ColorCie::try_from(testdata::to_attr_owned(b"Something invalid")).is_err());
+    fn test_new_from_attr_owned() -> Result<(), GdtfError> {
+        assert_eq!(ColorCie { x: 234.2, y: 123.123, Y: 123. }, ColorCie::new_from_attr(testdata::to_attr_owned(b"234.2,123.123,123.000"))?);
+        assert!(ColorCie::new_from_attr(testdata::to_attr_owned(b"Something invalid")).is_err());
         Ok(())
     }
 }
