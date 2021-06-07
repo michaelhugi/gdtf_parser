@@ -1,21 +1,20 @@
 //!Holds the DMXChannel and it's children
-use std::convert::TryInto;
 use std::fmt::Debug;
+use std::str::FromStr;
 
 use quick_xml::events::{BytesStart, Event};
+use quick_xml::events::attributes::Attribute;
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
+use crate::utils::deparse;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
-use crate::utils::units::node::node_dmx_channel_initial_function::NodeDmxChannelInitialFunction;
-use quick_xml::events::attributes::Attribute;
-use crate::utils::deparse;
-use std::str::FromStr;
+use crate::utils::units::node::Node;
 
 pub mod logical_channel;
 
@@ -27,7 +26,7 @@ pub struct DmxChannel {
     ///Relative addresses of the current DMX channel from highest to least significant
     pub offset: Option<Offset>,
     ///Link to the channel function that will be activated by default for this DMXChannel;
-    pub initial_function: NodeDmxChannelInitialFunction,
+    pub initial_function: Option<Node>,
     ///Highlight value for current channel; Special value: “None”. Default value: “None”.
     pub highlight: Option<DmxValue>,
     ///Name of the geometry the current channel controls.
@@ -43,7 +42,7 @@ impl DeparseSingle for DmxChannel {
         Self: Sized {
         let mut dmx_break = DmxBreak::default();
         let mut offset = None;
-        let mut initial_function: NodeDmxChannelInitialFunction = Default::default();
+        let mut initial_function = None;
         let mut highlight = None;
         let mut geometry = Default::default();
         let mut logical_channels: Vec<LogicalChannel> = Vec::new();
@@ -53,7 +52,7 @@ impl DeparseSingle for DmxChannel {
             match attr.key {
                 b"DMXBreak" => dmx_break = DmxBreak::new_from_attr(attr),
                 b"Offset" => offset = Offset::new_from_attr(attr),
-                b"InitialFunction" => initial_function = attr.try_into()?,
+                b"InitialFunction" => initial_function = Node::new_from_attr(attr)?,
                 b"Highlight" => highlight = match DmxValue::new_from_attr(attr) {
                     Ok(attr) => Some(attr),
                     Err(_) => None
@@ -278,23 +277,21 @@ impl Default for DmxBreak {
 mod tests {
     use std::collections::HashMap;
 
-    use crate::fixture_type::dmx_mode::dmx_channel::{DmxChannel, Offset, DmxBreak};
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::{LogicalChannel, Snap, Master};
+    use crate::fixture_type::dmx_mode::dmx_channel::{DmxBreak, DmxChannel, Offset};
+    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::{LogicalChannel, Master, Snap};
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
-    use crate::utils::units::attribute_name::AttributeName;
+    use crate::utils::testdata;
     use crate::utils::units::dmx_value::DmxValue;
     use crate::utils::units::name::Name;
-    use crate::utils::units::node::node_dmx_channel_initial_function::NodeDmxChannelInitialFunction;
-    use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
-    use crate::utils::testdata;
+    use crate::utils::units::node::Node;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {
         DmxChannel {
             dmx_break: DmxBreak::Value(1),
             offset: Some(Offset::new(vec![1])),
-            initial_function: NodeDmxChannelInitialFunction::new_from_strs(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
+            initial_function: Node::new_from_str("Beam_Shutter1.Shutter1.Open")?,
             highlight: Some(DmxValue {
                 initial_value: 8,
                 n: 1,
@@ -303,7 +300,7 @@ mod tests {
             geometry: Name::new("Beam")?,
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute::new_from_attribute_names(vec![AttributeName::Shutter_n_(1)])?,
+                    attribute: Node::new_from_str("Shutter1").unwrap(),
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -326,7 +323,7 @@ mod tests {
         DmxChannel {
             dmx_break: DmxBreak::Value(2),
             offset: Some(Offset::new(vec![1, 2])),
-            initial_function: NodeDmxChannelInitialFunction::new_from_strs(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
+            initial_function: Node::new_from_str("Beam_Shutter1.Shutter1.Open")?,
             highlight: Some(DmxValue {
                 initial_value: 8,
                 n: 1,
@@ -335,7 +332,7 @@ mod tests {
             geometry: Name::new("Beam")?,
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute::new_from_attribute_names(vec![AttributeName::Shutter_n_(1)])?,
+                    attribute: Node::new_from_str("Shutter1")?,
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -358,7 +355,7 @@ mod tests {
         DmxChannel {
             dmx_break: DmxBreak::Overwrite,
             offset: Some(Offset::new(vec![1, 2])),
-            initial_function: NodeDmxChannelInitialFunction::new_from_strs(vec!["Beam_Shutter1", "Shutter1", "Open"])?,
+            initial_function: Node::new_from_str("Beam_Shutter1.Shutter1.Open")?,
             highlight: Some(DmxValue {
                 initial_value: 8,
                 n: 1,
@@ -367,7 +364,7 @@ mod tests {
             geometry: Name::new("Beam")?,
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute::new_from_attribute_names(vec![AttributeName::Shutter_n_(1)])?,
+                    attribute: Node::new_from_str("Shutter1")?,
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -390,12 +387,12 @@ mod tests {
         DmxChannel {
             dmx_break: DmxBreak::Value(1),
             offset: None,
-            initial_function: NodeDmxChannelInitialFunction::none(),
+            initial_function: None,
             highlight: None,
             geometry: Name::new("")?,
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute::new_from_attribute_names(vec![AttributeName::Shutter_n_(1)])?,
+                    attribute: Node::new_from_str("Shutter1")?,
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -403,7 +400,7 @@ mod tests {
                     channel_functions: HashMap::new(),
                 },
                 LogicalChannel {
-                    attribute: NodeLogicalChannelAttribute::new_from_attribute_names(vec![AttributeName::Shutter_n_(1)])?,
+                    attribute: Node::new_from_str("Shutter1")?,
                     snap: Snap::Yes,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -427,7 +424,7 @@ mod tests {
         DmxChannel {
             dmx_break: DmxBreak::Value(1),
             offset: None,
-            initial_function: NodeDmxChannelInitialFunction::none(),
+            initial_function: None,
             highlight: None,
             geometry: Name::new("")?,
             logical_channels: vec![],

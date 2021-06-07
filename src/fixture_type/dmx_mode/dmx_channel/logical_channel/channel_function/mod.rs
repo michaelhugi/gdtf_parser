@@ -1,10 +1,10 @@
 //! Contains ChannelFunction and it's children
 
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::fmt::Debug;
 
 use quick_xml::events::{BytesStart, Event};
+use quick_xml::events::attributes::Attribute as XmlAttribute;
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
@@ -15,11 +15,7 @@ use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
-use crate::utils::units::node::node_channel_function_attribute::NodeChannelFunctionAttribute;
-use crate::utils::units::node::node_channel_function_emitter::NodeChannelFunctionEmitter;
-use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;
-use crate::utils::units::node::node_channel_function_mode_master::NodeChannelFunctionModeMaster;
-use crate::utils::units::node::node_channel_function_wheel::NodeChannelFunctionWheel;
+use crate::utils::units::node::{GdtfNodeError, Node};
 
 pub mod channel_set;
 
@@ -27,7 +23,7 @@ pub mod channel_set;
 #[derive(Debug, PartialEq, Clone)]
 pub struct ChannelFunction {
     ///Link to attribute; Starting point is the attributes node_2. Default value: “NoFeature”.
-    pub attribute: NodeChannelFunctionAttribute,
+    pub attribute: Attribute,
     ///The manufacturer’s original name of the attribute; Default: empty
     pub original_attribute: String,
     ///Start DMX value; The end DMX value is calculated as a DMXFrom of the next channel function – 1 or the maximum value of the DMX channel. Default value: "0/1".
@@ -43,13 +39,13 @@ pub struct ChannelFunction {
     ///Time in seconds to accelerate from stop to maximum velocity; Default value: 0
     pub real_acceleration: f32,
     ///Optional link to wheel; Starting point: Wheel Collect
-    pub wheel: NodeChannelFunctionWheel,
+    pub wheel: Option<Node>,
     ///Optional link to emitter in the physical description; Starting point: Emitter Collect
-    pub emitter: NodeChannelFunctionEmitter,
+    pub emitter: Option<Node>,
     ///Optional link to filter in the physical description; Starting point: Filter Collect
-    pub filter: NodeChannelFunctionFilter,
+    pub filter: Option<Node>,
     ///Link to DMX Channel or Channel Function; Starting point DMX mode
-    pub mode_master: NodeChannelFunctionModeMaster,
+    pub mode_master: Option<Node>,
     ///Only used together with ModeMaster; DMX start value; Default value: 0/1
     pub mode_from: Option<DmxValue>,
     ///Only used together with ModeMaster; DMX end value; Default value: 0/1
@@ -76,7 +72,7 @@ impl DeparseSingle for ChannelFunction {
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
-        let mut attribute: NodeChannelFunctionAttribute = Default::default();
+        let mut attribute = Attribute::NoFeature;
         let mut original_attribute: String = String::new();
         let mut dmx_from: DmxValue = DEFAULT_DMX_FROM;
         let mut default: DmxValue = DEFAULT_DMX_DEFAULT;
@@ -84,10 +80,10 @@ impl DeparseSingle for ChannelFunction {
         let mut physical_to: f32 = 0.;
         let mut real_fade: f32 = 0.;
         let mut real_acceleration: f32 = 0.;
-        let mut wheel: NodeChannelFunctionWheel = Default::default();
-        let mut emitter: NodeChannelFunctionEmitter = Default::default();
-        let mut filter: NodeChannelFunctionFilter = Default::default();
-        let mut mode_master: NodeChannelFunctionModeMaster = Default::default();
+        let mut wheel = None;
+        let mut emitter = None;
+        let mut filter = None;
+        let mut mode_master = None;
         let mut mode_from: Option<DmxValue> = None;
         let mut mode_to: Option<DmxValue> = None;
         let mut channel_sets: HashMap<Name, ChannelSet> = HashMap::new();
@@ -95,7 +91,7 @@ impl DeparseSingle for ChannelFunction {
             let attr = attr?;
             match attr.key {
                 b"Name" => name = Name::new_from_attr(attr)?,
-                b"Attribute" => attribute = attr.try_into()?,
+                b"Attribute" => attribute = Attribute::new_from_attr(attr)?,
                 b"OriginalAttribute" => original_attribute = deparse::attr_to_string(&attr),
                 b"DMXFrom" => dmx_from = DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_FROM),
                 b"Default" => default = DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_DEFAULT),
@@ -103,10 +99,10 @@ impl DeparseSingle for ChannelFunction {
                 b"PhysicalTo" => physical_to = deparse::attr_to_f32(&attr),
                 b"RealFade" => real_fade = deparse::attr_to_f32(&attr),
                 b"RealAcceleration" => real_acceleration = deparse::attr_to_f32(&attr),
-                b"Wheel" => wheel = attr.try_into()?,
-                b"Emitter" => emitter = attr.try_into()?,
-                b"Filter" => filter = attr.try_into()?,
-                b"ModeMaster" => mode_master = attr.try_into()?,
+                b"Wheel" => wheel = Node::new_from_attr(attr)?,
+                b"Emitter" => emitter = Node::new_from_attr(attr)?,
+                b"Filter" => filter = Node::new_from_attr(attr)?,
+                b"ModeMaster" => mode_master = Node::new_from_attr(attr)?,
                 b"ModeFrom" => mode_from = match DmxValue::new_from_attr(attr) {
                     Ok(val) => Some(val),
                     Err(_) => None
@@ -176,28 +172,102 @@ impl DeparseSingle for ChannelFunction {
 #[cfg(test)]
 impl TestDeparseSingle for ChannelFunction {}
 
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// Start of Attribute
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+
+
+#[derive(Debug, PartialEq, Clone)]
+///Node used in ChannelFunction.attribute. Link to attribute; Starting point is the attributes node. Default value: “NoFeature”.
+pub enum Attribute {
+    ///Used when a reference to a node is present
+    Feature(Node),
+    ///Used for special value NoFeature
+    NoFeature,
+}
+
+
+impl Attribute {
+    ///Parses a string defined in gdtf-xml-description to Attribute
+    /// ```rust
+    /// use gdtf_parser::utils::units::node::Node;
+    /// use gdtf_parser::utils::units::name::Name;
+    /// use gdtf_parser::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::Attribute;
+    ///
+    /// assert_eq!(Attribute::new_from_str("NoFeature").unwrap(), Attribute::NoFeature);
+    /// assert_eq!(Attribute::new_from_str("").unwrap(), Attribute::NoFeature);
+    /// assert_eq!(Attribute::new_from_str("Name1").unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string())])));
+    /// assert_eq!(Attribute::new_from_str("Name1.Name2").unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string()), Name("Name2".to_string())])));
+    /// assert!(Attribute::new_from_str("Name with invalid char {").is_err());
+    /// assert!(Attribute::new_from_str("Name with invalid char ȸ").is_err());
+    /// ```
+    pub fn new_from_str(value: &str) -> Result<Self, GdtfNodeError> {
+        if value == "NoFeature" {
+            Ok(Self::NoFeature)
+        } else {
+            match Node::new_from_str(value)? {
+                None => Ok(Self::NoFeature),
+                Some(value) => Ok(Self::Feature(value))
+            }
+        }
+    }
+
+    ///Parses a quick-xml-attribute defined in gdtf-xml-description to Attribute
+    /// ```rust
+    /// use gdtf_parser::utils::units::node::Node;
+    /// use gdtf_parser::utils::units::name::Name;
+    /// use quick_xml::events::attributes::Attribute as XmlAttribute;
+    /// use std::borrow::Cow;
+    /// use gdtf_parser::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::Attribute;
+    ///
+    /// assert_eq!(Attribute::new_from_attr(XmlAttribute{ key: &[], value: Cow::Borrowed(b"NoFeature")}).unwrap(), Attribute::NoFeature);
+    /// assert_eq!(Attribute::new_from_attr(XmlAttribute{ key: &[], value: Cow::Borrowed(b"")}).unwrap(), Attribute::NoFeature);
+    /// assert_eq!(Attribute::new_from_attr(XmlAttribute{ key: &[], value: Cow::Borrowed(b"Name1")}).unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string())])));
+    /// assert_eq!(Attribute::new_from_attr(XmlAttribute{ key: &[], value: Cow::Borrowed(b"Name1.Name2")}).unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string()), Name("Name2".to_string())])));
+    /// assert!(Attribute::new_from_attr(XmlAttribute{ key: &[], value: Cow::Borrowed(b"Name with invalid char {")}).is_err());
+    /// ```
+    pub fn new_from_attr(attr: XmlAttribute<'_>) -> Result<Self, GdtfNodeError> {
+        Self::new_from_str(deparse::attr_to_str(&attr))
+    }
+}
+
+/// ```rust
+/// use gdtf_parser::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::Attribute;
+///
+/// assert_eq!(Attribute::NoFeature, Default::default());
+/// ```
+impl Default for Attribute {
+    fn default() -> Self {
+        Attribute::NoFeature
+    }
+}
+
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// End of Attribute
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
-    use std::convert::TryInto;
 
+    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::{Attribute, ChannelFunction};
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
     use crate::utils::units::dmx_value::DmxValue;
     use crate::utils::units::name::Name;
-    use crate::utils::units::node::node_channel_function_emitter::NodeChannelFunctionEmitter;
-    use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;
-    use crate::utils::units::node::node_channel_function_mode_master::NodeChannelFunctionModeMaster;
-    use crate::utils::units::node::node_channel_function_wheel::NodeChannelFunctionWheel;
     use crate::utils::units::node::Node;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {
         ChannelFunction {
-            attribute: "ColorSub_M".try_into().unwrap(),
+            attribute: Attribute::new_from_str("ColorSub_M")?,
             original_attribute: "".to_string(),
             dmx_from: DmxValue::new_from_str("0/1")?,
             default: DmxValue::new_from_str("0/1")?,
@@ -205,10 +275,10 @@ mod tests {
             physical_to: 1.000000,
             real_fade: 0.000000,
             real_acceleration: 0.000000,
-            wheel: NodeChannelFunctionWheel::none(),
-            emitter: NodeChannelFunctionEmitter::none(),
-            filter: NodeChannelFunctionFilter::new_from_str("Magenta")?,
-            mode_master: NodeChannelFunctionModeMaster::new_from_str("Base_ColorMacro1")?,
+            wheel: None,
+            emitter: None,
+            filter: Node::new_from_str("Magenta")?,
+            mode_master: Node::new_from_str("Base_ColorMacro1")?,
             mode_from: Some(DmxValue::new_from_str("0/1")?),
             mode_to: Some(DmxValue::new_from_str("0/1")?),
             channel_sets: testdata::vec_to_hash_map(vec![
@@ -249,7 +319,7 @@ mod tests {
     #[test]
     fn test_max() -> Result<(), GdtfError> {
         ChannelFunction {
-            attribute: "ColorSub_M".try_into().unwrap(),
+            attribute: Attribute::new_from_str("ColorSub_M")?,
             original_attribute: "orig".to_string(),
             dmx_from: DmxValue::new_from_str("0/1")?,
             default: DmxValue::new_from_str("0/1")?,
@@ -257,10 +327,10 @@ mod tests {
             physical_to: 1.000000,
             real_fade: 3.000000,
             real_acceleration: 4.001000,
-            wheel: NodeChannelFunctionWheel::new_from_str("Wheel1")?,
-            emitter: NodeChannelFunctionEmitter::new_from_str("Emitter1")?,
-            filter: NodeChannelFunctionFilter::new_from_str("Magenta")?,
-            mode_master: NodeChannelFunctionModeMaster::new_from_str("Base_ColorMacro1")?,
+            wheel: Node::new_from_str("Wheel1")?,
+            emitter: Node::new_from_str("Emitter1")?,
+            filter: Node::new_from_str("Magenta")?,
+            mode_master: Node::new_from_str("Base_ColorMacro1")?,
             mode_from: Some(DmxValue::new_from_str("0/1")?),
             mode_to: Some(DmxValue::new_from_str("0/1")?),
             channel_sets: HashMap::new(),
@@ -275,7 +345,7 @@ mod tests {
     #[test]
     fn test_min_1() -> Result<(), GdtfError> {
         ChannelFunction {
-            attribute: "ColorSub_M".try_into().unwrap(),
+            attribute: Attribute::new_from_str("ColorSub_M")?,
             original_attribute: "orig".to_string(),
             dmx_from: DmxValue::new_from_str("0/1")?,
             default: DmxValue::new_from_str("0/1")?,
@@ -283,10 +353,10 @@ mod tests {
             physical_to: 1.000000,
             real_fade: 3.000000,
             real_acceleration: 4.001000,
-            wheel: NodeChannelFunctionWheel::none(),
-            emitter: NodeChannelFunctionEmitter::none(),
-            filter: NodeChannelFunctionFilter::none(),
-            mode_master: NodeChannelFunctionModeMaster::none(),
+            wheel: None,
+            emitter: None,
+            filter: None,
+            mode_master: None,
             mode_from: None,
             mode_to: None,
             channel_sets: HashMap::new(),
@@ -301,7 +371,7 @@ mod tests {
     #[test]
     fn test_min_2() -> Result<(), GdtfError> {
         ChannelFunction {
-            attribute: "ColorSub_M".try_into().unwrap(),
+            attribute: Attribute::new_from_str("ColorSub_M")?,
             original_attribute: "orig".to_string(),
             dmx_from: DmxValue::new_from_str("0/1")?,
             default: DmxValue::new_from_str("0/1")?,
@@ -309,10 +379,10 @@ mod tests {
             physical_to: 1.000000,
             real_fade: 3.000000,
             real_acceleration: 4.001000,
-            wheel: NodeChannelFunctionWheel::none(),
-            emitter: NodeChannelFunctionEmitter::none(),
-            filter: NodeChannelFunctionFilter::none(),
-            mode_master: NodeChannelFunctionModeMaster::none(),
+            wheel: None,
+            emitter: None,
+            filter: None,
+            mode_master: None,
             mode_from: None,
             mode_to: None,
             channel_sets: HashMap::new(),
@@ -322,5 +392,39 @@ mod tests {
             </ChannelFunction>
             "#);
         Ok(())
+    }
+
+
+    #[test]
+    fn test_attribute_new_from_str() {
+        assert_eq!(Attribute::new_from_str("NoFeature").unwrap(), Attribute::NoFeature);
+        assert_eq!(Attribute::new_from_str("").unwrap(), Attribute::NoFeature);
+        assert_eq!(Attribute::new_from_str("Name1").unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string())])));
+        assert_eq!(Attribute::new_from_str("Name1.Name2").unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string()), Name("Name2".to_string())])));
+        assert!(Attribute::new_from_str("Name with invalid char {").is_err());
+        assert!(Attribute::new_from_str("Name with invalid char ȸ").is_err());
+    }
+
+    #[test]
+    fn test_attribute_new_from_attr_owned() {
+        assert_eq!(Attribute::new_from_attr(testdata::to_attr_owned(b"NoFeature")).unwrap(), Attribute::NoFeature);
+        assert_eq!(Attribute::new_from_attr(testdata::to_attr_owned(b"")).unwrap(), Attribute::NoFeature);
+        assert_eq!(Attribute::new_from_attr(testdata::to_attr_owned(b"Name1")).unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string())])));
+        assert_eq!(Attribute::new_from_attr(testdata::to_attr_owned(b"Name1.Name2")).unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string()), Name("Name2".to_string())])));
+        assert!(Attribute::new_from_attr(testdata::to_attr_owned(b"Name with invalid char {")).is_err());
+    }
+
+    #[test]
+    fn test_attribute_new_from_attr_borrowed() {
+        assert_eq!(Attribute::new_from_attr(testdata::to_attr_borrowed(b"NoFeature")).unwrap(), Attribute::NoFeature);
+        assert_eq!(Attribute::new_from_attr(testdata::to_attr_borrowed(b"")).unwrap(), Attribute::NoFeature);
+        assert_eq!(Attribute::new_from_attr(testdata::to_attr_borrowed(b"Name1")).unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string())])));
+        assert_eq!(Attribute::new_from_attr(testdata::to_attr_borrowed(b"Name1.Name2")).unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string()), Name("Name2".to_string())])));
+        assert!(Attribute::new_from_attr(testdata::to_attr_borrowed(b"Name with invalid char {")).is_err());
+    }
+
+    #[test]
+    fn test_attribute_default() {
+        assert_eq!(Attribute::NoFeature, Default::default());
     }
 }

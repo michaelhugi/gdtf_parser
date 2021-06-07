@@ -1,6 +1,5 @@
 //! Contains LogicalChannel and it's children
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::fmt::Debug;
 
 use quick_xml::events::{BytesStart, Event};
@@ -14,7 +13,7 @@ use crate::utils::deparse::DeparseSingle;
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
-use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
+use crate::utils::units::node::Node;
 
 pub mod channel_function;
 
@@ -22,7 +21,7 @@ pub mod channel_function;
 #[derive(Debug, PartialEq, Clone)]
 pub struct LogicalChannel {
     ///Link to the attribute; The starting point is the Attribute Collect
-    pub attribute: NodeLogicalChannelAttribute,
+    pub attribute: Option<Node>,
     ///If snap is enabled, the logical channel will not fade between values. Instead, it will jump directly to the new value.; Value: “Yes”, “No”, “On”, “Off”. Default value: “No”
     pub snap: Snap,
     ///Defines if all the subordinate channel functions react to a Group Control defined by the control system. Values: “None”, “Grand”, “Group”; Default value: “None”.
@@ -40,7 +39,7 @@ impl DeparseSingle for LogicalChannel {
 
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
-        let mut attribute: NodeLogicalChannelAttribute = Default::default();
+        let mut attribute = None;
         let mut snap: Snap = Snap::default();
         let mut master: Master = Master::default();
         let mut mib_fade: f32 = 0.;
@@ -50,7 +49,7 @@ impl DeparseSingle for LogicalChannel {
         for attr in e.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
-                b"Attribute" => attribute = attr.try_into()?,
+                b"Attribute" => attribute = Node::new_from_attr(attr)?,
                 b"Snap" => snap = Snap::new_from_attr(attr),
                 b"Master" => master = Master::new_from_attr(attr),
                 b"MibFade" => mib_fade = deparse::attr_to_f32(&attr),
@@ -255,25 +254,20 @@ impl Master {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
-    use std::convert::TryInto;
 
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::{LogicalChannel, Master, Snap};
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
+    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::{ChannelFunction, Attribute};
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
     use crate::utils::units::dmx_value::DmxValue;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::Node;
-    use crate::utils::units::node::node_channel_function_emitter::NodeChannelFunctionEmitter;
-    use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;
-    use crate::utils::units::node::node_channel_function_mode_master::NodeChannelFunctionModeMaster;
-    use crate::utils::units::node::node_channel_function_wheel::NodeChannelFunctionWheel;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {
         LogicalChannel {
-            attribute: "ColorSub_M".try_into().unwrap(),
+            attribute: Node::new_from_str("ColorSub_M").unwrap(),
             snap: Snap::Yes,
             master: Master::Grand,
             mib_fade: 0.1,
@@ -284,7 +278,7 @@ mod tests {
                     Name::new("NoFeature")?],
                 vec![
                     ChannelFunction {
-                        attribute: "ColorSub_M".try_into().unwrap(),
+                        attribute: Attribute::new_from_str("ColorSub_M")?,
                         original_attribute: "".to_string(),
                         dmx_from: DmxValue::new_from_str("0/1")?,
                         default: DmxValue::new_from_str("0/1")?,
@@ -292,16 +286,16 @@ mod tests {
                         physical_to: 1.0,
                         real_fade: 0.0,
                         real_acceleration: 0.0,
-                        wheel: NodeChannelFunctionWheel::none(),
-                        emitter: NodeChannelFunctionEmitter::none(),
-                        filter: NodeChannelFunctionFilter::new_from_str("Magenta")?,
-                        mode_master: NodeChannelFunctionModeMaster::new_from_str("Base_ColorMacro1")?,
+                        wheel: None,
+                        emitter: None,
+                        filter: Node::new_from_str("Magenta")?,
+                        mode_master: Node::new_from_str("Base_ColorMacro1")?,
                         mode_from: Some(DmxValue::new_from_str("0/1")?),
                         mode_to: Some(DmxValue::new_from_str("0/1")?),
                         channel_sets: HashMap::new(),
                     },
                     ChannelFunction {
-                        attribute: "NoFeature".try_into().unwrap(),
+                        attribute: Attribute::NoFeature,
                         original_attribute: "".to_string(),
                         dmx_from: DmxValue::new_from_str("0/1")?,
                         default: DmxValue::new_from_str("0/1")?,
@@ -309,10 +303,10 @@ mod tests {
                         physical_to: 1.0,
                         real_fade: 0.0,
                         real_acceleration: 0.0,
-                        wheel: NodeChannelFunctionWheel::none(),
-                        emitter: NodeChannelFunctionEmitter::none(),
-                        filter: NodeChannelFunctionFilter::none(),
-                        mode_master: NodeChannelFunctionModeMaster::new_from_str("Base_ColorMacro1")?,
+                        wheel: None,
+                        emitter: None,
+                        filter: None,
+                        mode_master: Node::new_from_str("Base_ColorMacro1")?,
                         mode_from: Some(DmxValue::new_from_str("1/1")?),
                         mode_to: Some(DmxValue::new_from_str("255/1")?),
                         channel_sets: HashMap::new(),
@@ -332,7 +326,7 @@ mod tests {
     #[test]
     fn test_min() -> Result<(), GdtfError> {
         LogicalChannel {
-            attribute: "".try_into().unwrap(),
+            attribute: None,
             snap: Snap::No,
             master: Master::None,
             mib_fade: 0.0,
@@ -344,7 +338,7 @@ mod tests {
                 ],
                 vec![
                     ChannelFunction {
-                        attribute: "ColorSub_M".try_into().unwrap(),
+                        attribute: Attribute::new_from_str("ColorSub_M")?,
                         original_attribute: "".to_string(),
                         dmx_from: DmxValue::new_from_str("0/1")?,
                         default: DmxValue::new_from_str("0/1")?,
@@ -352,16 +346,16 @@ mod tests {
                         physical_to: 1.0,
                         real_fade: 0.0,
                         real_acceleration: 0.0,
-                        wheel: NodeChannelFunctionWheel::none(),
-                        emitter: NodeChannelFunctionEmitter::none(),
-                        filter: NodeChannelFunctionFilter::new_from_str("Magenta")?,
-                        mode_master: NodeChannelFunctionModeMaster::new_from_str("Base_ColorMacro1")?,
+                        wheel: None,
+                        emitter: None,
+                        filter: Node::new_from_str("Magenta")?,
+                        mode_master: Node::new_from_str("Base_ColorMacro1")?,
                         mode_from: Some(DmxValue::new_from_str("0/1")?),
                         mode_to: Some(DmxValue::new_from_str("0/1")?),
                         channel_sets: HashMap::new(),
                     },
                     ChannelFunction {
-                        attribute: "NoFeature".try_into().unwrap(),
+                        attribute: Attribute::new_from_str("NoFeature")?,
                         original_attribute: "".to_string(),
                         dmx_from: DmxValue::new_from_str("0/1")?,
                         default: DmxValue::new_from_str("0/1")?,
@@ -369,10 +363,10 @@ mod tests {
                         physical_to: 1.0,
                         real_fade: 0.0,
                         real_acceleration: 0.0,
-                        wheel: NodeChannelFunctionWheel::none(),
-                        emitter: NodeChannelFunctionEmitter::none(),
-                        filter: NodeChannelFunctionFilter::none(),
-                        mode_master: NodeChannelFunctionModeMaster::new_from_str("Base_ColorMacro1")?,
+                        wheel: None,
+                        emitter: None,
+                        filter: None,
+                        mode_master: Node::new_from_str("Base_ColorMacro1")?,
                         mode_from: Some(DmxValue::new_from_str("1/1")?),
                         mode_to: Some(DmxValue::new_from_str("255/1")?),
                         channel_sets: HashMap::new(),

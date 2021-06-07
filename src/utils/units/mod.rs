@@ -5,5 +5,5 @@ pub mod physical_unit;
 pub mod guid;
 pub mod date;
 pub mod dmx_value;
-pub mod node;
 pub mod attribute_name;
+pub mod node;

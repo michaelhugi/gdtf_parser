@@ -167,8 +167,9 @@ mod tests {
     use crate::utils::units::attribute_name::AttributeName;
     use crate::utils::units::guid::Guid;
     use crate::utils::units::name::Name;
-    use crate::utils::units::node::node_attribute_feature::NodeAttributeFeature;
+
     use crate::utils::units::physical_unit::PhysicalUnit;
+    use crate::utils::units::node::Node;
 
     #[test]
     fn test_fixture_type() -> Result<(), GdtfError> {
@@ -191,7 +192,7 @@ mod tests {
                     Attribute::new(
                         "P",
                         Some("PanTilt"),
-                        NodeAttributeFeature::new_from_strs(vec!["Position", "PanTilt"])?,
+                        Node::new_from_str("Position.PanTilt")?,
                         None,
                         PhysicalUnit::Angle,
                         None)

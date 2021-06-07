@@ -89,8 +89,6 @@ impl TestDeparseSingle for AttributeDefinitions {}
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
     use crate::fixture_type::attribute_definitions::attribute::Attribute;
     use crate::fixture_type::attribute_definitions::AttributeDefinitions;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
@@ -100,6 +98,7 @@ mod tests {
     use crate::utils::units::attribute_name::AttributeName;
     use crate::utils::units::name::Name;
     use crate::utils::units::physical_unit::PhysicalUnit;
+    use crate::utils::units::node::Node;
 
     #[test]
     fn test_some() -> Result<(), GdtfError> {
@@ -120,14 +119,14 @@ mod tests {
                 Attribute {
                     pretty: "P".to_string(),
                     activation_group: Some("PanTilt".to_string()),
-                    feature: "Position.PanTilt".try_into()?,
+                    feature: Node::new_from_str("Position.PanTilt")?,
                     main_attribute: None,
                     physical_unit: PhysicalUnit::Angle,
                     color: None,
                 },
                 Attribute {
                     activation_group: Some("PanTilt".to_string()),
-                    feature: "Position.PanTilt".try_into()?,
+                    feature: Node::new_from_str("Position.PanTilt")?,
                     physical_unit: PhysicalUnit::Angle,
                     pretty: "T".to_string(),
                     main_attribute: None,
@@ -135,7 +134,7 @@ mod tests {
                 },
                 Attribute {
                     activation_group: Some("Gobo1".to_string()),
-                    feature: "Gobo.Gobo".try_into()?,
+                    feature: Node::new_from_str("Gobo.Gobo")?,
                     physical_unit: PhysicalUnit::None,
                     pretty: "G1".to_string(),
                     main_attribute: None,
@@ -189,14 +188,14 @@ mod tests {
                 Attribute {
                     pretty: "".to_string(),
                     activation_group: None,
-                    feature: "".try_into()?,
+                    feature:  Node::new_from_str("")?,
                     main_attribute: None,
                     physical_unit: PhysicalUnit::None,
                     color: None,
                 },
                 Attribute {
                     activation_group: None,
-                    feature: "".try_into()?,
+                    feature:  Node::new_from_str("")?,
 
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
@@ -205,7 +204,7 @@ mod tests {
                 },
                 Attribute {
                     activation_group: None,
-                    feature: "".try_into()?,
+                    feature:  Node::new_from_str("")?,
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
                     main_attribute: None,
@@ -259,14 +258,14 @@ mod tests {
                 Attribute {
                     pretty: "".to_string(),
                     activation_group: None,
-                    feature: "".try_into()?,
+                    feature:  None,
                     main_attribute: None,
                     physical_unit: PhysicalUnit::None,
                     color: None,
                 },
                 Attribute {
                     activation_group: None,
-                    feature: "".try_into()?,
+                    feature:  None,
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
                     main_attribute: None,
@@ -274,7 +273,7 @@ mod tests {
                 },
                 Attribute {
                     activation_group: None,
-                    feature: "".try_into()?,
+                    feature:  None,
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
                     main_attribute: None,
