@@ -122,18 +122,16 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::fixture_type::dmx_mode::dmx_channel::DmxChannel;
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
+    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::{LogicalChannel, Snap, Master};
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
     use crate::utils::units::attribute_name::AttributeName;
     use crate::utils::units::dmx_channel_dmx_break::DmxChannelDmxBreak;
     use crate::utils::units::dmx_value::DmxValue;
-    use crate::utils::units::logical_channel_master::LogicalChannelMaster;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::node_dmx_channel_initial_function::NodeDmxChannelInitialFunction;
     use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
     use crate::utils::units::dmx_channel_offset::DmxChannelOffset;
-    use crate::utils::units::logical_channel_snap::LogicalChannelSnap;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {
@@ -150,8 +148,8 @@ mod tests {
             logical_channels: vec![
                 LogicalChannel {
                     attribute: NodeLogicalChannelAttribute::new_from_attribute_names(vec![AttributeName::Shutter_n_(1)])?,
-                    snap: LogicalChannelSnap::No,
-                    master: LogicalChannelMaster::None,
+                    snap: Snap::No,
+                    master: Master::None,
                     mib_fade: 0.0,
                     dmx_change_time_limit: 0.0,
                     channel_functions: HashMap::new(),
@@ -182,8 +180,8 @@ mod tests {
             logical_channels: vec![
                 LogicalChannel {
                     attribute: NodeLogicalChannelAttribute::new_from_attribute_names(vec![AttributeName::Shutter_n_(1)])?,
-                    snap: LogicalChannelSnap::No,
-                    master: LogicalChannelMaster::None,
+                    snap: Snap::No,
+                    master: Master::None,
                     mib_fade: 0.0,
                     dmx_change_time_limit: 0.0,
                     channel_functions: HashMap::new(),
@@ -214,8 +212,8 @@ mod tests {
             logical_channels: vec![
                 LogicalChannel {
                     attribute: NodeLogicalChannelAttribute::new_from_attribute_names(vec![AttributeName::Shutter_n_(1)])?,
-                    snap: LogicalChannelSnap::No,
-                    master: LogicalChannelMaster::None,
+                    snap: Snap::No,
+                    master: Master::None,
                     mib_fade: 0.0,
                     dmx_change_time_limit: 0.0,
                     channel_functions: HashMap::new(),
@@ -242,16 +240,16 @@ mod tests {
             logical_channels: vec![
                 LogicalChannel {
                     attribute: NodeLogicalChannelAttribute::new_from_attribute_names(vec![AttributeName::Shutter_n_(1)])?,
-                    snap: LogicalChannelSnap::No,
-                    master: LogicalChannelMaster::None,
+                    snap: Snap::No,
+                    master: Master::None,
                     mib_fade: 0.0,
                     dmx_change_time_limit: 0.0,
                     channel_functions: HashMap::new(),
                 },
                 LogicalChannel {
                     attribute: NodeLogicalChannelAttribute::new_from_attribute_names(vec![AttributeName::Shutter_n_(1)])?,
-                    snap: LogicalChannelSnap::Yes,
-                    master: LogicalChannelMaster::None,
+                    snap: Snap::Yes,
+                    master: Master::None,
                     mib_fade: 0.0,
                     dmx_change_time_limit: 0.0,
                     channel_functions: HashMap::new(),

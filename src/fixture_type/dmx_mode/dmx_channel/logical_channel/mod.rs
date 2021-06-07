@@ -4,6 +4,7 @@ use std::convert::TryInto;
 use std::fmt::Debug;
 
 use quick_xml::events::{BytesStart, Event};
+use quick_xml::events::attributes::Attribute;
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
@@ -12,10 +13,8 @@ use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::units::logical_channel_master::LogicalChannelMaster;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::node_logical_channel_attribute::NodeLogicalChannelAttribute;
-use crate::utils::units::logical_channel_snap::LogicalChannelSnap;
 
 pub mod channel_function;
 
@@ -25,9 +24,9 @@ pub struct LogicalChannel {
     ///Link to the attribute; The starting point is the Attribute Collect
     pub attribute: NodeLogicalChannelAttribute,
     ///If snap is enabled, the logical channel will not fade between values. Instead, it will jump directly to the new value.; Value: “Yes”, “No”, “On”, “Off”. Default value: “No”
-    pub snap: LogicalChannelSnap,
+    pub snap: Snap,
     ///Defines if all the subordinate channel functions react to a Group Control defined by the control system. Values: “None”, “Grand”, “Group”; Default value: “None”.
-    pub master: LogicalChannelMaster,
+    pub master: Master,
     ///Minimum fade time for moves in black action. MibFade is defined for the complete DMX range. Default value: 0; Unit: second
     pub mib_fade: f32,
     ///Minimum fade time for the subordinate channel functions to change DMX values by the control system. DMXChangeTimeLimit is defined for the complete DMX range. Default value: 0; Unit: second
@@ -42,8 +41,8 @@ impl DeparseSingle for LogicalChannel {
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut attribute: NodeLogicalChannelAttribute = Default::default();
-        let mut snap: LogicalChannelSnap = LogicalChannelSnap::default();
-        let mut master: LogicalChannelMaster = LogicalChannelMaster::default();
+        let mut snap: Snap = Snap::default();
+        let mut master: Master = Master::default();
         let mut mib_fade: f32 = 0.;
         let mut dmx_change_time_limit: f32 = 0.;
         let mut channel_functions: HashMap<Name, ChannelFunction> = HashMap::new();
@@ -52,8 +51,8 @@ impl DeparseSingle for LogicalChannel {
             let attr = attr?;
             match attr.key {
                 b"Attribute" => attribute = attr.try_into()?,
-                b"Snap" => snap = LogicalChannelSnap::new_from_attr(attr),
-                b"Master" => master = LogicalChannelMaster::new_from_attr(attr),
+                b"Snap" => snap = Snap::new_from_attr(attr),
+                b"Master" => master = Master::new_from_attr(attr),
                 b"MibFade" => mib_fade = deparse::attr_to_f32(&attr),
                 b"DMXChangeTimeLimit" => dmx_change_time_limit = deparse::attr_to_f32(&attr),
                 _ => {}
@@ -111,32 +110,172 @@ impl DeparseSingle for LogicalChannel {
 #[cfg(test)]
 impl TestDeparseSingle for LogicalChannel {}
 
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// Start of Snap
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+
+///Snap representation for Snap for LogicalChannel used in GDTF
+/// If snap is enabled, the logical channel will not fade between values. Instead, it will jump directly to the new value
+#[derive(Debug, PartialEq, Clone)]
+pub enum Snap {
+    No,
+    Yes,
+    On,
+    Off,
+}
+
+///```rust
+/// use gdtf_parser::fixture_type::dmx_mode::dmx_channel::logical_channel::Snap;
+///
+/// assert_eq!(Snap::No, Default::default());
+/// ```
+impl Default for Snap {
+    fn default() -> Self {
+        Snap::No
+    }
+}
+
+impl Snap {
+    ///Creates a new snap from a string defined in gdtf-xml
+    ///## Examples
+    /// ```rust
+    /// use gdtf_parser::fixture_type::dmx_mode::dmx_channel::logical_channel::Snap;
+    ///
+    /// assert_eq!(Snap::No,Snap::new_from_str("No"));
+    /// assert_eq!(Snap::Yes,Snap::new_from_str("Yes"));
+    /// assert_eq!(Snap::On,Snap::new_from_str("On"));
+    /// assert_eq!(Snap::Off,Snap::new_from_str("Off"));
+    /// assert_eq!(Snap::No,Snap::new_from_str("Anything else"));
+    /// ```
+    pub fn new_from_str(s: &str) -> Self {
+        use Snap::*;
+        match s {
+            "No" => No,
+            "Yes" => Yes,
+            "On" => On,
+            "Off" => Off,
+            _ => Default::default()
+        }
+    }
+    ///Creates a new snap from an xml attribute deparsed by quick-xml
+    /// ## Examples
+    /// ```rust
+    /// use quick_xml::events::attributes::Attribute;
+    /// use std::borrow::Cow;
+    /// use gdtf_parser::fixture_type::dmx_mode::dmx_channel::logical_channel::Snap;
+    ///
+    /// assert_eq!(Snap::No,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"No") }));
+    /// assert_eq!(Snap::Yes,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"Yes") }));
+    /// assert_eq!(Snap::On,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"On") }));
+    /// assert_eq!(Snap::Off,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"Off") }));
+    /// assert_eq!(Snap::No,Snap::new_from_attr(Attribute { key: &[], value: Cow::Borrowed(b"Anything else") }));
+    /// ```
+
+    pub fn new_from_attr(attr: Attribute) -> Self {
+        Self::new_from_str(deparse::attr_to_str(&attr))
+    }
+}
+
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// End of Snap
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// Start of Master
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+
+///Master representation for logicalChannel in GDTF
+///Defines if all the subordinate channel functions react to a Group Control defined by the control system
+#[derive(Debug, PartialEq, Clone)]
+pub enum Master {
+    None,
+    Grand,
+    Group,
+}
+
+///```rust
+/// use gdtf_parser::fixture_type::dmx_mode::dmx_channel::logical_channel::Master;
+///
+/// assert_eq!(Master::None, Default::default());
+///```
+impl Default for Master {
+    fn default() -> Self {
+        Master::None
+    }
+}
+
+impl Master {
+    ///Parses a string defined in gdtf-xml-description to a Master
+    /// ```rust
+    /// use gdtf_parser::fixture_type::dmx_mode::dmx_channel::logical_channel::Master;
+    ///
+    /// assert_eq!(Master::None, Master::new_from_str("None"));
+    /// assert_eq!(Master::Grand, Master::new_from_str("Grand"));
+    /// assert_eq!(Master::Group, Master::new_from_str("Group"));
+    /// assert_eq!(Master::None, Master::new_from_str("Anything strange like ȸ"));
+    /// ```
+    pub fn new_from_str(s: &str) -> Self {
+        use Master::*;
+        match s {
+            "Grand" => Grand,
+            "Group" => Group,
+            _ => None
+        }
+    }
+
+    ///Parses a quick-xml-attribute defined in gdtf-xml-description to a Master
+    /// ```rust
+    /// use quick_xml::events::attributes::Attribute;
+    /// use std::borrow::Cow;
+    /// use gdtf_parser::fixture_type::dmx_mode::dmx_channel::logical_channel::Master;
+    ///
+    /// assert_eq!(Master::None, Master::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"None")}));
+    /// assert_eq!(Master::Grand, Master::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Grand")}));
+    /// assert_eq!(Master::Group, Master::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Group")}));
+    /// assert_eq!(Master::None, Master::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Anything strange like {")}));
+    /// ```
+    pub fn new_from_attr(attr: Attribute<'_>) -> Self {
+        Self::new_from_str(deparse::attr_to_str(&attr))
+    }
+}
+
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// End of Master
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
     use std::convert::TryInto;
 
+    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::{LogicalChannel, Master, Snap};
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
     use crate::utils::units::dmx_value::DmxValue;
-    use crate::utils::units::logical_channel_master::LogicalChannelMaster;
     use crate::utils::units::name::Name;
+    use crate::utils::units::node::Node;
     use crate::utils::units::node::node_channel_function_emitter::NodeChannelFunctionEmitter;
     use crate::utils::units::node::node_channel_function_filter::NodeChannelFunctionFilter;
     use crate::utils::units::node::node_channel_function_mode_master::NodeChannelFunctionModeMaster;
     use crate::utils::units::node::node_channel_function_wheel::NodeChannelFunctionWheel;
-    use crate::utils::units::logical_channel_snap::LogicalChannelSnap;
-    use crate::utils::units::node::Node;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {
         LogicalChannel {
             attribute: "ColorSub_M".try_into().unwrap(),
-            snap: LogicalChannelSnap::Yes,
-            master: LogicalChannelMaster::Grand,
+            snap: Snap::Yes,
+            master: Master::Grand,
             mib_fade: 0.1,
             dmx_change_time_limit: 0.0,
             channel_functions: testdata::vec_to_hash_map(
@@ -194,8 +333,8 @@ mod tests {
     fn test_min() -> Result<(), GdtfError> {
         LogicalChannel {
             attribute: "".try_into().unwrap(),
-            snap: LogicalChannelSnap::No,
-            master: LogicalChannelMaster::None,
+            snap: Snap::No,
+            master: Master::None,
             mib_fade: 0.0,
             dmx_change_time_limit: 0.0,
             channel_functions: testdata::vec_to_hash_map(
@@ -248,5 +387,68 @@ mod tests {
             </LogicalChannel>
             "#);
         Ok(())
+    }
+
+    #[test]
+    fn test_snap_new_from_str() {
+        assert_eq!(Snap::No, Snap::new_from_str("No"));
+        assert_eq!(Snap::Yes, Snap::new_from_str("Yes"));
+        assert_eq!(Snap::On, Snap::new_from_str("On"));
+        assert_eq!(Snap::Off, Snap::new_from_str("Off"));
+        assert_eq!(Snap::No, Snap::new_from_str("Anything else"));
+    }
+
+    #[test]
+    fn test_snap_new_from_attr_owned() {
+        assert_eq!(Snap::No, Snap::new_from_attr(testdata::to_attr_owned(b"No")));
+        assert_eq!(Snap::Yes, Snap::new_from_attr(testdata::to_attr_owned(b"Yes")));
+        assert_eq!(Snap::On, Snap::new_from_attr(testdata::to_attr_owned(b"On")));
+        assert_eq!(Snap::Off, Snap::new_from_attr(testdata::to_attr_owned(b"Off")));
+        assert_eq!(Snap::No, Snap::new_from_attr(testdata::to_attr_owned(b"Anything else")));
+    }
+
+    #[test]
+    fn test_snap_new_from_attr_borrowed() {
+        assert_eq!(Snap::No, Snap::new_from_attr(testdata::to_attr_borrowed(b"No")));
+        assert_eq!(Snap::Yes, Snap::new_from_attr(testdata::to_attr_borrowed(b"Yes")));
+        assert_eq!(Snap::On, Snap::new_from_attr(testdata::to_attr_borrowed(b"On")));
+        assert_eq!(Snap::Off, Snap::new_from_attr(testdata::to_attr_borrowed(b"Off")));
+        assert_eq!(Snap::No, Snap::new_from_attr(testdata::to_attr_borrowed(b"Anything else")));
+    }
+
+
+    #[test]
+    fn test_snap_default() {
+        assert_eq!(Snap::No, Default::default());
+    }
+
+
+    #[test]
+    fn test_master_default() {
+        assert_eq!(Master::None, Default::default())
+    }
+
+    #[test]
+    fn test_master_new_from_str() {
+        assert_eq!(Master::None, Master::new_from_str("None"));
+        assert_eq!(Master::Grand, Master::new_from_str("Grand"));
+        assert_eq!(Master::Group, Master::new_from_str("Group"));
+        assert_eq!(Master::None, Master::new_from_str("Anything strange like ȸ"));
+    }
+
+    #[test]
+    fn test_master_new_from_attr_owned() {
+        assert_eq!(Master::None, Master::new_from_attr(testdata::to_attr_owned(b"None")));
+        assert_eq!(Master::Grand, Master::new_from_attr(testdata::to_attr_owned(b"Grand")));
+        assert_eq!(Master::Group, Master::new_from_attr(testdata::to_attr_owned(b"Group")));
+        assert_eq!(Master::None, Master::new_from_attr(testdata::to_attr_owned(b"Anything strange like {")));
+    }
+
+    #[test]
+    fn test_master_new_from_attr_borrowed() {
+        assert_eq!(Master::None, Master::new_from_attr(testdata::to_attr_borrowed(b"None")));
+        assert_eq!(Master::Grand, Master::new_from_attr(testdata::to_attr_borrowed(b"Grand")));
+        assert_eq!(Master::Group, Master::new_from_attr(testdata::to_attr_borrowed(b"Group")));
+        assert_eq!(Master::None, Master::new_from_attr(testdata::to_attr_borrowed(b"Anything strange like {")));
     }
 }
