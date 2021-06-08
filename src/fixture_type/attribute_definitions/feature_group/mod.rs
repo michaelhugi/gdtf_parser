@@ -101,8 +101,8 @@ mod tests {
         FeatureGroup {
             pretty: "PositionPretty".to_string(),
             features: vec![],
-        }.test(Some(Name::new("Position")?),
-               r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
+        }.compare_to_primary_key_and_xml(Some(Name::new("Position")?),
+                                         r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
               </FeatureGroup>"#,
         );
         Ok(())
@@ -113,8 +113,8 @@ mod tests {
         FeatureGroup {
             pretty: "".to_string(),
             features: vec![],
-        }.test(Some(Name::new("")?),
-               r#"<FeatureGroup Name="" Pretty="">
+        }.compare_to_primary_key_and_xml(Some(Name::new("")?),
+                                         r#"<FeatureGroup Name="" Pretty="">
               </FeatureGroup>"#,
         );
         Ok(())
@@ -125,8 +125,8 @@ mod tests {
         FeatureGroup {
             pretty: "".to_string(),
             features: vec![],
-        }.test(Some(Name::new("")?),
-               r#"<FeatureGroup/>"#,
+        }.compare_to_primary_key_and_xml(Some(Name::new("")?),
+                                         r#"<FeatureGroup/>"#,
         );
         Ok(())
     }
@@ -136,8 +136,8 @@ mod tests {
         FeatureGroup {
             pretty: "PositionPretty".to_string(),
             features: vec![Name::new("PanTilt")?],
-        }.test(Some(Name::new("Position")?),
-               r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
+        }.compare_to_primary_key_and_xml(Some(Name::new("Position")?),
+                                         r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
               <Feature Name="PanTilt"/>
               </FeatureGroup>"#,
         );
@@ -149,8 +149,8 @@ mod tests {
         FeatureGroup {
             pretty: "".to_string(),
             features: vec![Name::new("")?],
-        }.test(Some(Name::new("")?),
-               r#"<FeatureGroup Name="" Pretty="">
+        }.compare_to_primary_key_and_xml(Some(Name::new("")?),
+                                         r#"<FeatureGroup Name="" Pretty="">
               <Feature Name=""/>
               </FeatureGroup>"#,
         );
@@ -162,8 +162,8 @@ mod tests {
         FeatureGroup {
             pretty: "".to_string(),
             features: vec![Name::new("")?],
-        }.test(Some(Name::new("")?),
-               r#"<FeatureGroup>
+        }.compare_to_primary_key_and_xml(Some(Name::new("")?),
+                                         r#"<FeatureGroup>
               <Feature/>
               </FeatureGroup>"#,
         );
@@ -176,8 +176,8 @@ mod tests {
         FeatureGroup {
             pretty: "PositionPretty".to_string(),
             features: vec![Name::new("PanTilt")?, Name::new("Other")?],
-        }.test(Some(Name::new("Position")?),
-               r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
+        }.compare_to_primary_key_and_xml(Some(Name::new("Position")?),
+                                         r#"<FeatureGroup Name="Position" Pretty="PositionPretty">
               <Feature Name="PanTilt"/>
               <Feature Name="Other"/>
               </FeatureGroup>"#,
@@ -190,8 +190,8 @@ mod tests {
         FeatureGroup {
             pretty: "".to_string(),
             features: vec![Name::new("")?, Name::new("")?],
-        }.test(Some(Name::new("")?),
-               r#"<FeatureGroup Name="" Pretty="">
+        }.compare_to_primary_key_and_xml(Some(Name::new("")?),
+                                         r#"<FeatureGroup Name="" Pretty="">
               <Feature Name=""/>
               <Feature Name=""/>
               </FeatureGroup>"#,
@@ -204,8 +204,8 @@ mod tests {
         FeatureGroup {
             pretty: "".to_string(),
             features: vec![Name::new("")?, Name::new("")?],
-        }.test(Some(Name::new("")?),
-               r#"<FeatureGroup>
+        }.compare_to_primary_key_and_xml(Some(Name::new("")?),
+                                         r#"<FeatureGroup>
               <Feature/>
               <Feature/>
               </FeatureGroup>"#,
@@ -302,7 +302,7 @@ mod tests {
 
     #[test]
     fn test_feature_group_faulty() {
-        match FeatureGroup::single_from_xml(
+        match FeatureGroup::read_single_from_xml(
             r#"FeatureGroup >
                      <Feature/>
                      </FeatureGroup>"#

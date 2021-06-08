@@ -115,8 +115,8 @@ mod tests {
                     logical_channels: vec![],
                 }
             ],
-        }.test(Some(Name::new("Mode 1 12 DMX")?),
-               r#"
+        }.compare_to_primary_key_and_xml(Some(Name::new("Mode 1 12 DMX")?),
+                                         r#"
       <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
         <DMXChannels>
           <DMXChannel DMXBreak="Overwrite" Default="32768/2" Geometry="Yoke" Highlight="None" Offset="1,2">

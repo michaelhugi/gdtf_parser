@@ -140,8 +140,8 @@ mod tests {
                 Name::new("PanTilt")?,
                 Name::new("Gobo1")?
             ],
-        }.test(None,
-               r#"
+        }.compare_to_primary_key_and_xml(None,
+                                         r#"
     <AttributeDefinitions>
         <ActivationGroups>
             <ActivationGroup Name="PanTilt"/>
@@ -210,8 +210,8 @@ mod tests {
                 Name::new("")?,
                 Name::new("")?
             ],
-        }.test(None,
-               r#"
+        }.compare_to_primary_key_and_xml(None,
+                                         r#"
     <AttributeDefinitions>
         <ActivationGroups>
             <ActivationGroup Name=""/>
@@ -279,8 +279,8 @@ mod tests {
                 Name::new("")?,
                 Name::new("")?
             ],
-        }.test(None,
-               r#"
+        }.compare_to_primary_key_and_xml(None,
+                                         r#"
     <AttributeDefinitions>
         <ActivationGroups>
             <ActivationGroup />
@@ -307,7 +307,7 @@ mod tests {
 
     #[test]
     fn test_faulty() {
-        match AttributeDefinitions::single_from_xml(
+        match AttributeDefinitions::read_single_from_xml(
             r#"
     <AttributeDefinitions>
         <ActivationGroups>
@@ -338,7 +338,7 @@ mod tests {
 
     #[test]
     fn test_faulty_child() {
-        match AttributeDefinitions::single_from_xml(
+        match AttributeDefinitions::read_single_from_xml(
             r#"
     <AttributeDefinitions>
         <ActivationGroups>

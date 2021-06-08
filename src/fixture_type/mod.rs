@@ -122,11 +122,11 @@ impl DeparseSingle for FixtureType {
         buf.clear();
 
         if attribute_definitions.is_none() {
-            return Err(GdtfDeparseError::new_xml_node_not_found(AttributeDefinitions::NODE_NAME))?;
+            return Err(GdtfDeparseError::new_xml_node_not_found(AttributeDefinitions::NODE_NAME).into());
         }
         let attribute_definitions = attribute_definitions.unwrap();
         if dmx_modes.is_none() {
-            return Err(GdtfDeparseError::new_xml_node_not_found(DmxMode::NODE_NAME))?;
+            return Err(GdtfDeparseError::new_xml_node_not_found(DmxMode::NODE_NAME).into());
         }
         let dmx_modes = dmx_modes.unwrap();
 
@@ -196,8 +196,8 @@ mod tests {
                 dmx_channels: vec![],
             }]),
 
-        }.test(None,
-               r#"
+        }.compare_to_primary_key_and_xml(None,
+                                         r#"
         <FixtureType Description="ACME AE-610 BEAM" FixtureTypeID="E62F2ECF-2A08-491D-BEEC-F5C491B89784" LongName="ACME AE 610 BEAM" Manufacturer="ACME" Name="ACME AE-610 BEAM" RefFT="8F54E11C-4C91-11E9-80BC-F1DFE217E634" ShortName="ACME AE 610 BEAM" Thumbnail="AE-610 BEAM">
             <AttributeDefinitions>
                     <ActivationGroups>

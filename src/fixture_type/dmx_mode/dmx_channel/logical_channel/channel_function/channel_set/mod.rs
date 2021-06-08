@@ -75,8 +75,8 @@ mod tests {
             physical_from: Some(23.1),
             physical_to: Some(23.4),
             wheel_slot_index: Some(0),
-        }.test(Some(Name::new("Slow")?),
-               r#"<ChannelSet DMXFrom="55/1" Name="Slow" WheelSlotIndex="0" PhysicalFrom="23.1" PhysicalTo="23.4" />"#);
+        }.compare_to_primary_key_and_xml(Some(Name::new("Slow")?),
+                                         r#"<ChannelSet DMXFrom="55/1" Name="Slow" WheelSlotIndex="0" PhysicalFrom="23.1" PhysicalTo="23.4" />"#);
         Ok(())
     }
 
@@ -91,8 +91,8 @@ mod tests {
             physical_from: None,
             physical_to: None,
             wheel_slot_index: None,
-        }.test(Some(Name::new("Slow")?),
-               r#"<ChannelSet DMXFrom="55/2s" Name="Slow"/>"#);
+        }.compare_to_primary_key_and_xml(Some(Name::new("Slow")?),
+                                         r#"<ChannelSet DMXFrom="55/2s" Name="Slow"/>"#);
         Ok(())
     }
 
@@ -107,13 +107,13 @@ mod tests {
             physical_from: None,
             physical_to: None,
             wheel_slot_index: None,
-        }.test(Some(Name::new("Slow")?),
-               r#"<ChannelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#);
+        }.compare_to_primary_key_and_xml(Some(Name::new("Slow")?),
+                                         r#"<ChannelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#);
         Ok(())
     }
 
     #[test]
     fn test_invald() {
-        assert!(ChannelSet::single_from_xml(r#"<ChnnelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#).is_err());
+        assert!(ChannelSet::read_single_from_xml(r#"<ChnnelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#).is_err());
     }
 }

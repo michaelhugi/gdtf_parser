@@ -302,8 +302,8 @@ mod tests {
                     channel_functions: HashMap::new(),
                 }
             ],
-        }.test(None,
-               r#"
+        }.compare_to_primary_key_and_xml(None,
+                                         r#"
             <DMXChannel DMXBreak="1" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1">
                 <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
             </DMXChannel>
@@ -334,8 +334,8 @@ mod tests {
                     channel_functions: HashMap::new(),
                 }
             ],
-        }.test(None,
-               r#"
+        }.compare_to_primary_key_and_xml(None,
+                                         r#"
             <DMXChannel DMXBreak="2" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1,2">
                 <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
             </DMXChannel>
@@ -366,8 +366,8 @@ mod tests {
                     channel_functions: HashMap::new(),
                 }
             ],
-        }.test(None,
-               r#"
+        }.compare_to_primary_key_and_xml(None,
+                                         r#"
             <DMXChannel DMXBreak="Overwrite" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1,2">
                 <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
             </DMXChannel>
@@ -402,8 +402,8 @@ mod tests {
                     channel_functions: HashMap::new(),
                 }
             ],
-        }.test(None,
-               r#"
+        }.compare_to_primary_key_and_xml(None,
+                                         r#"
             <DMXChannel DMXBreak="" Geometry="" Highlight="" InitialFunction="" Offset="">
                 <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
                 <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="Yes"></LogicalChannel>
@@ -422,8 +422,8 @@ mod tests {
             highlight: None,
             geometry: Name::new("")?,
             logical_channels: vec![],
-        }.test(None,
-               r#"
+        }.compare_to_primary_key_and_xml(None,
+                                         r#"
             <DMXChannel>
             </DMXChannel>
             "#,

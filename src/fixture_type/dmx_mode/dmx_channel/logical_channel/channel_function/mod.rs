@@ -300,8 +300,8 @@ mod tests {
                     wheel_slot_index: Some(0),
                 },
             ]),
-        }.test(Some(Name::new("Magenta")?),
-               r#"
+        }.compare_to_primary_key_and_xml(Some(Name::new("Magenta")?),
+                                         r#"
             <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" ModeFrom="0/1" ModeMaster="Base_ColorMacro1" ModeTo="0/1" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
                 <ChannelSet DMXFrom="0/1" Name="min" WheelSlotIndex="0"/>
                 <ChannelSet DMXFrom="1/1" Name="" WheelSlotIndex="0"/>
@@ -329,8 +329,8 @@ mod tests {
             mode_from: Some(DmxValue::new_from_str("0/1")?),
             mode_to: Some(DmxValue::new_from_str("0/1")?),
             channel_sets: HashMap::new(),
-        }.test(Some(Name::new("Magenta")?),
-               r#"
+        }.compare_to_primary_key_and_xml(Some(Name::new("Magenta")?),
+                                         r#"
             <ChannelFunction Wheel="Wheel1" Emitter="Emitter1" Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" ModeFrom="0/1" ModeMaster="Base_ColorMacro1" ModeTo="0/1" Name="Magenta" OriginalAttribute="orig" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="4.001000" RealFade="3.000000">
             </ChannelFunction>
             "#);
@@ -355,8 +355,8 @@ mod tests {
             mode_from: None,
             mode_to: None,
             channel_sets: HashMap::new(),
-        }.test(Some(Name::new("Magenta")?),
-               r#"
+        }.compare_to_primary_key_and_xml(Some(Name::new("Magenta")?),
+                                         r#"
             <ChannelFunction Wheel="" Emitter="" Filter="" ModeFrom="" ModeMaster="" ModeTo=""  Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Name="Magenta" OriginalAttribute="orig" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="4.001000" RealFade="3.000000">
             </ChannelFunction>
             "#);
@@ -381,8 +381,8 @@ mod tests {
             mode_from: None,
             mode_to: None,
             channel_sets: HashMap::new(),
-        }.test(Some(Name::new("Magenta")?),
-               r#"
+        }.compare_to_primary_key_and_xml(Some(Name::new("Magenta")?),
+                                         r#"
             <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Name="Magenta" OriginalAttribute="orig" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="4.001000" RealFade="3.000000">
             </ChannelFunction>
             "#);

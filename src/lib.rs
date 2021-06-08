@@ -137,7 +137,7 @@ impl DeparseSingle for Gdtf {
             }
         }
         buf.clear();
-        Err(GdtfDeparseError::new_xml_node_not_found(FixtureType::NODE_NAME))?
+        Err(GdtfDeparseError::new_xml_node_not_found(FixtureType::NODE_NAME).into())
     }
 }
 
@@ -180,7 +180,7 @@ impl TryFrom<&Path> for Gdtf {
             };
         }
         buf.clear();
-        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME).into())
     }
 }
 

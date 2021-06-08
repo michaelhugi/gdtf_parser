@@ -115,8 +115,8 @@ mod tests {
                 y: 0.329000,
                 Y: 100.000000,
             }),
-        }.test(Some(AttributeName::UserDefined(Name::new("Sound")?)),
-               r#"<Attribute Color="0.312700,0.329000,100.000000" Feature="Control.Control" Name="Sound" PhysicalUnit="Angle" Pretty="SoundP" ActivationGroup="Gobo1"  MainAttribute="Gobo1M" />"#,
+        }.compare_to_primary_key_and_xml(Some(AttributeName::UserDefined(Name::new("Sound")?)),
+                                         r#"<Attribute Color="0.312700,0.329000,100.000000" Feature="Control.Control" Name="Sound" PhysicalUnit="Angle" Pretty="SoundP" ActivationGroup="Gobo1"  MainAttribute="Gobo1M" />"#,
         );
         Ok(())
     }
@@ -134,8 +134,8 @@ mod tests {
                 y: 0.329000,
                 Y: 100.000000,
             }),
-        }.test(Some(AttributeName::Effects_n_Adjust_m_(2, 4)),
-               r#"<Attribute Color="0.312700,0.329000,100.000000" Feature="Control.Control" Name="Effects2Adjust4" PhysicalUnit="Angle" Pretty="SoundP" ActivationGroup="Gobo1"  MainAttribute="Gobo1M" />"#,
+        }.compare_to_primary_key_and_xml(Some(AttributeName::Effects_n_Adjust_m_(2, 4)),
+                                         r#"<Attribute Color="0.312700,0.329000,100.000000" Feature="Control.Control" Name="Effects2Adjust4" PhysicalUnit="Angle" Pretty="SoundP" ActivationGroup="Gobo1"  MainAttribute="Gobo1M" />"#,
         );
         Ok(())
     }
@@ -149,8 +149,8 @@ mod tests {
             main_attribute: None,
             physical_unit: PhysicalUnit::Angle,
             color: None,
-        }.test(Some(AttributeName::UserDefined(Name::new("Sound")?)),
-               r#"<Attribute Feature="Control.Control" Name="Sound" PhysicalUnit="Angle" Pretty="SoundP"/>"#,
+        }.compare_to_primary_key_and_xml(Some(AttributeName::UserDefined(Name::new("Sound")?)),
+                                         r#"<Attribute Feature="Control.Control" Name="Sound" PhysicalUnit="Angle" Pretty="SoundP"/>"#,
         );
         Ok(())
     }
@@ -164,8 +164,8 @@ mod tests {
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
-        }.test(Some(AttributeName::UserDefined(Name::new("")?)),
-               r#"<Attribute Feature="" Name="" MainAttribute="" ActivationGroup="" PhysicalUnit="" Pretty=""/>"#,
+        }.compare_to_primary_key_and_xml(Some(AttributeName::UserDefined(Name::new("")?)),
+                                         r#"<Attribute Feature="" Name="" MainAttribute="" ActivationGroup="" PhysicalUnit="" Pretty=""/>"#,
         );
         Ok(())
     }
@@ -179,14 +179,14 @@ mod tests {
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
-        }.test(Some(AttributeName::UserDefined(Name::new("")?)),
-               r#"<Attribute/>"#,
+        }.compare_to_primary_key_and_xml(Some(AttributeName::UserDefined(Name::new("")?)),
+                                         r#"<Attribute/>"#,
         );
         Ok(())
     }
 
     #[test]
     fn test_faulty() {
-        assert!(Attribute::single_from_xml(r#"<ttribute"#).is_err());
+        assert!(Attribute::read_single_from_xml(r#"<ttribute"#).is_err());
     }
 }
