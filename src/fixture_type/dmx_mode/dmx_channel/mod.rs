@@ -106,7 +106,7 @@ impl DeparseVec for DmxChannel {}
 
 #[cfg(test)]
 impl TestDeparseVec for DmxChannel {
-    const GROUP_NODE_NAME: &'static [u8] = b"DMXChannels";
+    const PARENT_NODE_NAME: &'static [u8] = b"DMXChannels";
 }
 
 #[cfg(test)]

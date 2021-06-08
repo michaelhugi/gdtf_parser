@@ -148,15 +148,15 @@ pub(crate) trait DeparseHashMap: DeparseSingle {
 #[cfg(test)]
 pub(crate) trait TestDeparseHashMap: DeparseHashMap + TestDeparseSingle {
     ///The name of the node wraps a list of nodes that contain the data for the struct. Declare it as b"GDTF" for example.
-    const GROUP_NODE_NAME: &'static [u8];
+    const PARENT_NODE_NAME: &'static [u8];
 
-    /// Reads a hashmap from an xml string slice. The function will dive down the nodes in the xml until it hits `GROUP_NODE_NAME` and then call `DeparseHashMap.read_hash_map_from_event` on it.
+    /// Reads a hashmap from an xml string slice. The function will dive down the nodes in the xml until it hits `PARENT_NODE_NAME` and then call `DeparseHashMap.read_hash_map_from_event` on it.
     ///
-    /// Returns an error if xml is invalid, `GROUP_NODE_NAME` is not found or if `DeparsehashMap.read_hash_map_from_event` returns an error
+    /// Returns an error if xml is invalid, `PARENT_NODE_NAME` is not found or if `DeparsehashMap.read_hash_map_from_event` returns an error
     ///
     /// # Attributes
     ///
-    /// * `xml` - The xml containing a node with the name `GROUP_NODE_NAME` with children with the name `Node` and a `PrimaryKey`
+    /// * `xml` - The xml containing a node with the name `PARENT_NODE_NAME` with children with the name `Node` and a `PrimaryKey`
     fn read_hash_map_from_xml(xml: &str) -> Result<HashMap<Self::PrimaryKey, Self>, Self::Error> where Self: Sized {
         let mut reader = Reader::from_str(xml);
         reader.trim_text(true);
@@ -166,7 +166,7 @@ pub(crate) trait TestDeparseHashMap: DeparseHashMap + TestDeparseSingle {
         loop {
             match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
                 Event::Start(e) | Event::Empty(e) => {
-                    if e.name() == Self::GROUP_NODE_NAME {
+                    if e.name() == Self::PARENT_NODE_NAME {
                         return Self::read_hash_map_from_event(&mut reader);
                     } else {
                         tree_down += 1;
@@ -195,7 +195,7 @@ pub(crate) trait TestDeparseHashMap: DeparseHashMap + TestDeparseSingle {
     /// # Attributes
     ///
     /// * `one` - The Hasmap that is expected when xml is deparsed
-    /// * `xml` - The xml containing a node with the name `GROUP_NODE_NAME` with children with the name `Node` and a `PrimaryKey`
+    /// * `xml` - The xml containing a node with the name `PARENT_NODE_NAME` with children with the name `Node` and a `PrimaryKey`
     ///
     fn compare_hash_maps(one: HashMap<Self::PrimaryKey, Self>, xml: &str) where Self: Sized {
         let two = Self::read_hash_map_from_xml(xml);
@@ -206,11 +206,15 @@ pub(crate) trait TestDeparseHashMap: DeparseHashMap + TestDeparseSingle {
 
 ///If an xml-node just has a primary key (like name) it's unlikely that for every Name there should be created a struct. This method will just read out the `PrimaryKey`, put it in a vec and return it.
 ///The generic type P is the type of the primary-key for this xml-node. (example: Name if a node only contains one attribute node and no children)
-pub(crate) trait DeparsePrimaryKey<P: Eq + Hash + Debug + Clone> {
+pub(crate) trait DeparsePrimaryKey {
+    /// A PrimaryKey should be unique across all xml-nodes of the same type in one GDTF file
+    type PrimaryKey: Eq + Hash + Debug + Clone;
     ///Type of error returned in case of failure on deparse
     type Error: From<GdtfDeparseError> + std::error::Error;
     ///The name of the node that contains the data for the struct. Declare it as b"GDTF" for example.
     const NODE_NAME: &'static [u8];
+    ///The name of the node wraps a list of nodes that contain the data for the struct. Declare it as b"GDTF" for example.
+    const PARENT_NODE_NAME: &'static [u8];
     ///When a gdtf is deparsed, it will go down the tree of nodes. If a node has only one attribute that is unique, it's better to just store this `PrimaryKey` in a vec instead of having a vec of a wrapping struct.
     /// This method should return this single attribute.
     /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
@@ -222,13 +226,13 @@ pub(crate) trait DeparsePrimaryKey<P: Eq + Hash + Debug + Clone> {
     /// # Returns
     ///
     /// * `P` - The unique and only attribute called `PrimaryKey` of the xml-node
-    fn read_primary_key_from_event(event: BytesStart<'_>) -> Result<P, Self::Error>;
+    fn read_primary_key_from_event(event: BytesStart<'_>) -> Result<Self::PrimaryKey, Self::Error>;
 
     /// If a xml-node only has one attribute that is unique across all nodes of the same type inside one GDTF, This method can be used To deparse just this `PrimaryKeys` as vec from a List of Nodes
     /// The method will go down the tree of xml-nodes from the point it enters the function and deparse all node's `PrimaryKey` with the name equal to `NODE_NAME`
-    fn read_primary_key_vec_from_event(reader: &mut Reader<&[u8]>) -> Result<Vec<P>, Self::Error> where Self: Sized {
+    fn read_primary_key_vec_from_event(reader: &mut Reader<&[u8]>) -> Result<Vec<Self::PrimaryKey>, Self::Error> where Self: Sized {
         let mut buf: Vec<u8> = Vec::new();
-        let mut out: Vec<P> = Vec::new();
+        let mut out: Vec<Self::PrimaryKey> = Vec::new();
         let mut tree_down = 0;
         loop {
             match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
@@ -252,6 +256,86 @@ pub(crate) trait DeparsePrimaryKey<P: Eq + Hash + Debug + Clone> {
             }
         }
         Ok(out)
+    }
+}
+
+///Trait to help testing DeparsePrimaryKey
+#[cfg(test)]
+pub(crate) trait TestDeparsePrimaryKey: DeparsePrimaryKey {
+    /// Parses a given xml string to a Vector of PrimaryKeys. This method will go down the tree of nodes in the xml until it finds a node with the name `PARENT_NODE_NAME` and call `DeparsePrimaryKey::read_primary_key_vec_from_event` to all child-nodes found with the name eq to `NODE_NAME`
+    ///
+    /// Will return an error if xml is invalid, if `DeparseVec::read_primary_key_vec_from_event` returns an error or if `PARENT_NODE_NAME` is not found.
+    ///
+    /// # Attributes
+    ///
+    /// * `xml` The xml containing the node with name `PARENT_NODE_NAME` and children named `NODE_NAME`
+    fn read_vec_from_xml(xml: &str) -> Result<Vec<Self::PrimaryKey>, Self::Error> where Self: Sized {
+        let mut reader = Reader::from_str(xml);
+        reader.trim_text(true);
+
+        let mut buf: Vec<u8> = Vec::new();
+        let mut tree_down = 0;
+        loop {
+            match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
+                Event::Start(e) | Event::Empty(e) => {
+                    if e.name() == Self::PARENT_NODE_NAME {
+                        return Self::read_primary_key_vec_from_event(&mut reader);
+                    } else {
+                        tree_down += 1;
+                    }
+                }
+                Event::End(_) => {
+                    tree_down -= 1;
+                    if tree_down <= 0 {
+                        break;
+                    }
+                }
+                Event::Eof => {
+                    break;
+                }
+                _ => {}
+            };
+            buf.clear();
+        }
+        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME))?
+    }
+
+    /// Parses a given xml string to a PrimaryKey. This method will go down the tree of nodes in the xml until it finds a node with the name `NODE_NAME` and call `DeparsePrimaryKey::read_primary_key_vec_from_event` to it
+    ///
+    /// Will return an error if xml is invalid, if `DeparseVec::read_primary_key_vec_from_event` returns an error or if `NODE_NAME` is not found.
+    ///
+    /// # Attributes
+    ///
+    /// * `xml` The xml containing the node with name `PARENT_NODE_NAME` and children named `NODE_NAME`
+    fn read_primary_key_from_xml(xml: &str) -> Result<Self::PrimaryKey, Self::Error> where Self: Sized {
+        let mut reader = Reader::from_str(xml);
+        reader.trim_text(true);
+
+        let mut buf: Vec<u8> = Vec::new();
+        let mut tree_down = 0;
+        loop {
+            match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
+                Event::Start(e) | Event::Empty(e) => {
+                    if e.name() == Self::NODE_NAME {
+                        return Self::read_primary_key_from_event(e);
+                    } else {
+                        tree_down += 1;
+                    }
+                }
+                Event::End(_) => {
+                    tree_down -= 1;
+                    if tree_down <= 0 {
+                        break;
+                    }
+                }
+                Event::Eof => {
+                    break;
+                }
+                _ => {}
+            };
+            buf.clear();
+        }
+        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME))?
     }
 }
 
@@ -300,15 +384,15 @@ pub(crate) trait DeparseVec: DeparseSingle {
 #[cfg(test)]
 pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
     ///The name of the node wraps a list of nodes that contain the data for the struct. Declare it as b"GDTF" for example.
-    const GROUP_NODE_NAME: &'static [u8];
+    const PARENT_NODE_NAME: &'static [u8];
 
-    /// Parses a given xml string to a Vector of structs. This method will go down the tree of nodes in the xml until it finds a node with the name `GROUP_NODE_NAME` and call `DeparseVec::read_vec_from_event` to all child-nodes found with the name eq to `NODE_NAME`
+    /// Parses a given xml string to a Vector of structs. This method will go down the tree of nodes in the xml until it finds a node with the name `PARENT_NODE_NAME` and call `DeparseVec::read_vec_from_event` to all child-nodes found with the name eq to `NODE_NAME`
     ///
-    /// Will return an error if xml is invalid, if `DeparseVec::read_vec_from_event` returns an error or if `GROUP_NODE_NAME` is not found.
+    /// Will return an error if xml is invalid, if `DeparseVec::read_vec_from_event` returns an error or if `PARENT_NODE_NAME` is not found.
     ///
     /// # Attributes
     ///
-    /// * `xml` The xml containing the
+    /// * `xml` The xml containing the node with name `PARENT_NODE_NAME` and children named `NODE_NAME`
     fn read_vec_from_xml(xml: &str) -> Result<Vec<Self>, Self::Error> where Self: Sized {
         let mut reader = Reader::from_str(xml);
         reader.trim_text(true);
@@ -318,7 +402,7 @@ pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
         loop {
             match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
                 Event::Start(e) | Event::Empty(e) => {
-                    if e.name() == Self::GROUP_NODE_NAME {
+                    if e.name() == Self::PARENT_NODE_NAME {
                         return Self::read_vec_from_event(&mut reader);
                     } else {
                         tree_down += 1;
@@ -347,7 +431,7 @@ pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
     /// # Attributes
     ///
     /// * `one` - The Vec that is expected when xml is deparsed
-    /// * `xml` - The xml containing a node with the name `GROUP_NODE_NAME` with children with the name `Node`
+    /// * `xml` - The xml containing a node with the name `PARENT_NODE_NAME` with children with the name `Node`
     ///
     fn compare_vecs(one: Vec<Self>, xml: &str) where Self: Sized {
         let two = Self::read_vec_from_xml(xml);
@@ -399,8 +483,6 @@ pub(crate) fn attr_to_u8_option(attr: &Attribute) -> Option<u8> {
         Err(_) => None
     }
 }
-
-
 
 
 ///Error used if an Error in global Deparsing occrus

@@ -82,7 +82,7 @@ impl TestDeparseSingle for FeatureGroup {}
 
 #[cfg(test)]
 impl TestDeparseHashMap for FeatureGroup {
-    const GROUP_NODE_NAME: &'static [u8] = b"FeatureGroups";
+    const PARENT_NODE_NAME: &'static [u8] = b"FeatureGroups";
 }
 
 #[cfg(test)]

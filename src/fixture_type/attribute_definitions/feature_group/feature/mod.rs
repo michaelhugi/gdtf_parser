@@ -10,7 +10,7 @@ use crate::utils::units::name::Name;
 pub struct Feature {}
 
 
-impl DeparsePrimaryKey<Name> for Feature {
+impl DeparsePrimaryKey for Feature {
     type Error = GdtfError;
 
     fn read_primary_key_from_event(event: BytesStart<'_>) -> Result<Name, GdtfError> {
@@ -25,4 +25,6 @@ impl DeparsePrimaryKey<Name> for Feature {
 
 
     const NODE_NAME: &'static [u8] = b"Feature";
+    type PrimaryKey = Name;
+    const PARENT_NODE_NAME: &'static [u8] = &[];
 }

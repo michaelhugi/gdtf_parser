@@ -8,9 +8,9 @@ use crate::fixture_type::attribute_definitions::activation_group::ActivationGrou
 use crate::fixture_type::attribute_definitions::attribute::Attribute;
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
 use crate::utils::deparse::{DeparsePrimaryKey, DeparseSingle};
-use crate::utils::deparse::DeparseHashMap;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
+use crate::utils::deparse::DeparseHashMap;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXmlError;
 use crate::utils::units::attribute_name::AttributeName;
@@ -18,13 +18,16 @@ use crate::utils::units::name::Name;
 
 pub mod feature_group;
 pub mod attribute;
-pub mod activation_group;
+pub(crate) mod activation_group;
 
 
 #[derive(Debug, Clone)]
 pub struct AttributeDefinitions {
     pub feature_groups: HashMap<Name, FeatureGroup>,
     pub attributes: HashMap<AttributeName, Attribute>,
+    /// # Definition of ActivationGroup
+    /// Attributes which need to be activated together to gain control over one logical function
+    /// Note 1 to entry: As example Pan & Tilt are paired to gain control over Position.
     pub activation_groups: Vec<Name>,
 }
 
@@ -54,7 +57,7 @@ impl DeparseSingle for AttributeDefinitions {
                     match e.name() {
                         b"FeatureGroups" => feature_groups = FeatureGroup::read_hash_map_from_event(reader)?,
                         b"Attributes" => attributes = Attribute::read_hash_map_from_event(reader)?,
-                        b"ActivationGroups" => activation_groups = ActivationGroup::read_primary_key_vec_from_event(reader)?,
+                        ActivationGroup::PARENT_NODE_NAME => activation_groups = ActivationGroup::read_primary_key_vec_from_event(reader)?,
                         _ => { tree_down += 1; }
                     }
                 }
@@ -76,7 +79,6 @@ impl DeparseSingle for AttributeDefinitions {
             activation_groups,
         }, None))
     }
-
 }
 
 #[cfg(test)]

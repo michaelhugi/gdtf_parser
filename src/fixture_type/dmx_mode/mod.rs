@@ -80,7 +80,7 @@ impl DeparseHashMap for DmxMode {}
 
 #[cfg(test)]
 impl TestDeparseHashMap for DmxMode {
-    const GROUP_NODE_NAME: &'static [u8] = b"DMXModes";
+    const PARENT_NODE_NAME: &'static [u8] = b"DMXModes";
 }
 
 #[cfg(test)]

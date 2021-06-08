@@ -84,7 +84,7 @@ impl DeparseHashMap for Attribute {}
 impl TestDeparseSingle for Attribute {}
 
 #[cfg(test)]
-impl TestDeparseHashMap for Attribute { const GROUP_NODE_NAME: &'static [u8] = b"Attributes"; }
+impl TestDeparseHashMap for Attribute { const PARENT_NODE_NAME: &'static [u8] = b"Attributes"; }
 
 #[cfg(test)]
 mod tests {
