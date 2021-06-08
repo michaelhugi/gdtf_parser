@@ -7,7 +7,7 @@ use quick_xml::Reader;
 use crate::fixture_type::dmx_mode::dmx_channel::DmxChannel;
 use crate::utils::deparse::{DeparseHashMap, DeparseSingle, DeparseVec};
 #[cfg(test)]
-use crate::utils::deparse::TestDeparseSingle;
+use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
 
@@ -31,13 +31,13 @@ impl DeparseSingle for DmxMode {
     type Error = GdtfError;
     const NODE_NAME: &'static [u8] = b"DMXMode";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut geometry: Name = Default::default();
         let mut dmx_channels: Vec<DmxChannel> = Vec::new();
 
-        for attr in e.attributes().into_iter() {
+        for attr in event.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
                 b"Name" => name = Name::new_from_attr(attr)?,
@@ -53,7 +53,7 @@ impl DeparseSingle for DmxMode {
             match reader.read_event(&mut buf) {
                 Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
                     match e.name() {
-                        b"DMXChannels" => dmx_channels = DmxChannel::vec_from_event(reader, e)?,
+                        b"DMXChannels" => dmx_channels = DmxChannel::read_vec_from_event(reader)?,
                         _ => { tree_down += 1; }
                     }
                 }
@@ -74,13 +74,13 @@ impl DeparseSingle for DmxMode {
             dmx_channels,
         }, Some(name)))
     }
-
 }
 
-impl DeparseHashMap for DmxMode {
-    fn is_group_event_name(event_name: &[u8]) -> bool {
-        event_name == b"DMXModes"
-    }
+impl DeparseHashMap for DmxMode {}
+
+#[cfg(test)]
+impl TestDeparseHashMap for DmxMode {
+    const GROUP_NODE_NAME: &'static [u8] = b"DMXModes";
 }
 
 #[cfg(test)]

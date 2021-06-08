@@ -39,7 +39,7 @@ impl DeparseSingle for LogicalChannel {
     type Error = GdtfError;
     const NODE_NAME: &'static [u8] = b"LogicalChannel";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut attribute = None;
         let mut snap: Snap = Snap::default();
@@ -48,7 +48,7 @@ impl DeparseSingle for LogicalChannel {
         let mut dmx_change_time_limit: f32 = 0.;
         let mut channel_functions: HashMap<Name, ChannelFunction> = HashMap::new();
 
-        for attr in e.attributes().into_iter() {
+        for attr in event.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
                 b"Attribute" => attribute = Node::new_from_attr(attr)?,

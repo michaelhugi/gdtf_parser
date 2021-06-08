@@ -71,7 +71,7 @@ impl DeparseSingle for ChannelFunction {
     type Error = GdtfError;
     const NODE_NAME: &'static [u8] = b"ChannelFunction";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut attribute = Attribute::NoFeature;
@@ -89,7 +89,7 @@ impl DeparseSingle for ChannelFunction {
         let mut mode_from: Option<DmxValue> = None;
         let mut mode_to: Option<DmxValue> = None;
         let mut channel_sets: HashMap<Name, ChannelSet> = HashMap::new();
-        for attr in e.attributes().into_iter() {
+        for attr in event.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
                 b"Name" => name = Name::new_from_attr(attr)?,

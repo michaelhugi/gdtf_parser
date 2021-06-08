@@ -29,11 +29,11 @@ impl DeparseSingle for FeatureGroup {
     type Error = GdtfError;
     const NODE_NAME: &'static [u8] = b"FeatureGroup";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name = Default::default();
         let mut pretty = String::new();
-        for attr in e.attributes().into_iter() {
+        for attr in event.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
                 b"Name" => name = Name::new_from_attr(attr)?,
@@ -49,7 +49,7 @@ impl DeparseSingle for FeatureGroup {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"Feature" {
-                        features.push(Feature::primary_key_from_event(reader, e)?);
+                        features.push(Feature::read_primary_key_from_event(e)?);
                     } else {
                         tree_down += 1;
                     }
@@ -73,20 +73,17 @@ impl DeparseSingle for FeatureGroup {
             features,
         }, Some(name)))
     }
-
 }
 
-impl DeparseHashMap for FeatureGroup {
-    fn is_group_event_name(event_name: &[u8]) -> bool {
-        event_name == b"FeatureGroups"
-    }
-}
+impl DeparseHashMap for FeatureGroup {}
 
 #[cfg(test)]
 impl TestDeparseSingle for FeatureGroup {}
 
 #[cfg(test)]
-impl TestDeparseHashMap for FeatureGroup {}
+impl TestDeparseHashMap for FeatureGroup {
+    const GROUP_NODE_NAME: &'static [u8] = b"FeatureGroups";
+}
 
 #[cfg(test)]
 mod tests {
@@ -215,7 +212,7 @@ mod tests {
 
     #[test]
     fn test_feature_group_list() -> Result<(), GdtfError> {
-        FeatureGroup::test_group(
+        FeatureGroup::compare_hash_maps(
             testdata::vec_to_hash_map(vec![Name::new("BeamG")?, Name::new("DimmerG")?], vec![
                 FeatureGroup {
                     pretty: "BeamP".to_string(),
@@ -240,7 +237,7 @@ mod tests {
 
     #[test]
     fn test_feature_group_list_min() -> Result<(), GdtfError> {
-        FeatureGroup::test_group(
+        FeatureGroup::compare_hash_maps(
             testdata::vec_to_hash_map(vec![Name::new("")?, Name::new("")?], vec![
                 FeatureGroup {
                     pretty: "".to_string(),
@@ -265,7 +262,7 @@ mod tests {
 
     #[test]
     fn test_feature_group_list_empty() -> Result<(), GdtfError> {
-        FeatureGroup::test_group(
+        FeatureGroup::compare_hash_maps(
             testdata::vec_to_hash_map(vec![Name::new("")?, Name::new("")?], vec![
                 FeatureGroup {
                     pretty: "".to_string(),
@@ -289,7 +286,7 @@ mod tests {
 
     #[test]
     fn test_feature_group_list_faulty() {
-        assert!(FeatureGroup::hash_map_from_xml(
+        assert!(FeatureGroup::read_hash_map_from_xml(
             r#"<FeatureGroups>
                                 FeatureGroup >
                                     <Feature/>

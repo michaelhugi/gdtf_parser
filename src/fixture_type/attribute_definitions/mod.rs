@@ -52,9 +52,9 @@ impl DeparseSingle for AttributeDefinitions {
             match reader.read_event(&mut buf) {
                 Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
                     match e.name() {
-                        b"FeatureGroups" => feature_groups = FeatureGroup::hash_map_from_event(reader, e)?,
-                        b"Attributes" => attributes = Attribute::hash_map_from_event(reader, e)?,
-                        b"ActivationGroups" => activation_groups = ActivationGroup::primary_key_vec_from_event(reader, e)?,
+                        b"FeatureGroups" => feature_groups = FeatureGroup::read_hash_map_from_event(reader)?,
+                        b"Attributes" => attributes = Attribute::read_hash_map_from_event(reader)?,
+                        b"ActivationGroups" => activation_groups = ActivationGroup::read_primary_key_vec_from_event(reader)?,
                         _ => { tree_down += 1; }
                     }
                 }

@@ -97,10 +97,10 @@ impl DeparseSingle for Gdtf {
     const NODE_NAME: &'static [u8] = b"GDTF";
 
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut data_version = DataVersion::dummy();
-        for attr in e.attributes().into_iter() {
+        for attr in event.attributes().into_iter() {
             let attr = attr?;
             if attr.key == b"DataVersion" {
                 data_version = DataVersion::new_from_attr(attr);

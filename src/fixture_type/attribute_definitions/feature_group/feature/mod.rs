@@ -2,7 +2,6 @@
 //! groups the Fixture Type Attributes into a structured way for easier access and search
 //!
 use quick_xml::events::BytesStart;
-use quick_xml::Reader;
 
 use crate::utils::deparse::DeparsePrimaryKey;
 use crate::utils::errors::GdtfError;
@@ -14,8 +13,8 @@ pub struct Feature {}
 impl DeparsePrimaryKey<Name> for Feature {
     type Error = GdtfError;
 
-    fn primary_key_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Name, GdtfError> {
-        for attr in e.attributes().into_iter() {
+    fn read_primary_key_from_event(event: BytesStart<'_>) -> Result<Name, GdtfError> {
+        for attr in event.attributes().into_iter() {
             let attr = attr?;
             if attr.key == b"Name" {
                 return Ok(Name::new_from_attr(attr)?);
@@ -25,7 +24,5 @@ impl DeparsePrimaryKey<Name> for Feature {
     }
 
 
-    fn is_single_event_name(event_name: &[u8]) -> bool {
-        event_name == b"Feature"
-    }
+    const NODE_NAME: &'static [u8] = b"Feature";
 }

@@ -24,7 +24,7 @@ impl DeparseSingle for ChannelSet {
     type Error = GdtfError;
     const NODE_NAME: &'static [u8] = b"ChannelSet";
 
-    fn read_single_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(_: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut dmx_from: DmxValue = DmxValue::new_from_str("1/1").unwrap();
@@ -32,7 +32,7 @@ impl DeparseSingle for ChannelSet {
         let mut physical_to: Option<f32> = None;
         let mut wheel_slot_index: Option<u8> = None;
 
-        for attr in e.attributes().into_iter() {
+        for attr in event.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
                 b"Name" => name = Name::new_from_attr(attr)?,

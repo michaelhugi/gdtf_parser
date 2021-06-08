@@ -10,7 +10,7 @@ use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
 use crate::utils::deparse;
 #[cfg(test)]
-use crate::utils::deparse::TestDeparseSingle;
+use crate::utils::deparse::{TestDeparseSingle, TestDeparseVec};
 use crate::utils::errors::GdtfError;
 use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
@@ -40,7 +40,7 @@ impl DeparseSingle for DmxChannel {
     type Error = GdtfError;
     const NODE_NAME: &'static [u8] = b"DMXChannel";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut dmx_break = DmxBreak::default();
         let mut offset = None;
@@ -49,7 +49,7 @@ impl DeparseSingle for DmxChannel {
         let mut geometry = Default::default();
         let mut logical_channels: Vec<LogicalChannel> = Vec::new();
 
-        for attr in e.attributes().into_iter() {
+        for attr in event.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
                 b"DMXBreak" => dmx_break = DmxBreak::new_from_attr(attr),
@@ -102,10 +102,11 @@ impl DeparseSingle for DmxChannel {
     }
 }
 
-impl DeparseVec for DmxChannel {
-    fn is_group_event_name(event_name: &[u8]) -> bool {
-        event_name == b"DMXChannels"
-    }
+impl DeparseVec for DmxChannel {}
+
+#[cfg(test)]
+impl TestDeparseVec for DmxChannel {
+    const GROUP_NODE_NAME: &'static [u8] = b"DMXChannels";
 }
 
 #[cfg(test)]

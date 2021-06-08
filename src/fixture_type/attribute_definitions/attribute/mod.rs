@@ -43,7 +43,7 @@ impl DeparseSingle for Attribute {
     type Error = GdtfError;
     const NODE_NAME: &'static [u8] = b"Attribute";
 
-    fn read_single_from_event(_reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(_reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name = Default::default();
         let mut pretty = String::new();
@@ -53,7 +53,7 @@ impl DeparseSingle for Attribute {
         let mut physical_unit: PhysicalUnit = PhysicalUnit::None;
         let mut color: Option<ColorCie> = None;
 
-        for attr in e.attributes().into_iter() {
+        for attr in event.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
                 b"Name" => name = AttributeName::new_from_attr(attr)?,
@@ -76,20 +76,15 @@ impl DeparseSingle for Attribute {
             physical_unit,
         }, Some(name)))
     }
-
 }
 
-impl DeparseHashMap for Attribute {
-    fn is_group_event_name(event_name: &[u8]) -> bool {
-        event_name == b"Attributes"
-    }
-}
+impl DeparseHashMap for Attribute {}
 
 #[cfg(test)]
 impl TestDeparseSingle for Attribute {}
 
 #[cfg(test)]
-impl TestDeparseHashMap for Attribute {}
+impl TestDeparseHashMap for Attribute { const GROUP_NODE_NAME: &'static [u8] = b"Attributes"; }
 
 #[cfg(test)]
 mod tests {
