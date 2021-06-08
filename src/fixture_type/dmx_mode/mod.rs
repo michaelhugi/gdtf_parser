@@ -29,9 +29,9 @@ pub struct DmxMode {
 impl DeparseSingle for DmxMode {
     type PrimaryKey = Name;
     type Error = GdtfError;
-    const SINGLE_EVENT_NAME: &'static [u8] = b"DMXMode";
+    const NODE_NAME: &'static [u8] = b"DMXMode";
 
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut geometry: Name = Default::default();
@@ -75,9 +75,6 @@ impl DeparseSingle for DmxMode {
         }, Some(name)))
     }
 
-    fn single_event_name() -> String {
-        "DMXMode".to_string()
-    }
 }
 
 impl DeparseHashMap for DmxMode {

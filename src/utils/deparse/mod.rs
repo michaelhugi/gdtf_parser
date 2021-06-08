@@ -20,8 +20,8 @@ pub(crate) trait DeparseSingle: std::fmt::Debug + Sized {
     type PrimaryKey: Eq + Hash + Debug + Clone;
     ///Type of error returned in case of failure on deparse
     type Error: From<GdtfDeparseError> + std::error::Error;
-
-    const SINGLE_EVENT_NAME: &'static [u8];
+    ///The name of the node that contains the data for the struct. Declare it as b"GDTF" for example.
+    const NODE_NAME: &'static [u8];
 
     /// When a gdtf is deparsed it will go down the tree if a event hits and returns when end of the Node from the event is detected.
     ///
@@ -29,9 +29,7 @@ pub(crate) trait DeparseSingle: std::fmt::Debug + Sized {
     ///
     /// * `reader` - The quick-xml-Reader that is passed trough the whole tree to read next events of the tree branch if needed
     /// * `e` - The Event that was triggering the overlaying struct to go down the tree one step further
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), Self::Error>;
-
-    fn single_event_name() -> String;
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), Self::Error>;
 }
 
 #[cfg(test)]
@@ -44,8 +42,8 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
         loop {
             match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
                 Event::Start(e) | Event::Empty(e) => {
-                    if e.name() == Self::SINGLE_EVENT_NAME {
-                        return Self::single_from_event(reader, e);
+                    if e.name() == Self::NODE_NAME {
+                        return Self::read_single_from_event(reader, e);
                     } else {
                         tree_down += 1;
                     }
@@ -63,7 +61,7 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
             };
         }
         buf.clear();
-        Err(GdtfDeparseError::RequiredValueNotFoundError(Self::single_event_name()))?
+        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME))?
     }
 
     fn single_from_xml(xml: &str) -> Result<(Self, Option<Self::PrimaryKey>), Self::Error> {
@@ -76,7 +74,7 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
     }
 
     fn test_with_result(&self, primary_key: Option<Self::PrimaryKey>, other: Result<(Self, Option<Self::PrimaryKey>), Self::Error>) {
-        let other = other.expect(&format!("Unexpected error in test of {}", Self::single_event_name())[..]);
+        let other = other.expect(&format!("Unexpected error in test of {}", u8_array_to_string(Self::NODE_NAME))[..]);
         assert_eq!(self, &other.0);
         match (primary_key, other.1) {
             (Some(primary_key), Some(other)) => assert_eq!(primary_key, other),
@@ -99,8 +97,8 @@ pub(crate) trait DeparseHashMap: DeparseSingle {
         loop {
             match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
                 Event::Start(e) | Event::Empty(e) => {
-                    if e.name() == Self::SINGLE_EVENT_NAME {
-                        let val = Self::single_from_event(reader, e)?;
+                    if e.name() == Self::NODE_NAME {
+                        let val = Self::read_single_from_event(reader, e)?;
                         if val.1.is_some() {
                             out.insert(val.1.unwrap(), val.0);
                         }
@@ -175,8 +173,8 @@ pub(crate) trait DeparseVec: DeparseSingle {
         loop {
             match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
                 Event::Start(e) | Event::Empty(e) => {
-                    if e.name() == Self::SINGLE_EVENT_NAME {
-                        out.push(Self::single_from_event(reader, e)?.0);
+                    if e.name() == Self::NODE_NAME {
+                        out.push(Self::read_single_from_event(reader, e)?.0);
                     } else {
                         tree_down += 1;
                     }
@@ -228,7 +226,7 @@ pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
             };
             buf.clear();
         }
-        Err(GdtfDeparseError::RequiredValueNotFoundError(Self::single_event_name()))?
+        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME))?
     }
 
     fn vec_from_xml(xml: &str) -> Result<Vec<Self>, Self::Error>
@@ -275,7 +273,7 @@ pub(crate) trait TestDeparseHashMap: DeparseHashMap + TestDeparseSingle {
             };
             buf.clear();
         }
-        Err(GdtfDeparseError::RequiredValueNotFoundError(Self::single_event_name()))?
+        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME))?
     }
 
     fn hash_map_from_xml(xml: &str) -> Result<HashMap<Self::PrimaryKey, Self>, Self::Error>
@@ -331,14 +329,32 @@ pub(crate) fn attr_to_u8_option(attr: &Attribute) -> Option<u8> {
 #[derive(Debug)]
 pub enum GdtfDeparseError {
     QuickXmlError(quick_xml::Error),
-    RequiredValueNotFoundError(String),
+    QuickXmlNodeNotFoundError(String),
+    QuickXmlAttributeNotFoundError(String, String),
+}
+
+impl GdtfDeparseError {
+    pub fn new_xml_node_not_found(node_name: &[u8]) -> Self {
+        Self::QuickXmlNodeNotFoundError(u8_array_to_string(node_name))
+    }
+    pub fn new_xml_attribute_not_found(node_name: &[u8], attribute_name: &[u8]) -> Self {
+        Self::QuickXmlAttributeNotFoundError(
+            u8_array_to_string(node_name),
+            u8_array_to_string(attribute_name),
+        )
+    }
+}
+
+fn u8_array_to_string(val: &[u8]) -> String {
+    std::str::from_utf8(val).map_or("?".to_string(), |e| e.to_string())
 }
 
 impl Display for GdtfDeparseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             GdtfDeparseError::QuickXmlError(e) => write!(f, "GdtfDeparseError: {}", e),
-            GdtfDeparseError::RequiredValueNotFoundError(s) => write!(f, "Could not find {}", s)
+            GdtfDeparseError::QuickXmlAttributeNotFoundError(node_name, attribute) => write!(f, "Could not find xml-attribute '{}' in '{}'", attribute, node_name),
+            GdtfDeparseError::QuickXmlNodeNotFoundError(node_name) => write!(f, "Could not find xml-node name '{}'", node_name),
         }
     }
 }

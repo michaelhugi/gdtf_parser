@@ -41,9 +41,9 @@ impl Attribute {
 impl DeparseSingle for Attribute {
     type PrimaryKey = AttributeName;
     type Error = GdtfError;
-    const SINGLE_EVENT_NAME: &'static [u8] = b"Attribute";
+    const NODE_NAME: &'static [u8] = b"Attribute";
 
-    fn single_from_event(_reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(_reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name = Default::default();
         let mut pretty = String::new();
@@ -77,9 +77,6 @@ impl DeparseSingle for Attribute {
         }, Some(name)))
     }
 
-    fn single_event_name() -> String {
-        "Attribute".to_string()
-    }
 }
 
 impl DeparseHashMap for Attribute {

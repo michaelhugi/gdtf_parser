@@ -22,9 +22,9 @@ pub struct ChannelSet {
 impl DeparseSingle for ChannelSet {
     type PrimaryKey = Name;
     type Error = GdtfError;
-    const SINGLE_EVENT_NAME: &'static [u8] = b"ChannelSet";
+    const NODE_NAME: &'static [u8] = b"ChannelSet";
 
-    fn single_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut dmx_from: DmxValue = DmxValue::new_from_str("1/1").unwrap();
@@ -51,9 +51,6 @@ impl DeparseSingle for ChannelSet {
         }, Some(name)))
     }
 
-    fn single_event_name() -> String {
-        "ChannelSet".to_string()
-    }
 }
 
 #[cfg(test)]

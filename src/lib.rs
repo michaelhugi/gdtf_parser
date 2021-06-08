@@ -94,10 +94,10 @@ pub struct Gdtf {
 impl DeparseSingle for Gdtf {
     type PrimaryKey = ();
     type Error = GdtfError;
-    const SINGLE_EVENT_NAME: &'static [u8] = b"GDTF";
+    const NODE_NAME: &'static [u8] = b"GDTF";
 
 
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut data_version = DataVersion::dummy();
         for attr in e.attributes().into_iter() {
@@ -113,10 +113,10 @@ impl DeparseSingle for Gdtf {
         loop {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) | Event::Empty(e) => {
-                    if e.name()==FixtureType::SINGLE_EVENT_NAME {
+                    if e.name() == FixtureType::NODE_NAME {
                         return Ok(
                             (Gdtf {
-                                fixture_type: FixtureType::single_from_event(reader, e)?.0,
+                                fixture_type: FixtureType::read_single_from_event(reader, e)?.0,
                                 data_version,
                             }, None)
                         );
@@ -137,11 +137,7 @@ impl DeparseSingle for Gdtf {
             }
         }
         buf.clear();
-        Err(GdtfDeparseError::RequiredValueNotFoundError(FixtureType::single_event_name()))?
-    }
-
-    fn single_event_name() -> String {
-        "GDTF".to_string()
+        Err(GdtfDeparseError::new_xml_node_not_found(FixtureType::NODE_NAME))?
     }
 }
 
@@ -165,7 +161,7 @@ impl TryFrom<&Path> for Gdtf {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"GDTF" {
                         return Ok(
-                            Gdtf::single_from_event(&mut reader, e)?.0
+                            Gdtf::read_single_from_event(&mut reader, e)?.0
                         );
                     } else {
                         tree_down += 1;
@@ -184,7 +180,7 @@ impl TryFrom<&Path> for Gdtf {
             };
         }
         buf.clear();
-        Err(GdtfDeparseError::RequiredValueNotFoundError(Self::single_event_name()))?
+        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME))?
     }
 }
 

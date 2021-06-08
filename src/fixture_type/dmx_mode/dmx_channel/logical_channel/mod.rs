@@ -37,9 +37,9 @@ pub struct LogicalChannel {
 impl DeparseSingle for LogicalChannel {
     type PrimaryKey = ();
     type Error = GdtfError;
-    const SINGLE_EVENT_NAME: &'static [u8] = b"LogicalChannel";
+    const NODE_NAME: &'static [u8] = b"LogicalChannel";
 
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut attribute = None;
         let mut snap: Snap = Snap::default();
@@ -66,7 +66,7 @@ impl DeparseSingle for LogicalChannel {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"ChannelFunction" {
-                        let cf = ChannelFunction::single_from_event(reader, e)?;
+                        let cf = ChannelFunction::read_single_from_event(reader, e)?;
 
                         channel_functions.insert(cf.1.unwrap(), cf.0);
                     } else {
@@ -99,9 +99,6 @@ impl DeparseSingle for LogicalChannel {
             , None))
     }
 
-    fn single_event_name() -> String {
-        "LogicalChannel".to_string()
-    }
 }
 
 #[cfg(test)]

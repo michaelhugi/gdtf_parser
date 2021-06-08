@@ -39,9 +39,9 @@ impl PartialEq for AttributeDefinitions {
 impl DeparseSingle for AttributeDefinitions {
     type PrimaryKey = ();
     type Error = GdtfError;
-    const SINGLE_EVENT_NAME: &'static [u8] = b"AttributeDefinitions";
+    const NODE_NAME: &'static [u8] = b"AttributeDefinitions";
 
-    fn single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut buf: Vec<u8> = Vec::new();
         let mut feature_groups: HashMap<Name, FeatureGroup> = HashMap::new();
@@ -77,9 +77,6 @@ impl DeparseSingle for AttributeDefinitions {
         }, None))
     }
 
-    fn single_event_name() -> String {
-        "AttributeDefinitions".to_string()
-    }
 }
 
 #[cfg(test)]

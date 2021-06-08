@@ -69,9 +69,9 @@ const DEFAULT_DMX_DEFAULT: DmxValue = DmxValue {
 impl DeparseSingle for ChannelFunction {
     type PrimaryKey = Name;
     type Error = GdtfError;
-    const SINGLE_EVENT_NAME: &'static [u8] = b"ChannelFunction";
+    const NODE_NAME: &'static [u8] = b"ChannelFunction";
 
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut attribute = Attribute::NoFeature;
@@ -123,7 +123,7 @@ impl DeparseSingle for ChannelFunction {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"ChannelSet" {
-                        let cs = ChannelSet::single_from_event(reader, e)?;
+                        let cs = ChannelSet::read_single_from_event(reader, e)?;
                         channel_sets.insert(cs.1.unwrap(), cs.0);
                     } else {
                         tree_down += 1;
@@ -162,9 +162,6 @@ impl DeparseSingle for ChannelFunction {
         }, Some(name)))
     }
 
-    fn single_event_name() -> String {
-        "ChannelFunction".to_string()
-    }
 }
 
 #[cfg(test)]

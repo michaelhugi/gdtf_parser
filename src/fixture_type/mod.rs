@@ -61,9 +61,9 @@ pub struct FixtureType {
 impl DeparseSingle for FixtureType {
     type PrimaryKey = ();
     type Error = GdtfError;
-    const SINGLE_EVENT_NAME: &'static [u8] = b"FixtureType";
+    const NODE_NAME: &'static [u8] = b"FixtureType";
 
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
         let mut name = Name::default();
         let mut short_name = String::new();
@@ -101,7 +101,7 @@ impl DeparseSingle for FixtureType {
             match reader.read_event(&mut buf) {
                 Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
                     match e.name() {
-                        b"AttributeDefinitions" => attribute_definitions = Some(AttributeDefinitions::single_from_event(reader, e)?.0),
+                        AttributeDefinitions::NODE_NAME => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e)?.0),
                         b"DMXModes" => {
                             dmx_modes = Some(DmxMode::hash_map_from_event(reader, e)?);
                         }
@@ -122,11 +122,11 @@ impl DeparseSingle for FixtureType {
         buf.clear();
 
         if attribute_definitions.is_none() {
-            return Err(GdtfDeparseError::RequiredValueNotFoundError("AttributeDefinitions".to_string()))?;
+            return Err(GdtfDeparseError::new_xml_node_not_found(AttributeDefinitions::NODE_NAME))?;
         }
         let attribute_definitions = attribute_definitions.unwrap();
         if dmx_modes.is_none() {
-            return Err(GdtfDeparseError::RequiredValueNotFoundError("Dmx Modes".to_string()))?;
+            return Err(GdtfDeparseError::new_xml_node_not_found(DmxMode::NODE_NAME))?;
         }
         let dmx_modes = dmx_modes.unwrap();
 
@@ -142,9 +142,6 @@ impl DeparseSingle for FixtureType {
             dmx_modes,
             attribute_definitions,
         }, None))
-    }
-    fn single_event_name() -> String {
-        "FixtureType".to_string()
     }
 }
 
