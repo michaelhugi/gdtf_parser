@@ -8,9 +8,9 @@ use crate::fixture_type::attribute_definitions::activation_group::ActivationGrou
 use crate::fixture_type::attribute_definitions::attribute::Attribute;
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
 use crate::utils::deparse::{DeparsePrimaryKey, DeparseSingle};
+use crate::utils::deparse::DeparseHashMap;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
-use crate::utils::deparse::DeparseHashMap;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXmlError;
 use crate::utils::units::attribute_name::AttributeName;
@@ -115,23 +115,23 @@ mod tests {
             attributes: testdata::vec_to_hash_map(vec![AttributeName::Pan, AttributeName::Tilt, AttributeName::Gobo_n_(1)], vec![
                 Attribute {
                     pretty: "P".to_string(),
-                    activation_group: Some("PanTilt".to_string()),
-                    feature: Node::new_from_str("Position.PanTilt")?,
+                    activation_group: Node::new_from_str("PanTilt")?,
+                    feature: Node::new_from_str("Position.PanTilt")?.unwrap(),
                     main_attribute: None,
                     physical_unit: PhysicalUnit::Angle,
                     color: None,
                 },
                 Attribute {
-                    activation_group: Some("PanTilt".to_string()),
-                    feature: Node::new_from_str("Position.PanTilt")?,
+                    activation_group: Node::new_from_str("PanTilt")?,
+                    feature: Node::new_from_str("Position.PanTilt")?.unwrap(),
                     physical_unit: PhysicalUnit::Angle,
                     pretty: "T".to_string(),
                     main_attribute: None,
                     color: None,
                 },
                 Attribute {
-                    activation_group: Some("Gobo1".to_string()),
-                    feature: Node::new_from_str("Gobo.Gobo")?,
+                    activation_group: Node::new_from_str("Gobo1")?,
+                    feature: Node::new_from_str("Gobo.Gobo")?.unwrap(),
                     physical_unit: PhysicalUnit::None,
                     pretty: "G1".to_string(),
                     main_attribute: None,
@@ -185,14 +185,14 @@ mod tests {
                 Attribute {
                     pretty: "".to_string(),
                     activation_group: None,
-                    feature: Node::new_from_str("")?,
+                    feature: Node::new_from_str("A")?.unwrap(),
                     main_attribute: None,
                     physical_unit: PhysicalUnit::None,
                     color: None,
                 },
                 Attribute {
                     activation_group: None,
-                    feature: Node::new_from_str("")?,
+                    feature: Node::new_from_str("B")?.unwrap(),
 
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
@@ -201,7 +201,7 @@ mod tests {
                 },
                 Attribute {
                     activation_group: None,
-                    feature: Node::new_from_str("")?,
+                    feature: Node::new_from_str("C")?.unwrap(),
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
                     main_attribute: None,
@@ -228,9 +228,9 @@ mod tests {
             </FeatureGroup>
         </FeatureGroups>
         <Attributes>
-            <Attribute ActivationGroup="" Feature="" Name="" PhysicalUnit="" Pretty=""/>
-            <Attribute ActivationGroup="" Feature="" Name="" PhysicalUnit="" Pretty=""/>
-            <Attribute ActivationGroup="" Feature="" Name="" PhysicalUnit="" Pretty=""/>
+            <Attribute ActivationGroup="" Feature="A" Name="" PhysicalUnit="" Pretty=""/>
+            <Attribute ActivationGroup="" Feature="B" Name="" PhysicalUnit="" Pretty=""/>
+            <Attribute ActivationGroup="" Feature="C" Name="" PhysicalUnit="" Pretty=""/>
         </Attributes>
      </AttributeDefinitions>
      "#,
@@ -255,14 +255,14 @@ mod tests {
                 Attribute {
                     pretty: "".to_string(),
                     activation_group: None,
-                    feature: None,
+                    feature: Node::new_from_str("A")?.unwrap(),
                     main_attribute: None,
                     physical_unit: PhysicalUnit::None,
                     color: None,
                 },
                 Attribute {
                     activation_group: None,
-                    feature: None,
+                    feature: Node::new_from_str("B")?.unwrap(),
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
                     main_attribute: None,
@@ -270,7 +270,7 @@ mod tests {
                 },
                 Attribute {
                     activation_group: None,
-                    feature: None,
+                    feature: Node::new_from_str("C")?.unwrap(),
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
                     main_attribute: None,
@@ -297,9 +297,9 @@ mod tests {
             </FeatureGroup>
         </FeatureGroups>
         <Attributes>
-            <Attribute />
-            <Attribute />
-            <Attribute  />
+            <Attribute Feature="A"/>
+            <Attribute Feature="B"/>
+            <Attribute Feature="C"/>
         </Attributes >
      </AttributeDefinitions>
      "#,
@@ -340,7 +340,7 @@ mod tests {
 
     #[test]
     fn test_faulty_child() {
-        match AttributeDefinitions::read_single_from_xml(
+        assert!( AttributeDefinitions::read_single_from_xml(
             r#"
     <AttributeDefinitions>
         <ActivationGroups>
@@ -362,10 +362,6 @@ mod tests {
         </Attributes >
      </AttributeDefinitions>
      "#
-        )
-        {
-            Ok(_) => {}
-            Err(_) => { panic!("test_faulty_child should not return an error"); }
-        }
+        ).is_err());
     }
 }

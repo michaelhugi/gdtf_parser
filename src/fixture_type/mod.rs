@@ -184,8 +184,8 @@ mod tests {
                 attributes: testdata::vec_to_hash_map(vec![AttributeName::Pan], vec![
                     Attribute::new(
                         "P",
-                        Some("PanTilt"),
-                        Node::new_from_str("Position.PanTilt")?,
+                        Node::new_from_str("PanTilt")?,
+                        Node::new_from_str("Position.PanTilt")?.unwrap(),
                         None,
                         PhysicalUnit::Angle,
                         None)

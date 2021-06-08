@@ -1,9 +1,10 @@
+//! The Defines a Fixture Type Attribute
 use std::fmt::Debug;
 
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
-use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
+use crate::utils::deparse::{DeparseHashMap, DeparseSingle, GdtfDeparseError};
 use crate::utils::deparse;
 #[cfg(test)]
 use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
@@ -16,24 +17,23 @@ use crate::utils::units::physical_unit::PhysicalUnit;
 ///Describes a singular mutual exclusive control function
 #[derive(Debug, PartialEq, Clone)]
 pub struct Attribute {
+    /// The pretty name of the attribute
     pub pretty: String,
-    pub activation_group: Option<String>,
-    pub feature: Option<Node>,
-    pub main_attribute: Option<String>,
+    /// Optional link ot the activation group. `FixtureType.activation_groups`
+    pub activation_group: Option<Node>,
+    /// Link to the corresponding feature. `AttributeDefinitions.feature_groups`
+    pub feature: Node,
+    /// Optional link to the main attribute. `AttributeDefinitions.attributes`
+    /// TODO Node for Attribute Name
+    pub main_attribute: Option<Node>,
+    /// The physical Unit of the attribute. `Units`
     pub physical_unit: PhysicalUnit,
+    /// Optional: Defines the color for the attribute
     pub color: Option<ColorCie>,
 }
 
 impl Attribute {
-    pub fn new(pretty: &str, activation_group: Option<&str>, feature: Option<Node>, main_attribute: Option<&str>, physical_unit: PhysicalUnit, color: Option<ColorCie>) -> Self {
-        let main_attribute = match main_attribute {
-            None => None,
-            Some(value) => Some(value.to_string())
-        };
-        let activation_group = match activation_group {
-            None => None,
-            Some(value) => Some(value.to_string())
-        };
+    pub fn new(pretty: &str, activation_group: Option<Node>, feature: Node, main_attribute: Option<Node>, physical_unit: PhysicalUnit, color: Option<ColorCie>) -> Self {
         Self { pretty: pretty.to_string(), activation_group, feature, main_attribute, physical_unit, color }
     }
 }
@@ -48,7 +48,7 @@ impl DeparseSingle for Attribute {
         let mut name = Default::default();
         let mut pretty = String::new();
         let mut activation_group = None;
-        let mut feature = None;
+        let mut feature: Option<Node> = None;
         let mut main_attribute = None;
         let mut physical_unit: PhysicalUnit = PhysicalUnit::None;
         let mut color: Option<ColorCie> = None;
@@ -58,14 +58,18 @@ impl DeparseSingle for Attribute {
             match attr.key {
                 b"Name" => name = AttributeName::new_from_attr(attr)?,
                 b"Pretty" => pretty = deparse::attr_to_string(&attr),
-                b"ActivationGroup" => activation_group = deparse::attr_to_string_option(&attr),
+                b"ActivationGroup" => activation_group = Node::new_from_attr(attr)?,
                 b"Feature" => feature = Node::new_from_attr(attr)?,
-                b"MainAttribute" => main_attribute = deparse::attr_to_string_option(&attr),
+                b"MainAttribute" => main_attribute = Node::new_from_attr(attr)?,
                 b"PhysicalUnit" => physical_unit = PhysicalUnit::new_from_attr(attr),
                 b"Color" => color = ColorCie::new_from_attr(attr).ok(),
                 _ => {}
             }
         }
+        if feature.is_none() {
+            return Err(GdtfDeparseError::new_xml_attribute_not_found(Self::NODE_NAME, b"ActivationGroup"))?;
+        }
+        let feature = feature.unwrap();
 
         Ok((Attribute {
             feature,
@@ -101,9 +105,9 @@ mod tests {
     fn test_attribute_all() -> Result<(), GdtfError> {
         Attribute {
             pretty: "SoundP".to_string(),
-            activation_group: Some("Gobo1".to_string()),
-            feature: Node::new_from_str("Control.Control")?,
-            main_attribute: Some("Gobo1M".to_string()),
+            activation_group: Node::new_from_str("Gobo1")?,
+            feature: Node::new_from_str("Control.Control")?.unwrap(),
+            main_attribute: Node::new_from_str("Gobo1M")?,
             physical_unit: PhysicalUnit::Angle,
             color: Some(ColorCie {
                 x: 0.312700,
@@ -120,9 +124,9 @@ mod tests {
     fn test_attribute_all_2() -> Result<(), GdtfError> {
         Attribute {
             pretty: "SoundP".to_string(),
-            activation_group: Some("Gobo1".to_string()),
-            feature: Node::new_from_str("Control.Control")?,
-            main_attribute: Some("Gobo1M".to_string()),
+            activation_group: Node::new_from_str("Gobo1")?,
+            feature: Node::new_from_str("Control.Control")?.unwrap(),
+            main_attribute: Node::new_from_str("Gobo1M")?,
             physical_unit: PhysicalUnit::Angle,
             color: Some(ColorCie {
                 x: 0.312700,
@@ -140,7 +144,7 @@ mod tests {
         Attribute {
             pretty: "SoundP".to_string(),
             activation_group: None,
-            feature: Node::new_from_str("Control.Control")?,
+            feature: Node::new_from_str("Control.Control")?.unwrap(),
             main_attribute: None,
             physical_unit: PhysicalUnit::Angle,
             color: None,
@@ -155,27 +159,12 @@ mod tests {
         Attribute {
             pretty: "".to_string(),
             activation_group: None,
-            feature: Node::new_from_str("")?,
+            feature: Node::new_from_str("F")?.unwrap(),
             main_attribute: None,
             physical_unit: PhysicalUnit::None,
             color: None,
         }.compare_to_primary_key_and_xml(Some(AttributeName::UserDefined(Name::new("")?)),
-                                         r#"<Attribute Feature="" Name="" MainAttribute="" ActivationGroup="" PhysicalUnit="" Pretty=""/>"#,
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn test_attribute_empty() -> Result<(), GdtfError> {
-        Attribute {
-            pretty: "".to_string(),
-            activation_group: None,
-            feature: None,
-            main_attribute: None,
-            physical_unit: PhysicalUnit::None,
-            color: None,
-        }.compare_to_primary_key_and_xml(Some(AttributeName::UserDefined(Name::new("")?)),
-                                         r#"<Attribute/>"#,
+                                         r#"<Attribute Feature="F" Name="" MainAttribute="" ActivationGroup="" PhysicalUnit="" Pretty=""/>"#,
         );
         Ok(())
     }
