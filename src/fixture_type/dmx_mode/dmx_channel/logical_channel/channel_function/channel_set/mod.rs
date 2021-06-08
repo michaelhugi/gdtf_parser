@@ -21,6 +21,8 @@ pub struct ChannelSet {
 
 impl DeparseSingle for ChannelSet {
     type PrimaryKey = Name;
+    type Error = GdtfError;
+    const SINGLE_EVENT_NAME: &'static [u8] = b"ChannelSet";
 
     fn single_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
@@ -47,10 +49,6 @@ impl DeparseSingle for ChannelSet {
             physical_to,
             wheel_slot_index,
         }, Some(name)))
-    }
-
-    fn is_single_event_name(event_name: &[u8]) -> bool {
-        event_name == b"ChannelSet"
     }
 
     fn single_event_name() -> String {

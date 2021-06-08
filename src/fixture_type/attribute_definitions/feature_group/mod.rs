@@ -26,6 +26,8 @@ pub struct FeatureGroup {
 
 impl DeparseSingle for FeatureGroup {
     type PrimaryKey = Name;
+    type Error = GdtfError;
+    const SINGLE_EVENT_NAME: &'static [u8] = b"FeatureGroup";
 
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
@@ -70,10 +72,6 @@ impl DeparseSingle for FeatureGroup {
             pretty,
             features,
         }, Some(name)))
-    }
-
-    fn is_single_event_name(event_name: &[u8]) -> bool {
-        event_name == b"FeatureGroup"
     }
 
     fn single_event_name() -> String {

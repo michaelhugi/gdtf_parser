@@ -76,6 +76,7 @@ use quick_xml::Reader;
 use crate::fixture_type::FixtureType;
 use crate::utils::deparse;
 use crate::utils::deparse::DeparseSingle;
+use crate::utils::deparse::GdtfDeparseError;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
@@ -92,6 +93,9 @@ pub struct Gdtf {
 
 impl DeparseSingle for Gdtf {
     type PrimaryKey = ();
+    type Error = GdtfError;
+    const SINGLE_EVENT_NAME: &'static [u8] = b"GDTF";
+
 
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
@@ -109,7 +113,7 @@ impl DeparseSingle for Gdtf {
         loop {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) | Event::Empty(e) => {
-                    if FixtureType::is_single_event_name(e.name()) {
+                    if e.name()==FixtureType::SINGLE_EVENT_NAME {
                         return Ok(
                             (Gdtf {
                                 fixture_type: FixtureType::single_from_event(reader, e)?.0,
@@ -133,12 +137,7 @@ impl DeparseSingle for Gdtf {
             }
         }
         buf.clear();
-
-        Err(GdtfError::RequiredValueNotFoundError(format!("Could not find {}", FixtureType::single_event_name())))
-    }
-
-    fn is_single_event_name(event_name: &[u8]) -> bool {
-        event_name == b"GDTF"
+        Err(GdtfDeparseError::RequiredValueNotFoundError(FixtureType::single_event_name()))?
     }
 
     fn single_event_name() -> String {
@@ -185,7 +184,7 @@ impl TryFrom<&Path> for Gdtf {
             };
         }
         buf.clear();
-        Err(GdtfError::RequiredValueNotFoundError(format!("Could not find {}", Self::single_event_name())))
+        Err(GdtfDeparseError::RequiredValueNotFoundError(Self::single_event_name()))?
     }
 }
 
@@ -271,7 +270,7 @@ mod tests {
     use std::path::Path;
     use std::time::Duration;
 
-    use crate::{Gdtf, DataVersion};
+    use crate::{DataVersion, Gdtf};
     use crate::utils::testdata;
 
     #[test]

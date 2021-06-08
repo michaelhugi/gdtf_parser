@@ -37,6 +37,8 @@ pub struct DmxChannel {
 
 impl DeparseSingle for DmxChannel {
     type PrimaryKey = ();
+    type Error = GdtfError;
+    const SINGLE_EVENT_NAME: &'static [u8] = b"DMXChannel";
 
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
@@ -97,10 +99,6 @@ impl DeparseSingle for DmxChannel {
             geometry,
             logical_channels,
         }, None))
-    }
-
-    fn is_single_event_name(event_name: &[u8]) -> bool {
-        event_name == b"DMXChannel"
     }
 
     fn single_event_name() -> String {

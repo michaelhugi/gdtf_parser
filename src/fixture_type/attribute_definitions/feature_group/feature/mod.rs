@@ -12,6 +12,8 @@ pub struct Feature {}
 
 
 impl DeparsePrimaryKey<Name> for Feature {
+    type Error = GdtfError;
+
     fn primary_key_from_event(_: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Name, GdtfError> {
         for attr in e.attributes().into_iter() {
             let attr = attr?;

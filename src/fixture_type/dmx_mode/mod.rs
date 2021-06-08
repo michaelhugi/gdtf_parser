@@ -28,6 +28,8 @@ pub struct DmxMode {
 
 impl DeparseSingle for DmxMode {
     type PrimaryKey = Name;
+    type Error = GdtfError;
+    const SINGLE_EVENT_NAME: &'static [u8] = b"DMXMode";
 
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
@@ -73,10 +75,6 @@ impl DeparseSingle for DmxMode {
         }, Some(name)))
     }
 
-    fn is_single_event_name(event_name: &[u8]) -> bool {
-        event_name == b"DMXMode"
-    }
-
     fn single_event_name() -> String {
         "DMXMode".to_string()
     }
@@ -93,7 +91,7 @@ impl TestDeparseSingle for DmxMode {}
 
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::dmx_mode::dmx_channel::{DmxChannel, Offset, DmxBreak};
+    use crate::fixture_type::dmx_mode::dmx_channel::{DmxBreak, DmxChannel, Offset};
     use crate::fixture_type::dmx_mode::DmxMode;
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;

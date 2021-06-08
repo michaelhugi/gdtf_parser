@@ -38,6 +38,8 @@ impl PartialEq for AttributeDefinitions {
 
 impl DeparseSingle for AttributeDefinitions {
     type PrimaryKey = ();
+    type Error = GdtfError;
+    const SINGLE_EVENT_NAME: &'static [u8] = b"AttributeDefinitions";
 
     fn single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
@@ -75,10 +77,6 @@ impl DeparseSingle for AttributeDefinitions {
         }, None))
     }
 
-    fn is_single_event_name(event_name: &[u8]) -> bool {
-        event_name == b"AttributeDefinitions"
-    }
-
     fn single_event_name() -> String {
         "AttributeDefinitions".to_string()
     }
@@ -97,8 +95,8 @@ mod tests {
     use crate::utils::testdata;
     use crate::utils::units::attribute_name::AttributeName;
     use crate::utils::units::name::Name;
-    use crate::utils::units::physical_unit::PhysicalUnit;
     use crate::utils::units::node::Node;
+    use crate::utils::units::physical_unit::PhysicalUnit;
 
     #[test]
     fn test_some() -> Result<(), GdtfError> {
@@ -188,14 +186,14 @@ mod tests {
                 Attribute {
                     pretty: "".to_string(),
                     activation_group: None,
-                    feature:  Node::new_from_str("")?,
+                    feature: Node::new_from_str("")?,
                     main_attribute: None,
                     physical_unit: PhysicalUnit::None,
                     color: None,
                 },
                 Attribute {
                     activation_group: None,
-                    feature:  Node::new_from_str("")?,
+                    feature: Node::new_from_str("")?,
 
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
@@ -204,7 +202,7 @@ mod tests {
                 },
                 Attribute {
                     activation_group: None,
-                    feature:  Node::new_from_str("")?,
+                    feature: Node::new_from_str("")?,
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
                     main_attribute: None,
@@ -258,14 +256,14 @@ mod tests {
                 Attribute {
                     pretty: "".to_string(),
                     activation_group: None,
-                    feature:  None,
+                    feature: None,
                     main_attribute: None,
                     physical_unit: PhysicalUnit::None,
                     color: None,
                 },
                 Attribute {
                     activation_group: None,
-                    feature:  None,
+                    feature: None,
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
                     main_attribute: None,
@@ -273,7 +271,7 @@ mod tests {
                 },
                 Attribute {
                     activation_group: None,
-                    feature:  None,
+                    feature: None,
                     physical_unit: PhysicalUnit::None,
                     pretty: "".to_string(),
                     main_attribute: None,

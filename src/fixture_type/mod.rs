@@ -8,7 +8,7 @@ use quick_xml::Reader;
 use crate::fixture_type::attribute_definitions::AttributeDefinitions;
 use crate::fixture_type::dmx_mode::DmxMode;
 use crate::utils::deparse;
-use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
+use crate::utils::deparse::{DeparseHashMap, DeparseSingle, GdtfDeparseError};
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
@@ -60,6 +60,8 @@ pub struct FixtureType {
 
 impl DeparseSingle for FixtureType {
     type PrimaryKey = ();
+    type Error = GdtfError;
+    const SINGLE_EVENT_NAME: &'static [u8] = b"FixtureType";
 
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
@@ -120,11 +122,11 @@ impl DeparseSingle for FixtureType {
         buf.clear();
 
         if attribute_definitions.is_none() {
-            return Err(GdtfError::RequiredValueNotFoundError("AttributeDefinitions not found in FixtureType".to_string()));
+            return Err(GdtfDeparseError::RequiredValueNotFoundError("AttributeDefinitions".to_string()))?;
         }
         let attribute_definitions = attribute_definitions.unwrap();
         if dmx_modes.is_none() {
-            return Err(GdtfError::RequiredValueNotFoundError("Dmx Modes not found".to_string()));
+            return Err(GdtfDeparseError::RequiredValueNotFoundError("Dmx Modes".to_string()))?;
         }
         let dmx_modes = dmx_modes.unwrap();
 
@@ -141,11 +143,6 @@ impl DeparseSingle for FixtureType {
             attribute_definitions,
         }, None))
     }
-
-    fn is_single_event_name(event_name: &[u8]) -> bool {
-        event_name == b"FixtureType"
-    }
-
     fn single_event_name() -> String {
         "FixtureType".to_string()
     }
@@ -167,9 +164,8 @@ mod tests {
     use crate::utils::units::attribute_name::AttributeName;
     use crate::utils::units::guid::Guid;
     use crate::utils::units::name::Name;
-
-    use crate::utils::units::physical_unit::PhysicalUnit;
     use crate::utils::units::node::Node;
+    use crate::utils::units::physical_unit::PhysicalUnit;
 
     #[test]
     fn test_fixture_type() -> Result<(), GdtfError> {

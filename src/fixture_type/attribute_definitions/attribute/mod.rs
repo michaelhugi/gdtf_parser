@@ -40,6 +40,8 @@ impl Attribute {
 
 impl DeparseSingle for Attribute {
     type PrimaryKey = AttributeName;
+    type Error = GdtfError;
+    const SINGLE_EVENT_NAME: &'static [u8] = b"Attribute";
 
     fn single_from_event(_reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
@@ -73,10 +75,6 @@ impl DeparseSingle for Attribute {
             main_attribute,
             physical_unit,
         }, Some(name)))
-    }
-
-    fn is_single_event_name(event_name: &[u8]) -> bool {
-        event_name == b"Attribute"
     }
 
     fn single_event_name() -> String {

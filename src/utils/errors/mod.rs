@@ -5,6 +5,7 @@ use std::str::Utf8Error;
 
 use zip::result::ZipError;
 
+use crate::utils::deparse::GdtfDeparseError;
 use crate::utils::units::color_cie::GdtfColorCieError;
 use crate::utils::units::dmx_value::GdtfDmxValueError;
 use crate::utils::units::guid::GdtfGuidError;
@@ -15,7 +16,6 @@ use crate::utils::units::node::GdtfNodeError;
 pub enum GdtfError {
     Utf8Error(Utf8Error),
     QuickXmlError(quick_xml::Error),
-    RequiredValueNotFoundError(String),
     ColorCieNotValidError(String),
     DateNotValidError(String),
     DmxAddressNotValidError(String),
@@ -28,6 +28,13 @@ pub enum GdtfError {
     GdtfDmxValueError(GdtfDmxValueError),
     GdtfNodeError(GdtfNodeError),
     GdtfColorCieError(GdtfColorCieError),
+    GdtfDeparseError(GdtfDeparseError),
+}
+
+impl From<GdtfDeparseError> for GdtfError {
+    fn from(e: GdtfDeparseError) -> Self {
+        GdtfError::GdtfDeparseError(e)
+    }
 }
 
 impl From<GdtfColorCieError> for GdtfError {

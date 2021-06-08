@@ -36,6 +36,8 @@ pub struct LogicalChannel {
 
 impl DeparseSingle for LogicalChannel {
     type PrimaryKey = ();
+    type Error = GdtfError;
+    const SINGLE_EVENT_NAME: &'static [u8] = b"LogicalChannel";
 
     fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
         Self: Sized {
@@ -95,10 +97,6 @@ impl DeparseSingle for LogicalChannel {
                 channel_functions,
             }
             , None))
-    }
-
-    fn is_single_event_name(event_name: &[u8]) -> bool {
-        event_name == b"LogicalChannel"
     }
 
     fn single_event_name() -> String {
@@ -256,7 +254,7 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::{LogicalChannel, Master, Snap};
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::{ChannelFunction, Attribute};
+    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::{Attribute, ChannelFunction};
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;

@@ -9,3 +9,5 @@ pub mod attribute_name;
 pub mod node;
 pub mod matrix;
 pub mod rotation;
+pub mod resource;
+pub mod pixel;

@@ -1,6 +1,9 @@
+///! Module contains traits that can be implemented to simpler deparse structs from quick-xml without serde to have full control of the flow
 use std::borrow::Borrow;
 use std::collections::HashMap;
-use std::fmt::Debug;
+use std::error::Error;
+use std::fmt::{Debug, Display, Formatter};
+use std::fmt;
 use std::hash::Hash;
 use std::str::FromStr;
 
@@ -11,26 +14,37 @@ use quick_xml::Reader;
 
 use crate::utils::errors::GdtfError;
 
+///Trait to deparse an xml-node to a struct
 pub(crate) trait DeparseSingle: std::fmt::Debug + Sized {
+    ///The primary-key of the struct if used in a hash-map or () if no primary key present
     type PrimaryKey: Eq + Hash + Debug + Clone;
-    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError>;
+    ///Type of error returned in case of failure on deparse
+    type Error: From<GdtfDeparseError> + std::error::Error;
 
-    fn is_single_event_name(event_name: &[u8]) -> bool;
+    const SINGLE_EVENT_NAME: &'static [u8];
+
+    /// When a gdtf is deparsed it will go down the tree if a event hits and returns when end of the Node from the event is detected.
+    ///
+    /// # Arguments
+    ///
+    /// * `reader` - The quick-xml-Reader that is passed trough the whole tree to read next events of the tree branch if needed
+    /// * `e` - The Event that was triggering the overlaying struct to go down the tree one step further
+    fn single_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), Self::Error>;
 
     fn single_event_name() -> String;
 }
 
 #[cfg(test)]
 pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSingle {
-    fn single_from_reader(reader: &mut Reader<&[u8]>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> {
+    fn single_from_reader(reader: &mut Reader<&[u8]>) -> Result<(Self, Option<Self::PrimaryKey>), Self::Error> {
         reader.trim_text(true);
 
         let mut buf: Vec<u8> = Vec::new();
         let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf)? {
+            match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
                 Event::Start(e) | Event::Empty(e) => {
-                    if Self::is_single_event_name(e.name()) {
+                    if e.name() == Self::SINGLE_EVENT_NAME {
                         return Self::single_from_event(reader, e);
                     } else {
                         tree_down += 1;
@@ -49,10 +63,10 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
             };
         }
         buf.clear();
-        Err(GdtfError::RequiredValueNotFoundError(format!("Could not find {}", Self::single_event_name())))
+        Err(GdtfDeparseError::RequiredValueNotFoundError(Self::single_event_name()))?
     }
 
-    fn single_from_xml(xml: &str) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> {
+    fn single_from_xml(xml: &str) -> Result<(Self, Option<Self::PrimaryKey>), Self::Error> {
         let mut reader = Reader::from_str(xml);
         Self::single_from_reader(&mut reader)
     }
@@ -61,7 +75,7 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
         self.test_with_result(primary_key, Self::single_from_xml(xml));
     }
 
-    fn test_with_result(&self, primary_key: Option<Self::PrimaryKey>, other: Result<(Self, Option<Self::PrimaryKey>), GdtfError>) {
+    fn test_with_result(&self, primary_key: Option<Self::PrimaryKey>, other: Result<(Self, Option<Self::PrimaryKey>), Self::Error>) {
         let other = other.expect(&format!("Unexpected error in test of {}", Self::single_event_name())[..]);
         assert_eq!(self, &other.0);
         match (primary_key, other.1) {
@@ -73,7 +87,7 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
 }
 
 pub(crate) trait DeparseHashMap: DeparseSingle {
-    fn hash_map_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<HashMap<Self::PrimaryKey, Self>, GdtfError> where
+    fn hash_map_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<HashMap<Self::PrimaryKey, Self>, Self::Error> where
         Self: Sized {
         if !Self::is_group_event_name(&e.name()) {
             panic!("Wrong event passed for reading {}", std::any::type_name::<Self>());
@@ -83,9 +97,9 @@ pub(crate) trait DeparseHashMap: DeparseSingle {
         let mut out: HashMap<Self::PrimaryKey, Self> = HashMap::new();
         let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf)? {
+            match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
                 Event::Start(e) | Event::Empty(e) => {
-                    if Self::is_single_event_name(e.name()) {
+                    if e.name() == Self::SINGLE_EVENT_NAME {
                         let val = Self::single_from_event(reader, e)?;
                         if val.1.is_some() {
                             out.insert(val.1.unwrap(), val.0);
@@ -112,16 +126,17 @@ pub(crate) trait DeparseHashMap: DeparseSingle {
 }
 
 pub(crate) trait DeparsePrimaryKey<P: Eq + Hash + Debug + Clone> {
-    fn primary_key_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<P, GdtfError>;
+    type Error: From<GdtfDeparseError> + std::error::Error;
+    fn primary_key_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<P, Self::Error>;
 
 
-    fn primary_key_vec_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<Vec<P>, GdtfError> where
+    fn primary_key_vec_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<Vec<P>, Self::Error> where
         Self: Sized {
         let mut buf: Vec<u8> = Vec::new();
         let mut out: Vec<P> = Vec::new();
         let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf)? {
+            match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
                 Event::Start(e) | Event::Empty(e) => {
                     if Self::is_single_event_name(e.name()) {
                         out.push(Self::primary_key_from_event(reader, e)?);
@@ -148,7 +163,7 @@ pub(crate) trait DeparsePrimaryKey<P: Eq + Hash + Debug + Clone> {
 }
 
 pub(crate) trait DeparseVec: DeparseSingle {
-    fn vec_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Vec<Self>, GdtfError> where
+    fn vec_from_event(reader: &mut Reader<&[u8]>, e: BytesStart<'_>) -> Result<Vec<Self>, Self::Error> where
         Self: Sized {
         if !Self::is_group_event_name(&e.name()) {
             panic!("Wrong event passed for reading {}", std::any::type_name::<Self>());
@@ -158,9 +173,9 @@ pub(crate) trait DeparseVec: DeparseSingle {
         let mut out: Vec<Self> = Vec::new();
         let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf)? {
+            match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
                 Event::Start(e) | Event::Empty(e) => {
-                    if Self::is_single_event_name(e.name()) {
+                    if e.name() == Self::SINGLE_EVENT_NAME {
                         out.push(Self::single_from_event(reader, e)?.0);
                     } else {
                         tree_down += 1;
@@ -185,14 +200,14 @@ pub(crate) trait DeparseVec: DeparseSingle {
 
 #[cfg(test)]
 pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
-    fn vec_from_reader(reader: &mut Reader<&[u8]>) -> Result<Vec<Self>, GdtfError> where
+    fn vec_from_reader(reader: &mut Reader<&[u8]>) -> Result<Vec<Self>, Self::Error> where
         Self: Sized {
         reader.trim_text(true);
 
         let mut buf: Vec<u8> = Vec::new();
         let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf)? {
+            match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
                 Event::Start(e) | Event::Empty(e) => {
                     if Self::is_group_event_name(e.name()) {
                         return Self::vec_from_event(reader, e);
@@ -213,10 +228,10 @@ pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
             };
             buf.clear();
         }
-        Err(GdtfError::RequiredValueNotFoundError(format!("Could not find {}", Self::single_event_name())))
+        Err(GdtfDeparseError::RequiredValueNotFoundError(Self::single_event_name()))?
     }
 
-    fn vec_from_xml(xml: &str) -> Result<Vec<Self>, GdtfError>
+    fn vec_from_xml(xml: &str) -> Result<Vec<Self>, Self::Error>
         where Self: Sized {
         let mut reader = Reader::from_str(xml);
         Self::vec_from_reader(&mut reader)
@@ -232,14 +247,14 @@ pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
 
 #[cfg(test)]
 pub(crate) trait TestDeparseHashMap: DeparseHashMap + TestDeparseSingle {
-    fn hash_map_from_reader(reader: &mut Reader<&[u8]>) -> Result<HashMap<Self::PrimaryKey, Self>, GdtfError> where
+    fn hash_map_from_reader(reader: &mut Reader<&[u8]>) -> Result<HashMap<Self::PrimaryKey, Self>, Self::Error> where
         Self: Sized {
         reader.trim_text(true);
 
         let mut buf: Vec<u8> = Vec::new();
         let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf)? {
+            match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
                 Event::Start(e) | Event::Empty(e) => {
                     if Self::is_group_event_name(e.name()) {
                         return Self::hash_map_from_event(reader, e);
@@ -260,10 +275,10 @@ pub(crate) trait TestDeparseHashMap: DeparseHashMap + TestDeparseSingle {
             };
             buf.clear();
         }
-        Err(GdtfError::RequiredValueNotFoundError(format!("Could not find {}", Self::single_event_name())))
+        Err(GdtfDeparseError::RequiredValueNotFoundError(Self::single_event_name()))?
     }
 
-    fn hash_map_from_xml(xml: &str) -> Result<HashMap<Self::PrimaryKey, Self>, GdtfError>
+    fn hash_map_from_xml(xml: &str) -> Result<HashMap<Self::PrimaryKey, Self>, Self::Error>
         where Self: Sized {
         let mut reader = Reader::from_str(xml);
         Self::hash_map_from_reader(&mut reader)
@@ -312,3 +327,20 @@ pub(crate) fn attr_to_u8_option(attr: &Attribute) -> Option<u8> {
         Err(_) => None
     }
 }
+
+#[derive(Debug)]
+pub enum GdtfDeparseError {
+    QuickXmlError(quick_xml::Error),
+    RequiredValueNotFoundError(String),
+}
+
+impl Display for GdtfDeparseError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            GdtfDeparseError::QuickXmlError(e) => write!(f, "GdtfDeparseError: {}", e),
+            GdtfDeparseError::RequiredValueNotFoundError(s) => write!(f, "Could not find {}", s)
+        }
+    }
+}
+
+impl Error for GdtfDeparseError {}
