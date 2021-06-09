@@ -150,7 +150,7 @@ impl TestDeparseSingle for FixtureType {}
 
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::attribute_definitions::attribute::Attribute;
+    use crate::fixture_type::attribute_definitions::attribute::tests::{attribute_testdata_hash_map, attribute_testdata_xml_group};
     use crate::fixture_type::attribute_definitions::AttributeDefinitions;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
     use crate::fixture_type::dmx_mode::DmxMode;
@@ -158,11 +158,8 @@ mod tests {
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
-    use crate::utils::units::attribute_name::AttributeName;
     use crate::utils::units::guid::Guid;
     use crate::utils::units::name::Name;
-    use crate::utils::units::node::Node;
-    use crate::utils::units::physical_unit::PhysicalUnit;
 
     #[test]
     fn test_fixture_type() -> Result<(), GdtfError> {
@@ -181,15 +178,7 @@ mod tests {
                     pretty: "PositionP".to_string(),
                     features: vec![Name::new("PanTilt")?],
                 }]),
-                attributes: testdata::vec_to_hash_map(vec![AttributeName::Pan], vec![
-                    Attribute::new(
-                        "P",
-                        Node::new_from_str("PanTilt")?,
-                        Node::new_from_str("Position.PanTilt")?.unwrap(),
-                        None,
-                        PhysicalUnit::Angle,
-                        None)
-                ]),
+                attributes: attribute_testdata_hash_map(),
             },
             dmx_modes: testdata::vec_to_hash_map(vec![Name::new("Mode 1 12 DMX")?], vec![DmxMode {
                 geometry: Name::new("Base")?,
@@ -197,7 +186,7 @@ mod tests {
             }]),
 
         }.compare_to_primary_key_and_xml(None,
-                                         r#"
+                                         &format!(r#"
         <FixtureType Description="ACME AE-610 BEAM" FixtureTypeID="E62F2ECF-2A08-491D-BEEC-F5C491B89784" LongName="ACME AE 610 BEAM" Manufacturer="ACME" Name="ACME AE-610 BEAM" RefFT="8F54E11C-4C91-11E9-80BC-F1DFE217E634" ShortName="ACME AE 610 BEAM" Thumbnail="AE-610 BEAM">
             <AttributeDefinitions>
                     <ActivationGroups>
@@ -208,9 +197,7 @@ mod tests {
                         <Feature Name="PanTilt"/>
                     </FeatureGroup>
                 </FeatureGroups>
-                <Attributes>
-                    <Attribute ActivationGroup="PanTilt" Feature="Position.PanTilt" Name="Pan" PhysicalUnit="Angle" Pretty="P"/>
-                </Attributes>
+                {}
             </AttributeDefinitions>
             <DMXModes>
                 <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
@@ -220,7 +207,7 @@ mod tests {
                 </DMXMode>
             </DMXModes>
         </FixtureType>
-    "#);
+    "#, attribute_testdata_xml_group()));
         Ok(())
     }
 }

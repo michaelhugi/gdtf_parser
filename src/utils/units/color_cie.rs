@@ -92,6 +92,7 @@ mod tests {
     #[test]
     fn test_new_from_str() -> Result<(), GdtfError> {
         assert_eq!(ColorCie { x: 234.2, y: 123.123, Y: 123. }, ColorCie::new_from_str("234.2,123.123,123.000")?);
+        assert_eq!(ColorCie { x: 234.2, y: 0.329003, Y: 123. }, ColorCie::new_from_str("234.2,0.329003,123.000")?);
         assert!(ColorCie::new_from_str("something invalid").is_err());
         Ok(())
     }
@@ -99,6 +100,7 @@ mod tests {
     #[test]
     fn test_new_from_attr_borrowed() -> Result<(), GdtfError> {
         assert_eq!(ColorCie { x: 234.2, y: 123.123, Y: 123. }, ColorCie::new_from_attr(testdata::to_attr_borrowed(b"234.2,123.123,123.000"))?);
+        assert_eq!(ColorCie { x: 234.2, y: 0.329003, Y: 123. }, ColorCie::new_from_attr(testdata::to_attr_borrowed(b"234.2,0.329003,123.000"))?);
         assert!(ColorCie::new_from_attr(testdata::to_attr_borrowed(b"Something invalid")).is_err());
         Ok(())
     }
@@ -106,6 +108,7 @@ mod tests {
     #[test]
     fn test_new_from_attr_owned() -> Result<(), GdtfError> {
         assert_eq!(ColorCie { x: 234.2, y: 123.123, Y: 123. }, ColorCie::new_from_attr(testdata::to_attr_owned(b"234.2,123.123,123.000"))?);
+        assert_eq!(ColorCie { x: 234.2, y: 0.329003, Y: 123. }, ColorCie::new_from_attr(testdata::to_attr_owned(b"234.2,0.329003,123.000"))?);
         assert!(ColorCie::new_from_attr(testdata::to_attr_owned(b"Something invalid")).is_err());
         Ok(())
     }

@@ -42,26 +42,26 @@ mod tests {
     use crate::utils::units::name::Name;
 
     #[test]
-    fn test_read_primary_key_from_event() -> Result<(), GdtfError> {
-        assert_eq!(activation_group_dummy(0), T::read_primary_key_from_xml(&activation_group_dummy_xml(0))?);
-        assert_eq!(activation_group_dummy(1), T::read_primary_key_from_xml(&activation_group_dummy_xml(1))?);
-        assert_eq!(activation_group_dummy(2), T::read_primary_key_from_xml(&activation_group_dummy_xml(2))?);
-        assert_eq!(activation_group_dummy(3), T::read_primary_key_from_xml(&activation_group_dummy_xml(3))?);
-        assert_eq!(activation_group_dummy(4), T::read_primary_key_from_xml(&activation_group_dummy_xml(4))?);
-        assert_eq!(activation_group_dummy(5), T::read_primary_key_from_xml(&activation_group_dummy_xml(5))?);
-        assert_eq!(activation_group_dummy(6), T::read_primary_key_from_xml(&activation_group_dummy_xml(6))?);
+    fn test_read_primary_key() -> Result<(), GdtfError> {
 
+        assert_eq!(activation_group_testdata(1), T::read_primary_key_from_xml(&activation_group_testdata_xml(1))?);
+        assert_eq!(activation_group_testdata(2), T::read_primary_key_from_xml(&activation_group_testdata_xml(2))?);
+        assert_eq!(activation_group_testdata(3), T::read_primary_key_from_xml(&activation_group_testdata_xml(3))?);
+        assert_eq!(activation_group_testdata(4), T::read_primary_key_from_xml(&activation_group_testdata_xml(4))?);
+        assert_eq!(activation_group_testdata(5), T::read_primary_key_from_xml(&activation_group_testdata_xml(5))?);
+        assert_eq!(activation_group_testdata(6), T::read_primary_key_from_xml(&activation_group_testdata_xml(6))?);
+        assert_eq!(activation_group_testdata(7), T::read_primary_key_from_xml(&activation_group_testdata_xml(7))?);
         Ok(())
     }
 
     #[test]
-    fn test_read_primary_key_vec_from_event() -> Result<(), GdtfError> {
-        assert_eq!(activation_group_dummy_vec(), T::read_vec_from_xml(&activation_group_dummy_xml_group())?);
+    fn test_read_primary_key_vec() -> Result<(), GdtfError> {
+        assert_eq!(activation_group_testdata_vec(), T::read_vec_from_xml(&activation_group_teatdata_xml_group())?);
         Ok(())
     }
 
     ///Returns 7 different activation group names for testing
-    pub(crate) fn activation_group_dummy(i: u8) -> Name {
+    pub(crate) fn activation_group_testdata(i: u8) -> Name {
         match i {
             1 => Name::new("ColorRGB").unwrap(),
             2 => Name::new("PanTilt").unwrap(),
@@ -74,21 +74,21 @@ mod tests {
     }
 
     ///Returns a vec of names for testing
-    pub(crate) fn activation_group_dummy_vec() -> Vec<Name> {
+    pub(crate) fn activation_group_testdata_vec() -> Vec<Name> {
         vec![
-            activation_group_dummy(0),
-            activation_group_dummy(1),
-            activation_group_dummy(2),
-            activation_group_dummy(3),
-            activation_group_dummy(4),
-            activation_group_dummy(5),
-            activation_group_dummy(6),
+            activation_group_testdata(1),
+            activation_group_testdata(2),
+            activation_group_testdata(3),
+            activation_group_testdata(4),
+            activation_group_testdata(5),
+            activation_group_testdata(6),
+            activation_group_testdata(7),
         ]
     }
 
 
     ///Returns 7 different activation group xmls for testing
-    pub(crate) fn activation_group_dummy_xml(i: u8) -> String {
+    pub(crate) fn activation_group_testdata_xml(i: u8) -> String {
         match i {
             1 => r#"<ActivationGroup Name="ColorRGB"/>"#.to_string(),
             2 => r#"<ActivationGroup Name="PanTilt"/>"#.to_string(),
@@ -101,16 +101,16 @@ mod tests {
     }
 
     ///Returns an xml with 7 different ActivationGroup nodes inside one activationGroup
-    pub(crate) fn activation_group_dummy_xml_group() -> String {
+    pub(crate) fn activation_group_teatdata_xml_group() -> String {
         r#"
     <ActivationGroups>
-        <ActivationGroup Name=""/>
         <ActivationGroup Name="ColorRGB"/>
         <ActivationGroup Name="PanTilt"/>
         <ActivationGroup Name="Gobo1"/>
         <ActivationGroup Name="ColorIndirect"/>
         <ActivationGroup Name="Gobo2"/>
         <ActivationGroup Name="Prism"/>
+        <ActivationGroup Name=""/>
     </ActivationGroups>
     "#.to_string()
     }
