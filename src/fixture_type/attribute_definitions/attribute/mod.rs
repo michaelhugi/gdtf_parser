@@ -36,6 +36,7 @@ impl DeparseSingle for Attribute {
     /// Attribute ist stored in a HashMap in AttributeDefinitions. Therefore name is used as primary-key for the hashmap
     type PrimaryKey = AttributeName;
     type Error = GdtfError;
+
     const NODE_NAME: &'static [u8] = b"Attribute";
 
     fn read_single_from_event(_reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
@@ -77,13 +78,15 @@ impl DeparseSingle for Attribute {
     }
 }
 
-impl DeparseHashMap for Attribute {}
+impl DeparseHashMap for Attribute {
+    const PARENT_NODE_NAME: &'static [u8] = b"Attributes";
+}
 
 #[cfg(test)]
 impl TestDeparseSingle for Attribute {}
 
 #[cfg(test)]
-impl TestDeparseHashMap for Attribute { const PARENT_NODE_NAME: &'static [u8] = b"Attributes"; }
+impl TestDeparseHashMap for Attribute {}
 
 #[cfg(test)]
 pub mod tests {
@@ -121,6 +124,7 @@ pub mod tests {
         let map = attribute_testdata_hash_map();
         assert!(map.len() == 10);
         assert_eq!(map, T::read_hash_map_from_xml(&attribute_testdata_xml_group()).unwrap());
+        assert_eq!(T::read_hash_map_from_xml(&attribute_testdata_xml_group_empty()).unwrap(), HashMap::new());
         assert_eq!(T::read_hash_map_from_xml(
             r#"
                     <Attributes>
@@ -202,6 +206,14 @@ pub mod tests {
         <Attribute ActivationGroup="Gobo1" Feature="Gobo.Gobo" MainAttribute="Gobo1" Name="Gobo1SelectShake" PhysicalUnit="Frequency" Pretty="Select Shake"/>
         <Attribute ActivationGroup="Gobo1" Feature="Gobo.Gobo" MainAttribute="" Name="Gobo2WheelSpin" PhysicalUnit="AngularSpeed" Pretty="Wheel Spin"/>
         <Attribute Color="0.312700,0.329000,100.000000" Feature="Control.Control" Name="Reserved" PhysicalUnit="None" Pretty="Reserved"/>
+    </Attributes>
+    "#.to_string()
+    }
+
+    ///Returns an xml with nothing nodes inside one Attributes
+    pub(crate) fn attribute_testdata_xml_group_empty() -> String {
+        r#"
+    <Attributes>
     </Attributes>
     "#.to_string()
     }

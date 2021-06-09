@@ -27,6 +27,7 @@ pub struct FeatureGroup {
 impl DeparseSingle for FeatureGroup {
     type PrimaryKey = Name;
     type Error = GdtfError;
+
     const NODE_NAME: &'static [u8] = b"FeatureGroup";
 
     fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
@@ -75,14 +76,16 @@ impl DeparseSingle for FeatureGroup {
     }
 }
 
-impl DeparseHashMap for FeatureGroup {}
+impl DeparseHashMap for FeatureGroup {
+    const PARENT_NODE_NAME: &'static [u8] = b"FeatureGroups";
+}
 
 #[cfg(test)]
 impl TestDeparseSingle for FeatureGroup {}
 
 #[cfg(test)]
 impl TestDeparseHashMap for FeatureGroup {
-    const PARENT_NODE_NAME: &'static [u8] = b"FeatureGroups";
+
 }
 
 #[cfg(test)]

@@ -37,6 +37,7 @@ pub struct LogicalChannel {
 impl DeparseSingle for LogicalChannel {
     type PrimaryKey = ();
     type Error = GdtfError;
+
     const NODE_NAME: &'static [u8] = b"LogicalChannel";
 
     fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where

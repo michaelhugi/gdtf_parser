@@ -42,6 +42,7 @@ impl PartialEq for AttributeDefinitions {
 impl DeparseSingle for AttributeDefinitions {
     type PrimaryKey = ();
     type Error = GdtfError;
+
     const NODE_NAME: &'static [u8] = b"AttributeDefinitions";
 
     fn read_single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where

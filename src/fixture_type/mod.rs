@@ -61,6 +61,7 @@ pub struct FixtureType {
 impl DeparseSingle for FixtureType {
     type PrimaryKey = ();
     type Error = GdtfError;
+
     const NODE_NAME: &'static [u8] = b"FixtureType";
 
     fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where

@@ -16,8 +16,9 @@ pub struct ActivationGroup {}
 ///Activation Group only contains
 impl DeparsePrimaryKey for ActivationGroup {
     type Error = GdtfError;
-    const NODE_NAME: &'static [u8] = b"ActivationGroup";
     type PrimaryKey = Name;
+
+    const NODE_NAME: &'static [u8] = b"ActivationGroup";
     const PARENT_NODE_NAME: &'static [u8] = b"ActivationGroups";
 
     fn read_primary_key_from_event(event: BytesStart<'_>) -> Result<Name, GdtfError> {
@@ -43,7 +44,6 @@ mod tests {
 
     #[test]
     fn test_read_primary_key() -> Result<(), GdtfError> {
-
         assert_eq!(activation_group_testdata(1), T::read_primary_key_from_xml(&activation_group_testdata_xml(1))?);
         assert_eq!(activation_group_testdata(2), T::read_primary_key_from_xml(&activation_group_testdata_xml(2))?);
         assert_eq!(activation_group_testdata(3), T::read_primary_key_from_xml(&activation_group_testdata_xml(3))?);
@@ -57,6 +57,7 @@ mod tests {
     #[test]
     fn test_read_primary_key_vec() -> Result<(), GdtfError> {
         assert_eq!(activation_group_testdata_vec(), T::read_vec_from_xml(&activation_group_teatdata_xml_group())?);
+        assert_eq!(T::read_vec_from_xml(&activation_group_teatdata_xml_group_empty())?, vec![]);
         Ok(())
     }
 
@@ -111,6 +112,14 @@ mod tests {
         <ActivationGroup Name="Gobo2"/>
         <ActivationGroup Name="Prism"/>
         <ActivationGroup Name=""/>
+    </ActivationGroups>
+    "#.to_string()
+    }
+
+    ///Returns an xml no nodes inside one activationGroup
+    pub(crate) fn activation_group_teatdata_xml_group_empty() -> String {
+        r#"
+    <ActivationGroups>
     </ActivationGroups>
     "#.to_string()
     }

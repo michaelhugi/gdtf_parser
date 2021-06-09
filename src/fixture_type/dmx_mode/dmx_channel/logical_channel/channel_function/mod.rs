@@ -69,6 +69,7 @@ const DEFAULT_DMX_DEFAULT: DmxValue = DmxValue {
 impl DeparseSingle for ChannelFunction {
     type PrimaryKey = Name;
     type Error = GdtfError;
+
     const NODE_NAME: &'static [u8] = b"ChannelFunction";
 
     fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where

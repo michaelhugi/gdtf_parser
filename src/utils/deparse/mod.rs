@@ -103,6 +103,8 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
 
 ///Trait to deparse multiple xml-nodes with PrimaryKeys to a HashMap
 pub(crate) trait DeparseHashMap: DeparseSingle {
+    ///The name of the node wraps a list of nodes that contain the data for the struct. Declare it as b"GDTF" for example.
+    const PARENT_NODE_NAME: &'static [u8];
     /// When a gdtf is deparsed it will go down the tree if a event hits and returns when end of the Node from the event is detected. If a list of Nodes has a primary-key they most likely are stored in a hash-map. This event returns this hashmap directly to avoid further memory allocation.
     ///
     /// # Arguments
@@ -147,8 +149,7 @@ pub(crate) trait DeparseHashMap: DeparseSingle {
 ///Trait to help testing DeparseHashMap
 #[cfg(test)]
 pub(crate) trait TestDeparseHashMap: DeparseHashMap + TestDeparseSingle {
-    ///The name of the node wraps a list of nodes that contain the data for the struct. Declare it as b"GDTF" for example.
-    const PARENT_NODE_NAME: &'static [u8];
+
 
     /// Reads a hashmap from an xml string slice. The function will dive down the nodes in the xml until it hits `PARENT_NODE_NAME` and then call `DeparseHashMap.read_hash_map_from_event` on it.
     ///
@@ -341,6 +342,8 @@ pub(crate) trait TestDeparsePrimaryKey: DeparsePrimaryKey {
 
 ///If an xml-node is listed multiple times but has no unique attribute accross all these nodes, it's likely that this nodes are stored in a Vec. This trait implements methods for helping to achieve this
 pub(crate) trait DeparseVec: DeparseSingle {
+    ///The name of the node wraps a list of nodes that contain the data for the struct. Declare it as b"GDTF" for example.
+    const PARENT_NODE_NAME: &'static [u8];
     ///If an xml-node is listed multiple times but has no unique attribute accross all these nodes (`PrimaryKey`), this function can be used.
     /// This function will go down the tree and deparse all nodes with the name eq to `NODE_NAME` in a vec and return when it's back up at it's position.
     ///
@@ -383,8 +386,7 @@ pub(crate) trait DeparseVec: DeparseSingle {
 ///Trait to help testing DeparseVec
 #[cfg(test)]
 pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
-    ///The name of the node wraps a list of nodes that contain the data for the struct. Declare it as b"GDTF" for example.
-    const PARENT_NODE_NAME: &'static [u8];
+
 
     /// Parses a given xml string to a Vector of structs. This method will go down the tree of nodes in the xml until it finds a node with the name `PARENT_NODE_NAME` and call `DeparseVec::read_vec_from_event` to all child-nodes found with the name eq to `NODE_NAME`
     ///

@@ -29,6 +29,7 @@ pub struct DmxMode {
 impl DeparseSingle for DmxMode {
     type PrimaryKey = Name;
     type Error = GdtfError;
+
     const NODE_NAME: &'static [u8] = b"DMXMode";
 
     fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
@@ -76,11 +77,13 @@ impl DeparseSingle for DmxMode {
     }
 }
 
-impl DeparseHashMap for DmxMode {}
+impl DeparseHashMap for DmxMode {
+    const PARENT_NODE_NAME: &'static [u8] = b"DMXModes";
+}
 
 #[cfg(test)]
 impl TestDeparseHashMap for DmxMode {
-    const PARENT_NODE_NAME: &'static [u8] = b"DMXModes";
+
 }
 
 #[cfg(test)]

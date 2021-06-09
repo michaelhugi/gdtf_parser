@@ -22,6 +22,7 @@ pub struct ChannelSet {
 impl DeparseSingle for ChannelSet {
     type PrimaryKey = Name;
     type Error = GdtfError;
+
     const NODE_NAME: &'static [u8] = b"ChannelSet";
 
     fn read_single_from_event(_: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where

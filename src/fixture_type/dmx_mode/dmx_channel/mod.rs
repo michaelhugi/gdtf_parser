@@ -38,6 +38,7 @@ pub struct DmxChannel {
 impl DeparseSingle for DmxChannel {
     type PrimaryKey = ();
     type Error = GdtfError;
+
     const NODE_NAME: &'static [u8] = b"DMXChannel";
 
     fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
@@ -102,11 +103,13 @@ impl DeparseSingle for DmxChannel {
     }
 }
 
-impl DeparseVec for DmxChannel {}
+impl DeparseVec for DmxChannel {
+    const PARENT_NODE_NAME: &'static [u8] = b"DMXChannels";
+}
 
 #[cfg(test)]
 impl TestDeparseVec for DmxChannel {
-    const PARENT_NODE_NAME: &'static [u8] = b"DMXChannels";
+
 }
 
 #[cfg(test)]
