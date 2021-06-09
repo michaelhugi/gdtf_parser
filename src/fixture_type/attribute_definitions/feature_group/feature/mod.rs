@@ -36,7 +36,7 @@ impl TestDeparsePrimaryKey for Feature {}
 
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use crate::fixture_type::attribute_definitions::feature_group::feature::Feature as T;
     use crate::utils::deparse::TestDeparsePrimaryKey;
     use crate::utils::errors::GdtfError;
@@ -97,11 +97,11 @@ mod tests {
             4 => r#"<Feature Name="Indirect"/>"#.to_string(),
             5 => r#"<Feature Name="PanTilt"/>"#.to_string(),
             6 => r#"<Feature Name="Gobo"/>"#.to_string(),
-            _ => r#"<Feature Name="""#.to_string()
+            _ => r#"<Feature Name=""/>"#.to_string()
         }
     }
 
-    ///Returns an xml with 7 different Feature nodes inside one activationGroup
+    ///Returns an xml with 7 different Feature nodes inside one FeatureGroup
     pub(crate) fn feature_teatdata_xml_group() -> String {
         r#"
      <FeatureGroup Name="Color" Pretty="Color">
@@ -116,7 +116,7 @@ mod tests {
     "#.to_string()
     }
 
-    ///Returns an xml with 7 different Feature nodes inside one activationGroup
+    ///Returns an xml with no nodes inside one FeatureGroup
     pub(crate) fn feature_teatdata_xml_group_empty() -> String {
         r#"
      <FeatureGroup Name="Color" Pretty="Color">
