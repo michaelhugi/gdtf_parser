@@ -15,7 +15,7 @@ use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
 
-pub mod feature;
+pub(crate) mod feature;
 
 
 #[derive(Debug, PartialEq, Clone)]

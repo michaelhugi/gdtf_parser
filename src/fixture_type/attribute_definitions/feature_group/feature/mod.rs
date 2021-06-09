@@ -4,10 +4,13 @@
 use quick_xml::events::BytesStart;
 
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
-use crate::utils::deparse::{DeparsePrimaryKey, DeparseSingle, TestDeparsePrimaryKey};
+use crate::utils::deparse::{DeparsePrimaryKey, DeparseSingle};
+#[cfg(test)]
+use crate::utils::deparse::TestDeparsePrimaryKey;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
 
+///Feature only contains one feature Name, so only this primary keys are stored in a vec in FeatureGroup
 pub struct Feature {}
 
 impl DeparsePrimaryKey for Feature {
@@ -16,7 +19,6 @@ impl DeparsePrimaryKey for Feature {
 
     const NODE_NAME: &'static [u8] = b"Feature";
     const PARENT_NODE_NAME: &'static [u8] = FeatureGroup::NODE_NAME;
-
 
     fn read_primary_key_from_event(event: BytesStart<'_>) -> Result<Name, GdtfError> {
         for attr in event.attributes().into_iter() {
