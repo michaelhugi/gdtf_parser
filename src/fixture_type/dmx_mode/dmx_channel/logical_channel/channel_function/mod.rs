@@ -9,7 +9,7 @@ use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
 use crate::utils::deparse;
-use crate::utils::deparse::DeparseSingle;
+use crate::utils::deparse::{DeparseSingle, DeparseHashMap};
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
@@ -118,31 +118,7 @@ impl DeparseSingle for ChannelFunction {
             }
         }
 
-        let mut buf: Vec<u8> = Vec::new();
-        let mut tree_down = 0;
-        loop {
-            match reader.read_event(&mut buf)? {
-                Event::Start(e) | Event::Empty(e) => {
-                    if e.name() == b"ChannelSet" {
-                        let cs = ChannelSet::read_single_from_event(reader, e)?;
-                        channel_sets.insert(cs.0.unwrap(), cs.1);
-                    } else {
-                        tree_down += 1;
-                    }
-                }
-                Event::Eof => {
-                    break;
-                }
-                Event::End(_) => {
-                    tree_down -= 1;
-                    if tree_down <= 0 {
-                        break;
-                    }
-                }
-                _ => {}
-            }
-        }
-        buf.clear();
+        channel_sets = ChannelSet::read_hash_map_from_event(reader)?;
 
         Ok((Some(name), ChannelFunction {
             attribute,
