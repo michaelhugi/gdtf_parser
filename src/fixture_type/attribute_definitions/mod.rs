@@ -1,3 +1,4 @@
+//! Defines the attribute definitions for the Fixture Type Attributes.
 use std::collections::HashMap;
 use std::fmt::Debug;
 
@@ -21,22 +22,18 @@ pub mod attribute;
 pub(crate) mod activation_group;
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
+/// Defines the attribute definitions for the Fixture Type Attributes.
 pub struct AttributeDefinitions {
+    ///Describes the logical grouping of attributes. For example, Gobo 1 and Gobo 2 are grouped in the feature Gobo of the feature group Gobo.
     pub feature_groups: HashMap<Name, FeatureGroup>,
+    ///List of Fixture Type Attributes that are used.
     pub attributes: HashMap<AttributeName, Attribute>,
     /// # Definition of ActivationGroup
     /// Attributes which need to be activated together to gain control over one logical function
     /// Note 1 to entry: As example Pan & Tilt are paired to gain control over Position.
+    /// Defines which attributes are to be activated together. For example, Pan and Tilt are in the same activation group.
     pub activation_groups: Vec<Name>,
-}
-
-impl PartialEq for AttributeDefinitions {
-    fn eq(&self, other: &Self) -> bool {
-        self.feature_groups == other.feature_groups &&
-            self.attributes == other.attributes &&
-            self.activation_groups == other.activation_groups
-    }
 }
 
 impl DeparseSingle for AttributeDefinitions {
@@ -45,8 +42,7 @@ impl DeparseSingle for AttributeDefinitions {
 
     const NODE_NAME: &'static [u8] = b"AttributeDefinitions";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
-        Self: Sized {
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where Self: Sized {
         let mut buf: Vec<u8> = Vec::new();
         let mut feature_groups: HashMap<Name, FeatureGroup> = HashMap::new();
         let mut attributes: HashMap<AttributeName, Attribute> = HashMap::new();
@@ -56,8 +52,8 @@ impl DeparseSingle for AttributeDefinitions {
             match reader.read_event(&mut buf) {
                 Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
                     match e.name() {
-                        b"FeatureGroups" => feature_groups = FeatureGroup::read_hash_map_from_event(reader)?,
-                        b"Attributes" => attributes = Attribute::read_hash_map_from_event(reader)?,
+                        FeatureGroup::PARENT_NODE_NAME => feature_groups = FeatureGroup::read_hash_map_from_event(reader)?,
+                        Attribute::PARENT_NODE_NAME => attributes = Attribute::read_hash_map_from_event(reader)?,
                         ActivationGroup::PARENT_NODE_NAME => activation_groups = ActivationGroup::read_primary_key_vec_from_event(reader)?,
                         _ => { tree_down += 1; }
                     }
@@ -87,282 +83,94 @@ impl TestDeparseSingle for AttributeDefinitions {}
 
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::attribute_definitions::attribute::Attribute;
-    use crate::fixture_type::attribute_definitions::AttributeDefinitions;
-    use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
+    use std::collections::HashMap;
+
+    use crate::fixture_type::attribute_definitions::activation_group::tests::{activation_group_testdata_vec,  activation_group_testdata_xml_group};
+    use crate::fixture_type::attribute_definitions::attribute::tests::{attribute_testdata_hash_map, attribute_testdata_xml_group};
+    use crate::fixture_type::attribute_definitions::AttributeDefinitions as T;
+    use crate::fixture_type::attribute_definitions::feature_group::tests::{feature_group_teatdata_xml_group, feature_group_testdata_hash_map};
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
-    use crate::utils::testdata;
-    use crate::utils::units::attribute_name::AttributeName;
-    use crate::utils::units::name::Name;
-    use crate::utils::units::node::Node;
-    use crate::utils::units::physical_unit::PhysicalUnit;
 
     #[test]
-    fn test_some() -> Result<(), GdtfError> {
-        AttributeDefinitions {
-            feature_groups: testdata::vec_to_hash_map(vec![Name::new("PositionG")?, Name::new("GoboG")?], vec![
-                FeatureGroup {
-                    pretty: "PositionP".to_string(),
-                    features: vec![Name::new("PanTiltF")?],
-                },
-                FeatureGroup {
-                    pretty: "GoboP".to_string(),
-                    features: vec![
-                        Name::new("GoboF")?,
-                        Name::new("Gobo2F")?
-                    ],
-                }]),
-            attributes: testdata::vec_to_hash_map(vec![AttributeName::Pan, AttributeName::Tilt, AttributeName::Gobo_n_(1)], vec![
-                Attribute {
-                    pretty: "P".to_string(),
-                    activation_group: Node::new_from_str("PanTilt")?,
-                    feature: Node::new_from_str("Position.PanTilt")?.unwrap(),
-                    main_attribute: None,
-                    physical_unit: PhysicalUnit::Angle,
-                    color: None,
-                },
-                Attribute {
-                    activation_group: Node::new_from_str("PanTilt")?,
-                    feature: Node::new_from_str("Position.PanTilt")?.unwrap(),
-                    physical_unit: PhysicalUnit::Angle,
-                    pretty: "T".to_string(),
-                    main_attribute: None,
-                    color: None,
-                },
-                Attribute {
-                    activation_group: Node::new_from_str("Gobo1")?,
-                    feature: Node::new_from_str("Gobo.Gobo")?.unwrap(),
-                    physical_unit: PhysicalUnit::None,
-                    pretty: "G1".to_string(),
-                    main_attribute: None,
-                    color: None,
-                }
-            ]),
-            activation_groups: vec![
-                Name::new("PanTilt")?,
-                Name::new("Gobo1")?
-            ],
-        }.compare_to_primary_key_and_xml(None,
-                                         r#"
-    <AttributeDefinitions>
-        <ActivationGroups>
-            <ActivationGroup Name="PanTilt"/>
-            <ActivationGroup Name="Gobo1"/>
-        </ActivationGroups>
-        <FeatureGroups>
-            <FeatureGroup Name="PositionG" Pretty="PositionP">
-                <Feature Name="PanTiltF"/>
-            </FeatureGroup>
-            <FeatureGroup Name="GoboG" Pretty="GoboP">
-                <Feature Name="GoboF"/>
-                <Feature Name="Gobo2F"/>
-            </FeatureGroup>
-        </FeatureGroups>
-        <Attributes>
-            <Attribute ActivationGroup="PanTilt" Feature="Position.PanTilt" Name="Pan" PhysicalUnit="Angle" Pretty="P"/>
-            <Attribute ActivationGroup="PanTilt" Feature="Position.PanTilt" Name="Tilt" PhysicalUnit="Angle" Pretty="T"/>
-            <Attribute ActivationGroup="Gobo1" Feature="Gobo.Gobo" Name="Gobo1" PhysicalUnit="None" Pretty="G1"/>
-        </Attributes>
-     </AttributeDefinitions>
-     "#,
-        );
+    fn test_deparse_single() -> Result<(), GdtfError> {
+        assert_eq!(attribute_definitions_testdata(1), T::read_single_from_xml(&attribute_definitions_testdata_xml(1)).unwrap().0);
+        assert_eq!(attribute_definitions_testdata(2), T::read_single_from_xml(&attribute_definitions_testdata_xml(2)).unwrap().0);
+        assert_eq!(attribute_definitions_testdata(3), T::read_single_from_xml(&attribute_definitions_testdata_xml(3)).unwrap().0);
+        assert_eq!(attribute_definitions_testdata(4), T::read_single_from_xml(&attribute_definitions_testdata_xml(4)).unwrap().0);
+        assert_eq!(attribute_definitions_testdata(5), T::read_single_from_xml(&attribute_definitions_testdata_xml(5)).unwrap().0);
         Ok(())
     }
 
-    #[test]
-    fn test_min() -> Result<(), GdtfError> {
-        AttributeDefinitions {
-            feature_groups: testdata::vec_to_hash_map(vec![Name::new("")?, Name::new("")?], vec![
-                FeatureGroup {
-                    pretty: "".to_string(),
-                    features: vec![Name::new("")?],
-                },
-                FeatureGroup {
-                    pretty: "".to_string(),
-                    features: vec![Name::new("")?],
-                }]),
-            attributes: testdata::vec_to_hash_map(vec![AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?)], vec![
-                Attribute {
-                    pretty: "".to_string(),
-                    activation_group: None,
-                    feature: Node::new_from_str("A")?.unwrap(),
-                    main_attribute: None,
-                    physical_unit: PhysicalUnit::None,
-                    color: None,
-                },
-                Attribute {
-                    activation_group: None,
-                    feature: Node::new_from_str("B")?.unwrap(),
-
-                    physical_unit: PhysicalUnit::None,
-                    pretty: "".to_string(),
-                    main_attribute: None,
-                    color: None,
-                },
-                Attribute {
-                    activation_group: None,
-                    feature: Node::new_from_str("C")?.unwrap(),
-                    physical_unit: PhysicalUnit::None,
-                    pretty: "".to_string(),
-                    main_attribute: None,
-                    color: None,
-                }
-            ]),
-            activation_groups: vec![
-                Name::new("")?,
-                Name::new("")?
-            ],
-        }.compare_to_primary_key_and_xml(None,
-                                         r#"
-    <AttributeDefinitions>
-        <ActivationGroups>
-            <ActivationGroup Name=""/>
-            <ActivationGroup Name=""/>
-        </ActivationGroups>
-        <FeatureGroups>
-            <FeatureGroup Name="" Pretty="">
-                <Feature Name=""/>
-            </FeatureGroup>
-            <FeatureGroup Name="" Pretty="">
-                <Feature Name=""/>
-            </FeatureGroup>
-        </FeatureGroups>
-        <Attributes>
-            <Attribute ActivationGroup="" Feature="A" Name="" PhysicalUnit="" Pretty=""/>
-            <Attribute ActivationGroup="" Feature="B" Name="" PhysicalUnit="" Pretty=""/>
-            <Attribute ActivationGroup="" Feature="C" Name="" PhysicalUnit="" Pretty=""/>
-        </Attributes>
-     </AttributeDefinitions>
-     "#,
-        );
-        Ok(())
-    }
-
-
-    #[test]
-    fn test_empty() -> Result<(), GdtfError> {
-        AttributeDefinitions {
-            feature_groups: testdata::vec_to_hash_map(vec![Name::new("")?, Name::new("")?], vec![
-                FeatureGroup {
-                    pretty: "".to_string(),
-                    features: vec![Name::new("")?],
-                },
-                FeatureGroup {
-                    pretty: "".to_string(),
-                    features: vec![Name::new("")?],
-                }]),
-            attributes: testdata::vec_to_hash_map(vec![AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?), AttributeName::UserDefined(Name::new("")?)], vec![
-                Attribute {
-                    pretty: "".to_string(),
-                    activation_group: None,
-                    feature: Node::new_from_str("A")?.unwrap(),
-                    main_attribute: None,
-                    physical_unit: PhysicalUnit::None,
-                    color: None,
-                },
-                Attribute {
-                    activation_group: None,
-                    feature: Node::new_from_str("B")?.unwrap(),
-                    physical_unit: PhysicalUnit::None,
-                    pretty: "".to_string(),
-                    main_attribute: None,
-                    color: None,
-                },
-                Attribute {
-                    activation_group: None,
-                    feature: Node::new_from_str("C")?.unwrap(),
-                    physical_unit: PhysicalUnit::None,
-                    pretty: "".to_string(),
-                    main_attribute: None,
-                    color: None,
-                }
-            ]),
-            activation_groups: vec![
-                Name::new("")?,
-                Name::new("")?
-            ],
-        }.compare_to_primary_key_and_xml(None,
-                                         r#"
-    <AttributeDefinitions>
-        <ActivationGroups>
-            <ActivationGroup />
-            <ActivationGroup />
-        </ActivationGroups>
-        <FeatureGroups>
-            <FeatureGroup >
-                <Feature />
-            </FeatureGroup>
-            <FeatureGroup  >
-                <Feature />
-            </FeatureGroup>
-        </FeatureGroups>
-        <Attributes>
-            <Attribute Feature="A"/>
-            <Attribute Feature="B"/>
-            <Attribute Feature="C"/>
-        </Attributes >
-     </AttributeDefinitions>
-     "#,
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn test_faulty() {
-        match AttributeDefinitions::read_single_from_xml(
-            r#"
-    <AttributeDefinitions>
-        <ActivationGroups>
-            <ActivationGroup />
-            <ActivationGroup />
-        </ActivationGroups>
-        <FeatureGroups>
-            <FeatureGroup >
-                <Feature />
-            </FeatureGroup>
-            <FeatureGroup  >
-                <Feature />
-            </FeatureGroup>
-        </FeatureGroups>
-        Attributes>
-            <Attribute />
-            <Attribte />
-            <Attribute  />
-        </Attributes >
-     </AttributeDefinitions>
-     "#
-        )
-        {
-            Ok(_) => { panic!("test_faulty should return an error"); }
-            Err(_) => {}
+    ///Returns 5 different AttributeDefinitions for testing
+    pub fn attribute_definitions_testdata(i: u8) -> T {
+        match i {
+            1 => T {
+                feature_groups: feature_group_testdata_hash_map(),
+                attributes: attribute_testdata_hash_map(),
+                activation_groups: activation_group_testdata_vec(),
+            },
+            2 => T {
+                feature_groups: HashMap::new(),
+                attributes: attribute_testdata_hash_map(),
+                activation_groups: activation_group_testdata_vec(),
+            },
+            3 => T {
+                feature_groups: feature_group_testdata_hash_map(),
+                attributes: HashMap::new(),
+                activation_groups: activation_group_testdata_vec(),
+            },
+            4 => T {
+                feature_groups: feature_group_testdata_hash_map(),
+                attributes: attribute_testdata_hash_map(),
+                activation_groups: vec![],
+            },
+            _ => T {
+                feature_groups: HashMap::new(),
+                attributes: HashMap::new(),
+                activation_groups: vec![],
+            },
         }
     }
 
-    #[test]
-    fn test_faulty_child() {
-        assert!( AttributeDefinitions::read_single_from_xml(
-            r#"
-    <AttributeDefinitions>
-        <ActivationGroups>
-            <ActivationGroup />
-            <ActivationGroup />
-        </ActivationGroups>
-        <FeatureGroups>
-            <FeatureGroup >
-                <Feature />
-            </FeatureGroup>
-            <FeatureGroup  >
-                <Feature />
-            </FeatureGroup>
-        </FeatureGroups>
-        <Attributes>
-            <Attribute />
-            <Attribte />
-            <Attribute  />
-        </Attributes >
-     </AttributeDefinitions>
-     "#
-        ).is_err());
+    ///Returns 5 different xmls with AttributeDefinitions for testing
+    pub fn attribute_definitions_testdata_xml(i: u8) -> String {
+        match i {
+            1 => format!(r#"$
+            <AttributeDefinitions>
+                {}
+                {}
+                {}
+            </AttributeDefinitions>
+            "#, feature_group_teatdata_xml_group(), attribute_testdata_xml_group(), activation_group_testdata_xml_group()),
+            2 => format!(r#"$
+            <AttributeDefinitions>
+                <FeatureGroups></FeatureGroups>
+                {}
+                {}
+            </AttributeDefinitions>
+            "#, attribute_testdata_xml_group(), activation_group_testdata_xml_group()),
+            3 => format!(r#"$
+            <AttributeDefinitions>
+                {}
+                <Attributes></Attributes>
+                {}
+            </AttributeDefinitions>
+            "#, feature_group_teatdata_xml_group(), activation_group_testdata_xml_group()),
+            4 => format!(r#"$
+            <AttributeDefinitions>
+                {}
+                {}
+                "<ActivationGroups></ActivationGroups>
+            </AttributeDefinitions>
+            "#, feature_group_teatdata_xml_group(), attribute_testdata_xml_group()),
+            _ => format!(r#"$
+            <AttributeDefinitions>
+                <FeatureGroups></FeatureGroups>
+                <Attributes></Attributes>
+                <ActivationGroups></ActivationGroups>
+            </AttributeDefinitions>
+            "#),
+        }
     }
 }

@@ -36,7 +36,7 @@ impl DeparsePrimaryKey for ActivationGroup {
 impl TestDeparsePrimaryKey for ActivationGroup {}
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use crate::fixture_type::attribute_definitions::activation_group::ActivationGroup as T;
     use crate::utils::deparse::TestDeparsePrimaryKey;
     use crate::utils::errors::GdtfError;
@@ -56,7 +56,7 @@ mod tests {
 
     #[test]
     fn test_read_primary_key_vec() -> Result<(), GdtfError> {
-        assert_eq!(activation_group_testdata_vec(), T::read_vec_from_xml(&activation_group_teatdata_xml_group())?);
+        assert_eq!(activation_group_testdata_vec(), T::read_vec_from_xml(&activation_group_testdata_xml_group())?);
         assert_eq!(T::read_vec_from_xml(&activation_group_teatdata_xml_group_empty())?, vec![]);
         Ok(())
     }
@@ -102,7 +102,7 @@ mod tests {
     }
 
     ///Returns an xml with 7 different ActivationGroup nodes inside one activationGroup
-    pub(crate) fn activation_group_teatdata_xml_group() -> String {
+    pub(crate) fn activation_group_testdata_xml_group() -> String {
         r#"
     <ActivationGroups>
         <ActivationGroup Name="ColorRGB"/>

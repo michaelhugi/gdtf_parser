@@ -90,14 +90,13 @@ impl TestDeparseSingle for FeatureGroup {}
 impl TestDeparseHashMap for FeatureGroup {}
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use std::collections::HashMap;
 
     use crate::fixture_type::attribute_definitions::feature_group::feature::tests::{feature_testdata, feature_testdata_xml};
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup as T;
     use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
     use crate::utils::errors::GdtfError;
-    use crate::utils::testdata;
     use crate::utils::units::name::Name;
 
     #[test]
@@ -159,7 +158,7 @@ mod tests {
 
     ///Returns an xml with 7 different Feature nodes inside one FeatureGroup
     pub(crate) fn feature_group_teatdata_xml_group() -> String {
-     let out=   format!(r#"<FeatureGroups>
+        let out = format!(r#"<FeatureGroups>
         {}
         {}
         {}
@@ -168,13 +167,13 @@ mod tests {
         {}
         {}
       </FeatureGroups>"#,
-                feature_group_testdata_xml(1),
-                feature_group_testdata_xml(2),
-                feature_group_testdata_xml(3),
-                feature_group_testdata_xml(4),
-                feature_group_testdata_xml(5),
-                feature_group_testdata_xml(6),
-                feature_group_testdata_xml(7),
+                          feature_group_testdata_xml(1),
+                          feature_group_testdata_xml(2),
+                          feature_group_testdata_xml(3),
+                          feature_group_testdata_xml(4),
+                          feature_group_testdata_xml(5),
+                          feature_group_testdata_xml(6),
+                          feature_group_testdata_xml(7),
         );
         out
     }
