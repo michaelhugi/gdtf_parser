@@ -39,7 +39,7 @@ impl DeparseSingle for Attribute {
 
     const NODE_NAME: &'static [u8] = b"Attribute";
 
-    fn read_single_from_event(_reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(_reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut name = Default::default();
         let mut pretty = String::new();
@@ -67,14 +67,14 @@ impl DeparseSingle for Attribute {
         }
         let feature = feature.unwrap();
 
-        Ok((Attribute {
+        Ok((Some(name), Attribute {
             feature,
             pretty,
             color,
             activation_group,
             main_attribute,
             physical_unit,
-        }, Some(name)))
+        }))
     }
 }
 
@@ -138,18 +138,18 @@ pub mod tests {
 
 
     ///Returns 10 different attributes for testing
-    pub(crate) fn attribute_testdata(i: u8) -> (T, Option<AttributeName>) {
+    pub(crate) fn attribute_testdata(i: u8) -> (Option<AttributeName>, T) {
         match i {
-            1 => (T { feature: Node::new_from_str("Beam.Beam").unwrap().unwrap(), pretty: "".to_string(), activation_group: None, color: None, main_attribute: None, physical_unit: PhysicalUnit::None }, Some(AttributeName::Shutter_n_(1))),
-            2 => (T { feature: Node::new_from_str("Dimmer.Dimmer").unwrap().unwrap(), pretty: "Dim".to_string(), activation_group: None, color: None, main_attribute: None, physical_unit: PhysicalUnit::None }, Some(AttributeName::Dimmer)),
-            3 => (T { pretty: "".to_string(), activation_group: None, feature: Node::new_from_str("Color.Color").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, color: None }, Some(AttributeName::Color_n_(1))),
-            4 => (T { feature: Node::new_from_str("Position.PanTilt").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::Angle, pretty: "P".to_string(), activation_group: Node::new_from_str("PanTilt").unwrap(), color: None }, Some(AttributeName::Pan)),
-            5 => (T { activation_group: Node::new_from_str("PanTilt").unwrap(), feature: Node::new_from_str("Position.PanTilt").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, pretty: "T".to_string(), color: None }, Some(AttributeName::Tilt)),
-            6 => (T { activation_group: Node::new_from_str("PanTilt").unwrap(), feature: Node::new_from_str("Position.PanTilt").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, pretty: "T".to_string(), color: None }, Some(AttributeName::UserDefined(Name::new("Something Else").unwrap()))),
-            7 => (T { feature: Node::new_from_str("Gobo.Gobo").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, pretty: "G1".to_string(), activation_group: None, color: None }, Some(AttributeName::Gobo_n_(1))),
-            8 => (T { activation_group: Node::new_from_str("Gobo1").unwrap(), feature: Node::new_from_str("Gobo.Gobo").unwrap().unwrap(), main_attribute: Node::new_from_str("Gobo1").unwrap(), physical_unit: PhysicalUnit::Frequency, pretty: "Select Shake".to_string(), color: None }, Some(AttributeName::Gobo_n_SelectShake(1))),
-            9 => (T { activation_group: Node::new_from_str("Gobo1").unwrap(), feature: Node::new_from_str("Gobo.Gobo").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::AngularSpeed, pretty: "Wheel Spin".to_string(), color: None }, Some(AttributeName::Gobo_n_WheelSpin(2)), ),
-            _ => (T { color: Some(ColorCie { x: 0.312700, y: 0.329, Y: 100.0 }), feature: Node::new_from_str("Control.Control").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, pretty: "Reserved".to_string(), activation_group: None }, Some(AttributeName::UserDefined(Name::new("Reserved").unwrap())))
+            1 => (Some(AttributeName::Shutter_n_(1)), T { feature: Node::new_from_str("Beam.Beam").unwrap().unwrap(), pretty: "".to_string(), activation_group: None, color: None, main_attribute: None, physical_unit: PhysicalUnit::None }),
+            2 => (Some(AttributeName::Dimmer), T { feature: Node::new_from_str("Dimmer.Dimmer").unwrap().unwrap(), pretty: "Dim".to_string(), activation_group: None, color: None, main_attribute: None, physical_unit: PhysicalUnit::None }),
+            3 => (Some(AttributeName::Color_n_(1)), T { pretty: "".to_string(), activation_group: None, feature: Node::new_from_str("Color.Color").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, color: None }),
+            4 => (Some(AttributeName::Pan), T { feature: Node::new_from_str("Position.PanTilt").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::Angle, pretty: "P".to_string(), activation_group: Node::new_from_str("PanTilt").unwrap(), color: None }),
+            5 => (Some(AttributeName::Tilt), T { activation_group: Node::new_from_str("PanTilt").unwrap(), feature: Node::new_from_str("Position.PanTilt").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, pretty: "T".to_string(), color: None }),
+            6 => (Some(AttributeName::UserDefined(Name::new("Something Else").unwrap())), T { activation_group: Node::new_from_str("PanTilt").unwrap(), feature: Node::new_from_str("Position.PanTilt").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, pretty: "T".to_string(), color: None }),
+            7 => (Some(AttributeName::Gobo_n_(1)), T { feature: Node::new_from_str("Gobo.Gobo").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, pretty: "G1".to_string(), activation_group: None, color: None }),
+            8 => (Some(AttributeName::Gobo_n_SelectShake(1)), T { activation_group: Node::new_from_str("Gobo1").unwrap(), feature: Node::new_from_str("Gobo.Gobo").unwrap().unwrap(), main_attribute: Node::new_from_str("Gobo1").unwrap(), physical_unit: PhysicalUnit::Frequency, pretty: "Select Shake".to_string(), color: None }),
+            9 => (Some(AttributeName::Gobo_n_WheelSpin(2)), T { activation_group: Node::new_from_str("Gobo1").unwrap(), feature: Node::new_from_str("Gobo.Gobo").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::AngularSpeed, pretty: "Wheel Spin".to_string(), color: None }),
+            _ => (Some(AttributeName::UserDefined(Name::new("Reserved").unwrap())), T { color: Some(ColorCie { x: 0.312700, y: 0.329, Y: 100.0 }), feature: Node::new_from_str("Control.Control").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, pretty: "Reserved".to_string(), activation_group: None })
         }
     }
 
@@ -157,16 +157,16 @@ pub mod tests {
     pub(crate) fn attribute_testdata_hash_map() -> HashMap<AttributeName, T> {
         let mut map = HashMap::new();
 
-        map.insert(attribute_testdata(1).1.unwrap(), attribute_testdata(1).0);
-        map.insert(attribute_testdata(2).1.unwrap(), attribute_testdata(2).0);
-        map.insert(attribute_testdata(3).1.unwrap(), attribute_testdata(3).0);
-        map.insert(attribute_testdata(4).1.unwrap(), attribute_testdata(4).0);
-        map.insert(attribute_testdata(5).1.unwrap(), attribute_testdata(5).0);
-        map.insert(attribute_testdata(6).1.unwrap(), attribute_testdata(6).0);
-        map.insert(attribute_testdata(7).1.unwrap(), attribute_testdata(7).0);
-        map.insert(attribute_testdata(8).1.unwrap(), attribute_testdata(8).0);
-        map.insert(attribute_testdata(9).1.unwrap(), attribute_testdata(9).0);
-        map.insert(attribute_testdata(10).1.unwrap(), attribute_testdata(10).0);
+        map.insert(attribute_testdata(1).0.unwrap(), attribute_testdata(1).1);
+        map.insert(attribute_testdata(2).0.unwrap(), attribute_testdata(2).1);
+        map.insert(attribute_testdata(3).0.unwrap(), attribute_testdata(3).1);
+        map.insert(attribute_testdata(4).0.unwrap(), attribute_testdata(4).1);
+        map.insert(attribute_testdata(5).0.unwrap(), attribute_testdata(5).1);
+        map.insert(attribute_testdata(6).0.unwrap(), attribute_testdata(6).1);
+        map.insert(attribute_testdata(7).0.unwrap(), attribute_testdata(7).1);
+        map.insert(attribute_testdata(8).0.unwrap(), attribute_testdata(8).1);
+        map.insert(attribute_testdata(9).0.unwrap(), attribute_testdata(9).1);
+        map.insert(attribute_testdata(10).0.unwrap(), attribute_testdata(10).1);
 
         map
     }

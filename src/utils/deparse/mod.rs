@@ -37,7 +37,7 @@ pub(crate) trait DeparseSingle: std::fmt::Debug + Sized {
     ///
     /// * `Self` - The struct deparsed from the reader
     /// * `Self::PrimaryKey` - If the struct has a primary key (to use in a hashmap for example) it will be returned here
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), Self::Error>;
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>,Self), Self::Error>;
 }
 
 ///Trait to help testing DeparseSingle
@@ -51,7 +51,7 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
     /// # Arguments
     ///
     /// * `xml` - The xml that should be deparsed
-    fn read_single_from_xml(xml: &str) -> Result<(Self, Option<Self::PrimaryKey>), Self::Error> {
+    fn read_single_from_xml(xml: &str) -> Result<( Option<Self::PrimaryKey>, Self), Self::Error> {
         let mut reader = Reader::from_str(xml);
         reader.trim_text(true);
 
@@ -92,8 +92,8 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
     /// * `xml` - The xml that will de deparsed and compared to the struct implementing `DeparseSingle` and the `PrimaryKey` if is some.
     fn compare_to_primary_key_and_xml(&self, primary_key: Option<Self::PrimaryKey>, xml: &str) {
         let other = Self::read_single_from_xml(xml).expect(&format!("Unexpected error in test of {}", u8_array_to_string(Self::NODE_NAME))[..]);
-        assert_eq!(self, &other.0);
-        match (primary_key, other.1) {
+        assert_eq!(self, &other.1);
+        match (primary_key, other.0) {
             (Some(primary_key), Some(other)) => assert_eq!(primary_key, other),
             (None, None) => {}
             (primary_key, other) => panic!("Primary Keys not equal \nleft: {:?}\nright: {:?}", primary_key, other)
@@ -123,8 +123,8 @@ pub(crate) trait DeparseHashMap: DeparseSingle {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == Self::NODE_NAME {
                         let val = Self::read_single_from_event(reader, e)?;
-                        if val.1.is_some() {
-                            out.insert(val.1.unwrap(), val.0);
+                        if val.0.is_some() {
+                            out.insert(val.0.unwrap(), val.1);
                         }
                     } else {
                         tree_down += 1;
@@ -362,7 +362,7 @@ pub(crate) trait DeparseVec: DeparseSingle {
             match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == Self::NODE_NAME {
-                        out.push(Self::read_single_from_event(reader, e)?.0);
+                        out.push(Self::read_single_from_event(reader, e)?.1);
                     } else {
                         tree_down += 1;
                     }

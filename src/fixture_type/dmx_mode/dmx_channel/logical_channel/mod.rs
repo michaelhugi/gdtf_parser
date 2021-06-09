@@ -40,7 +40,7 @@ impl DeparseSingle for LogicalChannel {
 
     const NODE_NAME: &'static [u8] = b"LogicalChannel";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut attribute = None;
         let mut snap: Snap = Snap::default();
@@ -69,7 +69,7 @@ impl DeparseSingle for LogicalChannel {
                     if e.name() == b"ChannelFunction" {
                         let cf = ChannelFunction::read_single_from_event(reader, e)?;
 
-                        channel_functions.insert(cf.1.unwrap(), cf.0);
+                        channel_functions.insert(cf.0.unwrap(), cf.1);
                     } else {
                         tree_down += 1;
                     }
@@ -88,7 +88,7 @@ impl DeparseSingle for LogicalChannel {
         }
         buf.clear();
 
-        Ok((
+        Ok((None,
             LogicalChannel {
                 attribute,
                 snap,
@@ -96,10 +96,8 @@ impl DeparseSingle for LogicalChannel {
                 mib_fade,
                 dmx_change_time_limit,
                 channel_functions,
-            }
-            , None))
+            }))
     }
-
 }
 
 #[cfg(test)]

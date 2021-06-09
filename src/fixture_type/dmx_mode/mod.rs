@@ -32,7 +32,7 @@ impl DeparseSingle for DmxMode {
 
     const NODE_NAME: &'static [u8] = b"DMXMode";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut geometry: Name = Default::default();
@@ -70,10 +70,10 @@ impl DeparseSingle for DmxMode {
         }
         buf.clear();
 
-        Ok((Self {
+        Ok((Some(name), Self {
             geometry,
             dmx_channels,
-        }, Some(name)))
+        }))
     }
 }
 
@@ -82,9 +82,7 @@ impl DeparseHashMap for DmxMode {
 }
 
 #[cfg(test)]
-impl TestDeparseHashMap for DmxMode {
-
-}
+impl TestDeparseHashMap for DmxMode {}
 
 #[cfg(test)]
 impl TestDeparseSingle for DmxMode {}

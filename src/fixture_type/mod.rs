@@ -64,7 +64,7 @@ impl DeparseSingle for FixtureType {
 
     const NODE_NAME: &'static [u8] = b"FixtureType";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut name = Name::default();
         let mut short_name = String::new();
@@ -102,7 +102,7 @@ impl DeparseSingle for FixtureType {
             match reader.read_event(&mut buf) {
                 Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
                     match e.name() {
-                        AttributeDefinitions::NODE_NAME => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e)?.0),
+                        AttributeDefinitions::NODE_NAME => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e)?.1),
                         b"DMXModes" => {
                             dmx_modes = Some(DmxMode::read_hash_map_from_event(reader)?);
                         }
@@ -131,7 +131,7 @@ impl DeparseSingle for FixtureType {
         }
         let dmx_modes = dmx_modes.unwrap();
 
-        Ok((Self {
+        Ok((None, Self {
             name,
             short_name,
             long_name,
@@ -142,7 +142,7 @@ impl DeparseSingle for FixtureType {
             ref_ft,
             dmx_modes,
             attribute_definitions,
-        }, None))
+        }))
     }
 }
 

@@ -42,7 +42,7 @@ impl DeparseSingle for AttributeDefinitions {
 
     const NODE_NAME: &'static [u8] = b"AttributeDefinitions";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where Self: Sized {
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where Self: Sized {
         let mut buf: Vec<u8> = Vec::new();
         let mut feature_groups: HashMap<Name, FeatureGroup> = HashMap::new();
         let mut attributes: HashMap<AttributeName, Attribute> = HashMap::new();
@@ -70,11 +70,11 @@ impl DeparseSingle for AttributeDefinitions {
             }
         }
         buf.clear();
-        Ok((AttributeDefinitions {
+        Ok((None, AttributeDefinitions {
             feature_groups,
             attributes,
             activation_groups,
-        }, None))
+        }))
     }
 }
 
@@ -85,7 +85,7 @@ impl TestDeparseSingle for AttributeDefinitions {}
 mod tests {
     use std::collections::HashMap;
 
-    use crate::fixture_type::attribute_definitions::activation_group::tests::{activation_group_testdata_vec,  activation_group_testdata_xml_group};
+    use crate::fixture_type::attribute_definitions::activation_group::tests::{activation_group_testdata_vec, activation_group_testdata_xml_group};
     use crate::fixture_type::attribute_definitions::attribute::tests::{attribute_testdata_hash_map, attribute_testdata_xml_group};
     use crate::fixture_type::attribute_definitions::AttributeDefinitions as T;
     use crate::fixture_type::attribute_definitions::feature_group::tests::{feature_group_teatdata_xml_group, feature_group_testdata_hash_map};
@@ -94,11 +94,11 @@ mod tests {
 
     #[test]
     fn test_deparse_single() -> Result<(), GdtfError> {
-        assert_eq!(attribute_definitions_testdata(1), T::read_single_from_xml(&attribute_definitions_testdata_xml(1)).unwrap().0);
-        assert_eq!(attribute_definitions_testdata(2), T::read_single_from_xml(&attribute_definitions_testdata_xml(2)).unwrap().0);
-        assert_eq!(attribute_definitions_testdata(3), T::read_single_from_xml(&attribute_definitions_testdata_xml(3)).unwrap().0);
-        assert_eq!(attribute_definitions_testdata(4), T::read_single_from_xml(&attribute_definitions_testdata_xml(4)).unwrap().0);
-        assert_eq!(attribute_definitions_testdata(5), T::read_single_from_xml(&attribute_definitions_testdata_xml(5)).unwrap().0);
+        assert_eq!(attribute_definitions_testdata(1), T::read_single_from_xml(&attribute_definitions_testdata_xml(1)).unwrap().1);
+        assert_eq!(attribute_definitions_testdata(2), T::read_single_from_xml(&attribute_definitions_testdata_xml(2)).unwrap().1);
+        assert_eq!(attribute_definitions_testdata(3), T::read_single_from_xml(&attribute_definitions_testdata_xml(3)).unwrap().1);
+        assert_eq!(attribute_definitions_testdata(4), T::read_single_from_xml(&attribute_definitions_testdata_xml(4)).unwrap().1);
+        assert_eq!(attribute_definitions_testdata(5), T::read_single_from_xml(&attribute_definitions_testdata_xml(5)).unwrap().1);
         Ok(())
     }
 

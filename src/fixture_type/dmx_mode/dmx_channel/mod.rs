@@ -41,7 +41,7 @@ impl DeparseSingle for DmxChannel {
 
     const NODE_NAME: &'static [u8] = b"DMXChannel";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut dmx_break = DmxBreak::default();
         let mut offset = None;
@@ -72,7 +72,7 @@ impl DeparseSingle for DmxChannel {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"LogicalChannel" {
-                        logical_channels.push(LogicalChannel::read_single_from_event(reader, e)?.0);
+                        logical_channels.push(LogicalChannel::read_single_from_event(reader, e)?.1);
                     } else {
                         tree_down += 1;
                     }
@@ -92,14 +92,14 @@ impl DeparseSingle for DmxChannel {
         }
         buf.clear();
 
-        Ok((Self {
+        Ok((None, Self {
             dmx_break,
             offset,
             initial_function,
             highlight,
             geometry,
             logical_channels,
-        }, None))
+        }))
     }
 }
 
@@ -108,9 +108,7 @@ impl DeparseVec for DmxChannel {
 }
 
 #[cfg(test)]
-impl TestDeparseVec for DmxChannel {
-
-}
+impl TestDeparseVec for DmxChannel {}
 
 #[cfg(test)]
 impl TestDeparseSingle for DmxChannel {}

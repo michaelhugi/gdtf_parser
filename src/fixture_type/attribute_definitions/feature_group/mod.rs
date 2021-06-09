@@ -33,7 +33,7 @@ impl DeparseSingle for FeatureGroup {
 
     const NODE_NAME: &'static [u8] = b"FeatureGroup";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut name = Default::default();
         let mut pretty = String::new();
@@ -72,10 +72,10 @@ impl DeparseSingle for FeatureGroup {
         }
         buf.clear();
 
-        Ok((FeatureGroup {
+        Ok((Some(name), FeatureGroup {
             pretty,
             features,
-        }, Some(name)))
+        }))
     }
 }
 
@@ -120,13 +120,13 @@ pub mod tests {
     ///Returns a vec of names for testing
     pub(crate) fn feature_group_testdata_hash_map() -> HashMap<Name, T> {
         let mut map = HashMap::new();
-        map.insert(feature_group_testdata(1).1.unwrap(), feature_group_testdata(1).0);
-        map.insert(feature_group_testdata(2).1.unwrap(), feature_group_testdata(2).0);
-        map.insert(feature_group_testdata(3).1.unwrap(), feature_group_testdata(3).0);
-        map.insert(feature_group_testdata(4).1.unwrap(), feature_group_testdata(4).0);
-        map.insert(feature_group_testdata(5).1.unwrap(), feature_group_testdata(5).0);
-        map.insert(feature_group_testdata(6).1.unwrap(), feature_group_testdata(6).0);
-        map.insert(feature_group_testdata(7).1.unwrap(), feature_group_testdata(7).0);
+        map.insert(feature_group_testdata(1).0.unwrap(), feature_group_testdata(1).1);
+        map.insert(feature_group_testdata(2).0.unwrap(), feature_group_testdata(2).1);
+        map.insert(feature_group_testdata(3).0.unwrap(), feature_group_testdata(3).1);
+        map.insert(feature_group_testdata(4).0.unwrap(), feature_group_testdata(4).1);
+        map.insert(feature_group_testdata(5).0.unwrap(), feature_group_testdata(5).1);
+        map.insert(feature_group_testdata(6).0.unwrap(), feature_group_testdata(6).1);
+        map.insert(feature_group_testdata(7).0.unwrap(), feature_group_testdata(7).1);
         map
     }
 
@@ -144,14 +144,14 @@ pub mod tests {
     }
 
     ///Returns 6 different FeatureGroups for testing
-    pub(crate) fn feature_group_testdata(i: u8) -> (T, Option<Name>) {
+    pub(crate) fn feature_group_testdata(i: u8) -> (Option<Name>, T) {
         match i {
-            1 => (T { pretty: "B".to_string(), features: vec![feature_testdata(1)] }, Some(Name::new("Beam").unwrap())),
-            2 => (T { pretty: "D".to_string(), features: vec![feature_testdata(2), feature_testdata(3)] }, Some(Name::new("Dimmer").unwrap())),
-            3 => (T { pretty: "C".to_string(), features: vec![] }, Some(Name::new("Color").unwrap())),
-            4 => (T { pretty: "P".to_string(), features: vec![feature_testdata(4)] }, Some(Name::new("").unwrap())),
-            5 => (T { pretty: "".to_string(), features: vec![feature_testdata(5)] }, Some(Name::new("Focus").unwrap())),
-            _ => (T { pretty: "Ctrl".to_string(), features: vec![feature_testdata(7)] }, Some(Name::new("Control").unwrap())),
+            1 => (Some(Name::new("Beam").unwrap()), T { pretty: "B".to_string(), features: vec![feature_testdata(1)] }),
+            2 => (Some(Name::new("Dimmer").unwrap()), T { pretty: "D".to_string(), features: vec![feature_testdata(2), feature_testdata(3)] }),
+            3 => (Some(Name::new("Color").unwrap()), T { pretty: "C".to_string(), features: vec![] }),
+            4 => (Some(Name::new("").unwrap()), T { pretty: "P".to_string(), features: vec![feature_testdata(4)] }),
+            5 => (Some(Name::new("Focus").unwrap()), T { pretty: "".to_string(), features: vec![feature_testdata(5)] }),
+            _ => (Some(Name::new("Control").unwrap()), T { pretty: "Ctrl".to_string(), features: vec![feature_testdata(7)] }),
         }
     }
 

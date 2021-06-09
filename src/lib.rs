@@ -97,7 +97,7 @@ impl DeparseSingle for Gdtf {
     const NODE_NAME: &'static [u8] = b"GDTF";
 
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut data_version = DataVersion::dummy();
         for attr in event.attributes().into_iter() {
@@ -115,10 +115,11 @@ impl DeparseSingle for Gdtf {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == FixtureType::NODE_NAME {
                         return Ok(
-                            (Gdtf {
-                                fixture_type: FixtureType::read_single_from_event(reader, e)?.0,
-                                data_version,
-                            }, None)
+                            (None,
+                             Gdtf {
+                                 fixture_type: FixtureType::read_single_from_event(reader, e)?.1,
+                                 data_version,
+                             })
                         );
                     } else {
                         tree_down += 1;
@@ -161,7 +162,7 @@ impl TryFrom<&Path> for Gdtf {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"GDTF" {
                         return Ok(
-                            Gdtf::read_single_from_event(&mut reader, e)?.0
+                            Gdtf::read_single_from_event(&mut reader, e)?.1
                         );
                     } else {
                         tree_down += 1;

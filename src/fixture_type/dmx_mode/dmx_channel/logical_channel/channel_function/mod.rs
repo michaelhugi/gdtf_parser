@@ -72,7 +72,7 @@ impl DeparseSingle for ChannelFunction {
 
     const NODE_NAME: &'static [u8] = b"ChannelFunction";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Self, Option<Self::PrimaryKey>), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut attribute = Attribute::NoFeature;
@@ -125,7 +125,7 @@ impl DeparseSingle for ChannelFunction {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == b"ChannelSet" {
                         let cs = ChannelSet::read_single_from_event(reader, e)?;
-                        channel_sets.insert(cs.1.unwrap(), cs.0);
+                        channel_sets.insert(cs.0.unwrap(), cs.1);
                     } else {
                         tree_down += 1;
                     }
@@ -144,7 +144,7 @@ impl DeparseSingle for ChannelFunction {
         }
         buf.clear();
 
-        Ok((ChannelFunction {
+        Ok((Some(name), ChannelFunction {
             attribute,
             original_attribute,
             dmx_from,
@@ -160,9 +160,8 @@ impl DeparseSingle for ChannelFunction {
             mode_from,
             mode_to,
             channel_sets,
-        }, Some(name)))
+        }))
     }
-
 }
 
 #[cfg(test)]
