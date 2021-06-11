@@ -283,9 +283,7 @@ mod tests {
                         wheel: None,
                         emitter: None,
                         filter: Node::new_from_str("Magenta")?,
-                        mode_master: Node::new_from_str("Base_ColorMacro1")?,
-                        mode_from: Some(DmxValue::new_from_str("0/1")?),
-                        mode_to: Some(DmxValue::new_from_str("0/1")?),
+                        mode_master: None,
                         channel_sets: HashMap::new(),
                     },
                     ChannelFunction {
@@ -300,18 +298,16 @@ mod tests {
                         wheel: None,
                         emitter: None,
                         filter: None,
-                        mode_master: Node::new_from_str("Base_ColorMacro1")?,
-                        mode_from: Some(DmxValue::new_from_str("1/1")?),
-                        mode_to: Some(DmxValue::new_from_str("255/1")?),
+                        mode_master: None,
                         channel_sets: HashMap::new(),
                     }
                 ]),
         }.compare_to_primary_key_and_xml(None,
                                          r#"
             <LogicalChannel Attribute="ColorSub_M" DMXChangeTimeLimit="0.000000" Master="Grand" MibFade="0.100000" Snap="Yes">
-              <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" ModeFrom="0/1" ModeMaster="Base_ColorMacro1" ModeTo="0/1" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
+              <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
               </ChannelFunction>
-              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Default="0/1" ModeFrom="1/1" ModeMaster="Base_ColorMacro1" ModeTo="255/1" Name="NoFeature" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Default="0/1" Name="NoFeature" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
             </LogicalChannel>
             "#);
         Ok(())
@@ -343,9 +339,7 @@ mod tests {
                         wheel: None,
                         emitter: None,
                         filter: Node::new_from_str("Magenta")?,
-                        mode_master: Node::new_from_str("Base_ColorMacro1")?,
-                        mode_from: Some(DmxValue::new_from_str("0/1")?),
-                        mode_to: Some(DmxValue::new_from_str("0/1")?),
+                        mode_master: None,
                         channel_sets: HashMap::new(),
                     },
                     ChannelFunction {
@@ -360,18 +354,16 @@ mod tests {
                         wheel: None,
                         emitter: None,
                         filter: None,
-                        mode_master: Node::new_from_str("Base_ColorMacro1")?,
-                        mode_from: Some(DmxValue::new_from_str("1/1")?),
-                        mode_to: Some(DmxValue::new_from_str("255/1")?),
+                        mode_master: None,
                         channel_sets: HashMap::new(),
                     }
                 ]),
         }.compare_to_primary_key_and_xml(None,
                                          r#"
             <LogicalChannel Attribute="" DMXChangeTimeLimit="" Master="" MibFade="" Snap="">
-              <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" ModeFrom="0/1" ModeMaster="Base_ColorMacro1" ModeTo="0/1" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
+              <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
               </ChannelFunction>
-              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Default="0/1" ModeFrom="1/1" ModeMaster="Base_ColorMacro1" ModeTo="255/1" Name="NoFeature" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Default="0/1" Name="NoFeature" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
             </LogicalChannel>
             "#);
         Ok(())

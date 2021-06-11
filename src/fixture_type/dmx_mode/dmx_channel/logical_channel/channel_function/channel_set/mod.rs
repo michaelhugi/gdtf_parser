@@ -71,6 +71,7 @@ impl TestDeparseHashMap for ChannelSet {}
 #[cfg(test)]
 pub mod tests {
     use std::collections::HashMap;
+    use std::fs;
 
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet as T;
     use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
@@ -95,7 +96,7 @@ pub mod tests {
 
     #[test]
     fn test_deparse_hash_map() -> Result<(), GdtfError> {
-        assert_eq!(channel_set_testdata_group(), T::read_hash_map_from_xml(&channel_set_testdata_xml_group())?);
+        assert_eq!(channel_set_testdata_hash_map(), T::read_hash_map_from_xml(&channel_set_testdata_xml_group(true))?);
         Ok(())
     }
 
@@ -122,7 +123,7 @@ pub mod tests {
             2 => r#"<ChannelSet DMXFrom="5/1s" Name="Open" WheelSlotIndex="0"/>"#.to_string(),
             3 => r#"<ChannelSet DMXFrom="10/1" Name="Slow" WheelSlotIndex="0"/>"#.to_string(),
             4 => r#"<ChannelSet DMXFrom="11/1" Name="WSI" WheelSlotIndex="0"/>"#.to_string(),
-            5 => r#" <ChannelSet DMXFrom="10/1" Name="Wired DMX" PhysicalFrom="0.000012" PhysicalTo="12.040001" WheelSlotIndex="0"/>"#.to_string(),
+            5 => r#"<ChannelSet DMXFrom="10/1" Name="Wired DMX" PhysicalFrom="0.000012" PhysicalTo="12.040001" WheelSlotIndex="0"/>"#.to_string(),
             6 => r#"<ChannelSet DMXFrom="55/1" Name="Slow" WheelSlotIndex="0"/>"#.to_string(),
             7 => r#"<ChannelSet DMXFrom="56/1" Name="STH" WheelSlotIndex="0"/>"#.to_string(),
             8 => r#"<ChannelSet DMXFrom="79/1" Name="Fast" WheelSlotIndex="0"/>"#.to_string(),
@@ -132,7 +133,7 @@ pub mod tests {
     }
 
     ///Returns a HashMap of ChannelSet for testing
-    pub fn channel_set_testdata_group() -> HashMap<Name, T> {
+    pub fn channel_set_testdata_hash_map() -> HashMap<Name, T> {
         let mut map = HashMap::new();
         map.insert(channel_set_testdata(1).0.unwrap(), channel_set_testdata(1).1);
         map.insert(channel_set_testdata(2).0.unwrap(), channel_set_testdata(2).1);
@@ -148,22 +149,18 @@ pub mod tests {
         map
     }
 
-    pub fn channel_set_testdata_xml_group() -> String {
-        format!(
-            r#"
-            <ChannelFunction>
-                {}
-                {}
-                {}
-                {}
-                {}
-                {}
-                {}
-                {}
-                {}
-                {}
-            </ChannelFunction>
-            "#,
+    ///Returns an xml with 10 ChannelSet nodes.
+    ///
+    /// # Attributes
+    /// * 'add_parent_node' - Wraps the ChannelSet nodes in ChannelFunction if true
+    /// * `channel_set_indention` - Says how many tabs the tree should be indentioned.
+    pub fn channel_set_testdata_xml_group(add_parent_node: bool) -> String {
+        let parent_node_start = if add_parent_node { "<ChannelFunction>\n" } else { "" };
+        let parent_node_end = if add_parent_node { "</ChannelFunction>" } else { "" };
+
+        let out = format!(
+            "{}{}{}{}{}{}{}{}{}{}{}{}",
+            parent_node_start,
             channel_set_testdata_xml(1),
             channel_set_testdata_xml(2),
             channel_set_testdata_xml(3),
@@ -174,60 +171,9 @@ pub mod tests {
             channel_set_testdata_xml(8),
             channel_set_testdata_xml(9),
             channel_set_testdata_xml(10),
-        )
-    }
+            parent_node_end
+        );
 
-    /*
-    #[test]
-    fn test_max() -> Result<(), GdtfError> {
-        ChannelSet {
-            dmx_from: DmxValue {
-                is_byte_shifting: false,
-                initial_value: 55,
-                n: 1,
-            },
-            physical_from: Some(23.1),
-            physical_to: Some(23.4),
-            wheel_slot_index: Some(0),
-        }.compare_to_primary_key_and_xml(Some(Name::new("Slow")?),
-                                         r#"<ChannelSet DMXFrom="55/1" Name="Slow" WheelSlotIndex="0" PhysicalFrom="23.1" PhysicalTo="23.4" />"#);
-        Ok(())
+        out
     }
-
-    #[test]
-    fn test_min() -> Result<(), GdtfError> {
-        ChannelSet {
-            dmx_from: DmxValue {
-                is_byte_shifting: true,
-                initial_value: 55,
-                n: 2,
-            },
-            physical_from: None,
-            physical_to: None,
-            wheel_slot_index: None,
-        }.compare_to_primary_key_and_xml(Some(Name::new("Slow")?),
-                                         r#"<ChannelSet DMXFrom="55/2s" Name="Slow"/>"#);
-        Ok(())
-    }
-
-    #[test]
-    fn test_min_2() -> Result<(), GdtfError> {
-        ChannelSet {
-            dmx_from: DmxValue {
-                is_byte_shifting: true,
-                initial_value: 55,
-                n: 2,
-            },
-            physical_from: None,
-            physical_to: None,
-            wheel_slot_index: None,
-        }.compare_to_primary_key_and_xml(Some(Name::new("Slow")?),
-                                         r#"<ChannelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#);
-        Ok(())
-    }
-
-    #[test]
-    fn test_invald() {
-        assert!(ChannelSet::read_single_from_xml(r#"<ChnnelSet DMXFrom="55/2s" Name="Slow" WheelSlotIndex="" PhysicalFrom="" PhysicalTo=""/>"#).is_err());
-    }*/
 }

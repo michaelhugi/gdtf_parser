@@ -3,15 +3,15 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
 
-use quick_xml::events::{BytesStart, Event};
 use quick_xml::events::attributes::Attribute as XmlAttribute;
+use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
 use crate::utils::deparse;
-use crate::utils::deparse::{DeparseSingle, DeparseHashMap};
+use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
 #[cfg(test)]
-use crate::utils::deparse::TestDeparseSingle;
+use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
 use crate::utils::errors::GdtfError;
 use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
@@ -20,7 +20,7 @@ use crate::utils::units::node::{GdtfNodeError, Node};
 pub mod channel_set;
 
 ///The Fixture Type Attribute is assinged to a Channel Function and defines the function of its DMX Range
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ChannelFunction {
     ///Link to attribute; Starting point is the attributes node_2. Default value: “NoFeature”.
     pub attribute: Attribute,
@@ -45,11 +45,7 @@ pub struct ChannelFunction {
     ///Optional link to filter in the physical description; Starting point: Filter Collect
     pub filter: Option<Node>,
     ///Link to DMX Channel or Channel Function; Starting point DMX mode
-    pub mode_master: Option<Node>,
-    ///Only used together with ModeMaster; DMX start value; Default value: 0/1
-    pub mode_from: Option<DmxValue>,
-    ///Only used together with ModeMaster; DMX end value; Default value: 0/1
-    pub mode_to: Option<DmxValue>,
+    pub mode_master: Option<ModeMaster>,
     //A list of channel sets for the channel function
     pub channel_sets: HashMap<Name, ChannelSet>,
 }
@@ -80,7 +76,7 @@ impl DeparseSingle for ChannelFunction {
         let mut dmx_from: DmxValue = DEFAULT_DMX_FROM;
         let mut default: DmxValue = DEFAULT_DMX_DEFAULT;
         let mut physical_from: f32 = 0.;
-        let mut physical_to: f32 = 0.;
+        let mut physical_to: f32 = 1.;
         let mut real_fade: f32 = 0.;
         let mut real_acceleration: f32 = 0.;
         let mut wheel = None;
@@ -89,7 +85,6 @@ impl DeparseSingle for ChannelFunction {
         let mut mode_master = None;
         let mut mode_from: Option<DmxValue> = None;
         let mut mode_to: Option<DmxValue> = None;
-        let mut channel_sets: HashMap<Name, ChannelSet> = HashMap::new();
         for attr in event.attributes().into_iter() {
             let attr = attr?;
             match attr.key {
@@ -118,7 +113,12 @@ impl DeparseSingle for ChannelFunction {
             }
         }
 
-        channel_sets = ChannelSet::read_hash_map_from_event(reader)?;
+        let channel_sets = ChannelSet::read_hash_map_from_event(reader)?;
+
+        let mode_master = match mode_master {
+            None => None,
+            Some(node) => Some(ModeMaster::new(node, mode_from, mode_to))
+        };
 
         Ok((Some(name), ChannelFunction {
             attribute,
@@ -133,8 +133,6 @@ impl DeparseSingle for ChannelFunction {
             emitter,
             filter,
             mode_master,
-            mode_from,
-            mode_to,
             channel_sets,
         }))
     }
@@ -142,6 +140,11 @@ impl DeparseSingle for ChannelFunction {
 
 #[cfg(test)]
 impl TestDeparseSingle for ChannelFunction {}
+
+impl DeparseHashMap for ChannelFunction { const PARENT_NODE_NAME: &'static [u8] = b"LogicalChannel"; }
+
+#[cfg(test)]
+impl TestDeparseHashMap for ChannelFunction {}
 
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
@@ -221,150 +224,284 @@ impl Default for Attribute {
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// Start of ModeMaster
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct ModeMaster {
+    ///Link to DMX Channel or Channel Function; Starting point DMX mode
+    pub mode_master: Node,
+    ///DMX start value; Default value: 0/1
+    pub mode_from: DmxValue,
+    ///DMX end value; Default value: 0/1
+    pub mode_to: DmxValue,
+}
+
+impl ModeMaster {
+    /// Creates a new instance of ModeMaster
+    ///
+    /// # Attributes
+    ///
+    /// * `mode_master` - Link to DMX Channel or Channel Function; Starting point DMX mode
+    /// * `mode_from` - Dmx start value. If None is passed it will be replaced with Default value: 0/1
+    /// * `mode_to` - Dmx end value. If None is passed it will be replaced with Default value: 0/1
+    pub fn new(mode_master: Node, mode_from: Option<DmxValue>, mode_to: Option<DmxValue>) -> Self {
+        let mode_from = mode_from.unwrap_or(
+            DmxValue {
+                initial_value: 0,
+                n: 1,
+                is_byte_shifting: false,
+            }
+        );
+        let mode_to = mode_to.unwrap_or(
+            DmxValue {
+                initial_value: 0,
+                n: 1,
+                is_byte_shifting: false,
+            }
+        );
+
+        Self {
+            mode_master,
+            mode_from,
+            mode_to,
+        }
+    }
+}
+
+
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
+// Start of ModeMaster
+//-----------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use std::collections::HashMap;
+    use std::fs;
 
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::{Attribute, ChannelFunction};
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
-    use crate::utils::deparse::TestDeparseSingle;
+    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::{Attribute, ChannelFunction as T, ChannelFunction, ModeMaster};
+    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::tests::{channel_set_testdata_hash_map, channel_set_testdata_xml_group};
+    use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle, GdtfDeparseError};
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
     use crate::utils::units::dmx_value::DmxValue;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::Node;
+    use quick_xml::events::Event;
+    use quick_xml::Reader;
+    use crate::utils::testdata::print_xml_to_file;
 
     #[test]
-    fn test_normal() -> Result<(), GdtfError> {
-        ChannelFunction {
-            attribute: Attribute::new_from_str("ColorSub_M")?,
-            original_attribute: "".to_string(),
-            dmx_from: DmxValue::new_from_str("0/1")?,
-            default: DmxValue::new_from_str("0/1")?,
-            physical_from: 0.000000,
-            physical_to: 1.000000,
-            real_fade: 0.000000,
-            real_acceleration: 0.000000,
-            wheel: None,
-            emitter: None,
-            filter: Node::new_from_str("Magenta")?,
-            mode_master: Node::new_from_str("Base_ColorMacro1")?,
-            mode_from: Some(DmxValue::new_from_str("0/1")?),
-            mode_to: Some(DmxValue::new_from_str("0/1")?),
-            channel_sets: testdata::vec_to_hash_map(vec![
-                Name::new("min")?,
-                Name::new("")?,
-                Name::new("max")?,
-            ], vec![
-                ChannelSet {
-                    dmx_from: DmxValue::new_from_str("0/1")?,
-                    physical_from: None,
-                    physical_to: None,
-                    wheel_slot_index: Some(0),
-                },
-                ChannelSet {
-                    dmx_from: DmxValue::new_from_str("1/1")?,
-                    physical_from: None,
-                    physical_to: None,
-                    wheel_slot_index: Some(0),
-                },
-                ChannelSet {
-                    dmx_from: DmxValue::new_from_str("255/1")?,
-                    physical_from: None,
-                    physical_to: None,
-                    wheel_slot_index: Some(0),
-                },
-            ]),
-        }.compare_to_primary_key_and_xml(Some(Name::new("Magenta")?),
-                                         r#"
-            <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" ModeFrom="0/1" ModeMaster="Base_ColorMacro1" ModeTo="0/1" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
-                <ChannelSet DMXFrom="0/1" Name="min" WheelSlotIndex="0"/>
-                <ChannelSet DMXFrom="1/1" Name="" WheelSlotIndex="0"/>
-                <ChannelSet DMXFrom="255/1" Name="max" WheelSlotIndex="0"/>
-              </ChannelFunction>
-            "#);
+    fn test_deparse_single() -> Result<(), GdtfError> {
+        assert_eq!(channel_function_testdata(1), T::read_single_from_xml(&channel_function_testdata_xml(1))?);
+        assert_eq!(channel_function_testdata(2), T::read_single_from_xml(&channel_function_testdata_xml(2))?);
+        assert_eq!(channel_function_testdata(3), T::read_single_from_xml(&channel_function_testdata_xml(3))?);
+        assert_eq!(channel_function_testdata(4), T::read_single_from_xml(&channel_function_testdata_xml(4))?);
+        assert_eq!(channel_function_testdata(5), T::read_single_from_xml(&channel_function_testdata_xml(5))?);
+        assert_eq!(channel_function_testdata(6), T::read_single_from_xml(&channel_function_testdata_xml(6))?);
+        assert_eq!(channel_function_testdata(7), T::read_single_from_xml(&channel_function_testdata_xml(7))?);
         Ok(())
     }
 
     #[test]
-    fn test_max() -> Result<(), GdtfError> {
-        ChannelFunction {
-            attribute: Attribute::new_from_str("ColorSub_M")?,
-            original_attribute: "orig".to_string(),
-            dmx_from: DmxValue::new_from_str("0/1")?,
-            default: DmxValue::new_from_str("0/1")?,
-            physical_from: 0.000000,
-            physical_to: 1.000000,
-            real_fade: 3.000000,
-            real_acceleration: 4.001000,
-            wheel: Node::new_from_str("Wheel1")?,
-            emitter: Node::new_from_str("Emitter1")?,
-            filter: Node::new_from_str("Magenta")?,
-            mode_master: Node::new_from_str("Base_ColorMacro1")?,
-            mode_from: Some(DmxValue::new_from_str("0/1")?),
-            mode_to: Some(DmxValue::new_from_str("0/1")?),
-            channel_sets: HashMap::new(),
-        }.compare_to_primary_key_and_xml(Some(Name::new("Magenta")?),
-                                         r#"
-            <ChannelFunction Wheel="Wheel1" Emitter="Emitter1" Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" ModeFrom="0/1" ModeMaster="Base_ColorMacro1" ModeTo="0/1" Name="Magenta" OriginalAttribute="orig" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="4.001000" RealFade="3.000000">
-            </ChannelFunction>
-            "#);
+    fn test_deparse_hash_map() -> Result<(), GdtfError> {
+
+        let xml = channel_function_testdata_xml_group(true);
+
+        print_xml_to_file("C:\\Users\\michael.hugi\\Desktop\\test.xml",&xml,true);
+
+        let mut reader2 = Reader::from_str(&xml);
+
+
+        let mut buf: Vec<u8> = Vec::new();
+        loop {
+            match reader2.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
+                Event::Eof => {
+                    break;
+                }
+                e => println!("Event: {:?}", e),
+            }
+        }
+
+        let t = channel_function_testdata_hash_map();
+        let t2 = T::read_hash_map_from_xml(&channel_function_testdata_xml_group(true))?;
+        assert_eq!(t.len(), t2.len());
+        assert_eq!(t2, t);
         Ok(())
     }
 
-    #[test]
-    fn test_min_1() -> Result<(), GdtfError> {
-        ChannelFunction {
-            attribute: Attribute::new_from_str("ColorSub_M")?,
-            original_attribute: "orig".to_string(),
-            dmx_from: DmxValue::new_from_str("0/1")?,
-            default: DmxValue::new_from_str("0/1")?,
-            physical_from: 0.000000,
-            physical_to: 1.000000,
-            real_fade: 3.000000,
-            real_acceleration: 4.001000,
-            wheel: None,
-            emitter: None,
-            filter: None,
-            mode_master: None,
-            mode_from: None,
-            mode_to: None,
-            channel_sets: HashMap::new(),
-        }.compare_to_primary_key_and_xml(Some(Name::new("Magenta")?),
-                                         r#"
-            <ChannelFunction Wheel="" Emitter="" Filter="" ModeFrom="" ModeMaster="" ModeTo=""  Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Name="Magenta" OriginalAttribute="orig" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="4.001000" RealFade="3.000000">
-            </ChannelFunction>
-            "#);
-        Ok(())
+    /// Returns 7 ChannelFunction instances for testing
+    pub fn channel_function_testdata(i: u8) -> (Option<Name>, T) {
+        match i {
+            1 => (Some(Name::new("Reserved").unwrap()), T {
+                attribute: Attribute::new_from_str("NoFeature").unwrap(),
+                dmx_from: DmxValue { initial_value: 185, n: 1, is_byte_shifting: false },
+                default: DmxValue { initial_value: 185, n: 1, is_byte_shifting: false },
+                original_attribute: "".to_string(),
+                physical_from: 0.0,
+                physical_to: 1.0,
+                real_acceleration: 12.234101,
+                real_fade: 0.000000,
+                emitter: Node::new_from_str("Emitter1").unwrap(),
+                filter: None,
+                wheel: None,
+                mode_master: None,
+                channel_sets: HashMap::new(),
+            }),
+
+            2 => (Some(Name::new("Fade Wave Up").unwrap()), T {
+                attribute: Attribute::new_from_str("Shutter1StrobeEffect").unwrap(),
+                dmx_from: DmxValue { initial_value: 225, n: 1, is_byte_shifting: false },
+                default: DmxValue { initial_value: 225, n: 1, is_byte_shifting: false },
+                original_attribute: "".to_string(),
+                physical_from: 0.0,
+                physical_to: 1.0,
+                real_acceleration: 0.0,
+                real_fade: 0.0,
+                emitter: None,
+                filter: None,
+                wheel: None,
+                mode_master: None,
+                channel_sets: channel_set_testdata_hash_map(),
+            }),
+
+            3 => (Some(Name::new("Random Pixel").unwrap()), T {
+                attribute: Attribute::new_from_str("").unwrap(),
+                dmx_from: DmxValue { initial_value: 230, n: 1, is_byte_shifting: false },
+                default: DmxValue { initial_value: 230, n: 1, is_byte_shifting: false },
+                original_attribute: "".to_string(),
+                physical_from: 0.0,
+                physical_to: 1.0,
+                real_acceleration: 0.0,
+                real_fade: 0.0,
+                emitter: None,
+                filter: None,
+                wheel: None,
+                mode_master: None,
+                channel_sets: channel_set_testdata_hash_map(),
+            }),
+
+            4 => (Some(Name::new("Wave Up Down").unwrap()), T {
+                attribute: Attribute::new_from_str("").unwrap(),
+                dmx_from: DmxValue { initial_value: 235, n: 1, is_byte_shifting: false },
+                default: DmxValue { initial_value: 0, n: 1, is_byte_shifting: false },
+                original_attribute: "".to_string(),
+                physical_from: 0.0,
+                physical_to: 1.0,
+                real_acceleration: 0.0,
+                real_fade: 0.0,
+                emitter: None,
+                filter: None,
+                wheel: None,
+                mode_master: Some(ModeMaster { mode_master: Node::new_from_str("Base_ColorMacro1").unwrap().unwrap(), mode_from: DmxValue { initial_value: 14, n: 1, is_byte_shifting: false }, mode_to: DmxValue { initial_value: 20, n: 1, is_byte_shifting: true } }),
+                channel_sets: channel_set_testdata_hash_map(),
+            }),
+
+            5 => (Some(Name::new("Wave Up").unwrap()), T {
+                attribute: Attribute::new_from_str("Shutter1StrobeEffect").unwrap(),
+                dmx_from: DmxValue { initial_value: 240, n: 1, is_byte_shifting: true },
+                default: DmxValue { initial_value: 0, n: 1, is_byte_shifting: false },
+                original_attribute: "".to_string(),
+                physical_from: 0.0,
+                physical_to: 1.0,
+                real_acceleration: 0.0,
+                real_fade: 58.000134,
+                emitter: None,
+                filter: Node::new_from_str("Magenta").unwrap(),
+                wheel: None,
+                mode_master: None,
+                channel_sets: channel_set_testdata_hash_map(),
+            }),
+
+            6 => (Some(Name::new("Wave Down").unwrap()), T {
+                attribute: Attribute::new_from_str("Shutter1StrobeEffect").unwrap(),
+                dmx_from: DmxValue { initial_value: 245, n: 1, is_byte_shifting: false },
+                default: DmxValue { initial_value: 245, n: 1, is_byte_shifting: false },
+                original_attribute: "ShutStrEff".to_string(),
+                physical_from: 0.0,
+                physical_to: 1.0,
+                real_acceleration: 0.0,
+                real_fade: 0.0,
+                emitter: None,
+                filter: None,
+                wheel: Node::new_from_str("Wheel1").unwrap(),
+                mode_master: Some(ModeMaster { mode_master: Node::new_from_str("Base_ColorMacro1").unwrap().unwrap(), mode_from: DmxValue { initial_value: 0, n: 1, is_byte_shifting: false }, mode_to: DmxValue { initial_value: 0, n: 1, is_byte_shifting: false } }),
+                channel_sets: channel_set_testdata_hash_map(),
+            }),
+
+            _ => (Some(Name::new("Open (2)").unwrap()), T {
+                attribute: Attribute::new_from_str("Shutter1").unwrap(),
+                dmx_from: DmxValue { initial_value: 0, n: 1, is_byte_shifting: false },
+                default: DmxValue { initial_value: 250, n: 1, is_byte_shifting: true },
+                original_attribute: "".to_string(),
+                physical_from: -85.000012,
+                physical_to: 70.000012,
+                real_acceleration: 0.0,
+                real_fade: 0.0,
+                emitter: None,
+                filter: None,
+                wheel: None,
+                mode_master: None,
+                channel_sets: channel_set_testdata_hash_map(),
+            }),
+        }
     }
 
-    #[test]
-    fn test_min_2() -> Result<(), GdtfError> {
-        ChannelFunction {
-            attribute: Attribute::new_from_str("ColorSub_M")?,
-            original_attribute: "orig".to_string(),
-            dmx_from: DmxValue::new_from_str("0/1")?,
-            default: DmxValue::new_from_str("0/1")?,
-            physical_from: 0.000000,
-            physical_to: 1.000000,
-            real_fade: 3.000000,
-            real_acceleration: 4.001000,
-            wheel: None,
-            emitter: None,
-            filter: None,
-            mode_master: None,
-            mode_from: None,
-            mode_to: None,
-            channel_sets: HashMap::new(),
-        }.compare_to_primary_key_and_xml(Some(Name::new("Magenta")?),
-                                         r#"
-            <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Name="Magenta" OriginalAttribute="orig" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="4.001000" RealFade="3.000000">
-            </ChannelFunction>
-            "#);
-        Ok(())
+    /// Returns 7 xmls with ChannelFunction node for testing
+    pub fn channel_function_testdata_xml(i: u8) -> String {
+        match i {
+            1 => format!(r#"<ChannelFunction Attribute="NoFeature" DMXFrom="185/1" Default="185/1" Name="Reserved" OriginalAttribute="" Emitter="Emitter1" PhysicalTo="1.000000" RealAcceleration="12.234101" RealFade="0.000000"/>"#),
+
+            2 => format!(r#"<ChannelFunction Attribute="Shutter1StrobeEffect" DMXFrom="225/1" Default="225/1" Name="Fade Wave Up" OriginalAttribute="" PhysicalFrom="0.000000" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#, channel_set_testdata_xml_group(false)),
+
+            3 => format!(r#"<ChannelFunction Attribute="" DMXFrom="230/1" Default="230/1" Name="Random Pixel" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#, channel_set_testdata_xml_group(false)),
+
+            4 => format!(r#"<ChannelFunction DMXFrom="235/1" Default="" Name="Wave Up Down" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" ModeMaster="Base_ColorMacro1" ModeFrom="14/1" ModeTo="20/1s">{}</ChannelFunction>"#, channel_set_testdata_xml_group(false)),
+
+            5 => format!(r#"<ChannelFunction Attribute="Shutter1StrobeEffect" Filter="Magenta" DMXFrom="240/1s" Name="Wave Up" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="58.000134">{}</ChannelFunction>"#, channel_set_testdata_xml_group(false)),
+
+            6 => format!(r#"<ChannelFunction Attribute="Shutter1StrobeEffect" Wheel="Wheel1" DMXFrom="245/1" Default="245/1" Name="Wave Down" OriginalAttribute="ShutStrEff" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"  ModeMaster="Base_ColorMacro1">{}</ChannelFunction>"#, channel_set_testdata_xml_group(false)),
+
+            _ => format!(r#"<ChannelFunction Attribute="Shutter1" Default="250/1s" Name="Open (2)" OriginalAttribute="" PhysicalFrom="-85.000012" PhysicalTo="70.000015" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#, channel_set_testdata_xml_group(false)),
+        }
     }
 
+    ///Returns a HashMap with 7 ChannelFunction instances for testing
+    pub fn channel_function_testdata_hash_map() -> HashMap<Name, ChannelFunction> {
+        let mut map = HashMap::new();
+        map.insert(channel_function_testdata(1).0.unwrap(), channel_function_testdata(1).1);
+        map.insert(channel_function_testdata(2).0.unwrap(), channel_function_testdata(2).1);
+        map.insert(channel_function_testdata(3).0.unwrap(), channel_function_testdata(3).1);
+        map.insert(channel_function_testdata(4).0.unwrap(), channel_function_testdata(4).1);
+        map.insert(channel_function_testdata(5).0.unwrap(), channel_function_testdata(5).1);
+        map.insert(channel_function_testdata(6).0.unwrap(), channel_function_testdata(6).1);
+        map.insert(channel_function_testdata(7).0.unwrap(), channel_function_testdata(7).1);
+        map
+    }
+
+    ///Returns an xml with 7 ChannelFunction for testing. Depending on the agrument provided they are wrapped in a LogicalChannel node
+    pub fn channel_function_testdata_xml_group(add_parent_node: bool) -> String {
+        let parent_node_start = if add_parent_node { r#"<LogicalChannel Attribute="Control1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">"# } else { "" };
+        let parent_node_end = if add_parent_node { "</LogicalChannel>" } else { "" };
+
+        let out = format!("{}{}{}{}{}{}{}{}{}",
+                          parent_node_start,
+                          channel_function_testdata_xml(1),
+                          channel_function_testdata_xml(2),
+                          channel_function_testdata_xml(3),
+                          channel_function_testdata_xml(4),
+                          channel_function_testdata_xml(5),
+                          channel_function_testdata_xml(6),
+                          channel_function_testdata_xml(7),
+                          parent_node_end
+        );
+        out
+    }
 
     #[test]
     fn test_attribute_new_from_str() {
@@ -397,5 +534,78 @@ mod tests {
     #[test]
     fn test_attribute_default() {
         assert_eq!(Attribute::NoFeature, Default::default());
+    }
+
+    #[test]
+    fn test_mode_master_new() -> Result<(), GdtfError> {
+        assert_eq!(
+            ModeMaster::new(Node::new_from_str("Name")?.unwrap(), None, None),
+            ModeMaster {
+                mode_master: Node(vec![Name("Name".to_string())]),
+                mode_from: DmxValue {
+                    initial_value: 0,
+                    n: 1,
+                    is_byte_shifting: false,
+                },
+                mode_to: DmxValue {
+                    initial_value: 0,
+                    n: 1,
+                    is_byte_shifting: false,
+                },
+            }
+        );
+
+        assert_eq!(
+            ModeMaster::new(Node::new_from_str("Name")?.unwrap(), Some(DmxValue { initial_value: 13, n: 2, is_byte_shifting: true }), None),
+            ModeMaster {
+                mode_master: Node(vec![Name("Name".to_string())]),
+                mode_from: DmxValue {
+                    initial_value: 13,
+                    n: 2,
+                    is_byte_shifting: true,
+                },
+                mode_to: DmxValue {
+                    initial_value: 0,
+                    n: 1,
+                    is_byte_shifting: false,
+                },
+            }
+        );
+
+        assert_eq!(
+            ModeMaster::new(Node::new_from_str("Name")?.unwrap(), None, Some(DmxValue { initial_value: 13, n: 2, is_byte_shifting: true })),
+            ModeMaster {
+                mode_master: Node(vec![Name("Name".to_string())]),
+                mode_to: DmxValue {
+                    initial_value: 13,
+                    n: 2,
+                    is_byte_shifting: true,
+                },
+                mode_from: DmxValue {
+                    initial_value: 0,
+                    n: 1,
+                    is_byte_shifting: false,
+                },
+            }
+        );
+
+        assert_eq!(
+            ModeMaster::new(Node::new_from_str("Name")?.unwrap(), Some(DmxValue { initial_value: 22, n: 3, is_byte_shifting: false }), Some(DmxValue { initial_value: 13, n: 2, is_byte_shifting: true })),
+            ModeMaster {
+                mode_master: Node(vec![Name("Name".to_string())]),
+                mode_to: DmxValue {
+                    initial_value: 13,
+                    n: 2,
+                    is_byte_shifting: true,
+                },
+                mode_from: DmxValue {
+                    initial_value: 22,
+                    n: 3,
+                    is_byte_shifting: false,
+                },
+            }
+        );
+
+        Ok(())
     }
 }
