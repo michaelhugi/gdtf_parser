@@ -71,7 +71,6 @@ impl TestDeparseHashMap for ChannelSet {}
 #[cfg(test)]
 pub mod tests {
     use std::collections::HashMap;
-    use std::fs;
 
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet as T;
     use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};

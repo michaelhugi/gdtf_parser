@@ -16,3 +16,5 @@ unicode-segmentation = "1.7.1"
 
 [dev-dependencies]
 backtrace = "0.3.59"
+xmltree = "0.10"
+clap = "2.33"

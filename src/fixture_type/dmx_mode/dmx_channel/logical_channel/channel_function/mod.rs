@@ -282,19 +282,16 @@ impl ModeMaster {
 #[cfg(test)]
 pub mod tests {
     use std::collections::HashMap;
-    use std::fs;
 
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::{Attribute, ChannelFunction as T, ChannelFunction, ModeMaster};
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::tests::{channel_set_testdata_hash_map, channel_set_testdata_xml_group};
-    use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle, GdtfDeparseError};
+    use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
+    use crate::utils::testdata::print_xml_to_file;
     use crate::utils::units::dmx_value::DmxValue;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::Node;
-    use quick_xml::events::Event;
-    use quick_xml::Reader;
-    use crate::utils::testdata::print_xml_to_file;
 
     #[test]
     fn test_deparse_single() -> Result<(), GdtfError> {
@@ -310,23 +307,9 @@ pub mod tests {
 
     #[test]
     fn test_deparse_hash_map() -> Result<(), GdtfError> {
-
         let xml = channel_function_testdata_xml_group(true);
 
-        print_xml_to_file("C:\\Users\\michael.hugi\\Desktop\\test.xml",&xml,true);
-
-        let mut reader2 = Reader::from_str(&xml);
-
-
-        let mut buf: Vec<u8> = Vec::new();
-        loop {
-            match reader2.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
-                Event::Eof => {
-                    break;
-                }
-                e => println!("Event: {:?}", e),
-            }
-        }
+        print_xml_to_file("C:\\Users\\michael.hugi\\Desktop\\test.xml", &xml, true)?;
 
         let t = channel_function_testdata_hash_map();
         let t2 = T::read_hash_map_from_xml(&channel_function_testdata_xml_group(true))?;
