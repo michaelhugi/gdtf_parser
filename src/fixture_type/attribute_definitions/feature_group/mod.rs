@@ -9,7 +9,7 @@ use quick_xml::Reader;
 
 use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
 use crate::utils::deparse::{DeparseHashMap, DeparsePrimaryKey, DeparseSingle};
-use crate::utils::deparse;
+use crate::utils::read;
 #[cfg(test)]
 use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
 use crate::utils::errors::GdtfError;
@@ -41,7 +41,7 @@ impl DeparseSingle for FeatureGroup {
             let attr = attr?;
             match attr.key {
                 b"Name" => name = Name::new_from_attr(attr)?,
-                b"Pretty" => pretty = deparse::attr_to_string(&attr),
+                b"Pretty" => pretty = read::attr_to_string(&attr),
                 _ => {}
             }
         }

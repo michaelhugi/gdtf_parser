@@ -6,7 +6,7 @@ use std::str::Utf8Error;
 
 use quick_xml::events::attributes::Attribute;
 
-use crate::utils::deparse;
+use crate::utils::read;
 
 /// Char - represented as u8 for matching
 const CHAR_MINUS_AS_U8: u8 = 0x2D;
@@ -139,7 +139,7 @@ impl Guid {
     /// assert!(Guid::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something invalid")}).is_err());
     /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfGuidError> {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 
     ///Returns the GUID as a string in format  XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format or "" if GUID is empty

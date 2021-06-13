@@ -8,7 +8,7 @@ use std::str::FromStr;
 
 use quick_xml::events::attributes::Attribute;
 
-use crate::utils::deparse;
+use crate::utils::read;
 
 ///Integer value representing one Pixel inside a MediaFile. Pixel count starts with zero in the top left corner.
 #[derive(Debug, PartialEq)]
@@ -40,7 +40,7 @@ impl Pixel {
     /// assert!(Pixel::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something else")}).is_err());
     /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfPixelError> {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 

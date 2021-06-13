@@ -1,14 +1,18 @@
 use std::collections::HashMap;
+use std::error::Error;
 ///! Module contains traits that can be implemented to simpler deparse structs from quick-xml without serde to have full control of the flow
-use std::fmt::Debug;
+use std::fmt::{Debug, Display, Formatter};
+use std::fmt;
 use std::hash::Hash;
 
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::events::Event;
 use quick_xml::Reader;
+use crate::utils::errors::GdtfError;
+use std::str::FromStr;
+use std::borrow::Borrow;
 
-use crate::utils::deparse::GdtfDeparseError;
 
 ///Trait to store data during deparsing from xml in a mutable and Optional way. All Data will be moved from this struct to the actual Self in the last step.
 pub(crate) trait ReadGdtfDataHolder<T: ReadGdtf<Self>>: Default {
@@ -17,22 +21,18 @@ pub(crate) trait ReadGdtfDataHolder<T: ReadGdtf<Self>>: Default {
     ///The name of the parent node
     const PARENT_NODE_NAME: &'static [u8] = T::PARENT_NODE_NAME;
 
-    /// Function should be overridden if needed.
     /// Is called when an attribute is found in the xml tree. Usually this method contains a match statement that checks attr.key.
     ///
     /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
     ///
-    fn read_any_attribute(&mut self, _attr: Attribute<'_>) -> Result<(), T::Error> {
-        Ok(())
-    }
-    /// Function should be overridden if needed.
+    fn read_any_attribute(&mut self, attr: Attribute<'_>) -> Result<(), T::Error>;
+
     /// Is callen when a child node is found in the xml tree. This method should call `read_single_from_event` on the right child
     ///
     /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
     ///
-    fn read_any_child(&mut self, _reader: &mut Reader<&[u8]>, _event: BytesStart<'_>, _has_children: bool) -> Result<(), T::Error> {
-        Ok(())
-    }
+    fn read_any_child(&mut self, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), T::Error>;
+
     /// Validates the DataHolder and puts it's data into the struct
     ///
     /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
@@ -46,7 +46,7 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
     /// A PrimaryKey should be unique across all xml-nodes of the same type in one GDTF file
     type PrimaryKey: Eq + Hash + Debug + Clone;
     ///Type of error returned in case of failure on deparse
-    type Error: From<GdtfDeparseError> + From<quick_xml::Error> + std::error::Error;
+    type Error: From<GdtfReadError> + From<quick_xml::Error> + std::error::Error;
 
     ///The name of the node that contains the data for the struct. Declare it as b"GDTF" for example.
     const NODE_NAME: &'static [u8];
@@ -93,7 +93,7 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
         if has_children {
             let mut buf: Vec<u8> = Vec::new();
             loop {
-                match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
+                match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
                     Event::Start(e) => {
                         data_holder.read_any_child(reader, e, true)?;
                     }
@@ -116,14 +116,11 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
         Ok((primary_key, data_holder.move_data()?))
     }
 
-    /// Function should be overridden if needed.
     /// Returns the primary_key of the node if the node hase a primary_key, else it returns none
     ///
     /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
     //
-    fn read_primary_key_from_attr(_attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
-        Ok(None)
-    }
+    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error>;
 
     /// Can be used if a node only has a primary key and no children, so the struct is not required to be instanced during deparsing
     ///
@@ -140,7 +137,7 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
                 return Self::read_primary_key_from_attr(attr);
             }
         }
-        Err(GdtfDeparseError::new_xml_attribute_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME).into())
+        Err(GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME).into())
     }
 
     /// ⚠️**This function can only be used on the event of the parent-struct if the parent-struct only has one kind of children. It will consume all children!** ⚠️
@@ -163,7 +160,7 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
         let mut out: HashMap<Self::PrimaryKey, Self> = HashMap::new();
 
         loop {
-            match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
+            match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
                 Event::Start(e) => {
                     if e.name() == Self::NODE_NAME {
                         let val = Self::read_single_from_event(reader, e, true)?;
@@ -215,7 +212,7 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
         let mut buf: Vec<u8> = Vec::new();
         let mut out: Vec<Self> = Vec::new();
         loop {
-            match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
+            match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
                 Event::Start(e) => {
                     if e.name() == Self::NODE_NAME {
                         out.push(Self::read_single_from_event(reader, e, true)?.1);
@@ -262,10 +259,10 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
         let mut buf: Vec<u8> = Vec::new();
         let mut out: Vec<Self::PrimaryKey> = Vec::new();
         loop {
-            match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
+            match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == Self::NODE_NAME {
-                        out.push(Self::read_primary_key_from_event(e)?.ok_or_else(|| GdtfDeparseError::new_xml_attribute_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME))?);
+                        out.push(Self::read_primary_key_from_event(e)?.ok_or_else(|| GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME))?);
                     }
                 }
                 Event::End(e) => {
@@ -353,11 +350,25 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
             panic!("testdatas_xml() and testdatas() do not return the same length for node {}", Self::node_name());
         }
 
-        for xml in xmls {
-            let s1 = Self::read_single_from_xml(&xml).unwrap();
-            let s2 = structs.next().unwrap();
+        for (i, xml) in xmls.enumerate() {
+            let s1 = match Self::read_single_from_xml(&xml) {
+                Ok(s1) => s1,
+                Err(e) => panic!("execute_test_read_single failed nr{} in {}: {}", i, Self::node_name(), e)
+            };
+            let s2 = match structs.next() {
+                None => panic!("testdatas_xml() and testdatas() do not return the same length for node {}", Self::node_name()),
+                Some(s2) => s2
+            };
             if Self::PRIMARY_KEY_NAME != b"" {
-                assert_eq!(s1.0.unwrap(), s2.0.unwrap());
+                let s1 = match s1.0 {
+                    None => panic!("execute_test_read_single did not return primary_key from xml nr{} in {}", i, Self::node_name()),
+                    Some(s1) => s1
+                };
+                let s2 = match s2.0 {
+                    None => panic!("execute_test_read_single did not return primary_key from testdata nr{} in {}", i, Self::node_name()),
+                    Some(s2) => s2
+                };
+                assert_eq!(s1, s2);
             }
             assert_eq!(s1.1, s2.1.unwrap());
         }
@@ -446,7 +457,7 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
 
         let mut buf: Vec<u8> = Vec::new();
         loop {
-            match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
+            match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
                 Event::Start(e) => {
                     if e.name() == Self::NODE_NAME {
                         return Self::read_single_from_event(&mut reader, e, true);
@@ -469,7 +480,7 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
             };
         }
         buf.clear();
-        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
     }
 
 
@@ -480,7 +491,7 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
 
         let mut buf: Vec<u8> = Vec::new();
         loop {
-            match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
+            match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == Self::PARENT_NODE_NAME {
                         return Self::read_hash_map_from_event(&mut reader, e);
@@ -498,7 +509,7 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
             };
             buf.clear();
         }
-        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
     }
 
     /// Helper function for testing deparsing  multiple nodes as vec from an xml
@@ -508,7 +519,7 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
 
         let mut buf: Vec<u8> = Vec::new();
         loop {
-            match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
+            match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == Self::PARENT_NODE_NAME {
                         return Self::read_vec_from_event(&mut reader, e);
@@ -526,7 +537,7 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
             };
             buf.clear();
         }
-        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
     }
 
     /// Helper function for testing deparsing a single node that only contains primary-key and no childen to just the primary-key from an xml
@@ -536,10 +547,10 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
 
         let mut buf: Vec<u8> = Vec::new();
         loop {
-            match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
+            match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == Self::NODE_NAME {
-                        return Ok(Self::read_primary_key_from_event(e)?.ok_or(GdtfDeparseError::new_xml_attribute_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME))?);
+                        return Ok(Self::read_primary_key_from_event(e)?.ok_or(GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME))?);
                     }
                 }
                 Event::Eof => {
@@ -554,7 +565,7 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
             };
         }
         buf.clear();
-        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
     }
 
     /// Helper function for testing deparsing multiple nodes that only contain primary keys and no children as a vec of primary-keys from an xml
@@ -564,7 +575,7 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
 
         let mut buf: Vec<u8> = Vec::new();
         loop {
-            match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
+            match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == Self::PARENT_NODE_NAME {
                         return Self::read_primary_key_vec_from_event(&mut reader, e);
@@ -582,7 +593,99 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
             };
             buf.clear();
         }
-        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
     }
+}
+
+
+///Error used if an Error in global Deparsing occrus
+#[derive(Debug)]
+pub enum GdtfReadError {
+    ///Error when any error is returned from the underlying qick-xml
+    QuickXmlError(quick_xml::Error),
+    ///Error when an expected xml-node was not found
+    QuickXmlNodeNotFoundError(String),
+    ///Error when an expected xml-attribute was not found
+    QuickXmlAttributeNotFoundError(String, String),
+}
+
+impl GdtfReadError {
+    ///Constructor for `QuickXmlNodeNotFoundError`
+    pub fn new_xml_node_not_found(node_name: &[u8]) -> Self {
+        Self::QuickXmlNodeNotFoundError(u8_array_to_string(node_name))
+    }
+
+    ///Constructor for `QuickXmlAttributeNotFoundError`
+    pub fn new_xml_attribute_not_found(node_name: &[u8], attribute_name: &[u8]) -> Self {
+        Self::QuickXmlAttributeNotFoundError(
+            u8_array_to_string(node_name),
+            u8_array_to_string(attribute_name),
+        )
+    }
+}
+
+impl Display for GdtfReadError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            GdtfReadError::QuickXmlError(e) => write!(f, "GdtfDeparseError: {}", e),
+            GdtfReadError::QuickXmlAttributeNotFoundError(node_name, attribute) => write!(f, "Could not find xml-attribute '{}' in '{}'", attribute, node_name),
+            GdtfReadError::QuickXmlNodeNotFoundError(node_name) => write!(f, "Could not find xml-node name '{}'", node_name),
+        }
+    }
+}
+
+
+impl Error for GdtfReadError {}
+
+
+
+///Parses an xml-attribute to str but returns "" if any error occurs
+pub(crate) fn attr_to_str<'a>(attr: &'a Attribute) -> &'a str {
+    std::str::from_utf8(attr.value.borrow()).unwrap_or("")
+}
+
+///Parses an xml-attribute to str and returns the error if one occurs
+pub(crate) fn attr_try_to_str<'a>(attr: &'a Attribute) -> Result<&'a str, GdtfError> {
+    Ok(std::str::from_utf8(attr.value.borrow())?)
+}
+
+///Parses an xml-attribute to f32 but returns 0 if any error occurs
+pub(crate) fn attr_to_f32(attr: &Attribute) -> f32 {
+    f32::from_str(attr_try_to_str(attr).unwrap_or("")).unwrap_or(0_f32)
+}
+
+///Parses an xml-attribute to f32 but returns None if any error occurs
+pub(crate) fn attr_to_f32_option(attr: &Attribute) -> Option<f32> {
+    match f32::from_str(attr_try_to_str(attr).unwrap_or("")) {
+        Ok(f) => Some(f),
+        Err(_) => None
+    }
+}
+
+///Parses an xml-attribute to string but returns None if any error occurs or String is empty
+pub(crate) fn attr_to_string_option(attr: &Attribute) -> Option<String> {
+    match attr_try_to_str(attr).unwrap_or("") {
+        "" => None,
+        s => Some(s.to_owned())
+    }
+}
+
+///Parses an xml-attribute to but returns "" if any error occurs
+pub(crate) fn attr_to_string(attr: &Attribute) -> String {
+    attr_try_to_str(attr).unwrap_or("").to_owned()
+}
+
+///Parses an xml-attribute to u8 but returns None if any error occurs
+pub(crate) fn attr_to_u8_option(attr: &Attribute) -> Option<u8> {
+    match u8::from_str(attr_try_to_str(attr).unwrap_or("")) {
+        Ok(f) => Some(f),
+        Err(_) => None
+    }
+}
+
+
+///Helper function to create useful error messages
+fn u8_array_to_string(val: &[u8]) -> String {
+    std::str::from_utf8(val).map_or("?".to_string(), |e| e.to_string())
 }
 

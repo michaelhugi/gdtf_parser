@@ -5,7 +5,7 @@ use std::fmt;
 use quick_xml::events::attributes::Attribute;
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::utils::deparse;
+use crate::utils::read;
 
 ///Name representation used in GDTF spec
 ///Name contains a String that only can hold letters with restricted literals `[32..=122] = (SPACE..='z')` due to GDTF specifications.
@@ -51,7 +51,7 @@ impl Name {
     /// assert!(Name::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Some Name with invalid char {")}).is_err());
     /// ```
     pub fn new_from_attr(attr: Attribute) -> Result<Self, GdtfNameError> {
-        Self::new(deparse::attr_to_str(&attr))
+        Self::new(read::attr_to_str(&attr))
     }
 
     ///Validates if all chars in a string are in `[32..=122] = (SPACE..='z')` due to GDTF specifications for Name

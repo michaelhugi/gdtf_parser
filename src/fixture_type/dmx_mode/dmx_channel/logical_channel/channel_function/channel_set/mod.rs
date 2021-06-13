@@ -6,10 +6,10 @@ use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
-use crate::utils::deparse;
-use crate::utils::deparse::{DeparseSingle, GdtfDeparseError};
+use crate::utils::read;
+use crate::utils::deparse::{DeparseSingle};
 use crate::utils::errors::GdtfError;
-use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder, GdtfReadError};
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::dmx_value::DmxValue;
@@ -60,21 +60,21 @@ impl ReadGdtfDataHolder<ChannelSet> for ChannelSetDataHolder {
     fn read_any_attribute(&mut self, attr: Attribute<'_>) -> Result<(), <ChannelSet as ReadGdtf<Self>>::Error> {
         match attr.key {
             b"DMXFrom" => self.dmx_from = Some(DmxValue::new_from_attr(attr)?),
-            b"PhysicalFrom" => self.physical_from = deparse::attr_to_f32_option(&attr),
-            b"PhysicalTo" => self.physical_to = deparse::attr_to_f32_option(&attr),
-            b"WheelSlotIndex" => self.wheel_slot_index = deparse::attr_to_u8_option(&attr),
+            b"PhysicalFrom" => self.physical_from = read::attr_to_f32_option(&attr),
+            b"PhysicalTo" => self.physical_to = read::attr_to_f32_option(&attr),
+            b"WheelSlotIndex" => self.wheel_slot_index = read::attr_to_u8_option(&attr),
             _ => {}
         }
         Ok(())
     }
 
-    fn read_any_child(&mut self, _reader: &mut Reader<&[u8]>, _event: BytesStart<'_>, _has_children: bool) -> Result<(), <ChannelSet as ReadGdtf<Self>>::Error> {
+    fn read_any_child(&mut self, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), <ChannelSet as ReadGdtf<Self>>::Error> {
         Ok(())
     }
 
     fn move_data(self) -> Result<ChannelSet, <ChannelSet as ReadGdtf<Self>>::Error> {
         Ok(ChannelSet {
-            dmx_from: self.dmx_from.ok_or_else(|| GdtfDeparseError::new_xml_attribute_not_found(Self::NODE_NAME, b"DmxFrom"))?,
+            dmx_from: self.dmx_from.ok_or_else(|| GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME, b"DmxFrom"))?,
             physical_from: self.physical_from,
             physical_to: self.physical_to,
             wheel_slot_index: self.wheel_slot_index,

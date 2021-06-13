@@ -7,7 +7,7 @@ use lazy_static::lazy_static;
 use quick_xml::events::attributes::Attribute;
 use regex::{Regex, RegexSet, SetMatches};
 
-use crate::utils::deparse;
+use crate::utils::read;
 use crate::utils::units::name::{GdtfNameError, Name};
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
@@ -970,7 +970,7 @@ impl AttributeName {
     /// assert!(AttributeName::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Name with invalid char {")}).is_err());
     ///```
     pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfNameError> {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 

@@ -11,21 +11,29 @@ use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::name::Name;
+use quick_xml::Reader;
+use quick_xml::events::BytesStart;
 
 ///ActivationGroup only contains one attribute Name, so only this primary keys are stored in a vec in AttributeDefinitions
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 pub struct ActivationGroup {}
 
-#[derive(Default)]
-pub(crate) struct ActivationGroupDataHolder {}
 
-impl ReadGdtfDataHolder<ActivationGroup> for ActivationGroupDataHolder {
+impl ReadGdtfDataHolder<ActivationGroup> for ActivationGroup {
+    fn read_any_attribute(&mut self, _: Attribute<'_>) -> Result<(), <ActivationGroup as ReadGdtf<Self>>::Error> {
+        panic!("Should not be used!");
+    }
+
+    fn read_any_child(&mut self, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), <ActivationGroup as ReadGdtf<Self>>::Error> {
+        panic!("Should not be used!");
+    }
+
     fn move_data(self) -> Result<ActivationGroup, <ActivationGroup as ReadGdtf<Self>>::Error> {
         panic!("Should not be used!");
     }
 }
 
-impl ReadGdtf<ActivationGroupDataHolder> for ActivationGroup {
+impl ReadGdtf<ActivationGroup> for ActivationGroup {
     type PrimaryKey = Name;
     type Error = GdtfError;
     const NODE_NAME: &'static [u8] = b"ActivationGroup";
@@ -39,7 +47,7 @@ impl ReadGdtf<ActivationGroupDataHolder> for ActivationGroup {
 }
 
 #[cfg(test)]
-impl TestReadGdtf<ActivationGroupDataHolder> for ActivationGroup {
+impl TestReadGdtf<ActivationGroup> for ActivationGroup {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
             (Some(Name::new("ColorRGB").unwrap()), None),

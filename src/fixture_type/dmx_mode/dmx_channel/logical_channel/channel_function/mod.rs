@@ -8,7 +8,7 @@ use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
-use crate::utils::deparse;
+use crate::utils::read;
 use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
 #[cfg(test)]
 use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
@@ -91,13 +91,13 @@ impl DeparseSingle for ChannelFunction {
             match attr.key {
                 b"Name" => name = Name::new_from_attr(attr)?,
                 b"Attribute" => attribute = Attribute::new_from_attr(attr)?,
-                b"OriginalAttribute" => original_attribute = deparse::attr_to_string(&attr),
+                b"OriginalAttribute" => original_attribute = read::attr_to_string(&attr),
                 b"DMXFrom" => dmx_from = DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_FROM),
                 b"Default" => default = DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_DEFAULT),
-                b"PhysicalFrom" => physical_from = deparse::attr_to_f32(&attr),
-                b"PhysicalTo" => physical_to = deparse::attr_to_f32(&attr),
-                b"RealFade" => real_fade = deparse::attr_to_f32(&attr),
-                b"RealAcceleration" => real_acceleration = deparse::attr_to_f32(&attr),
+                b"PhysicalFrom" => physical_from = read::attr_to_f32(&attr),
+                b"PhysicalTo" => physical_to = read::attr_to_f32(&attr),
+                b"RealFade" => real_fade = read::attr_to_f32(&attr),
+                b"RealAcceleration" => real_acceleration = read::attr_to_f32(&attr),
                 b"Wheel" => wheel = Node::new_from_attr(attr)?,
                 b"Emitter" => emitter = Node::new_from_attr(attr)?,
                 b"Filter" => filter = Node::new_from_attr(attr)?,
@@ -207,7 +207,7 @@ impl Attribute {
     /// assert!(Attribute::new_from_attr(XmlAttribute{ key: &[], value: Cow::Borrowed(b"Name with invalid char {")}).is_err());
     /// ```
     pub fn new_from_attr(attr: XmlAttribute<'_>) -> Result<Self, GdtfNodeError> {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 

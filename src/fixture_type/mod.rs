@@ -7,14 +7,15 @@ use quick_xml::Reader;
 
 use crate::fixture_type::attribute_definitions::AttributeDefinitions;
 use crate::fixture_type::dmx_mode::DmxMode;
-use crate::utils::deparse;
-use crate::utils::deparse::{DeparseHashMap, DeparseSingle, GdtfDeparseError};
+use crate::utils::read;
+use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXmlError;
 use crate::utils::units::guid::Guid;
 use crate::utils::units::name::Name;
+use crate::utils::read::GdtfReadError;
 
 pub mod attribute_definitions;
 pub mod dmx_mode;
@@ -79,12 +80,12 @@ impl DeparseSingle for FixtureType {
             let attr = attr?;
             match attr.key {
                 b"Name" => name = Name::new_from_attr(attr)?,
-                b"ShortName" => short_name = deparse::attr_to_string(&attr),
-                b"LongName" => long_name = deparse::attr_to_string(&attr),
-                b"Manufacturer" => manufacturer = deparse::attr_to_string(&attr),
-                b"Description" => description = deparse::attr_to_string(&attr),
+                b"ShortName" => short_name = read::attr_to_string(&attr),
+                b"LongName" => long_name = read::attr_to_string(&attr),
+                b"Manufacturer" => manufacturer = read::attr_to_string(&attr),
+                b"Description" => description = read::attr_to_string(&attr),
                 b"FixtureTypeID" => fixture_type_id = Guid::new_from_attr(attr)?,
-                b"Thumbnail" => thumbnail = deparse::attr_to_string_option(&attr),
+                b"Thumbnail" => thumbnail = read::attr_to_string_option(&attr),
                 b"RefFT" => ref_ft = match Guid::new_from_attr(attr) {
                     Ok(guid) => Some(guid),
                     Err(_) => None
@@ -135,11 +136,11 @@ impl DeparseSingle for FixtureType {
         }
 
         if attribute_definitions.is_none() {
-            return Err(GdtfDeparseError::new_xml_node_not_found(AttributeDefinitions::NODE_NAME).into());
+            return Err(GdtfReadError::new_xml_node_not_found(AttributeDefinitions::NODE_NAME).into());
         }
         let attribute_definitions = attribute_definitions.unwrap();
         if dmx_modes.is_none() {
-            return Err(GdtfDeparseError::new_xml_node_not_found(DmxMode::NODE_NAME).into());
+            return Err(GdtfReadError::new_xml_node_not_found(DmxMode::NODE_NAME).into());
         }
         let dmx_modes = dmx_modes.unwrap();
 
@@ -163,7 +164,6 @@ impl TestDeparseSingle for FixtureType {}
 
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::attribute_definitions::attribute::tests::{attribute_testdata_hash_map, attribute_testdata_xml_group};
     use crate::fixture_type::attribute_definitions::AttributeDefinitions;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
     use crate::fixture_type::dmx_mode::DmxMode;
@@ -173,6 +173,8 @@ mod tests {
     use crate::utils::testdata;
     use crate::utils::units::guid::Guid;
     use crate::utils::units::name::Name;
+    use crate::fixture_type::attribute_definitions::attribute::Attribute;
+    use crate::utils::read::TestReadGdtf;
 
     #[test]
     fn test_fixture_type() -> Result<(), GdtfError> {
@@ -191,7 +193,7 @@ mod tests {
                     pretty: "PositionP".to_string(),
                     features: vec![Name::new("PanTilt")?],
                 }]),
-                attributes: attribute_testdata_hash_map(),
+                attributes: Attribute::testdata_hash_map(),
             },
             dmx_modes: testdata::vec_to_hash_map(vec![Name::new("Mode 1 12 DMX")?], vec![DmxMode {
                 geometry: Name::new("Base")?,
@@ -210,7 +212,7 @@ mod tests {
                                 <Feature Name="PanTilt"/>
                             </FeatureGroup>
                         </FeatureGroups>
-                        {}
+                        <Attributes>{}</Attributes>
                     </AttributeDefinitions>
                     <DMXModes>
                         <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
@@ -220,7 +222,7 @@ mod tests {
                         </DMXMode>
                     </DMXModes>
                 </FixtureType>
-            "#, attribute_testdata_xml_group()));
+            "#, Attribute::testdata_xml()));
         Ok(())
     }
 }

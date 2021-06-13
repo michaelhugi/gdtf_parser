@@ -5,7 +5,7 @@ use std::fmt::{Display, Formatter};
 
 use quick_xml::events::attributes::Attribute;
 
-use crate::utils::deparse;
+use crate::utils::read;
 use crate::utils::units::name::{GdtfNameError, Name};
 
 #[derive(Debug, PartialEq, Clone)]
@@ -81,7 +81,7 @@ impl Node {
     /// assert!(Node::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Name1.Name with invalid Char {")}).is_err());
     /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Result<Option<Self>, GdtfNodeError> {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 

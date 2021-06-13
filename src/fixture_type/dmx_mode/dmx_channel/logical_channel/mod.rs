@@ -7,7 +7,7 @@ use quick_xml::events::attributes::Attribute;
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
-use crate::utils::deparse;
+use crate::utils::read;
 use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
@@ -55,8 +55,8 @@ impl DeparseSingle for LogicalChannel {
                 b"Attribute" => attribute = Node::new_from_attr(attr)?,
                 b"Snap" => snap = Snap::new_from_attr(attr),
                 b"Master" => master = Master::new_from_attr(attr),
-                b"MibFade" => mib_fade = deparse::attr_to_f32(&attr),
-                b"DMXChangeTimeLimit" => dmx_change_time_limit = deparse::attr_to_f32(&attr),
+                b"MibFade" => mib_fade = read::attr_to_f32(&attr),
+                b"DMXChangeTimeLimit" => dmx_change_time_limit = read::attr_to_f32(&attr),
                 _ => {}
             }
         }
@@ -176,7 +176,7 @@ impl Snap {
     /// ```
 
     pub fn new_from_attr(attr: Attribute) -> Self {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 
@@ -243,7 +243,7 @@ impl Master {
     /// assert_eq!(Master::None, Master::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Anything strange like {")}));
     /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Self {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 

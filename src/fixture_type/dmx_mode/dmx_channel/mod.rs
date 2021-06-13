@@ -8,7 +8,7 @@ use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
 use crate::utils::deparse::{DeparseSingle, DeparseVec};
-use crate::utils::deparse;
+use crate::utils::read;
 #[cfg(test)]
 use crate::utils::deparse::{TestDeparseSingle, TestDeparseVec};
 use crate::utils::errors::GdtfError;
@@ -186,7 +186,7 @@ impl Offset {
     /// assert!(Offset::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Something else")}).is_none());
     /// ```
     pub fn new_from_attr(attr: Attribute) -> Option<Self> {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
     /// Creates a new Offset from a Vec<i32>
     /// ## Examples
@@ -254,7 +254,7 @@ impl DmxBreak {
     /// assert_eq!(DmxBreak::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Anything else")}), DmxBreak::Value(1));
     /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Self {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 

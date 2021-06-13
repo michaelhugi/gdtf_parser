@@ -10,7 +10,7 @@ use lazy_static::lazy_static;
 use quick_xml::events::attributes::Attribute;
 use regex::Regex;
 
-use crate::utils::deparse;
+use crate::utils::read;
 
 ///The transformation matrix consists 4 x 4 floats. Stored in a row-major order
 ///The matrix rotation is stored in the first three columns, and the translation is stored in the 4th column. The metric system consists of the Right-handed Cartesian Coordinates XYZ
@@ -94,7 +94,7 @@ impl Matrix {
     /// assert!(Matrix::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"{1.1,1.2,1.3,1.4}{2.1,2.2,2.3,2.4}{3.1,3.2,3.3,3.4}{4.1,4.2,4.3}")}).is_err());
     /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfMatrixError> {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 

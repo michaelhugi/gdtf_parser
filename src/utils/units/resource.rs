@@ -3,7 +3,7 @@
 
 use quick_xml::events::attributes::Attribute;
 
-use crate::utils::deparse;
+use crate::utils::read;
 
 ///File name of the resource file without extension and without subfolder.
 #[derive(Debug, PartialEq)]
@@ -28,7 +28,7 @@ impl Resource {
     /// assert_eq!(Resource::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"head.png")}), Resource("head.png".to_string()))
     /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Self {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 

@@ -10,7 +10,7 @@ use lazy_static::lazy_static;
 use quick_xml::events::attributes::Attribute;
 use regex::Regex;
 
-use crate::utils::deparse;
+use crate::utils::read;
 
 ///The Rotation matrix consists of 3*3 floats. Stored as row-major matrix, i.e. each row of the matrix is stored as a 3-component vector. Mathematical definition of the matrix is column-major, i.e. the matrix rotation is stored in the three columns. Metric system, right-handed Cartesian coordinates XYZ
 #[derive(Debug, PartialEq)]
@@ -82,7 +82,7 @@ impl Rotation {
     /// assert!(Rotation::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"{1.1,1.2,1.3}{2.1,2.2,2.3}{3.1,3.2,3.3}{4.1}")}).is_err());
     /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfRotationError> {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 

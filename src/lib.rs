@@ -74,12 +74,12 @@ use quick_xml::events::attributes::Attribute;
 use quick_xml::Reader;
 
 use crate::fixture_type::FixtureType;
-use crate::utils::deparse;
+use crate::utils::read;
 use crate::utils::deparse::DeparseSingle;
-use crate::utils::deparse::GdtfDeparseError;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
+use crate::utils::read::GdtfReadError;
 
 pub mod fixture_type;
 pub mod utils;
@@ -153,7 +153,7 @@ impl DeparseSingle for Gdtf {
             }
             buf.clear();
         }
-        Err(GdtfDeparseError::new_xml_node_not_found(FixtureType::NODE_NAME).into())
+        Err(GdtfReadError::new_xml_node_not_found(FixtureType::NODE_NAME).into())
     }
 }
 
@@ -205,7 +205,7 @@ impl TryFrom<&Path> for Gdtf {
             };
         }
         buf.clear();
-        Err(GdtfDeparseError::new_xml_node_not_found(Self::NODE_NAME).into())
+        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME).into())
     }
 }
 
@@ -273,7 +273,7 @@ impl DataVersion {
     /// assert_eq!(DataVersion::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something invalid")}), DataVersion::Unknown("Something invalid".to_string()));
     /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Self {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 

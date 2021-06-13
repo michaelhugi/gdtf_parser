@@ -5,7 +5,7 @@ use std::str::{FromStr, Utf8Error};
 
 use quick_xml::events::attributes::Attribute;
 
-use crate::utils::deparse;
+use crate::utils::read;
 
 ///DMXValue used in GDTF
 /// Special type to define DMX value where n is the byte count. The byte count can be individually specified without depending on the resolution of the DMX Channel.
@@ -58,7 +58,7 @@ impl DmxValue {
     /// assert!(DmxValue::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something invalid")}).is_err());
     /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfDmxValueError> {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 

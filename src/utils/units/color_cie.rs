@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use quick_xml::events::attributes::Attribute;
 
-use crate::utils::deparse;
+use crate::utils::read;
 
 ///CIE color representation xyY 1931 used in GDTF
 #[derive(Debug, PartialEq, Clone)]
@@ -51,7 +51,7 @@ impl ColorCie {
     /// assert!(ColorCie::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something invalid")}).is_err());
     /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfColorCieError> {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 

@@ -5,12 +5,12 @@ use std::str::Utf8Error;
 
 use zip::result::ZipError;
 
-use crate::utils::deparse::GdtfDeparseError;
 use crate::utils::units::color_cie::GdtfColorCieError;
 use crate::utils::units::dmx_value::GdtfDmxValueError;
 use crate::utils::units::guid::GdtfGuidError;
 use crate::utils::units::name::GdtfNameError;
 use crate::utils::units::node::GdtfNodeError;
+use crate::utils::read::GdtfReadError;
 
 #[derive(Debug)]
 pub enum GdtfError {
@@ -28,11 +28,11 @@ pub enum GdtfError {
     GdtfDmxValueError(GdtfDmxValueError),
     GdtfNodeError(GdtfNodeError),
     GdtfColorCieError(GdtfColorCieError),
-    GdtfDeparseError(GdtfDeparseError),
+    GdtfDeparseError(GdtfReadError),
 }
 
-impl From<GdtfDeparseError> for GdtfError {
-    fn from(e: GdtfDeparseError) -> Self {
+impl From<GdtfReadError> for GdtfError {
+    fn from(e: GdtfReadError) -> Self {
         GdtfError::GdtfDeparseError(e)
     }
 }
@@ -73,7 +73,23 @@ impl From<GdtfNodeError> for GdtfError {
 
 impl fmt::Display for GdtfError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "something went terribly wrong")
+        match self {
+            GdtfError::Utf8Error(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::QuickXmlError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::ColorCieNotValidError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::DateNotValidError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::DmxAddressNotValidError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::FileReadError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::ZipError(e) => write!(f, "GdtfError: {:?}", e),
+            GdtfError::ParseIntError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::ParseFloatError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::NameError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::GuidError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::GdtfDmxValueError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::GdtfNodeError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::GdtfColorCieError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::GdtfDeparseError(e) => write!(f, "GdtfError: {}", e),
+        }
     }
 }
 

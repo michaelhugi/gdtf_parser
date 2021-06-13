@@ -6,7 +6,7 @@ use std::str::{FromStr, Utf8Error};
 
 use quick_xml::events::attributes::Attribute;
 
-use crate::utils::deparse;
+use crate::utils::read;
 
 ///Date representation used in GDTF
 ///Date and time corresponding to UTC +00:00 (Coordinated Universal Time):
@@ -83,7 +83,7 @@ impl Date {
    /// assert!(Date::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something else")}).is_err());
    /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfDateError> {
-        Self::new_from_str(deparse::attr_to_str(&attr))
+        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 
