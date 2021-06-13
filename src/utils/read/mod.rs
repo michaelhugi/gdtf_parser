@@ -214,26 +214,20 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
 
         let mut buf: Vec<u8> = Vec::new();
         let mut out: Vec<Self> = Vec::new();
-        let mut tree_down = 0;
         loop {
             match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
                 Event::Start(e) => {
                     if e.name() == Self::NODE_NAME {
                         out.push(Self::read_single_from_event(reader, e, true)?.1);
-                    } else {
-                        tree_down += 1;
                     }
                 }
                 Event::Empty(e) => {
                     if e.name() == Self::NODE_NAME {
                         out.push(Self::read_single_from_event(reader, e, false)?.1);
-                    } else {
-                        tree_down += 1;
                     }
                 }
-                Event::End(_) => {
-                    tree_down -= 1;
-                    if tree_down <= 0 {
+                Event::End(e) => {
+                    if e.name() == Self::PARENT_NODE_NAME {
                         break;
                     }
                 }
@@ -248,18 +242,18 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
 
 
     /// ⚠️**This function can only be used on the event of the parent-struct if the parent-struct only has one kind of children. It will consume all children!** ⚠️
-   ///
-   /// If a xml-node only contains one primary key and no children, this method can be used to avoid instancing unnessecary structs.
-   /// This function will go down the tree and deparse all node's primary-keys with the name eq to `NODE_NAME` in a vec and return when it's back up at it's position.
-   ///
-   /// # Arguments
-   ///
-   /// * `reader` - The quick-xml-Reader that is passed trough the whole tree to read next events of the tree branch if needed. Iterates trough all xml-events with buffering.
-   /// * `event` - The event that triggered call of this method must be the start or empty event of `PARENT_NODE_NAME`. If this is not possible, the vec must be handled manually in read_one_child entry by entry.
-   ///
-   /// # Returns
-   ///
-   /// * `Vec<Self::PrimaryKey>` - All PrimaryKeys found by xml-nodes in a vec
+    ///
+    /// If a xml-node only contains one primary key and no children, this method can be used to avoid instancing unnessecary structs.
+    /// This function will go down the tree and deparse all node's primary-keys with the name eq to `NODE_NAME` in a vec and return when it's back up at it's position.
+    ///
+    /// # Arguments
+    ///
+    /// * `reader` - The quick-xml-Reader that is passed trough the whole tree to read next events of the tree branch if needed. Iterates trough all xml-events with buffering.
+    /// * `event` - The event that triggered call of this method must be the start or empty event of `PARENT_NODE_NAME`. If this is not possible, the vec must be handled manually in read_one_child entry by entry.
+    ///
+    /// # Returns
+    ///
+    /// * `Vec<Self::PrimaryKey>` - All PrimaryKeys found by xml-nodes in a vec
     fn read_primary_key_vec_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<Vec<Self::PrimaryKey>, Self::Error> where Self: Sized {
         if event.name() != Self::PARENT_NODE_NAME {
             panic!("Wrong call of read_vec_from_event for node {}. This method can only be used if you have an empty {}. If this is not empty, fill the vec manually in your read_one_child() entry by entry.", Self::node_name(), Self::parent_node_name());
@@ -291,7 +285,7 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
 
 #[cfg(test)]
 ///Trait only compiled in testing. Offers testing of different stuff
-pub(crate) trait TestReadSingle<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<DataHolder> {
+pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<DataHolder> {
     /// Should return a vec of structs to be tested.
     /// * If a struct has only a primary-key, only the first part of the tuple must be returned.
     /// * If a struct has primary-key and (attributes or children) both parts of the tuple are required
@@ -340,8 +334,8 @@ pub(crate) trait TestReadSingle<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<
 
     /// If the node only has a primary_key and no children, this method will return a vec of testvalues returned by `testdatas()`. This is useful for avoiding duplicate coding in testing of parent nodes.
     fn testdata_primary_key_vec() -> Vec<Self::PrimaryKey> {
-        if Self::PRIMARY_KEY_NAME != b"" {
-            panic!("The node {} did declare a PRIMARY_KEY_NAME and can't be used for testdata_primary_key_vec()", Self::node_name())
+        if Self::PRIMARY_KEY_NAME == b"" {
+            panic!("The node {} did not declare a PRIMARY_KEY_NAME and can't be used for testdata_primary_key_vec()", Self::node_name())
         }
         let mut v: Vec<Self::PrimaryKey> = Default::default();
 
@@ -404,9 +398,9 @@ pub(crate) trait TestReadSingle<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<
         }
 
         for xml in xmls {
-            let s1 = Self::read_single_from_xml(&xml).unwrap();
+            let s1 = Self::read_primary_key_from_xml(&xml).unwrap();
             let s2 = structs.next().unwrap();
-            assert_eq!(s1.0.unwrap(), s2.0.unwrap());
+            assert_eq!(s1, s2.0.unwrap());
         }
     }
 
@@ -418,7 +412,11 @@ pub(crate) trait TestReadSingle<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<
 
     /// Main function to run all tests for deparsing the node
     fn execute_tests() {
-        if !Self::ONLY_PRIMARY_KEY {
+        if Self::ONLY_PRIMARY_KEY {
+            Self::execute_test_primary_key_faulty();
+            Self::execute_test_read_primary_key_single();
+            Self::execute_test_read_primary_key_vec();
+        } else {
             Self::execute_test_faulty();
             Self::execute_test_read_single();
             if Self::PARENT_NODE_NAME != b"" {
@@ -428,10 +426,6 @@ pub(crate) trait TestReadSingle<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<
                     Self::execute_test_read_hash_map();
                 }
             }
-        } else {
-            Self::execute_test_primary_key_faulty();
-            Self::execute_test_read_primary_key_single();
-            Self::execute_test_read_primary_key_vec();
         }
     }
 

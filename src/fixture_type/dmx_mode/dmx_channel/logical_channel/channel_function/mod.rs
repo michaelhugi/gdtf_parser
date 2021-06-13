@@ -291,7 +291,7 @@ pub mod tests {
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
     use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
     use crate::utils::errors::GdtfError;
-    use crate::utils::read::TestReadSingle;
+    use crate::utils::read::TestReadGdtf;
     use crate::utils::testdata;
     use crate::utils::units::dmx_value::DmxValue;
     use crate::utils::units::name::Name;

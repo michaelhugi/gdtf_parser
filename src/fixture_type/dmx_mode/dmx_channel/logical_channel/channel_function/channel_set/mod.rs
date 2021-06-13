@@ -11,7 +11,7 @@ use crate::utils::deparse::{DeparseSingle, GdtfDeparseError};
 use crate::utils::errors::GdtfError;
 use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
 #[cfg(test)]
-use crate::utils::read::TestReadSingle;
+use crate::utils::read::TestReadGdtf;
 use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
 
@@ -83,7 +83,7 @@ impl ReadGdtfDataHolder<ChannelSet> for ChannelSetDataHolder {
 }
 
 #[cfg(test)]
-impl TestReadSingle<ChannelSetDataHolder> for ChannelSet {
+impl TestReadGdtf<ChannelSetDataHolder> for ChannelSet {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
             (Some(Name::new("Closed").unwrap()), Some(Self { dmx_from: DmxValue::new_from_str("0/1").unwrap(), physical_from: None, physical_to: None, wheel_slot_index: None })),
@@ -122,7 +122,7 @@ impl TestReadSingle<ChannelSetDataHolder> for ChannelSet {
 #[cfg(test)]
 pub mod tests {
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet as T;
-    use crate::utils::read::TestReadSingle;
+    use crate::utils::read::TestReadGdtf;
 
     #[test]
     fn test_deparse() {
