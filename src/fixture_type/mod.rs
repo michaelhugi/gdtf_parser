@@ -63,7 +63,7 @@ impl DeparseSingle for FixtureType {
     type PrimaryKey = ();
     type Error = GdtfError;
 
-    const NODE_NAME: &'static [u8] = b"FixtureType";
+    const NODE_NAME_DS: &'static [u8] = b"FixtureType";
 
     fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
@@ -80,12 +80,12 @@ impl DeparseSingle for FixtureType {
             let attr = attr?;
             match attr.key {
                 b"Name" => name = Name::new_from_attr(attr)?,
-                b"ShortName" => short_name = read::attr_to_string(&attr),
-                b"LongName" => long_name = read::attr_to_string(&attr),
-                b"Manufacturer" => manufacturer = read::attr_to_string(&attr),
-                b"Description" => description = read::attr_to_string(&attr),
+                b"ShortName" => short_name = read::attr_to_string(attr),
+                b"LongName" => long_name = read::attr_to_string(attr),
+                b"Manufacturer" => manufacturer = read::attr_to_string(attr),
+                b"Description" => description = read::attr_to_string(attr),
                 b"FixtureTypeID" => fixture_type_id = Guid::new_from_attr(attr)?,
-                b"Thumbnail" => thumbnail = read::attr_to_string_option(&attr),
+                b"Thumbnail" => thumbnail = read::attr_to_string_option(attr),
                 b"RefFT" => ref_ft = match Guid::new_from_attr(attr) {
                     Ok(guid) => Some(guid),
                     Err(_) => None
@@ -105,7 +105,7 @@ impl DeparseSingle for FixtureType {
                 match reader.read_event(&mut buf) {
                     Ok(Event::Start(e)) => {
                         match e.name() {
-                            AttributeDefinitions::NODE_NAME => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e, true)?.1),
+                            AttributeDefinitions::NODE_NAME_DS => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e, true)?.1),
                             b"DMXModes" => {
                                 dmx_modes = Some(DmxMode::read_hash_map_from_event(reader)?);
                             }
@@ -114,7 +114,7 @@ impl DeparseSingle for FixtureType {
                     }
                     Ok(Event::Empty(e)) => {
                         match e.name() {
-                            AttributeDefinitions::NODE_NAME => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e, false)?.1),
+                            AttributeDefinitions::NODE_NAME_DS => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e, false)?.1),
                             b"DMXModes" => {
                                 dmx_modes = Some(DmxMode::read_hash_map_from_event(reader)?);
                             }
@@ -136,11 +136,11 @@ impl DeparseSingle for FixtureType {
         }
 
         if attribute_definitions.is_none() {
-            return Err(GdtfReadError::new_xml_node_not_found(AttributeDefinitions::NODE_NAME).into());
+            return Err(GdtfReadError::new_xml_node_not_found(AttributeDefinitions::NODE_NAME_DS).into());
         }
         let attribute_definitions = attribute_definitions.unwrap();
         if dmx_modes.is_none() {
-            return Err(GdtfReadError::new_xml_node_not_found(DmxMode::NODE_NAME).into());
+            return Err(GdtfReadError::new_xml_node_not_found(DmxMode::NODE_NAME_DS).into());
         }
         let dmx_modes = dmx_modes.unwrap();
 

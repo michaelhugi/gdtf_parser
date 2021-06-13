@@ -94,7 +94,7 @@ pub struct Gdtf {
 impl DeparseSingle for Gdtf {
     type PrimaryKey = ();
     type Error = GdtfError;
-    const NODE_NAME: &'static [u8] = b"GDTF";
+    const NODE_NAME_DS: &'static [u8] = b"GDTF";
 
 
     fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
@@ -114,7 +114,7 @@ impl DeparseSingle for Gdtf {
             loop {
                 match reader.read_event(&mut buf)? {
                     Event::Start(e) => {
-                        if e.name() == FixtureType::NODE_NAME {
+                        if e.name() == FixtureType::NODE_NAME_DS {
                             return Ok(
                                 (None,
                                  Gdtf {
@@ -127,7 +127,7 @@ impl DeparseSingle for Gdtf {
                         }
                     }
                     Event::Empty(e) => {
-                        if e.name() == FixtureType::NODE_NAME {
+                        if e.name() == FixtureType::NODE_NAME_DS {
                             return Ok(
                                 (None,
                                  Gdtf {
@@ -153,7 +153,7 @@ impl DeparseSingle for Gdtf {
             }
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(FixtureType::NODE_NAME).into())
+        Err(GdtfReadError::new_xml_node_not_found(FixtureType::NODE_NAME_DS).into())
     }
 }
 
@@ -205,7 +205,7 @@ impl TryFrom<&Path> for Gdtf {
             };
         }
         buf.clear();
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME).into())
+        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS).into())
     }
 }
 

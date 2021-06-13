@@ -17,7 +17,7 @@ pub(crate) trait DeparseSingle: std::fmt::Debug + Sized {
     ///Type of error returned in case of failure on deparse
     type Error: From<GdtfReadError> + std::error::Error;
     ///The name of the node that contains the data for the struct. Declare it as b"GDTF" for example.
-    const NODE_NAME: &'static [u8];
+    const NODE_NAME_DS: &'static [u8];
 
     /// When a gdtf is deparsed it will go down the tree if a event hits and returns when end of the Node from the event is detected.
     ///
@@ -56,14 +56,14 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
         loop {
             match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
                 Event::Start(e) => {
-                    if e.name() == Self::NODE_NAME {
+                    if e.name() == Self::NODE_NAME_DS {
                         return Self::read_single_from_event(&mut reader, e, true);
                     } else {
                         tree_down += 1;
                     }
                 }
                 Event::Empty(e) => {
-                    if e.name() == Self::NODE_NAME {
+                    if e.name() == Self::NODE_NAME_DS {
                         return Self::read_single_from_event(&mut reader, e, false);
                     } else {
                         tree_down += 1;
@@ -82,7 +82,7 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
             };
         }
         buf.clear();
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS))?
     }
 
     /// Method for testing `DeparseSingle`. On a struct that implements `DeparseSingle` you can call this method to compare it to a deparsed xml.
@@ -94,7 +94,7 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
     /// * `primary_key` - If the deparsing of the xml should return a `PrimaryKey`, they will be compared. If the struct has no PrimaryKey pass `None`
     /// * `xml` - The xml that will de deparsed and compared to the struct implementing `DeparseSingle` and the `PrimaryKey` if is some.
     fn compare_to_primary_key_and_xml(&self, primary_key: Option<Self::PrimaryKey>, xml: &str) {
-        let other = Self::read_single_from_xml(xml).expect(&format!("Unexpected error in test of {}", u8_array_to_string(Self::NODE_NAME))[..]);
+        let other = Self::read_single_from_xml(xml).expect(&format!("Unexpected error in test of {}", u8_array_to_string(Self::NODE_NAME_DS))[..]);
         assert_eq!(self, &other.1);
         match (primary_key, other.0) {
             (Some(primary_key), Some(other)) => assert_eq!(primary_key, other),
@@ -125,7 +125,7 @@ pub(crate) trait DeparseHashMap: DeparseSingle {
         loop {
             match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
                 Event::Start(e) => {
-                    if e.name() == Self::NODE_NAME {
+                    if e.name() == Self::NODE_NAME_DS {
                         let val = Self::read_single_from_event(reader, e, true)?;
                         if val.0.is_some() {
                             out.insert(val.0.unwrap(), val.1);
@@ -133,7 +133,7 @@ pub(crate) trait DeparseHashMap: DeparseSingle {
                     }
                 }
                 Event::Empty(e) => {
-                    if e.name() == Self::NODE_NAME {
+                    if e.name() == Self::NODE_NAME_DS {
                         let val = Self::read_single_from_event(reader, e, false)?;
                         if val.0.is_some() {
                             out.insert(val.0.unwrap(), val.1);
@@ -189,7 +189,7 @@ pub(crate) trait TestDeparseHashMap: DeparseHashMap + TestDeparseSingle {
             };
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS))?
     }
 
     /// Reads the provided xml with `read_hash_map_from_xml` and compares it to the provided Hashmap.
@@ -364,14 +364,14 @@ pub(crate) trait DeparseVec: DeparseSingle {
         loop {
             match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
                 Event::Start(e) => {
-                    if e.name() == Self::NODE_NAME {
+                    if e.name() == Self::NODE_NAME_DS {
                         out.push(Self::read_single_from_event(reader, e, true)?.1);
                     } else {
                         tree_down += 1;
                     }
                 }
                 Event::Empty(e) => {
-                    if e.name() == Self::NODE_NAME {
+                    if e.name() == Self::NODE_NAME_DS {
                         out.push(Self::read_single_from_event(reader, e, false)?.1);
                     } else {
                         tree_down += 1;
@@ -431,7 +431,7 @@ pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
             };
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS))?
     }
 
     /// Reads the provided xml with `read_vec_from_xml` and compares it to the provided Vec.

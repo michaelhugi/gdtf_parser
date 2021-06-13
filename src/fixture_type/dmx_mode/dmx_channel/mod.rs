@@ -39,7 +39,7 @@ impl DeparseSingle for DmxChannel {
     type PrimaryKey = ();
     type Error = GdtfError;
 
-    const NODE_NAME: &'static [u8] = b"DMXChannel";
+    const NODE_NAME_DS: &'static [u8] = b"DMXChannel";
 
     fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {

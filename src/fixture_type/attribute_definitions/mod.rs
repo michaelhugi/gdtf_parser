@@ -8,7 +8,7 @@ use quick_xml::Reader;
 use crate::fixture_type::attribute_definitions::activation_group::ActivationGroup;
 use crate::fixture_type::attribute_definitions::attribute::Attribute;
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
-use crate::utils::deparse::DeparseHashMap;
+
 use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
@@ -41,7 +41,7 @@ impl DeparseSingle for AttributeDefinitions {
     type PrimaryKey = ();
     type Error = GdtfError;
 
-    const NODE_NAME: &'static [u8] = b"AttributeDefinitions";
+    const NODE_NAME_DS: &'static [u8] = b"AttributeDefinitions";
 
     fn read_single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where Self: Sized {
         let mut feature_groups: HashMap<Name, FeatureGroup> = HashMap::new();
@@ -56,7 +56,7 @@ impl DeparseSingle for AttributeDefinitions {
                 match reader.read_event(&mut buf) {
                     Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
                         match e.name() {
-                            FeatureGroup::PARENT_NODE_NAME => feature_groups = FeatureGroup::read_hash_map_from_event(reader)?,
+                            FeatureGroup::PARENT_NODE_NAME => feature_groups = FeatureGroup::read_hash_map_from_event(reader, e)?,
                             Attribute::PARENT_NODE_NAME => attributes = Attribute::read_hash_map_from_event(reader, e)?,
                             ActivationGroup::PARENT_NODE_NAME => activation_groups = ActivationGroup::read_primary_key_vec_from_event(reader, e)?,
                             _ => { tree_down += 1; }
@@ -93,7 +93,7 @@ mod tests {
     use crate::fixture_type::attribute_definitions::activation_group::ActivationGroup;
     use crate::fixture_type::attribute_definitions::attribute::Attribute;
     use crate::fixture_type::attribute_definitions::AttributeDefinitions as T;
-    use crate::fixture_type::attribute_definitions::feature_group::tests::{feature_group_teatdata_xml_group, feature_group_testdata_hash_map};
+    use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
     use crate::utils::read::TestReadGdtf;
@@ -112,7 +112,7 @@ mod tests {
     pub fn attribute_definitions_testdata(i: u8) -> T {
         match i {
             1 => T {
-                feature_groups: feature_group_testdata_hash_map(),
+                feature_groups: FeatureGroup::testdata_hash_map(),
                 attributes: Attribute::testdata_hash_map(),
                 activation_groups: ActivationGroup::testdata_primary_key_vec(),
             },
@@ -122,12 +122,12 @@ mod tests {
                 activation_groups: ActivationGroup::testdata_primary_key_vec(),
             },
             3 => T {
-                feature_groups: feature_group_testdata_hash_map(),
+                feature_groups: FeatureGroup::testdata_hash_map(),
                 attributes: HashMap::new(),
                 activation_groups: ActivationGroup::testdata_primary_key_vec(),
             },
             4 => T {
-                feature_groups: feature_group_testdata_hash_map(),
+                feature_groups: FeatureGroup::testdata_hash_map(),
                 attributes: Attribute::testdata_hash_map(),
                 activation_groups: vec![],
             },
@@ -144,11 +144,11 @@ mod tests {
         match i {
             1 => format!(r#"$
             <AttributeDefinitions>
-                {}
+                <FeatureGroups>{}</FeatureGroups>
                 <Attributes>{}</Attributes>
                 <ActivationGroups>{}</ActivationGroups>
             </AttributeDefinitions>
-            "#, feature_group_teatdata_xml_group(), Attribute::testdata_xml(), ActivationGroup::testdata_xml()),
+            "#, FeatureGroup::testdata_xml(), Attribute::testdata_xml(), ActivationGroup::testdata_xml()),
             2 => format!(r#"$
             <AttributeDefinitions>
                 <FeatureGroups></FeatureGroups>
@@ -158,18 +158,18 @@ mod tests {
             "#, Attribute::testdata_xml(), ActivationGroup::testdata_xml()),
             3 => format!(r#"$
             <AttributeDefinitions>
-                {}
+                <FeatureGroups>{}</FeatureGroups>
                 <Attributes></Attributes>
                      <ActivationGroups>{}</ActivationGroups>
             </AttributeDefinitions>
-            "#, feature_group_teatdata_xml_group(), ActivationGroup::testdata_xml()),
+            "#, FeatureGroup::testdata_xml(), ActivationGroup::testdata_xml()),
             4 => format!(r#"$
             <AttributeDefinitions>
-                {}
+                <FeatureGroups>{}</FeatureGroups>
                 <Attributes>{}</Attributes>
                 "<ActivationGroups></ActivationGroups>
             </AttributeDefinitions>
-            "#, feature_group_teatdata_xml_group(), Attribute::testdata_xml()),
+            "#, FeatureGroup::testdata_xml(), Attribute::testdata_xml()),
             _ => format!(r#"$
             <AttributeDefinitions>
                 <FeatureGroups></FeatureGroups>

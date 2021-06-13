@@ -17,9 +17,9 @@ use std::borrow::Borrow;
 ///Trait to store data during deparsing from xml in a mutable and Optional way. All Data will be moved from this struct to the actual Self in the last step.
 pub(crate) trait ReadGdtfDataHolder<T: ReadGdtf<Self>>: Default {
     ///The name of the node that contains the data for the struct. Declare it as b"GDTF" for example.
-    const NODE_NAME: &'static [u8] = T::NODE_NAME;
+    const NODE_NAME_DH: &'static [u8] = T::NODE_NAME;
     ///The name of the parent node
-    const PARENT_NODE_NAME: &'static [u8] = T::PARENT_NODE_NAME;
+    const PARENT_NODE_NAME_DH: &'static [u8] = T::PARENT_NODE_NAME;
 
     /// Is called when an attribute is found in the xml tree. Usually this method contains a match statement that checks attr.key.
     ///
@@ -650,34 +650,34 @@ pub(crate) fn attr_try_to_str<'a>(attr: &'a Attribute) -> Result<&'a str, GdtfEr
 }
 
 ///Parses an xml-attribute to f32 but returns 0 if any error occurs
-pub(crate) fn attr_to_f32(attr: &Attribute) -> f32 {
-    f32::from_str(attr_try_to_str(attr).unwrap_or("")).unwrap_or(0_f32)
+pub(crate) fn attr_to_f32(attr: Attribute) -> f32 {
+    f32::from_str(attr_try_to_str(&attr).unwrap_or("")).unwrap_or(0_f32)
 }
 
 ///Parses an xml-attribute to f32 but returns None if any error occurs
-pub(crate) fn attr_to_f32_option(attr: &Attribute) -> Option<f32> {
-    match f32::from_str(attr_try_to_str(attr).unwrap_or("")) {
+pub(crate) fn attr_to_f32_option(attr: Attribute) -> Option<f32> {
+    match f32::from_str(attr_try_to_str(&attr).unwrap_or("")) {
         Ok(f) => Some(f),
         Err(_) => None
     }
 }
 
 ///Parses an xml-attribute to string but returns None if any error occurs or String is empty
-pub(crate) fn attr_to_string_option(attr: &Attribute) -> Option<String> {
-    match attr_try_to_str(attr).unwrap_or("") {
+pub(crate) fn attr_to_string_option(attr: Attribute) -> Option<String> {
+    match attr_try_to_str(&attr).unwrap_or("") {
         "" => None,
         s => Some(s.to_owned())
     }
 }
 
 ///Parses an xml-attribute to but returns "" if any error occurs
-pub(crate) fn attr_to_string(attr: &Attribute) -> String {
-    attr_try_to_str(attr).unwrap_or("").to_owned()
+pub(crate) fn attr_to_string(attr: Attribute) -> String {
+    attr_try_to_str(&attr).unwrap_or("").to_owned()
 }
 
 ///Parses an xml-attribute to u8 but returns None if any error occurs
-pub(crate) fn attr_to_u8_option(attr: &Attribute) -> Option<u8> {
-    match u8::from_str(attr_try_to_str(attr).unwrap_or("")) {
+pub(crate) fn attr_to_u8_option(attr: Attribute) -> Option<u8> {
+    match u8::from_str(attr_try_to_str(&attr).unwrap_or("")) {
         Ok(f) => Some(f),
         Err(_) => None
     }

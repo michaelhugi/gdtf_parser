@@ -8,7 +8,6 @@ use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
-use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
 #[cfg(test)]

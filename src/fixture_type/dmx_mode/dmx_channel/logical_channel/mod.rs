@@ -38,7 +38,7 @@ impl DeparseSingle for LogicalChannel {
     type PrimaryKey = ();
     type Error = GdtfError;
 
-    const NODE_NAME: &'static [u8] = b"LogicalChannel";
+    const NODE_NAME_DS: &'static [u8] = b"LogicalChannel";
 
     fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
@@ -55,8 +55,8 @@ impl DeparseSingle for LogicalChannel {
                 b"Attribute" => attribute = Node::new_from_attr(attr)?,
                 b"Snap" => snap = Snap::new_from_attr(attr),
                 b"Master" => master = Master::new_from_attr(attr),
-                b"MibFade" => mib_fade = read::attr_to_f32(&attr),
-                b"DMXChangeTimeLimit" => dmx_change_time_limit = read::attr_to_f32(&attr),
+                b"MibFade" => mib_fade = read::attr_to_f32(attr),
+                b"DMXChangeTimeLimit" => dmx_change_time_limit = read::attr_to_f32(attr),
                 _ => {}
             }
         }

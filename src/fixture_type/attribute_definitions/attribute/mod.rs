@@ -71,7 +71,7 @@ impl ReadGdtfDataHolder<Attribute> for AttributeDataHolder {
             Attribute {
                 pretty: self.pretty.unwrap_or_else(|| "".to_string()),
                 activation_group: self.activation_group,
-                feature: self.feature.ok_or_else(|| GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME, b"Feature"))?,
+                feature: self.feature.ok_or_else(|| GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME_DH, b"Feature"))?,
                 main_attribute: self.main_attribute,
                 physical_unit: self.physical_unit.unwrap_or(PhysicalUnit::None),
                 color: self.color,
@@ -80,7 +80,7 @@ impl ReadGdtfDataHolder<Attribute> for AttributeDataHolder {
     }
     fn read_any_attribute(&mut self, attr: quick_xml::events::attributes::Attribute<'_>) -> Result<(), <Attribute as ReadGdtf<Self>>::Error> {
         match attr.key {
-            b"Pretty" => self.pretty = read::attr_to_string_option(&attr),
+            b"Pretty" => self.pretty = read::attr_to_string_option(attr),
             b"ActivationGroup" => self.activation_group = Node::new_from_attr(attr)?,
             b"Feature" => self.feature = Node::new_from_attr(attr)?,
             b"MainAttribute" => self.main_attribute = Node::new_from_attr(attr)?,

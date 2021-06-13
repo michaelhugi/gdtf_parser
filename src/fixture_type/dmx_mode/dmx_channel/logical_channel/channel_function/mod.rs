@@ -67,7 +67,7 @@ impl DeparseSingle for ChannelFunction {
     type PrimaryKey = Name;
     type Error = GdtfError;
 
-    const NODE_NAME: &'static [u8] = b"ChannelFunction";
+    const NODE_NAME_DS: &'static [u8] = b"ChannelFunction";
 
     fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
@@ -91,13 +91,13 @@ impl DeparseSingle for ChannelFunction {
             match attr.key {
                 b"Name" => name = Name::new_from_attr(attr)?,
                 b"Attribute" => attribute = Attribute::new_from_attr(attr)?,
-                b"OriginalAttribute" => original_attribute = read::attr_to_string(&attr),
+                b"OriginalAttribute" => original_attribute = read::attr_to_string(attr),
                 b"DMXFrom" => dmx_from = DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_FROM),
                 b"Default" => default = DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_DEFAULT),
-                b"PhysicalFrom" => physical_from = read::attr_to_f32(&attr),
-                b"PhysicalTo" => physical_to = read::attr_to_f32(&attr),
-                b"RealFade" => real_fade = read::attr_to_f32(&attr),
-                b"RealAcceleration" => real_acceleration = read::attr_to_f32(&attr),
+                b"PhysicalFrom" => physical_from = read::attr_to_f32(attr),
+                b"PhysicalTo" => physical_to = read::attr_to_f32(attr),
+                b"RealFade" => real_fade = read::attr_to_f32(attr),
+                b"RealAcceleration" => real_acceleration = read::attr_to_f32(attr),
                 b"Wheel" => wheel = Node::new_from_attr(attr)?,
                 b"Emitter" => emitter = Node::new_from_attr(attr)?,
                 b"Filter" => filter = Node::new_from_attr(attr)?,
