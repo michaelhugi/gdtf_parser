@@ -13,6 +13,7 @@ use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
 #[cfg(test)]
 use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
 use crate::utils::errors::GdtfError;
+use crate::utils::read::ReadGdtf;
 use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::{GdtfNodeError, Node};
@@ -114,7 +115,7 @@ impl DeparseSingle for ChannelFunction {
         }
         let channel_sets;
         if has_children {
-            channel_sets = ChannelSet::read_hash_map_from_event(reader)?;
+            channel_sets = ChannelSet::read_hash_map_from_event(reader, event)?;
         } else {
             channel_sets = Default::default();
         }
@@ -287,9 +288,10 @@ pub mod tests {
     use std::collections::HashMap;
 
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::{Attribute, ChannelFunction as T, ChannelFunction, ModeMaster};
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::tests::{channel_set_testdata_hash_map, channel_set_testdata_xml_group};
+    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
     use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
     use crate::utils::errors::GdtfError;
+    use crate::utils::read::TestReadSingle;
     use crate::utils::testdata;
     use crate::utils::units::dmx_value::DmxValue;
     use crate::utils::units::name::Name;
@@ -345,7 +347,7 @@ pub mod tests {
                 filter: None,
                 wheel: None,
                 mode_master: None,
-                channel_sets: channel_set_testdata_hash_map(),
+                channel_sets: ChannelSet::testdata_hash_map(),
             }),
 
             3 => (Some(Name::new("Random Pixel").unwrap()), T {
@@ -361,7 +363,7 @@ pub mod tests {
                 filter: None,
                 wheel: None,
                 mode_master: None,
-                channel_sets: channel_set_testdata_hash_map(),
+                channel_sets: ChannelSet::testdata_hash_map(),
             }),
 
             4 => (Some(Name::new("Wave Up Down").unwrap()), T {
@@ -377,7 +379,7 @@ pub mod tests {
                 filter: None,
                 wheel: None,
                 mode_master: Some(ModeMaster { mode_master: Node::new_from_str("Base_ColorMacro1").unwrap().unwrap(), mode_from: DmxValue { initial_value: 14, n: 1, is_byte_shifting: false }, mode_to: DmxValue { initial_value: 20, n: 1, is_byte_shifting: true } }),
-                channel_sets: channel_set_testdata_hash_map(),
+                channel_sets: ChannelSet::testdata_hash_map(),
             }),
 
             5 => (Some(Name::new("Wave Up").unwrap()), T {
@@ -393,7 +395,7 @@ pub mod tests {
                 filter: Node::new_from_str("Magenta").unwrap(),
                 wheel: None,
                 mode_master: None,
-                channel_sets: channel_set_testdata_hash_map(),
+                channel_sets: ChannelSet::testdata_hash_map(),
             }),
 
             6 => (Some(Name::new("Wave Down").unwrap()), T {
@@ -409,7 +411,7 @@ pub mod tests {
                 filter: None,
                 wheel: Node::new_from_str("Wheel1").unwrap(),
                 mode_master: Some(ModeMaster { mode_master: Node::new_from_str("Base_ColorMacro1").unwrap().unwrap(), mode_from: DmxValue { initial_value: 0, n: 1, is_byte_shifting: false }, mode_to: DmxValue { initial_value: 0, n: 1, is_byte_shifting: false } }),
-                channel_sets: channel_set_testdata_hash_map(),
+                channel_sets: ChannelSet::testdata_hash_map(),
             }),
 
             _ => (Some(Name::new("Open (2)").unwrap()), T {
@@ -425,7 +427,7 @@ pub mod tests {
                 filter: None,
                 wheel: None,
                 mode_master: None,
-                channel_sets: channel_set_testdata_hash_map(),
+                channel_sets: ChannelSet::testdata_hash_map(),
             }),
         }
     }
@@ -435,17 +437,17 @@ pub mod tests {
         match i {
             1 => format!(r#"<ChannelFunction Attribute="NoFeature" DMXFrom="185/1" Default="185/1" Name="Reserved" OriginalAttribute="" Emitter="Emitter1" PhysicalTo="1.000000" RealAcceleration="12.234101" RealFade="0.000000"/>"#),
 
-            2 => format!(r#"<ChannelFunction Attribute="Shutter1StrobeEffect" DMXFrom="225/1" Default="225/1" Name="Fade Wave Up" OriginalAttribute="" PhysicalFrom="0.000000" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#, channel_set_testdata_xml_group(false)),
+            2 => format!(r#"<ChannelFunction Attribute="Shutter1StrobeEffect" DMXFrom="225/1" Default="225/1" Name="Fade Wave Up" OriginalAttribute="" PhysicalFrom="0.000000" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#, ChannelSet::testdata_xml()),
 
-            3 => format!(r#"<ChannelFunction Attribute="" DMXFrom="230/1" Default="230/1" Name="Random Pixel" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#, channel_set_testdata_xml_group(false)),
+            3 => format!(r#"<ChannelFunction Attribute="" DMXFrom="230/1" Default="230/1" Name="Random Pixel" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#, ChannelSet::testdata_xml()),
 
-            4 => format!(r#"<ChannelFunction DMXFrom="235/1" Default="" Name="Wave Up Down" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" ModeMaster="Base_ColorMacro1" ModeFrom="14/1" ModeTo="20/1s">{}</ChannelFunction>"#, channel_set_testdata_xml_group(false)),
+            4 => format!(r#"<ChannelFunction DMXFrom="235/1" Default="" Name="Wave Up Down" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" ModeMaster="Base_ColorMacro1" ModeFrom="14/1" ModeTo="20/1s">{}</ChannelFunction>"#,ChannelSet::testdata_xml()),
 
-            5 => format!(r#"<ChannelFunction Attribute="Shutter1StrobeEffect" Filter="Magenta" DMXFrom="240/1s" Name="Wave Up" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="58.000134">{}</ChannelFunction>"#, channel_set_testdata_xml_group(false)),
+            5 => format!(r#"<ChannelFunction Attribute="Shutter1StrobeEffect" Filter="Magenta" DMXFrom="240/1s" Name="Wave Up" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="58.000134">{}</ChannelFunction>"#, ChannelSet::testdata_xml()),
 
-            6 => format!(r#"<ChannelFunction Attribute="Shutter1StrobeEffect" Wheel="Wheel1" DMXFrom="245/1" Default="245/1" Name="Wave Down" OriginalAttribute="ShutStrEff" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"  ModeMaster="Base_ColorMacro1">{}</ChannelFunction>"#, channel_set_testdata_xml_group(false)),
+            6 => format!(r#"<ChannelFunction Attribute="Shutter1StrobeEffect" Wheel="Wheel1" DMXFrom="245/1" Default="245/1" Name="Wave Down" OriginalAttribute="ShutStrEff" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"  ModeMaster="Base_ColorMacro1">{}</ChannelFunction>"#, ChannelSet::testdata_xml()),
 
-            _ => format!(r#"<ChannelFunction Attribute="Shutter1" Default="250/1s" Name="Open (2)" OriginalAttribute="" PhysicalFrom="-85.000012" PhysicalTo="70.000015" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#, channel_set_testdata_xml_group(false)),
+            _ => format!(r#"<ChannelFunction Attribute="Shutter1" Default="250/1s" Name="Open (2)" OriginalAttribute="" PhysicalFrom="-85.000012" PhysicalTo="70.000015" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#, ChannelSet::testdata_xml()),
         }
     }
 
