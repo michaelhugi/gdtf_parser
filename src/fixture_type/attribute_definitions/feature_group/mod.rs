@@ -8,11 +8,12 @@ use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
 use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
-use crate::utils::deparse::{DeparseHashMap, DeparsePrimaryKey, DeparseSingle};
-use crate::utils::read;
+use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
 #[cfg(test)]
 use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
 use crate::utils::errors::GdtfError;
+use crate::utils::read;
+use crate::utils::read::ReadGdtf;
 use crate::utils::units::name::Name;
 
 pub(crate) mod feature;
@@ -54,7 +55,7 @@ impl DeparseSingle for FeatureGroup {
                 match reader.read_event(&mut buf)? {
                     Event::Start(e) | Event::Empty(e) => {
                         if e.name() == Feature::NODE_NAME {
-                            features.push(Feature::read_primary_key_from_event(e)?);
+                            features.push(Feature::read_primary_key_from_event(e)?.unwrap_or_else(|| Name::new("").unwrap()));
                         } else {
                             tree_down += 1;
                         }
@@ -95,10 +96,11 @@ impl TestDeparseHashMap for FeatureGroup {}
 pub mod tests {
     use std::collections::HashMap;
 
-    use crate::fixture_type::attribute_definitions::feature_group::feature::tests::{feature_testdata, feature_testdata_xml};
+    use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
     use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup as T;
     use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
     use crate::utils::errors::GdtfError;
+    use crate::utils::read::TestReadGdtf;
     use crate::utils::units::name::Name;
 
     #[test]
@@ -136,24 +138,24 @@ pub mod tests {
     ///Returns 6 different FeatureGroup xmls for testing
     pub(crate) fn feature_group_testdata_xml(i: u8) -> String {
         match i {
-            1 => format!(r#"<FeatureGroup Name="Beam" Pretty="B">{}</FeatureGroup>"#, feature_testdata_xml(1)),
-            2 => format!(r#"<FeatureGroup Name="Dimmer" Pretty="D">{}{}</FeatureGroup>"#, feature_testdata_xml(2), feature_testdata_xml(3)),
-            3 => format!(r#"<FeatureGroup Name="Color" Pretty="C"></FeatureGroup>"#),
-            4 => format!(r#"<FeatureGroup Name="" Pretty="P">{}</FeatureGroup>"#, feature_testdata_xml(4)),
-            5 => format!(r#"<FeatureGroup Name="Focus" Pretty="">{}</FeatureGroup>"#, feature_testdata_xml(5)),
-            _ => format!(r#"<FeatureGroup Name="Control" Pretty="Ctrl">{}</FeatureGroup>"#, feature_testdata_xml(7)),
+            1 => format!(r#"<FeatureGroup Name="Beam" Pretty="B">{}</FeatureGroup>"#, Feature::testdata_xml()),
+            2 => format!(r#"<FeatureGroup Name="Dimmer" Pretty="D">{}</FeatureGroup>"#, Feature::testdata_xml()),
+            3 => format!(r#"<FeatureGroup Name="Color" Pretty="C"/>"#),
+            4 => format!(r#"<FeatureGroup Name="" Pretty="P"></FeatureGroup>"#),
+            5 => format!(r#"<FeatureGroup Name="Focus" Pretty="">{}</FeatureGroup>"#, Feature::testdata_xml()),
+            _ => format!(r#"<FeatureGroup Name="Control" Pretty="Ctrl">{}</FeatureGroup>"#, Feature::testdata_xml()),
         }
     }
 
     ///Returns 6 different FeatureGroups for testing
     pub(crate) fn feature_group_testdata(i: u8) -> (Option<Name>, T) {
         match i {
-            1 => (Some(Name::new("Beam").unwrap()), T { pretty: "B".to_string(), features: vec![feature_testdata(1)] }),
-            2 => (Some(Name::new("Dimmer").unwrap()), T { pretty: "D".to_string(), features: vec![feature_testdata(2), feature_testdata(3)] }),
+            1 => (Some(Name::new("Beam").unwrap()), T { pretty: "B".to_string(), features: Feature::testdata_primary_key_vec() }),
+            2 => (Some(Name::new("Dimmer").unwrap()), T { pretty: "D".to_string(), features: Feature::testdata_primary_key_vec() }),
             3 => (Some(Name::new("Color").unwrap()), T { pretty: "C".to_string(), features: vec![] }),
-            4 => (Some(Name::new("").unwrap()), T { pretty: "P".to_string(), features: vec![feature_testdata(4)] }),
-            5 => (Some(Name::new("Focus").unwrap()), T { pretty: "".to_string(), features: vec![feature_testdata(5)] }),
-            _ => (Some(Name::new("Control").unwrap()), T { pretty: "Ctrl".to_string(), features: vec![feature_testdata(7)] }),
+            4 => (Some(Name::new("").unwrap()), T { pretty: "P".to_string(), features: vec![] }),
+            5 => (Some(Name::new("Focus").unwrap()), T { pretty: "".to_string(), features: Feature::testdata_primary_key_vec() }),
+            _ => (Some(Name::new("Control").unwrap()), T { pretty: "Ctrl".to_string(), features: Feature::testdata_primary_key_vec() }),
         }
     }
 

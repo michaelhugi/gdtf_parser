@@ -1,126 +1,91 @@
 //! # Definition of Feature
 //! groups the Fixture Type Attributes into a structured way for easier access and search
 //!
+use std::fmt::Debug;
+
+use quick_xml::Reader;
+use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
-use crate::utils::deparse::{DeparsePrimaryKey, DeparseSingle};
-#[cfg(test)]
-use crate::utils::deparse::TestDeparsePrimaryKey;
+use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
+use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+#[cfg(test)]
+use crate::utils::read::TestReadGdtf;
 use crate::utils::units::name::Name;
 
 ///Feature only contains one feature Name, so only this primary keys are stored in a vec in FeatureGroup
+#[derive(Default, Debug, PartialEq)]
 pub struct Feature {}
 
-impl DeparsePrimaryKey for Feature {
-    type Error = GdtfError;
+impl ReadGdtf<Feature> for Feature {
     type PrimaryKey = Name;
+    type Error = GdtfError;
 
     const NODE_NAME: &'static [u8] = b"Feature";
     const PARENT_NODE_NAME: &'static [u8] = FeatureGroup::NODE_NAME;
+    const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
+    const ONLY_PRIMARY_KEY: bool = true;
 
-    fn read_primary_key_from_event(event: BytesStart<'_>) -> Result<Name, GdtfError> {
-        for attr in event.attributes().into_iter() {
-            let attr = attr?;
-            if attr.key == b"Name" {
-                return Ok(Name::new_from_attr(attr)?);
-            }
-        }
-        Ok(Default::default())
+    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+        Ok(Some(Name::new_from_attr(attr)?))
+    }
+}
+
+impl ReadGdtfDataHolder<Feature> for Feature {
+    fn read_any_attribute(&mut self, _: Attribute<'_>) -> Result<(), <Feature as ReadGdtf<Self>>::Error> {
+        panic!("Should not be executed");
+    }
+
+    fn read_any_child(&mut self, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), <Feature as ReadGdtf<Self>>::Error> {
+        panic!("Should not be executed");
+    }
+
+    fn move_data(self) -> Result<Feature, <Feature as ReadGdtf<Self>>::Error> {
+        panic!("Should not be executed");
     }
 }
 
 #[cfg(test)]
-impl TestDeparsePrimaryKey for Feature {}
+impl TestReadGdtf<Feature> for Feature {
+    fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
+        vec![
+            (Some(Name::new("Beam").unwrap()), None),
+            (Some(Name::new("Dimmer").unwrap()), None),
+            (Some(Name::new("Color").unwrap()), None),
+            (Some(Name::new("Indirect").unwrap()), None),
+            (Some(Name::new("PanTilt").unwrap()), None),
+            (Some(Name::new("Gobo").unwrap()), None),
+            (Some(Name::new("").unwrap()), None)
+        ]
+    }
+
+    fn testdatas_xml() -> Vec<String> {
+        vec![
+            r#"<Feature Name="Beam"/>"#.to_string(),
+            r#"<Feature Name="Dimmer"/>"#.to_string(),
+            r#"<Feature Name="Color"/>"#.to_string(),
+            r#"<Feature Name="Indirect"/>"#.to_string(),
+            r#"<Feature Name="PanTilt"/>"#.to_string(),
+            r#"<Feature Name="Gobo"/>"#.to_string(),
+            r#"<Feature Name=""/>"#.to_string()
+        ]
+    }
+
+    fn testdatas_xml_faulty() -> Vec<String> {
+        vec![]
+    }
+}
 
 
 #[cfg(test)]
 pub mod tests {
     use crate::fixture_type::attribute_definitions::feature_group::feature::Feature as T;
-    use crate::utils::deparse::TestDeparsePrimaryKey;
-    use crate::utils::errors::GdtfError;
-    use crate::utils::units::name::Name;
+    use crate::utils::read::TestReadGdtf;
 
     #[test]
-    fn test_read_primary_key() -> Result<(), GdtfError> {
-        assert_eq!(feature_testdata(1), T::read_primary_key_from_xml(&feature_testdata_xml(1))?);
-        assert_eq!(feature_testdata(2), T::read_primary_key_from_xml(&feature_testdata_xml(2))?);
-        assert_eq!(feature_testdata(3), T::read_primary_key_from_xml(&feature_testdata_xml(3))?);
-        assert_eq!(feature_testdata(4), T::read_primary_key_from_xml(&feature_testdata_xml(4))?);
-        assert_eq!(feature_testdata(5), T::read_primary_key_from_xml(&feature_testdata_xml(5))?);
-        assert_eq!(feature_testdata(6), T::read_primary_key_from_xml(&feature_testdata_xml(6))?);
-        assert_eq!(feature_testdata(7), T::read_primary_key_from_xml(&feature_testdata_xml(7))?);
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_primary_key_vec() -> Result<(), GdtfError> {
-        assert_eq!(feature_testdata_vec(), T::read_vec_from_xml(&feature_teatdata_xml_group())?);
-        assert_eq!(T::read_vec_from_xml(&feature_teatdata_xml_group_empty())?, vec![]);
-        Ok(())
-    }
-
-    ///Returns 7 different feature names for testing
-    pub(crate) fn feature_testdata(i: u8) -> Name {
-        match i {
-            1 => Name::new("Beam").unwrap(),
-            2 => Name::new("Dimmer").unwrap(),
-            3 => Name::new("Color").unwrap(),
-            4 => Name::new("Indirect").unwrap(),
-            5 => Name::new("PanTilt").unwrap(),
-            6 => Name::new("Gobo").unwrap(),
-            _ => Name::new("").unwrap()
-        }
-    }
-
-    ///Returns a vec of names for testing
-    pub(crate) fn feature_testdata_vec() -> Vec<Name> {
-        vec![
-            feature_testdata(1),
-            feature_testdata(2),
-            feature_testdata(3),
-            feature_testdata(4),
-            feature_testdata(5),
-            feature_testdata(6),
-            feature_testdata(7),
-        ]
-    }
-
-
-    ///Returns 7 different feature xmls for testing
-    pub(crate) fn feature_testdata_xml(i: u8) -> String {
-        match i {
-            1 => r#"<Feature Name="Beam"/>"#.to_string(),
-            2 => r#"<Feature Name="Dimmer"/>"#.to_string(),
-            3 => r#"<Feature Name="Color"/>"#.to_string(),
-            4 => r#"<Feature Name="Indirect"/>"#.to_string(),
-            5 => r#"<Feature Name="PanTilt"/>"#.to_string(),
-            6 => r#"<Feature Name="Gobo"/>"#.to_string(),
-            _ => r#"<Feature Name=""/>"#.to_string()
-        }
-    }
-
-    ///Returns an xml with 7 different Feature nodes inside one FeatureGroup
-    pub(crate) fn feature_teatdata_xml_group() -> String {
-        r#"
-     <FeatureGroup Name="Color" Pretty="Color">
-          <Feature Name="Beam"/>
-          <Feature Name="Dimmer"/>
-          <Feature Name="Color"/>
-          <Feature Name="Indirect"/>
-          <Feature Name="PanTilt"/>
-          <Feature Name="Gobo"/>
-          <Feature Name=""/>
-     </FeatureGroup>
-    "#.to_string()
-    }
-
-    ///Returns an xml with no nodes inside one FeatureGroup
-    pub(crate) fn feature_teatdata_xml_group_empty() -> String {
-        r#"
-     <FeatureGroup Name="Color" Pretty="Color">
-     </FeatureGroup>
-    "#.to_string()
+    fn test_deparse() {
+        T::execute_tests();
     }
 }

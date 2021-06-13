@@ -11,10 +11,10 @@ use crate::utils::read::{GdtfReadError, ReadGdtf, ReadGdtfDataHolder};
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::attribute_name::AttributeName;
 use crate::utils::units::color_cie::ColorCie;
-use crate::utils::units::node::Node;
-use crate::utils::units::physical_unit::PhysicalUnit;
 #[cfg(test)]
 use crate::utils::units::name::Name;
+use crate::utils::units::node::Node;
+use crate::utils::units::physical_unit::PhysicalUnit;
 
 ///Describes a singular mutual exclusive control function
 #[derive(Debug, PartialEq, Clone)]
@@ -69,7 +69,7 @@ impl ReadGdtfDataHolder<Attribute> for AttributeDataHolder {
     fn move_data(self) -> Result<Attribute, <Attribute as ReadGdtf<Self>>::Error> {
         Ok(
             Attribute {
-                pretty: self.pretty.unwrap_or("".to_string()),
+                pretty: self.pretty.unwrap_or_else(|| "".to_string()),
                 activation_group: self.activation_group,
                 feature: self.feature.ok_or_else(|| GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME, b"Feature"))?,
                 main_attribute: self.main_attribute,
