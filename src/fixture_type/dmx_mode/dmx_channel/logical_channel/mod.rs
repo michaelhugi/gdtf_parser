@@ -40,7 +40,7 @@ impl DeparseSingle for LogicalChannel {
 
     const NODE_NAME: &'static [u8] = b"LogicalChannel";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut attribute = None;
         let mut snap: Snap = Snap::default();
@@ -60,34 +60,43 @@ impl DeparseSingle for LogicalChannel {
                 _ => {}
             }
         }
+        if has_children {
+            let mut buf: Vec<u8> = Vec::new();
+            let mut tree_down = 0;
+            loop {
+                match reader.read_event(&mut buf)? {
+                    Event::Start(e) => {
+                        if e.name() == b"ChannelFunction" {
+                            let cf = ChannelFunction::read_single_from_event(reader, e, true)?;
 
-        let mut buf: Vec<u8> = Vec::new();
-        let mut tree_down = 0;
-        loop {
-            match reader.read_event(&mut buf)? {
-                Event::Start(e) | Event::Empty(e) => {
-                    if e.name() == b"ChannelFunction" {
-                        let cf = ChannelFunction::read_single_from_event(reader, e)?;
-
-                        channel_functions.insert(cf.0.unwrap(), cf.1);
-                    } else {
-                        tree_down += 1;
+                            channel_functions.insert(cf.0.unwrap(), cf.1);
+                        } else {
+                            tree_down += 1;
+                        }
                     }
-                }
-                Event::Eof => {
-                    break;
-                }
-                Event::End(_) => {
-                    tree_down -= 1;
-                    if tree_down <= 0 {
+                    Event::Empty(e) => {
+                        if e.name() == b"ChannelFunction" {
+                            let cf = ChannelFunction::read_single_from_event(reader, e, false)?;
+
+                            channel_functions.insert(cf.0.unwrap(), cf.1);
+                        } else {
+                            tree_down += 1;
+                        }
+                    }
+                    Event::Eof => {
                         break;
                     }
+                    Event::End(_) => {
+                        tree_down -= 1;
+                        if tree_down <= 0 {
+                            break;
+                        }
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
+            buf.clear();
         }
-        buf.clear();
-
         Ok((None,
             LogicalChannel {
                 attribute,
@@ -304,12 +313,12 @@ mod tests {
                 ]),
         }.compare_to_primary_key_and_xml(None,
                                          r#"
-            <LogicalChannel Attribute="ColorSub_M" DMXChangeTimeLimit="0.000000" Master="Grand" MibFade="0.100000" Snap="Yes">
-              <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
-              </ChannelFunction>
-              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Default="0/1" Name="NoFeature" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
-            </LogicalChannel>
-            "#);
+                    <LogicalChannel Attribute="ColorSub_M" DMXChangeTimeLimit="0.000000" Master="Grand" MibFade="0.100000" Snap="Yes">
+                      <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
+                      </ChannelFunction>
+                      <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Default="0/1" Name="NoFeature" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
+                    </LogicalChannel>
+                    "#);
         Ok(())
     }
 
@@ -360,12 +369,12 @@ mod tests {
                 ]),
         }.compare_to_primary_key_and_xml(None,
                                          r#"
-            <LogicalChannel Attribute="" DMXChangeTimeLimit="" Master="" MibFade="" Snap="">
-              <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
-              </ChannelFunction>
-              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Default="0/1" Name="NoFeature" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
-            </LogicalChannel>
-            "#);
+                    <LogicalChannel Attribute="" DMXChangeTimeLimit="" Master="" MibFade="" Snap="">
+                      <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
+                      </ChannelFunction>
+                      <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Default="0/1" Name="NoFeature" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
+                    </LogicalChannel>
+                    "#);
         Ok(())
     }
 

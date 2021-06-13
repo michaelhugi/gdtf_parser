@@ -33,7 +33,7 @@ impl DeparseSingle for FeatureGroup {
 
     const NODE_NAME: &'static [u8] = b"FeatureGroup";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut name = Default::default();
         let mut pretty = String::new();
@@ -45,32 +45,34 @@ impl DeparseSingle for FeatureGroup {
                 _ => {}
             }
         }
-
-        let mut buf: Vec<u8> = Vec::new();
         let mut features: Vec<Name> = Vec::new();
-        let mut tree_down = 0;
-        loop {
-            match reader.read_event(&mut buf)? {
-                Event::Start(e) | Event::Empty(e) => {
-                    if e.name() == Feature::NODE_NAME {
-                        features.push(Feature::read_primary_key_from_event(e)?);
-                    } else {
-                        tree_down += 1;
+
+        if has_children {
+            let mut buf: Vec<u8> = Vec::new();
+            let mut tree_down = 0;
+            loop {
+                match reader.read_event(&mut buf)? {
+                    Event::Start(e) | Event::Empty(e) => {
+                        if e.name() == Feature::NODE_NAME {
+                            features.push(Feature::read_primary_key_from_event(e)?);
+                        } else {
+                            tree_down += 1;
+                        }
                     }
-                }
-                Event::Eof => {
-                    break;
-                }
-                Event::End(_) => {
-                    tree_down -= 1;
-                    if tree_down <= 0 {
+                    Event::Eof => {
                         break;
                     }
+                    Event::End(_) => {
+                        tree_down -= 1;
+                        if tree_down <= 0 {
+                            break;
+                        }
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
+            buf.clear();
         }
-        buf.clear();
 
         Ok((Some(name), FeatureGroup {
             pretty,

@@ -32,7 +32,7 @@ impl DeparseSingle for DmxMode {
 
     const NODE_NAME: &'static [u8] = b"DMXMode";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut geometry: Name = Default::default();
@@ -47,28 +47,29 @@ impl DeparseSingle for DmxMode {
             }
         }
 
-
-        let mut buf: Vec<u8> = Vec::new();
-        let mut tree_down = 0;
-        loop {
-            match reader.read_event(&mut buf) {
-                Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
-                    match e.name() {
-                        b"DMXChannels" => dmx_channels = DmxChannel::read_vec_from_event(reader)?,
-                        _ => { tree_down += 1; }
+        if has_children {
+            let mut buf: Vec<u8> = Vec::new();
+            let mut tree_down = 0;
+            loop {
+                match reader.read_event(&mut buf) {
+                    Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
+                        match e.name() {
+                            b"DMXChannels" => dmx_channels = DmxChannel::read_vec_from_event(reader)?,
+                            _ => { tree_down += 1; }
+                        }
                     }
+                    Ok(Event::End(_)) => {
+                        tree_down -= 1;
+                        if tree_down <= 0 { break; }
+                    }
+                    Ok(Event::Eof) => {
+                        break;
+                    }
+                    _ => {}
                 }
-                Ok(Event::End(_)) => {
-                    tree_down -= 1;
-                    if tree_down <= 0 { break; }
-                }
-                Ok(Event::Eof) => {
-                    break;
-                }
-                _ => {}
             }
+            buf.clear();
         }
-        buf.clear();
 
         Ok((Some(name), Self {
             geometry,
@@ -118,15 +119,15 @@ mod tests {
             ],
         }.compare_to_primary_key_and_xml(Some(Name::new("Mode 1 12 DMX")?),
                                          r#"
-      <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
-        <DMXChannels>
-          <DMXChannel DMXBreak="Overwrite" Default="32768/2" Geometry="Yoke" Highlight="None" Offset="1,2">
-          </DMXChannel>
-          <DMXChannel DMXBreak="1" Default="32767/2" Geometry="Head" Highlight="None" Offset="3,4">
-          </DMXChannel>
-        </DMXChannels>
-       </DMXMode>
-            "#,
+          <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
+            <DMXChannels>
+              <DMXChannel DMXBreak="Overwrite" Default="32768/2" Geometry="Yoke" Highlight="None" Offset="1,2">
+              </DMXChannel>
+              <DMXChannel DMXBreak="1" Default="32767/2" Geometry="Head" Highlight="None" Offset="3,4">
+              </DMXChannel>
+            </DMXChannels>
+           </DMXMode>
+                "#,
         );
         Ok(())
     }

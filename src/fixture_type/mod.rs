@@ -64,7 +64,7 @@ impl DeparseSingle for FixtureType {
 
     const NODE_NAME: &'static [u8] = b"FixtureType";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut name = Name::default();
         let mut short_name = String::new();
@@ -94,33 +94,45 @@ impl DeparseSingle for FixtureType {
             }
         }
 
-        let mut buf: Vec<u8> = Vec::new();
+
         let mut attribute_definitions: Option<AttributeDefinitions> = None;
         let mut dmx_modes: Option<HashMap<Name, DmxMode>> = None;
-        let mut tree_down = 0;
-        loop {
-            match reader.read_event(&mut buf) {
-                Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
-                    match e.name() {
-                        AttributeDefinitions::NODE_NAME => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e)?.1),
-                        b"DMXModes" => {
-                            dmx_modes = Some(DmxMode::read_hash_map_from_event(reader)?);
+        if has_children {
+            let mut buf: Vec<u8> = Vec::new();
+            let mut tree_down = 0;
+            loop {
+                match reader.read_event(&mut buf) {
+                    Ok(Event::Start(e)) => {
+                        match e.name() {
+                            AttributeDefinitions::NODE_NAME => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e, true)?.1),
+                            b"DMXModes" => {
+                                dmx_modes = Some(DmxMode::read_hash_map_from_event(reader)?);
+                            }
+                            _ => tree_down += 1
                         }
-                        _ => tree_down += 1
                     }
+                    Ok(Event::Empty(e)) => {
+                        match e.name() {
+                            AttributeDefinitions::NODE_NAME => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e, false)?.1),
+                            b"DMXModes" => {
+                                dmx_modes = Some(DmxMode::read_hash_map_from_event(reader)?);
+                            }
+                            _ => tree_down += 1
+                        }
+                    }
+                    Ok(Event::End(_)) => {
+                        tree_down -= 1;
+                        if tree_down <= 0 { break; }
+                    }
+                    Ok(Event::Eof) => {
+                        break;
+                    }
+                    Err(e) => return Err(QuickXmlError(e)),
+                    _ => {}
                 }
-                Ok(Event::End(_)) => {
-                    tree_down -= 1;
-                    if tree_down <= 0 { break; }
-                }
-                Ok(Event::Eof) => {
-                    break;
-                }
-                Err(e) => return Err(QuickXmlError(e)),
-                _ => {}
             }
+            buf.clear();
         }
-        buf.clear();
 
         if attribute_definitions.is_none() {
             return Err(GdtfDeparseError::new_xml_node_not_found(AttributeDefinitions::NODE_NAME).into());
@@ -188,27 +200,27 @@ mod tests {
 
         }.compare_to_primary_key_and_xml(None,
                                          &format!(r#"
-        <FixtureType Description="ACME AE-610 BEAM" FixtureTypeID="E62F2ECF-2A08-491D-BEEC-F5C491B89784" LongName="ACME AE 610 BEAM" Manufacturer="ACME" Name="ACME AE-610 BEAM" RefFT="8F54E11C-4C91-11E9-80BC-F1DFE217E634" ShortName="ACME AE 610 BEAM" Thumbnail="AE-610 BEAM">
-            <AttributeDefinitions>
-                    <ActivationGroups>
-                        <ActivationGroup Name="PanTilt"/>
-                    </ActivationGroups>
-                <FeatureGroups>
-                    <FeatureGroup Name="Position" Pretty="PositionP">
-                        <Feature Name="PanTilt"/>
-                    </FeatureGroup>
-                </FeatureGroups>
-                {}
-            </AttributeDefinitions>
-            <DMXModes>
-                <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
-                    <DMXChannels>
+                <FixtureType Description="ACME AE-610 BEAM" FixtureTypeID="E62F2ECF-2A08-491D-BEEC-F5C491B89784" LongName="ACME AE 610 BEAM" Manufacturer="ACME" Name="ACME AE-610 BEAM" RefFT="8F54E11C-4C91-11E9-80BC-F1DFE217E634" ShortName="ACME AE 610 BEAM" Thumbnail="AE-610 BEAM">
+                    <AttributeDefinitions>
+                            <ActivationGroups>
+                                <ActivationGroup Name="PanTilt"/>
+                            </ActivationGroups>
+                        <FeatureGroups>
+                            <FeatureGroup Name="Position" Pretty="PositionP">
+                                <Feature Name="PanTilt"/>
+                            </FeatureGroup>
+                        </FeatureGroups>
+                        {}
+                    </AttributeDefinitions>
+                    <DMXModes>
+                        <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
+                            <DMXChannels>
 
-                    </DMXChannels>
-                </DMXMode>
-            </DMXModes>
-        </FixtureType>
-    "#, attribute_testdata_xml_group()));
+                            </DMXChannels>
+                        </DMXMode>
+                    </DMXModes>
+                </FixtureType>
+            "#, attribute_testdata_xml_group()));
         Ok(())
     }
 }

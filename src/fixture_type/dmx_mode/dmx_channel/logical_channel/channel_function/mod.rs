@@ -68,7 +68,7 @@ impl DeparseSingle for ChannelFunction {
 
     const NODE_NAME: &'static [u8] = b"ChannelFunction";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut name: Name = Default::default();
         let mut attribute = Attribute::NoFeature;
@@ -112,9 +112,12 @@ impl DeparseSingle for ChannelFunction {
                 _ => {}
             }
         }
-
-        let channel_sets = ChannelSet::read_hash_map_from_event(reader)?;
-
+        let channel_sets;
+        if has_children {
+            channel_sets = ChannelSet::read_hash_map_from_event(reader)?;
+        } else {
+            channel_sets = Default::default();
+        }
         let mode_master = match mode_master {
             None => None,
             Some(node) => Some(ModeMaster::new(node, mode_from, mode_to))
@@ -288,7 +291,6 @@ pub mod tests {
     use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
-    use crate::utils::testdata::print_xml_to_file;
     use crate::utils::units::dmx_value::DmxValue;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::Node;
@@ -307,14 +309,7 @@ pub mod tests {
 
     #[test]
     fn test_deparse_hash_map() -> Result<(), GdtfError> {
-        let xml = channel_function_testdata_xml_group(true);
-
-        print_xml_to_file("C:\\Users\\michael.hugi\\Desktop\\test.xml", &xml, true)?;
-
-        let t = channel_function_testdata_hash_map();
-        let t2 = T::read_hash_map_from_xml(&channel_function_testdata_xml_group(true))?;
-        assert_eq!(t.len(), t2.len());
-        assert_eq!(t2, t);
+        assert_eq!(channel_function_testdata_hash_map(), T::read_hash_map_from_xml(&channel_function_testdata_xml_group(true))?);
         Ok(())
     }
 

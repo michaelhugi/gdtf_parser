@@ -39,7 +39,7 @@ impl DeparseSingle for Attribute {
 
     const NODE_NAME: &'static [u8] = b"Attribute";
 
-    fn read_single_from_event(_reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
+    fn read_single_from_event(_reader: &mut Reader<&[u8]>, event: BytesStart<'_>, _: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut name = Default::default();
         let mut pretty = String::new();

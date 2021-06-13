@@ -97,7 +97,7 @@ impl DeparseSingle for Gdtf {
     const NODE_NAME: &'static [u8] = b"GDTF";
 
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut data_version = DataVersion::dummy();
         for attr in event.attributes().into_iter() {
@@ -107,37 +107,52 @@ impl DeparseSingle for Gdtf {
             }
         }
 
+        if has_children {
+            let mut buf: Vec<u8> = Vec::new();
+            let mut tree_down = 0;
 
-        let mut buf: Vec<u8> = Vec::new();
-        let mut tree_down = 0;
-        loop {
-            match reader.read_event(&mut buf)? {
-                Event::Start(e) | Event::Empty(e) => {
-                    if e.name() == FixtureType::NODE_NAME {
-                        return Ok(
-                            (None,
-                             Gdtf {
-                                 fixture_type: FixtureType::read_single_from_event(reader, e)?.1,
-                                 data_version,
-                             })
-                        );
-                    } else {
-                        tree_down += 1;
+            loop {
+                match reader.read_event(&mut buf)? {
+                    Event::Start(e) => {
+                        if e.name() == FixtureType::NODE_NAME {
+                            return Ok(
+                                (None,
+                                 Gdtf {
+                                     fixture_type: FixtureType::read_single_from_event(reader, e, true)?.1,
+                                     data_version,
+                                 })
+                            );
+                        } else {
+                            tree_down += 1;
+                        }
                     }
-                }
-                Event::Eof => {
-                    break;
-                }
-                Event::End(_) => {
-                    tree_down -= 1;
-                    if tree_down <= 0 {
+                    Event::Empty(e) => {
+                        if e.name() == FixtureType::NODE_NAME {
+                            return Ok(
+                                (None,
+                                 Gdtf {
+                                     fixture_type: FixtureType::read_single_from_event(reader, e, false)?.1,
+                                     data_version,
+                                 })
+                            );
+                        } else {
+                            tree_down += 1;
+                        }
+                    }
+                    Event::Eof => {
                         break;
                     }
+                    Event::End(_) => {
+                        tree_down -= 1;
+                        if tree_down <= 0 {
+                            break;
+                        }
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
+            buf.clear();
         }
-        buf.clear();
         Err(GdtfDeparseError::new_xml_node_not_found(FixtureType::NODE_NAME).into())
     }
 }
@@ -159,10 +174,19 @@ impl TryFrom<&Path> for Gdtf {
         let mut tree_down = 0;
         loop {
             match reader.read_event(&mut buf)? {
-                Event::Start(e) | Event::Empty(e) => {
+                Event::Start(e) => {
                     if e.name() == b"GDTF" {
                         return Ok(
-                            Gdtf::read_single_from_event(&mut reader, e)?.1
+                            Gdtf::read_single_from_event(&mut reader, e, true)?.1
+                        );
+                    } else {
+                        tree_down += 1;
+                    }
+                }
+                Event::Empty(e) => {
+                    if e.name() == b"GDTF" {
+                        return Ok(
+                            Gdtf::read_single_from_event(&mut reader, e, false)?.1
                         );
                     } else {
                         tree_down += 1;

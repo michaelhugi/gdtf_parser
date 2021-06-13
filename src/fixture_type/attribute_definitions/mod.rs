@@ -42,34 +42,38 @@ impl DeparseSingle for AttributeDefinitions {
 
     const NODE_NAME: &'static [u8] = b"AttributeDefinitions";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where Self: Sized {
-        let mut buf: Vec<u8> = Vec::new();
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, _: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where Self: Sized {
         let mut feature_groups: HashMap<Name, FeatureGroup> = HashMap::new();
         let mut attributes: HashMap<AttributeName, Attribute> = HashMap::new();
         let mut activation_groups: Vec<Name> = Vec::new();
-        let mut tree_down = 0;
-        loop {
-            match reader.read_event(&mut buf) {
-                Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
-                    match e.name() {
-                        FeatureGroup::PARENT_NODE_NAME => feature_groups = FeatureGroup::read_hash_map_from_event(reader)?,
-                        Attribute::PARENT_NODE_NAME => attributes = Attribute::read_hash_map_from_event(reader)?,
-                        ActivationGroup::PARENT_NODE_NAME => activation_groups = ActivationGroup::read_primary_key_vec_from_event(reader)?,
-                        _ => { tree_down += 1; }
+
+        if has_children {
+            let mut buf: Vec<u8> = Vec::new();
+            let mut tree_down = 0;
+
+            loop {
+                match reader.read_event(&mut buf) {
+                    Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
+                        match e.name() {
+                            FeatureGroup::PARENT_NODE_NAME => feature_groups = FeatureGroup::read_hash_map_from_event(reader)?,
+                            Attribute::PARENT_NODE_NAME => attributes = Attribute::read_hash_map_from_event(reader)?,
+                            ActivationGroup::PARENT_NODE_NAME => activation_groups = ActivationGroup::read_primary_key_vec_from_event(reader)?,
+                            _ => { tree_down += 1; }
+                        }
                     }
+                    Ok(Event::End(_)) => {
+                        tree_down -= 1;
+                        if tree_down <= 0 { break; }
+                    }
+                    Ok(Event::Eof) => {
+                        break;
+                    }
+                    Err(e) => return Err(QuickXmlError(e)),
+                    _ => {}
                 }
-                Ok(Event::End(_)) => {
-                    tree_down -= 1;
-                    if tree_down <= 0 { break; }
-                }
-                Ok(Event::Eof) => {
-                    break;
-                }
-                Err(e) => return Err(QuickXmlError(e)),
-                _ => {}
             }
+            buf.clear();
         }
-        buf.clear();
         Ok((None, AttributeDefinitions {
             feature_groups,
             attributes,

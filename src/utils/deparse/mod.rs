@@ -32,12 +32,13 @@ pub(crate) trait DeparseSingle: std::fmt::Debug + Sized {
     ///
     /// * `reader` - The quick-xml-Reader that is passed trough the whole tree to read next events of the tree branch if needed. Iterates trough all xml-events with buffering.
     /// * `event` - The Event that was triggering the overlaying struct to go down the tree one step further
+    /// * `has_children` - **If true, reader.read_event() is not allowed to be executed** True if the node is formatted like <Node></Node> so the closing node will show up, false if the node is formatted like <Node/>. In that case checking the next event will consume the wrong event.
     ///
     /// # Returns
     ///
     /// * `Self` - The struct deparsed from the reader
     /// * `Self::PrimaryKey` - If the struct has a primary key (to use in a hashmap for example) it will be returned here
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>,Self), Self::Error>;
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), Self::Error>;
 }
 
 ///Trait to help testing DeparseSingle
@@ -51,17 +52,24 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
     /// # Arguments
     ///
     /// * `xml` - The xml that should be deparsed
-    fn read_single_from_xml(xml: &str) -> Result<( Option<Self::PrimaryKey>, Self), Self::Error> {
+    fn read_single_from_xml(xml: &str) -> Result<(Option<Self::PrimaryKey>, Self), Self::Error> {
         let mut reader = Reader::from_str(xml);
         reader.trim_text(true);
 
         let mut buf: Vec<u8> = Vec::new();
         let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
-                Event::Start(e) | Event::Empty(e) => {
+            match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
+                Event::Start(e) => {
                     if e.name() == Self::NODE_NAME {
-                        return Self::read_single_from_event(&mut reader, e);
+                        return Self::read_single_from_event(&mut reader, e, true);
+                    } else {
+                        tree_down += 1;
+                    }
+                }
+                Event::Empty(e) => {
+                    if e.name() == Self::NODE_NAME {
+                        return Self::read_single_from_event(&mut reader, e, false);
                     } else {
                         tree_down += 1;
                     }
@@ -117,22 +125,28 @@ pub(crate) trait DeparseHashMap: DeparseSingle {
     fn read_hash_map_from_event(reader: &mut Reader<&[u8]>) -> Result<HashMap<Self::PrimaryKey, Self>, Self::Error> where Self: Sized {
         let mut buf: Vec<u8> = Vec::new();
         let mut out: HashMap<Self::PrimaryKey, Self> = HashMap::new();
-        let mut tree_down = 0;
+
+
         loop {
             match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
-                Event::Start(e) | Event::Empty(e) => {
+                Event::Start(e) => {
                     if e.name() == Self::NODE_NAME {
-                        let val = Self::read_single_from_event(reader, e)?;
+                        let val = Self::read_single_from_event(reader, e, true)?;
                         if val.0.is_some() {
                             out.insert(val.0.unwrap(), val.1);
                         }
-                    } else {
-                        tree_down += 1;
                     }
                 }
-                Event::End(_) => {
-                    tree_down -= 1;
-                    if tree_down <= 0 {
+                Event::Empty(e) => {
+                    if e.name() == Self::NODE_NAME {
+                        let val = Self::read_single_from_event(reader, e, false)?;
+                        if val.0.is_some() {
+                            out.insert(val.0.unwrap(), val.1);
+                        }
+                    }
+                }
+                Event::End(e) => {
+                    if e.name() == Self::PARENT_NODE_NAME {
                         break;
                     }
                 }
@@ -149,8 +163,6 @@ pub(crate) trait DeparseHashMap: DeparseSingle {
 ///Trait to help testing DeparseHashMap
 #[cfg(test)]
 pub(crate) trait TestDeparseHashMap: DeparseHashMap + TestDeparseSingle {
-
-
     /// Reads a hashmap from an xml string slice. The function will dive down the nodes in the xml until it hits `PARENT_NODE_NAME` and then call `DeparseHashMap.read_hash_map_from_event` on it.
     ///
     /// Returns an error if xml is invalid, `PARENT_NODE_NAME` is not found or if `DeparsehashMap.read_hash_map_from_event` returns an error
@@ -163,19 +175,15 @@ pub(crate) trait TestDeparseHashMap: DeparseHashMap + TestDeparseSingle {
         reader.trim_text(true);
 
         let mut buf: Vec<u8> = Vec::new();
-        let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
+            match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == Self::PARENT_NODE_NAME {
                         return Self::read_hash_map_from_event(&mut reader);
-                    } else {
-                        tree_down += 1;
                     }
                 }
-                Event::End(_) => {
-                    tree_down -= 1;
-                    if tree_down <= 0 {
+                Event::End(e) => {
+                    if e.name() == Self::PARENT_NODE_NAME {
                         break;
                     }
                 }
@@ -277,7 +285,7 @@ pub(crate) trait TestDeparsePrimaryKey: DeparsePrimaryKey {
         let mut buf: Vec<u8> = Vec::new();
         let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
+            match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == Self::PARENT_NODE_NAME {
                         return Self::read_primary_key_vec_from_event(&mut reader);
@@ -315,7 +323,7 @@ pub(crate) trait TestDeparsePrimaryKey: DeparsePrimaryKey {
         let mut buf: Vec<u8> = Vec::new();
         let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
+            match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == Self::NODE_NAME {
                         return Self::read_primary_key_from_event(e);
@@ -360,9 +368,16 @@ pub(crate) trait DeparseVec: DeparseSingle {
         let mut tree_down = 0;
         loop {
             match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
-                Event::Start(e) | Event::Empty(e) => {
+                Event::Start(e) => {
                     if e.name() == Self::NODE_NAME {
-                        out.push(Self::read_single_from_event(reader, e)?.1);
+                        out.push(Self::read_single_from_event(reader, e, true)?.1);
+                    } else {
+                        tree_down += 1;
+                    }
+                }
+                Event::Empty(e) => {
+                    if e.name() == Self::NODE_NAME {
+                        out.push(Self::read_single_from_event(reader, e, false)?.1);
                     } else {
                         tree_down += 1;
                     }
@@ -386,8 +401,6 @@ pub(crate) trait DeparseVec: DeparseSingle {
 ///Trait to help testing DeparseVec
 #[cfg(test)]
 pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
-
-
     /// Parses a given xml string to a Vector of structs. This method will go down the tree of nodes in the xml until it finds a node with the name `PARENT_NODE_NAME` and call `DeparseVec::read_vec_from_event` to all child-nodes found with the name eq to `NODE_NAME`
     ///
     /// Will return an error if xml is invalid, if `DeparseVec::read_vec_from_event` returns an error or if `PARENT_NODE_NAME` is not found.
@@ -402,7 +415,7 @@ pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
         let mut buf: Vec<u8> = Vec::new();
         let mut tree_down = 0;
         loop {
-            match reader.read_event(&mut buf).map_err(|e| GdtfDeparseError::QuickXmlError(e))? {
+            match reader.read_event(&mut buf).map_err(GdtfDeparseError::QuickXmlError)? {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == Self::PARENT_NODE_NAME {
                         return Self::read_vec_from_event(&mut reader);

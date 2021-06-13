@@ -41,7 +41,7 @@ impl DeparseSingle for DmxChannel {
 
     const NODE_NAME: &'static [u8] = b"DMXChannel";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
+    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
         Self: Sized {
         let mut dmx_break = DmxBreak::default();
         let mut offset = None;
@@ -65,33 +65,40 @@ impl DeparseSingle for DmxChannel {
             }
         }
 
-
-        let mut buf: Vec<u8> = Vec::new();
-        let mut tree_down = 0;
-        loop {
-            match reader.read_event(&mut buf)? {
-                Event::Start(e) | Event::Empty(e) => {
-                    if e.name() == b"LogicalChannel" {
-                        logical_channels.push(LogicalChannel::read_single_from_event(reader, e)?.1);
-                    } else {
-                        tree_down += 1;
+        if has_children {
+            let mut buf: Vec<u8> = Vec::new();
+            let mut tree_down = 0;
+            loop {
+                match reader.read_event(&mut buf)? {
+                    Event::Start(e) => {
+                        if e.name() == b"LogicalChannel" {
+                            logical_channels.push(LogicalChannel::read_single_from_event(reader, e, true)?.1);
+                        } else {
+                            tree_down += 1;
+                        }
                     }
-                }
-                Event::Eof => {
-                    break;
-                }
-
-                Event::End(_) => {
-                    tree_down -= 1;
-                    if tree_down <= 0 {
+                    Event::Empty(e) => {
+                        if e.name() == b"LogicalChannel" {
+                            logical_channels.push(LogicalChannel::read_single_from_event(reader, e, false)?.1);
+                        } else {
+                            tree_down += 1;
+                        }
+                    }
+                    Event::Eof => {
                         break;
                     }
-                }
-                _ => {}
-            }
-        }
-        buf.clear();
 
+                    Event::End(_) => {
+                        tree_down -= 1;
+                        if tree_down <= 0 {
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            buf.clear();
+        }
         Ok((None, Self {
             dmx_break,
             offset,
@@ -306,10 +313,10 @@ mod tests {
             ],
         }.compare_to_primary_key_and_xml(None,
                                          r#"
-            <DMXChannel DMXBreak="1" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1">
-                <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
-            </DMXChannel>
-            "#,
+                    <DMXChannel DMXBreak="1" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1">
+                        <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
+                    </DMXChannel>
+                    "#,
         );
         Ok(())
     }
@@ -338,10 +345,10 @@ mod tests {
             ],
         }.compare_to_primary_key_and_xml(None,
                                          r#"
-            <DMXChannel DMXBreak="2" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1,2">
-                <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
-            </DMXChannel>
-            "#,
+                    <DMXChannel DMXBreak="2" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1,2">
+                        <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
+                    </DMXChannel>
+                    "#,
         );
         Ok(())
     }
@@ -370,10 +377,10 @@ mod tests {
             ],
         }.compare_to_primary_key_and_xml(None,
                                          r#"
-            <DMXChannel DMXBreak="Overwrite" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1,2">
-                <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
-            </DMXChannel>
-            "#,
+                    <DMXChannel DMXBreak="Overwrite" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1,2">
+                        <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
+                    </DMXChannel>
+                    "#,
         );
         Ok(())
     }
@@ -406,11 +413,11 @@ mod tests {
             ],
         }.compare_to_primary_key_and_xml(None,
                                          r#"
-            <DMXChannel DMXBreak="" Geometry="" Highlight="" InitialFunction="" Offset="">
-                <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
-                <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="Yes"></LogicalChannel>
-            </DMXChannel>
-            "#,
+                    <DMXChannel DMXBreak="" Geometry="" Highlight="" InitialFunction="" Offset="">
+                        <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
+                        <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="Yes"></LogicalChannel>
+                    </DMXChannel>
+                    "#,
         );
         Ok(())
     }
@@ -426,9 +433,9 @@ mod tests {
             logical_channels: vec![],
         }.compare_to_primary_key_and_xml(None,
                                          r#"
-            <DMXChannel>
-            </DMXChannel>
-            "#,
+                    <DMXChannel>
+                    </DMXChannel>
+                    "#,
         );
         Ok(())
     }

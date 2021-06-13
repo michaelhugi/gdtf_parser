@@ -35,6 +35,7 @@ pub(crate) fn vec_to_hash_map<K: Eq + Hash + Clone, T>(keys: Vec<K>, input: Vec<
     output
 }
 
+#[allow(dead_code)]
 pub(crate) fn print_xml_to_file(out_path: &str, xml: &str, pretty: bool) -> Result<(), GdtfError> {
     if !pretty {
         let mut file = File::create(out_path)?;
