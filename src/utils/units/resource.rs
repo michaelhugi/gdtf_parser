@@ -6,7 +6,7 @@ use quick_xml::events::attributes::Attribute;
 use crate::utils::read;
 
 ///File name of the resource file without extension and without subfolder.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Resource(pub String);
 
 impl Resource {

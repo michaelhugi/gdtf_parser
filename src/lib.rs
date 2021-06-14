@@ -79,7 +79,7 @@ use crate::utils::deparse::DeparseSingle;
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
-use crate::utils::read::GdtfReadError;
+use crate::utils::read::{GdtfReadError, ReadGdtf};
 
 pub mod fixture_type;
 pub mod utils;
@@ -114,7 +114,7 @@ impl DeparseSingle for Gdtf {
             loop {
                 match reader.read_event(&mut buf)? {
                     Event::Start(e) => {
-                        if e.name() == FixtureType::NODE_NAME_DS {
+                        if e.name() == FixtureType::NODE_NAME {
                             return Ok(
                                 (None,
                                  Gdtf {
@@ -127,7 +127,7 @@ impl DeparseSingle for Gdtf {
                         }
                     }
                     Event::Empty(e) => {
-                        if e.name() == FixtureType::NODE_NAME_DS {
+                        if e.name() == FixtureType::NODE_NAME {
                             return Ok(
                                 (None,
                                  Gdtf {
@@ -153,7 +153,7 @@ impl DeparseSingle for Gdtf {
             }
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS, FixtureType::NODE_NAME_DS).into())
+        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS, FixtureType::NODE_NAME).into())
     }
 }
 
@@ -205,7 +205,7 @@ impl TryFrom<&Path> for Gdtf {
             };
         }
         buf.clear();
-        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel",Self::NODE_NAME_DS).into())
+        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel", Self::NODE_NAME_DS).into())
     }
 }
 

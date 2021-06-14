@@ -9,7 +9,6 @@ use crate::fixture_type::attribute_definitions::activation_group::ActivationGrou
 use crate::fixture_type::attribute_definitions::attribute::Attribute;
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
 use crate::fixture_type::FixtureType;
-use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::read::ReadGdtf;
 #[cfg(test)]
@@ -42,7 +41,7 @@ impl ReadGdtf for AttributeDefinitions {
     type DataHolder = Self;
 
     const NODE_NAME: &'static [u8] = b"AttributeDefinitions";
-    const PARENT_NODE_NAME: &'static [u8] = FixtureType::NODE_NAME_DS;
+    const PARENT_NODE_NAME: &'static [u8] = FixtureType::NODE_NAME;
     const PRIMARY_KEY_NAME: &'static [u8] = b"";
     const ONLY_PRIMARY_KEY: bool = false;
 
