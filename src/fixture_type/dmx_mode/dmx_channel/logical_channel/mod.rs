@@ -8,7 +8,6 @@ use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::DmxChannel;
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
-use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
 use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
@@ -58,7 +57,7 @@ impl ReadGdtf<LogicalChannelDataHolder> for LogicalChannel {
     type Error = GdtfError;
 
     const NODE_NAME: &'static [u8] = b"LogicalChannel";
-    const PARENT_NODE_NAME: &'static [u8] = DmxChannel::NODE_NAME_DS;
+    const PARENT_NODE_NAME: &'static [u8] = DmxChannel::NODE_NAME;
     const PRIMARY_KEY_NAME: &'static [u8] = b"";
     const ONLY_PRIMARY_KEY: bool = false;
 

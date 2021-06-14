@@ -5,10 +5,11 @@ use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::DmxChannel;
-use crate::utils::deparse::{DeparseHashMap, DeparseSingle, DeparseVec};
+use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
 #[cfg(test)]
 use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
 use crate::utils::errors::GdtfError;
+use crate::utils::read::ReadGdtf;
 use crate::utils::units::name::Name;
 
 pub mod dmx_channel;
@@ -54,7 +55,7 @@ impl DeparseSingle for DmxMode {
                 match reader.read_event(&mut buf) {
                     Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
                         match e.name() {
-                            b"DMXChannels" => dmx_channels = DmxChannel::read_vec_from_event(reader)?,
+                            b"DMXChannels" => dmx_channels = DmxChannel::read_vec_from_event(reader, e, true)?,
                             _ => { tree_down += 1; }
                         }
                     }
@@ -95,6 +96,7 @@ mod tests {
     use crate::utils::deparse::TestDeparseSingle;
     use crate::utils::errors::GdtfError;
     use crate::utils::units::name::Name;
+    use crate::utils::units::node::Node;
 
     #[test]
     fn test_normal() -> Result<(), GdtfError> {
@@ -104,14 +106,14 @@ mod tests {
                 DmxChannel {
                     dmx_break: DmxBreak::Overwrite,
                     offset: Some(Offset::new(vec![1, 2])),
-                    initial_function: Default::default(),
+                    initial_function: Node::new_from_str("M").unwrap(),
                     highlight: None,
                     geometry: Name::new("Yoke")?,
                     logical_channels: vec![],
                 }, DmxChannel {
                     dmx_break: DmxBreak::Value(1),
                     offset: Some(Offset::new(vec![3, 4])),
-                    initial_function: Default::default(),
+                    initial_function: Node::new_from_str("N").unwrap(),
                     highlight: None,
                     geometry: Name::new("Head")?,
                     logical_channels: vec![],
@@ -121,9 +123,9 @@ mod tests {
                                          r#"
           <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
             <DMXChannels>
-              <DMXChannel DMXBreak="Overwrite" Default="32768/2" Geometry="Yoke" Highlight="None" Offset="1,2">
+              <DMXChannel DMXBreak="Overwrite" Default="32768/2" Geometry="Yoke" InitialFunction="M" Highlight="None" Offset="1,2">
               </DMXChannel>
-              <DMXChannel DMXBreak="1" Default="32767/2" Geometry="Head" Highlight="None" Offset="3,4">
+              <DMXChannel DMXBreak="1" Default="32767/2" Geometry="Head" InitialFunction="N" Highlight="None" Offset="3,4">
               </DMXChannel>
             </DMXChannels>
            </DMXMode>

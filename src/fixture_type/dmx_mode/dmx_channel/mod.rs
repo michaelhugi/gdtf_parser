@@ -2,20 +2,19 @@
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use quick_xml::events::{BytesStart, Event};
-use quick_xml::events::attributes::Attribute;
 use quick_xml::Reader;
+use quick_xml::events::attributes::Attribute;
+use quick_xml::events::BytesStart;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
-use crate::utils::deparse::{DeparseSingle, DeparseVec};
-use crate::utils::read;
-#[cfg(test)]
-use crate::utils::deparse::{TestDeparseSingle, TestDeparseVec};
 use crate::utils::errors::GdtfError;
+use crate::utils::read;
+use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+#[cfg(test)]
+use crate::utils::read::TestReadGdtf;
 use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::Node;
-use crate::utils::read::ReadGdtf;
 
 pub mod logical_channel;
 
@@ -36,90 +35,109 @@ pub struct DmxChannel {
     pub logical_channels: Vec<LogicalChannel>,
 }
 
-impl DeparseSingle for DmxChannel {
+///Helper struct for storing temporary data during deparsing
+#[derive(Default)]
+pub(crate) struct DmxChannelDataHolder {
+    ///Number of the DMXBreak; Default value: 1; Special value: “Overwrite” – means that this number will be overwritten by Geometry Reference; Size: 4 bytes
+    pub dmx_break: Option<DmxBreak>,
+    ///Relative addresses of the current DMX channel from highest to least significant
+    pub offset: Option<Offset>,
+    ///Link to the channel function that will be activated by default for this DMXChannel;
+    pub initial_function: Option<Node>,
+    ///Highlight value for current channel; Special value: “None”. Default value: “None”.
+    pub highlight: Option<DmxValue>,
+    ///Name of the geometry the current channel controls.
+    pub geometry: Option<Name>,
+    ///List of logical channels
+    pub logical_channels: Vec<LogicalChannel>,
+}
+
+impl ReadGdtf<DmxChannelDataHolder> for DmxChannel {
     type PrimaryKey = ();
     type Error = GdtfError;
 
-    const NODE_NAME_DS: &'static [u8] = b"DMXChannel";
+    const NODE_NAME: &'static [u8] = b"DMXChannel";
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
-        Self: Sized {
-        let mut dmx_break = DmxBreak::default();
-        let mut offset = None;
-        let mut initial_function = None;
-        let mut highlight = None;
-        let mut geometry = Default::default();
-        let mut logical_channels: Vec<LogicalChannel> = Vec::new();
+    const PARENT_NODE_NAME: &'static [u8] = b"DMXChannels";
+    const PRIMARY_KEY_NAME: &'static [u8] = b"";
+    const ONLY_PRIMARY_KEY: bool = false;
 
-        for attr in event.attributes().into_iter() {
-            let attr = attr?;
-            match attr.key {
-                b"DMXBreak" => dmx_break = DmxBreak::new_from_attr(attr),
-                b"Offset" => offset = Offset::new_from_attr(attr),
-                b"InitialFunction" => initial_function = Node::new_from_attr(attr)?,
-                b"Highlight" => highlight = match DmxValue::new_from_attr(attr) {
-                    Ok(attr) => Some(attr),
-                    Err(_) => None
-                },
-                b"Geometry" => geometry = Name::new_from_attr(attr)?,
-                _ => {}
-            }
-        }
-
-        if has_children {
-            let mut buf: Vec<u8> = Vec::new();
-            let mut tree_down = 0;
-            loop {
-                match reader.read_event(&mut buf)? {
-                    Event::Start(e) => {
-                        if e.name() == b"LogicalChannel" {
-                            logical_channels.push(LogicalChannel::read_single_from_event(reader, e, true)?.1);
-                        } else {
-                            tree_down += 1;
-                        }
-                    }
-                    Event::Empty(e) => {
-                        if e.name() == b"LogicalChannel" {
-                            logical_channels.push(LogicalChannel::read_single_from_event(reader, e, false)?.1);
-                        } else {
-                            tree_down += 1;
-                        }
-                    }
-                    Event::Eof => {
-                        break;
-                    }
-
-                    Event::End(_) => {
-                        tree_down -= 1;
-                        if tree_down <= 0 {
-                            break;
-                        }
-                    }
-                    _ => {}
-                }
-            }
-            buf.clear();
-        }
-        Ok((None, Self {
-            dmx_break,
-            offset,
-            initial_function,
-            highlight,
-            geometry,
-            logical_channels,
-        }))
+    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+        panic!("Should not be executed");
     }
 }
 
-impl DeparseVec for DmxChannel {
-    const PARENT_NODE_NAME: &'static [u8] = b"DMXChannels";
+impl ReadGdtfDataHolder<DmxChannel> for DmxChannelDataHolder {
+    fn read_any_attribute(&mut self, attr: Attribute<'_>) -> Result<(), <DmxChannel as ReadGdtf<Self>>::Error> {
+        match attr.key {
+            b"DMXBreak" => self.dmx_break = Some(DmxBreak::new_from_attr(attr)),
+            b"Offset" => self.offset = Offset::new_from_attr(attr),
+            b"InitialFunction" => self.initial_function = Node::new_from_attr(attr)?,
+            b"Highlight" => self.highlight = match DmxValue::new_from_attr(attr) {
+                Ok(attr) => Some(attr),
+                Err(_) => None
+            },
+            b"Geometry" => self.geometry = Some(Name::new_from_attr(attr)?),
+            _ => {}
+        }
+        Ok(())
+    }
+
+    fn read_any_child(&mut self, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), <DmxChannel as ReadGdtf<Self>>::Error> {
+        if event.name() == b"LogicalChannel" {
+            self.logical_channels.push(LogicalChannel::read_single_from_event(reader, event, has_children)?.1);
+        }
+        Ok(())
+    }
+
+    fn move_data(self) -> Result<DmxChannel, <DmxChannel as ReadGdtf<Self>>::Error> {
+        Ok(DmxChannel {
+            dmx_break: self.dmx_break.unwrap_or(DmxBreak::Value(1)),
+            offset: self.offset,
+            initial_function: self.initial_function,
+            highlight: self.highlight,
+            geometry: self.geometry.ok_or_else(|| Self::attribute_not_found(b"Geometry"))?,
+            logical_channels: self.logical_channels,
+        })
+    }
 }
 
 #[cfg(test)]
-impl TestDeparseVec for DmxChannel {}
+impl TestReadGdtf<DmxChannelDataHolder> for DmxChannel {
+    fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
+        vec![
+            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1, 2])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: vec![] })),
+            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1, 2])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: vec![] })),
+            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1, 2])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 12, n: 2, is_byte_shifting: true }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
+            (None, Some(Self { dmx_break: DmxBreak::Value(2), offset: None, initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: None, geometry: Name::new("Head").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
+            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: None, initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: None, geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
+            (None, Some(Self { dmx_break: DmxBreak::Value(55), offset: Some(Offset(vec![2])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
+            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
+            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1, 2])), initial_function: None, highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
+            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1, 3])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
+        ]
+    }
 
-#[cfg(test)]
-impl TestDeparseSingle for DmxChannel {}
+    fn testdatas_xml() -> Vec<String> {
+        vec![
+            r#"<DMXChannel DMXBreak="1" Geometry="Yoke" Highlight="16/1" InitialFunction="Yoke_Pan.Pan.Pan 1" Offset="1,2"></DMXChannel>"#.to_string(),
+            r#"<DMXChannel DMXBreak="1" Geometry="Yoke" Highlight="16/1" InitialFunction="Yoke_Pan.Pan.Pan 1" Offset="1,2"/>"#.to_string(),
+            format!(r#"<DMXChannel DMXBreak="1" Geometry="Yoke" Highlight="12/2s" InitialFunction="Yoke_Pan.Pan.Pan 1" Offset="1,2">{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
+            format!(r#"<DMXChannel DMXBreak="2" Geometry="Head" Highlight="None" InitialFunction="Yoke_Pan.Pan.Pan 1" >{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
+            format!(r#"<DMXChannel DMXBreak="1" Geometry="Yoke" InitialFunction="Yoke_Pan.Pan.Pan 1" Offset="None">{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
+            format!(r#"<DMXChannel DMXBreak="55" Geometry="Yoke" Highlight="16/1" InitialFunction="Yoke_Pan.Pan.Pan 1" Offset="2">{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
+            format!(r#"<DMXChannel DMXBreak="1" Geometry="Yoke" Highlight="16/1" InitialFunction="Yoke_Pan.Pan.Pan 1" Offset="1">{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
+            format!(r#"<DMXChannel DMXBreak="1" Geometry="Yoke" Highlight="16/1" Offset="1,2">{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
+            format!(r#"<DMXChannel DMXBreak="1" Geometry="Yoke" Highlight="16/1" InitialFunction="Yoke_Pan.Pan.Pan 1" Offset="1,3">{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
+        ]
+    }
+
+    fn testdatas_xml_faulty() -> Vec<String> {
+        vec![
+            r#"<DMXChannel DMXBreak="1" Highlight="16/1" InitialFunction="Yoke_Pan.Pan.Pan 1" Offset="1,2"/>"#.to_string(),
+        ]
+    }
+}
 
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
@@ -279,166 +297,13 @@ impl Default for DmxBreak {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use crate::fixture_type::dmx_mode::dmx_channel::{DmxBreak, DmxChannel, Offset};
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::{LogicalChannel, Master, Snap};
-    use crate::utils::deparse::TestDeparseSingle;
-    use crate::utils::errors::GdtfError;
+    use crate::utils::read::TestReadGdtf;
     use crate::utils::testdata;
-    use crate::utils::units::dmx_value::DmxValue;
-    use crate::utils::units::name::Name;
-    use crate::utils::units::node::Node;
 
     #[test]
-    fn test_normal() -> Result<(), GdtfError> {
-        DmxChannel {
-            dmx_break: DmxBreak::Value(1),
-            offset: Some(Offset::new(vec![1])),
-            initial_function: Node::new_from_str("Beam_Shutter1.Shutter1.Open")?,
-            highlight: Some(DmxValue {
-                initial_value: 8,
-                n: 1,
-                is_byte_shifting: false,
-            }),
-            geometry: Name::new("Beam")?,
-            logical_channels: vec![
-                LogicalChannel {
-                    attribute: Node::new_from_str("Shutter1").unwrap().unwrap(),
-                    snap: Snap::No,
-                    master: Master::None,
-                    mib_fade: 0.0,
-                    dmx_change_time_limit: 0.0,
-                    channel_functions: HashMap::new(),
-                }
-            ],
-        }.compare_to_primary_key_and_xml(None,
-                                         r#"
-                    <DMXChannel DMXBreak="1" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1">
-                        <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
-                    </DMXChannel>
-                    "#,
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn test_normal_2() -> Result<(), GdtfError> {
-        DmxChannel {
-            dmx_break: DmxBreak::Value(2),
-            offset: Some(Offset::new(vec![1, 2])),
-            initial_function: Node::new_from_str("Beam_Shutter1.Shutter1.Open")?,
-            highlight: Some(DmxValue {
-                initial_value: 8,
-                n: 1,
-                is_byte_shifting: false,
-            }),
-            geometry: Name::new("Beam")?,
-            logical_channels: vec![
-                LogicalChannel {
-                    attribute: Node::new_from_str("Shutter1")?.unwrap(),
-                    snap: Snap::No,
-                    master: Master::None,
-                    mib_fade: 0.0,
-                    dmx_change_time_limit: 0.0,
-                    channel_functions: HashMap::new(),
-                }
-            ],
-        }.compare_to_primary_key_and_xml(None,
-                                         r#"
-                    <DMXChannel DMXBreak="2" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1,2">
-                        <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
-                    </DMXChannel>
-                    "#,
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn test_normal_3() -> Result<(), GdtfError> {
-        DmxChannel {
-            dmx_break: DmxBreak::Overwrite,
-            offset: Some(Offset::new(vec![1, 2])),
-            initial_function: Node::new_from_str("Beam_Shutter1.Shutter1.Open")?,
-            highlight: Some(DmxValue {
-                initial_value: 8,
-                n: 1,
-                is_byte_shifting: false,
-            }),
-            geometry: Name::new("Beam")?,
-            logical_channels: vec![
-                LogicalChannel {
-                    attribute: Node::new_from_str("Shutter1")?.unwrap(),
-                    snap: Snap::No,
-                    master: Master::None,
-                    mib_fade: 0.0,
-                    dmx_change_time_limit: 0.0,
-                    channel_functions: HashMap::new(),
-                }
-            ],
-        }.compare_to_primary_key_and_xml(None,
-                                         r#"
-                    <DMXChannel DMXBreak="Overwrite" Geometry="Beam" Highlight="8/1" InitialFunction="Beam_Shutter1.Shutter1.Open" Offset="1,2">
-                        <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
-                    </DMXChannel>
-                    "#,
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn test_min() -> Result<(), GdtfError> {
-        DmxChannel {
-            dmx_break: DmxBreak::Value(1),
-            offset: None,
-            initial_function: None,
-            highlight: None,
-            geometry: Name::new("")?,
-            logical_channels: vec![
-                LogicalChannel {
-                    attribute: Node::new_from_str("Shutter1")?.unwrap(),
-                    snap: Snap::No,
-                    master: Master::None,
-                    mib_fade: 0.0,
-                    dmx_change_time_limit: 0.0,
-                    channel_functions: HashMap::new(),
-                },
-                LogicalChannel {
-                    attribute: Node::new_from_str("Shutter1")?.unwrap(),
-                    snap: Snap::Yes,
-                    master: Master::None,
-                    mib_fade: 0.0,
-                    dmx_change_time_limit: 0.0,
-                    channel_functions: HashMap::new(),
-                }
-            ],
-        }.compare_to_primary_key_and_xml(None,
-                                         r#"
-                    <DMXChannel DMXBreak="" Geometry="" Highlight="" InitialFunction="" Offset="">
-                        <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No"></LogicalChannel>
-                        <LogicalChannel Attribute="Shutter1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="Yes"></LogicalChannel>
-                    </DMXChannel>
-                    "#,
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn test_faulty() -> Result<(), GdtfError> {
-        DmxChannel {
-            dmx_break: DmxBreak::Value(1),
-            offset: None,
-            initial_function: None,
-            highlight: None,
-            geometry: Name::new("")?,
-            logical_channels: vec![],
-        }.compare_to_primary_key_and_xml(None,
-                                         r#"
-                    <DMXChannel>
-                    </DMXChannel>
-                    "#,
-        );
-        Ok(())
+    fn test_deparse() {
+        DmxChannel::execute_tests();
     }
 
 
