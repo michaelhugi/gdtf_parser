@@ -52,9 +52,10 @@ pub(crate) struct DmxChannelDataHolder {
     pub logical_channels: Vec<LogicalChannel>,
 }
 
-impl ReadGdtf<DmxChannelDataHolder> for DmxChannel {
+impl ReadGdtf for DmxChannel {
     type PrimaryKey = ();
     type Error = GdtfError;
+    type DataHolder = DmxChannelDataHolder;
 
     const NODE_NAME: &'static [u8] = b"DMXChannel";
 
@@ -66,7 +67,7 @@ impl ReadGdtf<DmxChannelDataHolder> for DmxChannel {
         panic!("Should not be executed");
     }
 
-    fn read_any_attribute(data_holder: &mut DmxChannelDataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
         match attr.key {
             b"DMXBreak" => data_holder.dmx_break = Some(DmxBreak::new_from_attr(attr)),
             b"Offset" => data_holder.offset = Offset::new_from_attr(attr),
@@ -81,14 +82,14 @@ impl ReadGdtf<DmxChannelDataHolder> for DmxChannel {
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut DmxChannelDataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
         if event.name() == b"LogicalChannel" {
             data_holder.logical_channels.push(LogicalChannel::read_single_from_event(reader, event, has_children)?.1);
         }
         Ok(())
     }
 
-    fn move_data(data_holder: DmxChannelDataHolder) -> Result<DmxChannel, Self::Error> {
+    fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(Self {
             dmx_break: data_holder.dmx_break.unwrap_or(DmxBreak::Value(1)),
             offset: data_holder.offset,
@@ -101,7 +102,7 @@ impl ReadGdtf<DmxChannelDataHolder> for DmxChannel {
 }
 
 #[cfg(test)]
-impl TestReadGdtf<DmxChannelDataHolder> for DmxChannel {
+impl TestReadGdtf for DmxChannel {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
             (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1, 2])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: vec![] })),

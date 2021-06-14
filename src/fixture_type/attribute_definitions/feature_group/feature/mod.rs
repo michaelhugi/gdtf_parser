@@ -18,9 +18,10 @@ use crate::utils::units::name::Name;
 #[derive(Default, Debug, PartialEq)]
 pub struct Feature {}
 
-impl ReadGdtf<Feature> for Feature {
+impl ReadGdtf for Feature {
     type PrimaryKey = Name;
     type Error = GdtfError;
+    type DataHolder = Self;
 
     const NODE_NAME: &'static [u8] = b"Feature";
     const PARENT_NODE_NAME: &'static [u8] = FeatureGroup::NODE_NAME;
@@ -31,21 +32,21 @@ impl ReadGdtf<Feature> for Feature {
         Ok(Some(Name::new_from_attr(attr)?))
     }
 
-    fn read_any_attribute(data_holder: &mut Feature, _: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(_: &mut Self::DataHolder, _: Attribute<'_>) -> Result<(), Self::Error> {
         panic!("Should not be executed");
     }
 
-    fn read_any_child(data_holder: &mut Feature, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
         panic!("Should not be executed");
     }
 
-    fn move_data(data_holder: Feature) -> Result<Feature, Self::Error> {
+    fn move_data(_: Self::DataHolder) -> Result<Self, Self::Error> {
         panic!("Should not be executed");
     }
 }
 
 #[cfg(test)]
-impl TestReadGdtf<Feature> for Feature {
+impl TestReadGdtf for Feature {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
             (Some(Name::new("Beam").unwrap()), None),

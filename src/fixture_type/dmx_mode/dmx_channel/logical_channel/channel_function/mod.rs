@@ -96,9 +96,11 @@ const DEFAULT_DMX_DEFAULT: DmxValue = DmxValue {
     is_byte_shifting: false,
 };
 
-impl ReadGdtf<ChannelFunctionDataHolder> for ChannelFunction {
+impl ReadGdtf for ChannelFunction {
     type PrimaryKey = Name;
     type Error = GdtfError;
+    type DataHolder = ChannelFunctionDataHolder;
+
     const NODE_NAME: &'static [u8] = b"ChannelFunction";
     const PARENT_NODE_NAME: &'static [u8] = LogicalChannel::NODE_NAME;
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
@@ -108,7 +110,7 @@ impl ReadGdtf<ChannelFunctionDataHolder> for ChannelFunction {
         Ok(Some(Name::new_from_attr(attr)?))
     }
 
-    fn read_any_attribute(data_holder: &mut ChannelFunctionDataHolder, attr: quick_xml::events::attributes::Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: quick_xml::events::attributes::Attribute<'_>) -> Result<(), Self::Error> {
         match attr.key {
             b"Attribute" => data_holder.attribute = Some(Attribute::new_from_attr(attr)?),
             b"OriginalAttribute" => data_holder.original_attribute = Some(read::attr_to_string(attr)),
@@ -135,7 +137,7 @@ impl ReadGdtf<ChannelFunctionDataHolder> for ChannelFunction {
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut ChannelFunctionDataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
         if event.name() == ChannelSet::NODE_NAME {
             let cs = ChannelSet::read_single_from_event(reader, event, has_children)?;
             data_holder.channel_sets.insert(cs.0.ok_or_else(|| Self::child_primary_key_not_found(ChannelSet::NODE_NAME, ChannelSet::PRIMARY_KEY_NAME))?, cs.1);
@@ -143,12 +145,12 @@ impl ReadGdtf<ChannelFunctionDataHolder> for ChannelFunction {
         Ok(())
     }
 
-    fn move_data(data_holder: ChannelFunctionDataHolder) -> Result<ChannelFunction, Self::Error> {
+    fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         let mode_master = match data_holder.mode_master {
             None => None,
             Some(node) => Some(ModeMaster::new(node, data_holder.mode_from, data_holder.mode_to))
         };
-        Ok(ChannelFunction {
+        Ok(Self {
             attribute: data_holder.attribute.unwrap_or(Attribute::NoFeature),
             original_attribute: data_holder.original_attribute.unwrap_or_else(|| "".to_string()),
             dmx_from: data_holder.dmx_from.unwrap_or(DEFAULT_DMX_FROM),
@@ -167,7 +169,7 @@ impl ReadGdtf<ChannelFunctionDataHolder> for ChannelFunction {
 }
 
 #[cfg(test)]
-impl TestReadGdtf<ChannelFunctionDataHolder> for ChannelFunction {
+impl TestReadGdtf for ChannelFunction {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
             (Some(Name::new("Reserved").unwrap()), Some(Self { attribute: Attribute::new_from_str("NoFeature").unwrap(), dmx_from: DmxValue { initial_value: 185, n: 1, is_byte_shifting: false }, default: DmxValue { initial_value: 185, n: 1, is_byte_shifting: false }, original_attribute: "".to_string(), physical_from: 0.0, physical_to: 1.0, real_acceleration: 12.234101, real_fade: 0.000000, emitter: Node::new_from_str("Emitter1").unwrap(), filter: None, wheel: None, mode_master: None, channel_sets: HashMap::new() })),

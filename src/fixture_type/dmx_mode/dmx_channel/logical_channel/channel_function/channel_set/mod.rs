@@ -41,9 +41,11 @@ pub(crate) struct ChannelSetDataHolder {
 }
 
 
-impl ReadGdtf<ChannelSetDataHolder> for ChannelSet {
+impl ReadGdtf for ChannelSet {
     type PrimaryKey = Name;
     type Error = GdtfError;
+    type DataHolder = ChannelSetDataHolder;
+
     const NODE_NAME: &'static [u8] = b"ChannelSet";
     const PARENT_NODE_NAME: &'static [u8] = ChannelFunction::NODE_NAME;
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
@@ -54,7 +56,7 @@ impl ReadGdtf<ChannelSetDataHolder> for ChannelSet {
         Ok(Some(Name::new_from_attr(attr)?))
     }
 
-    fn read_any_attribute(data_holder: &mut ChannelSetDataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
         match attr.key {
             b"DMXFrom" => data_holder.dmx_from = Some(DmxValue::new_from_attr(attr)?),
             b"PhysicalFrom" => data_holder.physical_from = read::attr_to_f32_option(attr),
@@ -65,12 +67,12 @@ impl ReadGdtf<ChannelSetDataHolder> for ChannelSet {
         Ok(())
     }
 
-    fn read_any_child(_: &mut ChannelSetDataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
         Ok(())
     }
 
-    fn move_data(data_holder: ChannelSetDataHolder) -> Result<ChannelSet, Self::Error> {
-        Ok(ChannelSet {
+    fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
+        Ok(Self {
             dmx_from: data_holder.dmx_from.ok_or_else(|| Self::attribute_not_found(b"DmxFrom"))?,
             physical_from: data_holder.physical_from,
             physical_to: data_holder.physical_to,
@@ -80,7 +82,7 @@ impl ReadGdtf<ChannelSetDataHolder> for ChannelSet {
 }
 
 #[cfg(test)]
-impl TestReadGdtf<ChannelSetDataHolder> for ChannelSet {
+impl TestReadGdtf for ChannelSet {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
             (Some(Name::new("Closed").unwrap()), Some(Self { dmx_from: DmxValue::new_from_str("0/1").unwrap(), physical_from: None, physical_to: None, wheel_slot_index: None })),

@@ -28,9 +28,10 @@ pub struct FeatureGroup {
     pub features: Vec<Name>,
 }
 
-impl ReadGdtf<FeatureGroup> for FeatureGroup {
+impl ReadGdtf for FeatureGroup {
     type PrimaryKey = Name;
     type Error = GdtfError;
+    type DataHolder = Self;
 
     const NODE_NAME: &'static [u8] = b"FeatureGroup";
     const PARENT_NODE_NAME: &'static [u8] = b"FeatureGroups";
@@ -41,28 +42,28 @@ impl ReadGdtf<FeatureGroup> for FeatureGroup {
         Ok(Some(Name::new_from_attr(attr)?))
     }
 
-    fn read_any_attribute(data_holder: &mut FeatureGroup, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
         if attr.key == b"Pretty" {
             data_holder.pretty = read::attr_to_string(attr);
         }
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut FeatureGroup, _: &mut Reader<&[u8]>, event: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(data_holder: &mut Self::DataHolder, _: &mut Reader<&[u8]>, event: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
         if event.name() == Feature::NODE_NAME {
             data_holder.features.push(Feature::read_primary_key_from_event(event)?.unwrap_or_else(|| Name::new("").unwrap()));
         }
         Ok(())
     }
 
-    fn move_data(data_holder: FeatureGroup) -> Result<FeatureGroup, Self::Error> {
+    fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(data_holder)
     }
 }
 
 
 #[cfg(test)]
-impl TestReadGdtf<FeatureGroup> for FeatureGroup {
+impl TestReadGdtf for FeatureGroup {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
             (Some(Name::new("Beam").unwrap()), Some(Self { pretty: "B".to_string(), features: Feature::testdata_primary_key_vec() })),

@@ -51,11 +51,12 @@ pub(crate) struct AttributeDataHolder {
     pub color: Option<ColorCie>,
 }
 
-impl ReadGdtf<AttributeDataHolder> for Attribute {
+impl ReadGdtf for Attribute {
     type PrimaryKey = AttributeName;
     type Error = GdtfError;
-    const NODE_NAME: &'static [u8] = b"Attribute";
+    type DataHolder = AttributeDataHolder;
 
+    const NODE_NAME: &'static [u8] = b"Attribute";
     const PARENT_NODE_NAME: &'static [u8] = b"Attributes";
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
     const ONLY_PRIMARY_KEY: bool = false;
@@ -64,9 +65,9 @@ impl ReadGdtf<AttributeDataHolder> for Attribute {
         Ok(Some(AttributeName::new_from_attr(attr)?))
     }
 
-    fn move_data(data_holder: AttributeDataHolder) -> Result<Attribute, Self::Error> {
+    fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(
-            Attribute {
+            Self {
                 pretty: data_holder.pretty.unwrap_or_else(|| "".to_string()),
                 activation_group: data_holder.activation_group,
                 feature: data_holder.feature.ok_or_else(|| Self::attribute_not_found(b"Feature"))?,
@@ -76,7 +77,7 @@ impl ReadGdtf<AttributeDataHolder> for Attribute {
             }
         )
     }
-    fn read_any_attribute(data_holder: &mut AttributeDataHolder, attr: quick_xml::events::attributes::Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: quick_xml::events::attributes::Attribute<'_>) -> Result<(), Self::Error> {
         match attr.key {
             b"Pretty" => data_holder.pretty = read::attr_to_string_option(attr),
             b"ActivationGroup" => data_holder.activation_group = Node::new_from_attr(attr)?,
@@ -89,13 +90,13 @@ impl ReadGdtf<AttributeDataHolder> for Attribute {
         Ok(())
     }
 
-    fn read_any_child(_: &mut AttributeDataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
         Ok(())
     }
 }
 
 #[cfg(test)]
-impl TestReadGdtf<AttributeDataHolder> for Attribute {
+impl TestReadGdtf for Attribute {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
             (Some(AttributeName::Shutter_n_(1)), Some(Self { feature: Node::new_from_str("Beam.Beam").unwrap().unwrap(), pretty: "".to_string(), activation_group: None, color: None, main_attribute: None, physical_unit: PhysicalUnit::None })),

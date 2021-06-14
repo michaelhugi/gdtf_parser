@@ -52,9 +52,10 @@ pub(crate) struct LogicalChannelDataHolder {
     pub channel_functions: HashMap<Name, ChannelFunction>,
 }
 
-impl ReadGdtf<LogicalChannelDataHolder> for LogicalChannel {
+impl ReadGdtf for LogicalChannel {
     type PrimaryKey = ();
     type Error = GdtfError;
+    type DataHolder = LogicalChannelDataHolder;
 
     const NODE_NAME: &'static [u8] = b"LogicalChannel";
     const PARENT_NODE_NAME: &'static [u8] = DmxChannel::NODE_NAME;
@@ -65,7 +66,7 @@ impl ReadGdtf<LogicalChannelDataHolder> for LogicalChannel {
         panic!("Should not be executed")
     }
 
-    fn read_any_attribute(data_holder: &mut LogicalChannelDataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
         match attr.key {
             b"Attribute" => data_holder.attribute = Node::new_from_attr(attr)?,
             b"Snap" => data_holder.snap = Some(Snap::new_from_attr(attr)),
@@ -77,7 +78,7 @@ impl ReadGdtf<LogicalChannelDataHolder> for LogicalChannel {
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut LogicalChannelDataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
         if event.name() == ChannelFunction::NODE_NAME {
             let cf = ChannelFunction::read_single_from_event(reader, event, true)?;
             data_holder.channel_functions.insert(cf.0.ok_or_else(|| Self::child_primary_key_not_found(ChannelFunction::NODE_NAME, ChannelFunction::PRIMARY_KEY_NAME))?, cf.1);
@@ -85,8 +86,8 @@ impl ReadGdtf<LogicalChannelDataHolder> for LogicalChannel {
         Ok(())
     }
 
-    fn move_data(data_holder: LogicalChannelDataHolder) -> Result<LogicalChannel, Self::Error> {
-        Ok(LogicalChannel {
+    fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
+        Ok(Self {
             attribute: data_holder.attribute.ok_or_else(|| Self::attribute_not_found(b"Attribute"))?,
             snap: data_holder.snap.unwrap_or(Snap::No),
             master: data_holder.master.unwrap_or(Master::None),
@@ -98,7 +99,7 @@ impl ReadGdtf<LogicalChannelDataHolder> for LogicalChannel {
 }
 
 #[cfg(test)]
-impl TestReadGdtf<LogicalChannelDataHolder> for LogicalChannel {
+impl TestReadGdtf for LogicalChannel {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
             (None, Some(Self { attribute: Node::new_from_str("Pan").unwrap().unwrap(), snap: Snap::No, master: Master::None, mib_fade: 0.0, dmx_change_time_limit: 12.0, channel_functions: HashMap::new() })),

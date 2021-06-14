@@ -19,9 +19,11 @@ use crate::utils::units::name::Name;
 pub struct ActivationGroup {}
 
 
-impl ReadGdtf<ActivationGroup> for ActivationGroup {
+impl ReadGdtf for ActivationGroup {
     type PrimaryKey = Name;
     type Error = GdtfError;
+    type DataHolder = Self;
+
     const NODE_NAME: &'static [u8] = b"ActivationGroup";
     const PARENT_NODE_NAME: &'static [u8] = b"ActivationGroups";
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
@@ -30,21 +32,21 @@ impl ReadGdtf<ActivationGroup> for ActivationGroup {
     fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
-    fn read_any_attribute(data_holder: &mut ActivationGroup, _: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(_: &mut Self::DataHolder, _: Attribute<'_>) -> Result<(), Self::Error> {
         panic!("Should not be used!");
     }
 
-    fn read_any_child(data_holder: &mut ActivationGroup, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
         panic!("Should not be used!");
     }
 
-    fn move_data(data_holder: ActivationGroup) -> Result<ActivationGroup, Self::Error> {
+    fn move_data(_: Self::DataHolder) -> Result<Self, Self::Error> {
         panic!("Should not be used!");
     }
 }
 
 #[cfg(test)]
-impl TestReadGdtf<ActivationGroup> for ActivationGroup {
+impl TestReadGdtf for ActivationGroup {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
             (Some(Name::new("ColorRGB").unwrap()), None),

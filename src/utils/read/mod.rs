@@ -15,13 +15,14 @@ use quick_xml::Reader;
 use crate::utils::errors::GdtfError;
 
 ///Trait to deparse an xml-node to a struct
-pub(crate) trait ReadGdtf<DataHolder: Default>: std::fmt::Debug + Sized + PartialEq {
+pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
     ///The primary-key of the struct if used in a hash-map or () if no primary key present
     /// A PrimaryKey should be unique across all xml-nodes of the same type in one GDTF file
     type PrimaryKey: Eq + Hash + Debug + Clone;
     ///Type of error returned in case of failure on deparse
     type Error: From<GdtfReadError> + From<quick_xml::Error> + std::error::Error;
-
+    ///The struct type to hold data temprary during deparse. Can be the struct that implements `ReadGdtf` itself or a similar struct with more `Option` fields
+    type DataHolder: Default;
     ///The name of the node that contains the data for the struct. Declare it as b"GDTF" for example.
     const NODE_NAME: &'static [u8];
     ///The name of the parent node. Declare it as b"GDTF" for example.
@@ -36,19 +37,19 @@ pub(crate) trait ReadGdtf<DataHolder: Default>: std::fmt::Debug + Sized + Partia
    ///
    /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
    ///
-    fn read_any_attribute(data_holder: &mut DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error>;
+    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error>;
 
     /// Is callen when a child node is found in the xml tree. This method should call `read_single_from_event` on the right child
     ///
     /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
     ///
-    fn read_any_child(data_holder: &mut DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error>;
+    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error>;
 
     /// Validates the DataHolder and puts it's data into the struct
     ///
     /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
     ///
-    fn move_data(data_holder: DataHolder) -> Result<Self, Self::Error>;
+    fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error>;
 
 
     ///Function to return an error when an xml-attribute is missing
@@ -89,7 +90,7 @@ pub(crate) trait ReadGdtf<DataHolder: Default>: std::fmt::Debug + Sized + Partia
     /// * `Self` - The struct deparsed from the reader
     /// * `Self::PrimaryKey` - If the struct has a primary key (to use in a hashmap for example) it will be returned here
     fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), Self::Error> {
-        let mut data_holder: DataHolder = Default::default();
+        let mut data_holder: Self::DataHolder = Default::default();
         let mut primary_key = None;
         for attr in event.attributes().into_iter() {
             let attr = attr?;
@@ -296,7 +297,7 @@ pub(crate) trait ReadGdtf<DataHolder: Default>: std::fmt::Debug + Sized + Partia
 
 #[cfg(test)]
 ///Trait only compiled in testing. Offers testing of different stuff
-pub(crate) trait TestReadGdtf<DataHolder: Default>: ReadGdtf<DataHolder> {
+pub(crate) trait TestReadGdtf: ReadGdtf {
     /// Should return a vec of structs to be tested.
     /// * If a struct has only a primary-key, only the first part of the tuple must be returned.
     /// * If a struct has primary-key and (attributes or children) both parts of the tuple are required

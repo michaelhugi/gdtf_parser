@@ -36,9 +36,10 @@ pub struct AttributeDefinitions {
     pub activation_groups: Vec<Name>,
 }
 
-impl ReadGdtf<AttributeDefinitions> for AttributeDefinitions {
+impl ReadGdtf for AttributeDefinitions {
     type PrimaryKey = ();
     type Error = GdtfError;
+    type DataHolder = Self;
 
     const NODE_NAME: &'static [u8] = b"AttributeDefinitions";
     const PARENT_NODE_NAME: &'static [u8] = FixtureType::NODE_NAME_DS;
@@ -49,11 +50,11 @@ impl ReadGdtf<AttributeDefinitions> for AttributeDefinitions {
         panic!("Should not be executed");
     }
 
-    fn read_any_attribute(data_holder: &mut AttributeDefinitions, _: quick_xml::events::attributes::Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(_: &mut Self::DataHolder, _: quick_xml::events::attributes::Attribute<'_>) -> Result<(), Self::Error> {
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut AttributeDefinitions, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
         match event.name() {
             FeatureGroup::PARENT_NODE_NAME => data_holder.feature_groups = FeatureGroup::read_hash_map_from_event(reader, event, has_children)?,
             Attribute::PARENT_NODE_NAME => data_holder.attributes = Attribute::read_hash_map_from_event(reader, event, has_children)?,
@@ -63,14 +64,14 @@ impl ReadGdtf<AttributeDefinitions> for AttributeDefinitions {
         Ok(())
     }
 
-    fn move_data(data_holder: AttributeDefinitions) -> Result<AttributeDefinitions, Self::Error> {
+    fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(data_holder)
     }
 }
 
 
 #[cfg(test)]
-impl TestReadGdtf<AttributeDefinitions> for AttributeDefinitions {
+impl TestReadGdtf for AttributeDefinitions {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
             (None, Some(Self { feature_groups: FeatureGroup::testdata_hash_map(), attributes: Attribute::testdata_hash_map(), activation_groups: ActivationGroup::testdata_primary_key_vec() })),
