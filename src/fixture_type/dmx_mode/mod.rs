@@ -1,15 +1,18 @@
 //!This section is describes all DMX modes of the device
+use std::collections::HashMap;
 use std::fmt::Debug;
 
-use quick_xml::events::{BytesStart, Event};
+use quick_xml::events::attributes::Attribute;
+use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::DmxChannel;
-use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
-#[cfg(test)]
-use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
+use crate::fixture_type::dmx_mode::ft_macro::FtMacro;
+use crate::fixture_type::dmx_mode::relation::Relation;
 use crate::utils::errors::GdtfError;
 use crate::utils::read::ReadGdtf;
+#[cfg(test)]
+use crate::utils::read::TestReadGdtf;
 use crate::utils::units::name::Name;
 
 pub mod dmx_channel;
@@ -18,122 +21,122 @@ pub mod relation;
 pub mod ft_macro;
 
 ///Each DMX mode describes logical control a part of the device in a specific mode
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Default)]
 pub struct DmxMode {
     ///Name of the first geometry in the device; Only top level geometries are allowed to be linked.
     pub geometry: Name,
     ///Description of all DMX channels used in the mode
     pub dmx_channels: Vec<DmxChannel>,
-
-    //TODO relations
-
-    //TODO ftmacros
+    ///Description of relations between channels
+    pub relations: HashMap<Name, Relation>,
+    ///Macros defined by the manufacturer
+    pub ft_macros: HashMap<Name, FtMacro>,
 }
 
-impl DeparseSingle for DmxMode {
+///Helper struct for temporary data during deparsing
+#[derive(Default)]
+pub(crate) struct DmxModeDataHolder {
+    ///Name of the first geometry in the device; Only top level geometries are allowed to be linked.
+    pub geometry: Option<Name>,
+    ///Description of all DMX channels used in the mode
+    pub dmx_channels: Option<Vec<DmxChannel>>,
+    ///Description of relations between channels
+    pub relations: HashMap<Name, Relation>,
+    ///Macros defined by the manufacturer
+    pub ft_macros: HashMap<Name, FtMacro>,
+}
+
+
+impl ReadGdtf for DmxMode {
     type PrimaryKey = Name;
     type Error = GdtfError;
+    type DataHolder = DmxModeDataHolder;
 
-    const NODE_NAME_DS: &'static [u8] = b"DMXMode";
+    const NODE_NAME: &'static [u8] = b"DMXMode";
+    const PARENT_NODE_NAME: &'static [u8] = b"DMXModes";
+    const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
+    const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
-        Self: Sized {
-        let mut name: Name = Default::default();
-        let mut geometry: Name = Default::default();
-        let mut dmx_channels: Vec<DmxChannel> = Vec::new();
-
-        for attr in event.attributes().into_iter() {
-            let attr = attr?;
-            match attr.key {
-                b"Name" => name = Name::new_from_attr(attr)?,
-                b"Geometry" => geometry = Name::new_from_attr(attr)?,
-                _ => {}
-            }
+    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+        if attr.key == b"Geometry" {
+            data_holder.geometry = Some(Name::new_from_attr(attr)?);
         }
+        Ok(())
+    }
 
-        if has_children {
-            let mut buf: Vec<u8> = Vec::new();
-            let mut tree_down = 0;
-            loop {
-                match reader.read_event(&mut buf) {
-                    Ok(Event::Start(e)) | Ok(Event::Empty(e)) => {
-                        match e.name() {
-                            b"DMXChannels" => dmx_channels = DmxChannel::read_vec_from_event(reader, e, true)?,
-                            _ => { tree_down += 1; }
-                        }
-                    }
-                    Ok(Event::End(_)) => {
-                        tree_down -= 1;
-                        if tree_down <= 0 { break; }
-                    }
-                    Ok(Event::Eof) => {
-                        break;
-                    }
-                    _ => {}
-                }
-            }
-            buf.clear();
+    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+        match event.name() {
+            DmxChannel::PARENT_NODE_NAME => data_holder.dmx_channels = Some(DmxChannel::read_vec_from_event(reader, event, has_children)?),
+            Relation::PARENT_NODE_NAME => data_holder.relations = Relation::read_hash_map_from_event(reader, event, has_children)?,
+            FtMacro::PARENT_NODE_NAME => data_holder.ft_macros = FtMacro::read_hash_map_from_event(reader, event, has_children)?,
+            _ => {}
         }
+        Ok(())
+    }
 
-        Ok((Some(name), Self {
-            geometry,
-            dmx_channels,
-        }))
+    fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
+        Ok(Self {
+            geometry: data_holder.geometry.ok_or_else(|| Self::attribute_not_found(b"Geometry"))?,
+            dmx_channels: data_holder.dmx_channels.ok_or_else(|| Self::child_not_found(b"DMXChannels"))?,
+            relations: data_holder.relations,
+            ft_macros: data_holder.ft_macros,
+        })
+    }
+
+    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+        Ok(Some(Name::new_from_attr(attr)?))
     }
 }
 
-impl DeparseHashMap for DmxMode {
-    const PARENT_NODE_NAME: &'static [u8] = b"DMXModes";
+#[cfg(test)]
+impl TestReadGdtf for DmxMode {
+    fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
+        vec![
+            (Some(Name::new("Mode1").unwrap()), Some(Self { geometry: Name::new("Geometry1").unwrap(), dmx_channels: vec![], relations: HashMap::new(), ft_macros: HashMap::new() })),
+            (Some(Name::new("Mode2").unwrap()), Some(Self { geometry: Name::new("Geometry1").unwrap(), dmx_channels: vec![], relations: HashMap::new(), ft_macros: HashMap::new() })),
+            (Some(Name::new("Mode3").unwrap()), Some(Self { geometry: Name::new("Geometry1").unwrap(), dmx_channels: DmxChannel::testdata_vec(), relations: HashMap::new(), ft_macros: HashMap::new() })),
+            (Some(Name::new("Mode4").unwrap()), Some(Self { geometry: Name::new("Geometry2").unwrap(), dmx_channels: DmxChannel::testdata_vec(), relations: HashMap::new(), ft_macros: HashMap::new() })),
+            (Some(Name::new("Mode5").unwrap()), Some(Self { geometry: Name::new("Geometry3").unwrap(), dmx_channels: DmxChannel::testdata_vec(), relations: HashMap::new(), ft_macros: HashMap::new() })),
+            (Some(Name::new("Mode6").unwrap()), Some(Self { geometry: Name::new("Geometry4").unwrap(), dmx_channels: vec![], relations: Relation::testdata_hash_map(), ft_macros: HashMap::new() })),
+            (Some(Name::new("Mode7").unwrap()), Some(Self { geometry: Name::new("Geometry5").unwrap(), dmx_channels: vec![], relations: Relation::testdata_hash_map(), ft_macros: HashMap::new() })),
+            (Some(Name::new("Mode8").unwrap()), Some(Self { geometry: Name::new("Geometry6").unwrap(), dmx_channels: vec![], relations: HashMap::new(), ft_macros: FtMacro::testdata_hash_map() })),
+            (Some(Name::new("Mode9").unwrap()), Some(Self { geometry: Name::new("Geometry7").unwrap(), dmx_channels: vec![], relations: HashMap::new(), ft_macros: FtMacro::testdata_hash_map() })),
+            (Some(Name::new("Mode10").unwrap()), Some(Self { geometry: Name::new("Geometry8").unwrap(), dmx_channels: DmxChannel::testdata_vec(), relations: Relation::testdata_hash_map(), ft_macros: FtMacro::testdata_hash_map() }))
+        ]
+    }
+
+    fn testdatas_xml() -> Vec<String> {
+        vec![
+            format!(r#"<DMXMode Name="Mode1" Geometry="Geometry1"><DMXChannels/></DMXMode>"#),
+            format!(r#"<DMXMode Name="Mode2" Geometry="Geometry1"><DMXChannels></DMXChannels></DMXMode>"#),
+            format!(r#"<DMXMode Name="Mode3" Geometry="Geometry1"><DMXChannels>{}</DMXChannels></DMXMode>"#, DmxChannel::testdata_xml()),
+            format!(r#"<DMXMode Name="Mode4" Geometry="Geometry2"><DMXChannels>{}</DMXChannels><Relations></Relations><FTMacros></FTMacros></DMXMode>"#, DmxChannel::testdata_xml()),
+            format!(r#"<DMXMode Name="Mode5" Geometry="Geometry3"><DMXChannels>{}</DMXChannels><Relations/><FTMacros/></DMXMode>"#, DmxChannel::testdata_xml()),
+            format!(r#"<DMXMode Name="Mode6" Geometry="Geometry4"><DMXChannels></DMXChannels><Relations>{}</Relations><FTMacros></FTMacros></DMXMode>"#, Relation::testdata_xml()),
+            format!(r#"<DMXMode Name="Mode7" Geometry="Geometry5"><DMXChannels/><Relations>{}</Relations><FTMacros/></DMXMode>"#, Relation::testdata_xml()),
+            format!(r#"<DMXMode Name="Mode8" Geometry="Geometry6"><DMXChannels></DMXChannels><Relations></Relations><FTMacros>{}</FTMacros></DMXMode>"#, FtMacro::testdata_xml()),
+            format!(r#"<DMXMode Name="Mode9" Geometry="Geometry7"><DMXChannels/><Relations/><FTMacros>{}</FTMacros></DMXMode>"#, FtMacro::testdata_xml()),
+            format!(r#"<DMXMode Name="Mode10" Geometry="Geometry8"><DMXChannels>{}</DMXChannels><Relations>{}</Relations><FTMacros>{}</FTMacros></DMXMode>"#, DmxChannel::testdata_xml(), Relation::testdata_xml(), FtMacro::testdata_xml())
+        ]
+    }
+
+    fn testdatas_xml_faulty() -> Vec<String> {
+        vec![
+            r#"<DMXMode Name="Mode1" Geometry="Geometry1"></DMXMode>"#.to_string(),
+            r#"<DMXMode Name="Mode1" Geometry="Geometry1"/>"#.to_string(),
+            format!(r#"<DMXMode Name="Name1"><DMXChannels>{}</DMXChannels></DMXMode>"#, DmxChannel::testdata_xml()),
+        ]
+    }
 }
 
-#[cfg(test)]
-impl TestDeparseHashMap for DmxMode {}
-
-#[cfg(test)]
-impl TestDeparseSingle for DmxMode {}
 
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::dmx_mode::dmx_channel::{DmxBreak, DmxChannel, Offset};
     use crate::fixture_type::dmx_mode::DmxMode;
-    use crate::utils::deparse::TestDeparseSingle;
-    use crate::utils::errors::GdtfError;
-    use crate::utils::units::name::Name;
-    use crate::utils::units::node::Node;
+    use crate::utils::read::TestReadGdtf;
 
     #[test]
-    fn test_normal() -> Result<(), GdtfError> {
-        DmxMode {
-            geometry: Name::new("Base")?,
-            dmx_channels: vec![
-                DmxChannel {
-                    dmx_break: DmxBreak::Overwrite,
-                    offset: Some(Offset::new(vec![1, 2])),
-                    initial_function: Node::new_from_str("M").unwrap(),
-                    highlight: None,
-                    geometry: Name::new("Yoke")?,
-                    logical_channels: vec![],
-                }, DmxChannel {
-                    dmx_break: DmxBreak::Value(1),
-                    offset: Some(Offset::new(vec![3, 4])),
-                    initial_function: Node::new_from_str("N").unwrap(),
-                    highlight: None,
-                    geometry: Name::new("Head")?,
-                    logical_channels: vec![],
-                }
-            ],
-        }.compare_to_primary_key_and_xml(Some(Name::new("Mode 1 12 DMX")?),
-                                         r#"
-          <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
-            <DMXChannels>
-              <DMXChannel DMXBreak="Overwrite" Default="32768/2" Geometry="Yoke" InitialFunction="M" Highlight="None" Offset="1,2">
-              </DMXChannel>
-              <DMXChannel DMXBreak="1" Default="32767/2" Geometry="Head" InitialFunction="N" Highlight="None" Offset="3,4">
-              </DMXChannel>
-            </DMXChannels>
-           </DMXMode>
-                "#,
-        );
-        Ok(())
+    fn test_deparse() {
+        DmxMode::execute_tests();
     }
 }

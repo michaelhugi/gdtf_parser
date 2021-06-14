@@ -15,8 +15,6 @@ use crate::utils::units::node::Node;
 ///Relation between the master DMX channel and the following logical channel
 #[derive(Debug, PartialEq, Clone)]
 pub struct Relation {
-    ///The unique name of the relation
-    pub name: Name,
     ///Link to the master DMX channel; Starting point: DMX mode
     pub master: Node,
     ///Link to the following channel function; Starting point: DMX mode
@@ -28,8 +26,6 @@ pub struct Relation {
 ///Helper struct to hold temporary data during deparsing
 #[derive(Default)]
 pub(crate) struct RelationDataHolder {
-    ///The unique name of the relation
-    pub name: Option<Name>,
     ///Link to the master DMX channel; Starting point: DMX mode
     pub master: Option<Node>,
     ///Link to the following channel function; Starting point: DMX mode
@@ -39,18 +35,17 @@ pub(crate) struct RelationDataHolder {
 }
 
 impl ReadGdtf for Relation {
-    type PrimaryKey = ();
+    type PrimaryKey = Name;
     type Error = GdtfError;
     type DataHolder = RelationDataHolder;
 
     const NODE_NAME: &'static [u8] = b"Relation";
     const PARENT_NODE_NAME: &'static [u8] = b"Relations";
-    const PRIMARY_KEY_NAME: &'static [u8] = b"";
+    const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
     const ONLY_PRIMARY_KEY: bool = false;
 
     fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
         match attr.key {
-            b"Name" => data_holder.name = Some(Name::new_from_attr(attr)?),
             b"Master" => data_holder.master = Node::new_from_attr(attr)?,
             b"Follower" => data_holder.follower = Node::new_from_attr(attr)?,
             b"Type" => data_holder.relation_type = RelationType::new_from_attr(attr),
@@ -65,15 +60,14 @@ impl ReadGdtf for Relation {
 
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(Self {
-            name: data_holder.name.unwrap_or_else(|| Name::new("?").unwrap()),
             master: data_holder.master.unwrap_or_else(|| Node::new_from_str("?").unwrap().unwrap()),
             follower: data_holder.follower.unwrap_or_else(|| Node::new_from_str("?").unwrap().unwrap()),
             relation_type: data_holder.relation_type,
         })
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
-        panic!("Should not be executed");
+    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+        Ok(Some(Name::new_from_attr(attr)?))
     }
 }
 
@@ -81,18 +75,18 @@ impl ReadGdtf for Relation {
 impl TestReadGdtf for Relation {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(Self { name: Name::new("MyRelation").unwrap(), master: Node::new_from_str("MyMaster").unwrap().unwrap(), follower: Node::new_from_str("MyFollower").unwrap().unwrap(), relation_type: RelationType::Multiply })),
-            (None, Some(Self { name: Name::new("?").unwrap(), master: Node::new_from_str("MyMaster").unwrap().unwrap(), follower: Node::new_from_str("MyFollower").unwrap().unwrap(), relation_type: RelationType::Override })),
-            (None, Some(Self { name: Name::new("MyRelation").unwrap(), master: Node::new_from_str("?").unwrap().unwrap(), follower: Node::new_from_str("MyFollower").unwrap().unwrap(), relation_type: RelationType::Multiply })),
-            (None, Some(Self { name: Name::new("MyRelation").unwrap(), master: Node::new_from_str("MyMaster").unwrap().unwrap(), follower: Node::new_from_str("?").unwrap().unwrap(), relation_type: RelationType::Multiply })),
-            (None, Some(Self { name: Name::new("MyRelation").unwrap(), master: Node::new_from_str("MyMaster").unwrap().unwrap(), follower: Node::new_from_str("MyFollower").unwrap().unwrap(), relation_type: RelationType::Multiply })),
+            (Some(Name::new("MyRelation").unwrap()), Some(Self { master: Node::new_from_str("MyMaster").unwrap().unwrap(), follower: Node::new_from_str("MyFollower").unwrap().unwrap(), relation_type: RelationType::Multiply })),
+            (Some(Name::new("MyRelation").unwrap()), Some(Self { master: Node::new_from_str("MyMaster").unwrap().unwrap(), follower: Node::new_from_str("MyFollower").unwrap().unwrap(), relation_type: RelationType::Override })),
+            (Some(Name::new("MyRelation").unwrap()), Some(Self { master: Node::new_from_str("?").unwrap().unwrap(), follower: Node::new_from_str("MyFollower").unwrap().unwrap(), relation_type: RelationType::Multiply })),
+            (Some(Name::new("MyRelation").unwrap()), Some(Self { master: Node::new_from_str("MyMaster").unwrap().unwrap(), follower: Node::new_from_str("?").unwrap().unwrap(), relation_type: RelationType::Multiply })),
+            (Some(Name::new("MyRelation").unwrap()), Some(Self { master: Node::new_from_str("MyMaster").unwrap().unwrap(), follower: Node::new_from_str("MyFollower").unwrap().unwrap(), relation_type: RelationType::Multiply })),
         ]
     }
 
     fn testdatas_xml() -> Vec<String> {
         vec![
             r#"<Relation Name="MyRelation" Master="MyMaster" Follower="MyFollower" Type="Multiply"/>"#.to_string(),
-            r#"<Relation Master="MyMaster" Follower="MyFollower" Type="Override"></Relation>"#.to_string(),
+            r#"<Relation Name="MyRelation" Master="MyMaster" Follower="MyFollower" Type="Override"></Relation>"#.to_string(),
             r#"<Relation Name="MyRelation"  Follower="MyFollower" Type="Multiply"/>"#.to_string(),
             r#"<Relation Name="MyRelation" Master="MyMaster"  Type="Multiply"/>"#.to_string(),
             r#"<Relation Name="MyRelation" Master="MyMaster" Follower="MyFollower"/>"#.to_string(),

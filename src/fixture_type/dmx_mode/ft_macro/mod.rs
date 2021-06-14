@@ -7,36 +7,31 @@ use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::ft_macro::macro_dmx_step::MacroDmxStep;
 use crate::utils::errors::GdtfError;
-use crate::utils::read;
 use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
+use crate::utils::units::name::Name;
 
 pub mod macro_dmx_step;
 
 ///Describes a macro defined by the manufacturer
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct FtMacro {
-    ///The unique name of the macro
-    pub name: String,
     ///All steps to execute the Macro
     pub macro_dmx_steps: Vec<MacroDmxStep>,
 }
 
 impl ReadGdtf for FtMacro {
-    type PrimaryKey = ();
+    type PrimaryKey = Name;
     type Error = GdtfError;
     type DataHolder = FtMacro;
 
     const NODE_NAME: &'static [u8] = b"FTMacro";
     const PARENT_NODE_NAME: &'static [u8] = b"FTMacros";
-    const PRIMARY_KEY_NAME: &'static [u8] = &[];
+    const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
-        if attr.key == b"Name" {
-            data_holder.name = read::attr_to_string(attr);
-        }
+    fn read_any_attribute(_: &mut Self::DataHolder, _: Attribute<'_>) -> Result<(), Self::Error> {
         Ok(())
     }
 
@@ -51,8 +46,8 @@ impl ReadGdtf for FtMacro {
         Ok(data_holder)
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
-        panic!("Should not be executed!");
+    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+        Ok(Some(Name::new_from_attr(attr)?))
     }
 }
 
@@ -60,10 +55,10 @@ impl ReadGdtf for FtMacro {
 impl TestReadGdtf for FtMacro {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(FtMacro { name: "Macro Name 1".to_string(), macro_dmx_steps: vec![] })),
-            (None, Some(FtMacro { name: "Macro Name 2".to_string(), macro_dmx_steps: vec![] })),
-            (None, Some(FtMacro { name: "Macro Name 2a".to_string(), macro_dmx_steps: vec![] })),
-            (None, Some(FtMacro { name: "Macro Name 3".to_string(), macro_dmx_steps: MacroDmxStep::testdata_vec() })),
+            (Some(Name::new("Macro Name 1").unwrap()), Some(FtMacro { macro_dmx_steps: vec![] })),
+            (Some(Name::new("Macro Name 2").unwrap()), Some(FtMacro { macro_dmx_steps: vec![] })),
+            (Some(Name::new("Macro Name 2a").unwrap()), Some(FtMacro { macro_dmx_steps: vec![] })),
+            (Some(Name::new("Macro Name 3").unwrap()), Some(FtMacro { macro_dmx_steps: MacroDmxStep::testdata_vec() })),
         ]
     }
 

@@ -7,15 +7,13 @@ use quick_xml::Reader;
 
 use crate::fixture_type::attribute_definitions::AttributeDefinitions;
 use crate::fixture_type::dmx_mode::DmxMode;
-use crate::utils::read;
-use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
-#[cfg(test)]
-use crate::utils::deparse::TestDeparseSingle;
+use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXmlError;
+use crate::utils::read;
+use crate::utils::read::{GdtfReadError, ReadGdtf};
 use crate::utils::units::guid::Guid;
 use crate::utils::units::name::Name;
-use crate::utils::read::{GdtfReadError, ReadGdtf};
 
 pub mod attribute_definitions;
 pub mod dmx_mode;
@@ -107,7 +105,7 @@ impl DeparseSingle for FixtureType {
                         match e.name() {
                             AttributeDefinitions::NODE_NAME => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e, true)?.1),
                             b"DMXModes" => {
-                                dmx_modes = Some(DmxMode::read_hash_map_from_event(reader)?);
+                                dmx_modes = Some(DmxMode::read_hash_map_from_event(reader, e, true)?);
                             }
                             _ => tree_down += 1
                         }
@@ -116,7 +114,7 @@ impl DeparseSingle for FixtureType {
                         match e.name() {
                             AttributeDefinitions::NODE_NAME => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e, false)?.1),
                             b"DMXModes" => {
-                                dmx_modes = Some(DmxMode::read_hash_map_from_event(reader)?);
+                                dmx_modes = Some(DmxMode::read_hash_map_from_event(reader, e, false)?);
                             }
                             _ => tree_down += 1
                         }
@@ -136,11 +134,11 @@ impl DeparseSingle for FixtureType {
         }
 
         if attribute_definitions.is_none() {
-            return Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS,AttributeDefinitions::NODE_NAME).into());
+            return Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS, AttributeDefinitions::NODE_NAME).into());
         }
         let attribute_definitions = attribute_definitions.unwrap();
         if dmx_modes.is_none() {
-            return Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS,DmxMode::NODE_NAME_DS).into());
+            return Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS, DmxMode::NODE_NAME).into());
         }
         let dmx_modes = dmx_modes.unwrap();
 
@@ -156,73 +154,5 @@ impl DeparseSingle for FixtureType {
             dmx_modes,
             attribute_definitions,
         }))
-    }
-}
-
-#[cfg(test)]
-impl TestDeparseSingle for FixtureType {}
-
-#[cfg(test)]
-mod tests {
-    use crate::fixture_type::attribute_definitions::AttributeDefinitions;
-    use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
-    use crate::fixture_type::dmx_mode::DmxMode;
-    use crate::fixture_type::FixtureType;
-    use crate::utils::deparse::TestDeparseSingle;
-    use crate::utils::errors::GdtfError;
-    use crate::utils::testdata;
-    use crate::utils::units::guid::Guid;
-    use crate::utils::units::name::Name;
-    use crate::fixture_type::attribute_definitions::attribute::Attribute;
-    use crate::utils::read::TestReadGdtf;
-
-    #[test]
-    fn test_fixture_type() -> Result<(), GdtfError> {
-        FixtureType {
-            description: "ACME AE-610 BEAM".to_string(),
-            fixture_type_id: Guid::new_from_str("E62F2ECF-2A08-491D-BEEC-F5C491B89784")?,
-            long_name: "ACME AE 610 BEAM".to_string(),
-            manufacturer: "ACME".to_string(),
-            name: Name::new("ACME AE-610 BEAM")?,
-            ref_ft: Some(Guid::new_from_str("8F54E11C-4C91-11E9-80BC-F1DFE217E634")?),
-            short_name: "ACME AE 610 BEAM".to_string(),
-            thumbnail: Some("AE-610 BEAM".to_string()),
-            attribute_definitions: AttributeDefinitions {
-                activation_groups: vec![Name::new("PanTilt")?],
-                feature_groups: testdata::vec_to_hash_map(vec![Name::new("Position")?], vec![FeatureGroup {
-                    pretty: "PositionP".to_string(),
-                    features: vec![Name::new("PanTilt")?],
-                }]),
-                attributes: Attribute::testdata_hash_map(),
-            },
-            dmx_modes: testdata::vec_to_hash_map(vec![Name::new("Mode 1 12 DMX")?], vec![DmxMode {
-                geometry: Name::new("Base")?,
-                dmx_channels: vec![],
-            }]),
-
-        }.compare_to_primary_key_and_xml(None,
-                                         &format!(r#"
-                <FixtureType Description="ACME AE-610 BEAM" FixtureTypeID="E62F2ECF-2A08-491D-BEEC-F5C491B89784" LongName="ACME AE 610 BEAM" Manufacturer="ACME" Name="ACME AE-610 BEAM" RefFT="8F54E11C-4C91-11E9-80BC-F1DFE217E634" ShortName="ACME AE 610 BEAM" Thumbnail="AE-610 BEAM">
-                    <AttributeDefinitions>
-                            <ActivationGroups>
-                                <ActivationGroup Name="PanTilt"/>
-                            </ActivationGroups>
-                        <FeatureGroups>
-                            <FeatureGroup Name="Position" Pretty="PositionP">
-                                <Feature Name="PanTilt"/>
-                            </FeatureGroup>
-                        </FeatureGroups>
-                        <Attributes>{}</Attributes>
-                    </AttributeDefinitions>
-                    <DMXModes>
-                        <DMXMode Geometry="Base" Name="Mode 1 12 DMX">
-                            <DMXChannels>
-
-                            </DMXChannels>
-                        </DMXMode>
-                    </DMXModes>
-                </FixtureType>
-            "#, Attribute::testdata_xml()));
-        Ok(())
     }
 }

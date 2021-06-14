@@ -427,15 +427,19 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
 
     /// Don't call manually! `Use execute_tests()` instead. This function tests if all values returned by `testdatas_xml_faulty()` will return an error. This is useful for required values without default.
     fn execute_test_faulty() {
-        for xml in Self::testdatas_xml_faulty().iter() {
-            assert!(Self::read_single_from_xml(xml).is_err());
+        for (pos, xml) in Self::testdatas_xml_faulty().iter().enumerate() {
+            if !Self::read_single_from_xml(xml).is_err() {
+                panic!("execute_test_faulty nr{} was no error in {}", pos, Self::node_name());
+            }
         }
     }
 
     /// Don't call manually! `Use execute_tests()` instead. This function tests if all values returned by `testdatas_xml_faulty()` will return an error when only a primary_key and no children are present in a node. This is useful for required values without default.
     fn execute_test_primary_key_faulty() {
-        for xml in Self::testdatas_xml_faulty().iter() {
-            assert!(Self::read_primary_key_from_xml(xml).is_err());
+        for (pos, xml) in Self::testdatas_xml_faulty().iter().enumerate() {
+            if !Self::read_primary_key_from_xml(xml).is_err() {
+                panic!("execute_test_primary_key_faulty nr{} was no error in {}", pos, Self::node_name());
+            }
         }
     }
 
