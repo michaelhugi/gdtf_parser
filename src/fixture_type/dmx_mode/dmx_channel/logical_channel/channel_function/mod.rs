@@ -115,7 +115,7 @@ impl DeparseSingle for ChannelFunction {
         }
         let channel_sets;
         if has_children {
-            channel_sets = ChannelSet::read_hash_map_from_event(reader, event)?;
+            channel_sets = ChannelSet::read_hash_map_from_event(reader, event,has_children)?;
         } else {
             channel_sets = Default::default();
         }

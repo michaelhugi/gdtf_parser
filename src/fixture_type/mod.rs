@@ -15,7 +15,7 @@ use crate::utils::errors::GdtfError;
 use crate::utils::errors::GdtfError::QuickXmlError;
 use crate::utils::units::guid::Guid;
 use crate::utils::units::name::Name;
-use crate::utils::read::GdtfReadError;
+use crate::utils::read::{GdtfReadError, ReadGdtf};
 
 pub mod attribute_definitions;
 pub mod dmx_mode;
@@ -105,7 +105,7 @@ impl DeparseSingle for FixtureType {
                 match reader.read_event(&mut buf) {
                     Ok(Event::Start(e)) => {
                         match e.name() {
-                            AttributeDefinitions::NODE_NAME_DS => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e, true)?.1),
+                            AttributeDefinitions::NODE_NAME => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e, true)?.1),
                             b"DMXModes" => {
                                 dmx_modes = Some(DmxMode::read_hash_map_from_event(reader)?);
                             }
@@ -114,7 +114,7 @@ impl DeparseSingle for FixtureType {
                     }
                     Ok(Event::Empty(e)) => {
                         match e.name() {
-                            AttributeDefinitions::NODE_NAME_DS => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e, false)?.1),
+                            AttributeDefinitions::NODE_NAME => attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, e, false)?.1),
                             b"DMXModes" => {
                                 dmx_modes = Some(DmxMode::read_hash_map_from_event(reader)?);
                             }
@@ -136,7 +136,7 @@ impl DeparseSingle for FixtureType {
         }
 
         if attribute_definitions.is_none() {
-            return Err(GdtfReadError::new_xml_node_not_found(AttributeDefinitions::NODE_NAME_DS).into());
+            return Err(GdtfReadError::new_xml_node_not_found(AttributeDefinitions::NODE_NAME).into());
         }
         let attribute_definitions = attribute_definitions.unwrap();
         if dmx_modes.is_none() {
