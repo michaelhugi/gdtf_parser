@@ -14,6 +14,8 @@ use crate::utils::units::name::Name;
 
 pub mod dmx_channel;
 
+pub mod relation;
+
 ///Each DMX mode describes logical control a part of the device in a specific mode
 #[derive(Debug, PartialEq, Clone)]
 pub struct DmxMode {

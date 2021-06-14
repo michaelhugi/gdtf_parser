@@ -113,7 +113,7 @@ impl TestReadGdtf for DmxChannel {
             (None, Some(Self { dmx_break: DmxBreak::Value(55), offset: Some(Offset(vec![2])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
             (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
             (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1, 2])), initial_function: None, highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
-            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1, 3])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
+            (None, Some(Self { dmx_break: DmxBreak::Overwrite, offset: Some(Offset(vec![1, 3])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
         ]
     }
 
@@ -126,8 +126,8 @@ impl TestReadGdtf for DmxChannel {
             format!(r#"<DMXChannel DMXBreak="1" Geometry="Yoke" InitialFunction="Yoke_Pan.Pan.Pan 1" Offset="None">{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
             format!(r#"<DMXChannel DMXBreak="55" Geometry="Yoke" Highlight="16/1" InitialFunction="Yoke_Pan.Pan.Pan 1" Offset="2">{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
             format!(r#"<DMXChannel DMXBreak="1" Geometry="Yoke" Highlight="16/1" InitialFunction="Yoke_Pan.Pan.Pan 1" Offset="1">{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
-            format!(r#"<DMXChannel DMXBreak="1" Geometry="Yoke" Highlight="16/1" Offset="1,2">{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
-            format!(r#"<DMXChannel DMXBreak="1" Geometry="Yoke" Highlight="16/1" InitialFunction="Yoke_Pan.Pan.Pan 1" Offset="1,3">{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
+            format!(r#"<DMXChannel Geometry="Yoke" Highlight="16/1" Offset="1,2">{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
+            format!(r#"<DMXChannel DMXBreak="Overwrite" Geometry="Yoke" Highlight="16/1" InitialFunction="Yoke_Pan.Pan.Pan 1" Offset="1,3">{}</DMXChannel>"#, LogicalChannel::testdata_xml()),
         ]
     }
 
