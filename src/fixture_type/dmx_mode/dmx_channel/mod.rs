@@ -15,6 +15,7 @@ use crate::utils::errors::GdtfError;
 use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::Node;
+use crate::utils::read::ReadGdtf;
 
 pub mod logical_channel;
 
@@ -303,7 +304,7 @@ mod tests {
             geometry: Name::new("Beam")?,
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: Node::new_from_str("Shutter1").unwrap(),
+                    attribute: Node::new_from_str("Shutter1").unwrap().unwrap(),
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -335,7 +336,7 @@ mod tests {
             geometry: Name::new("Beam")?,
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: Node::new_from_str("Shutter1")?,
+                    attribute: Node::new_from_str("Shutter1")?.unwrap(),
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -367,7 +368,7 @@ mod tests {
             geometry: Name::new("Beam")?,
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: Node::new_from_str("Shutter1")?,
+                    attribute: Node::new_from_str("Shutter1")?.unwrap(),
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -395,7 +396,7 @@ mod tests {
             geometry: Name::new("")?,
             logical_channels: vec![
                 LogicalChannel {
-                    attribute: Node::new_from_str("Shutter1")?,
+                    attribute: Node::new_from_str("Shutter1")?.unwrap(),
                     snap: Snap::No,
                     master: Master::None,
                     mib_fade: 0.0,
@@ -403,7 +404,7 @@ mod tests {
                     channel_functions: HashMap::new(),
                 },
                 LogicalChannel {
-                    attribute: Node::new_from_str("Shutter1")?,
+                    attribute: Node::new_from_str("Shutter1")?.unwrap(),
                     snap: Snap::Yes,
                     master: Master::None,
                     mib_fade: 0.0,

@@ -82,7 +82,7 @@ pub(crate) trait TestDeparseSingle: Debug + PartialEq<Self> + Sized + DeparseSin
             };
         }
         buf.clear();
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS))?
+        Err(GdtfReadError::new_xml_node_not_found(b"?", Self::NODE_NAME_DS))?
     }
 
     /// Method for testing `DeparseSingle`. On a struct that implements `DeparseSingle` you can call this method to compare it to a deparsed xml.
@@ -189,7 +189,7 @@ pub(crate) trait TestDeparseHashMap: DeparseHashMap + TestDeparseSingle {
             };
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS))?
+        Err(GdtfReadError::new_xml_node_not_found(b"?", Self::NODE_NAME_DS))?
     }
 
     /// Reads the provided xml with `read_hash_map_from_xml` and compares it to the provided Hashmap.
@@ -301,7 +301,7 @@ pub(crate) trait TestDeparsePrimaryKey: DeparsePrimaryKey {
             };
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(b"?", Self::NODE_NAME))?
     }
 
     /// Parses a given xml string to a PrimaryKey. This method will go down the tree of nodes in the xml until it finds a node with the name `NODE_NAME` and call `DeparsePrimaryKey::read_primary_key_vec_from_event` to it
@@ -339,7 +339,7 @@ pub(crate) trait TestDeparsePrimaryKey: DeparsePrimaryKey {
             };
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(b"?", Self::NODE_NAME))?
     }
 }
 
@@ -431,7 +431,7 @@ pub(crate) trait TestDeparseVec: DeparseVec + TestDeparseSingle {
             };
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS))?
+        Err(GdtfReadError::new_xml_node_not_found(b"?", Self::NODE_NAME_DS))?
     }
 
     /// Reads the provided xml with `read_vec_from_xml` and compares it to the provided Vec.

@@ -2,19 +2,20 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
 
-use quick_xml::events::{BytesStart, Event};
 use quick_xml::events::attributes::Attribute;
+use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
+use crate::fixture_type::dmx_mode::dmx_channel::DmxChannel;
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
-use crate::utils::read;
 use crate::utils::deparse::DeparseSingle;
-#[cfg(test)]
-use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
+use crate::utils::read;
+use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+#[cfg(test)]
+use crate::utils::read::TestReadGdtf;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::Node;
-use crate::utils::read::ReadGdtf;
 
 pub mod channel_function;
 
@@ -22,7 +23,7 @@ pub mod channel_function;
 #[derive(Debug, PartialEq, Clone)]
 pub struct LogicalChannel {
     ///Link to the attribute; The starting point is the Attribute Collect
-    pub attribute: Option<Node>,
+    pub attribute: Node,
     ///If snap is enabled, the logical channel will not fade between values. Instead, it will jump directly to the new value.; Value: “Yes”, “No”, “On”, “Off”. Default value: “No”
     pub snap: Snap,
     ///Defines if all the subordinate channel functions react to a Group Control defined by the control system. Values: “None”, “Grand”, “Group”; Default value: “None”.
@@ -35,83 +36,102 @@ pub struct LogicalChannel {
     pub channel_functions: HashMap<Name, ChannelFunction>,
 }
 
-impl DeparseSingle for LogicalChannel {
+///Helper struct to temporary hold data during deparsing
+#[derive(Default)]
+pub(crate) struct LogicalChannelDataHolder {
+    ///Link to the attribute; The starting point is the Attribute Collect
+    pub attribute: Option<Node>,
+    ///If snap is enabled, the logical channel will not fade between values. Instead, it will jump directly to the new value.; Value: “Yes”, “No”, “On”, “Off”. Default value: “No”
+    pub snap: Option<Snap>,
+    ///Defines if all the subordinate channel functions react to a Group Control defined by the control system. Values: “None”, “Grand”, “Group”; Default value: “None”.
+    pub master: Option<Master>,
+    ///Minimum fade time for moves in black action. MibFade is defined for the complete DMX range. Default value: 0; Unit: second
+    pub mib_fade: Option<f32>,
+    ///Minimum fade time for the subordinate channel functions to change DMX values by the control system. DMXChangeTimeLimit is defined for the complete DMX range. Default value: 0; Unit: second
+    pub dmx_change_time_limit: Option<f32>,
+    ///A list of channel functions
+    pub channel_functions: HashMap<Name, ChannelFunction>,
+}
+
+impl ReadGdtf<LogicalChannelDataHolder> for LogicalChannel {
     type PrimaryKey = ();
     type Error = GdtfError;
 
-    const NODE_NAME_DS: &'static [u8] = b"LogicalChannel";
+    const NODE_NAME: &'static [u8] = b"LogicalChannel";
+    const PARENT_NODE_NAME: &'static [u8] = DmxChannel::NODE_NAME_DS;
+    const PRIMARY_KEY_NAME: &'static [u8] = b"";
+    const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
-        Self: Sized {
-        let mut attribute = None;
-        let mut snap: Snap = Snap::default();
-        let mut master: Master = Master::default();
-        let mut mib_fade: f32 = 0.;
-        let mut dmx_change_time_limit: f32 = 0.;
-        let mut channel_functions: HashMap<Name, ChannelFunction> = HashMap::new();
+    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+        panic!("Should not be executed")
+    }
+}
 
-        for attr in event.attributes().into_iter() {
-            let attr = attr?;
-            match attr.key {
-                b"Attribute" => attribute = Node::new_from_attr(attr)?,
-                b"Snap" => snap = Snap::new_from_attr(attr),
-                b"Master" => master = Master::new_from_attr(attr),
-                b"MibFade" => mib_fade = read::attr_to_f32(attr),
-                b"DMXChangeTimeLimit" => dmx_change_time_limit = read::attr_to_f32(attr),
-                _ => {}
-            }
+impl ReadGdtfDataHolder<LogicalChannel> for LogicalChannelDataHolder {
+    fn read_any_attribute(&mut self, attr: Attribute<'_>) -> Result<(), <LogicalChannel as ReadGdtf<Self>>::Error> {
+        match attr.key {
+            b"Attribute" => self.attribute = Node::new_from_attr(attr)?,
+            b"Snap" => self.snap = Some(Snap::new_from_attr(attr)),
+            b"Master" => self.master = Some(Master::new_from_attr(attr)),
+            b"MibFade" => self.mib_fade = Some(read::attr_to_f32(attr)),
+            b"DMXChangeTimeLimit" => self.dmx_change_time_limit = Some(read::attr_to_f32(attr)),
+            _ => {}
         }
-        if has_children {
-            let mut buf: Vec<u8> = Vec::new();
-            let mut tree_down = 0;
-            loop {
-                match reader.read_event(&mut buf)? {
-                    Event::Start(e) => {
-                        if e.name() == b"ChannelFunction" {
-                            let cf = ChannelFunction::read_single_from_event(reader, e, true)?;
+        Ok(())
+    }
 
-                            channel_functions.insert(cf.0.unwrap(), cf.1);
-                        } else {
-                            tree_down += 1;
-                        }
-                    }
-                    Event::Empty(e) => {
-                        if e.name() == b"ChannelFunction" {
-                            let cf = ChannelFunction::read_single_from_event(reader, e, false)?;
-
-                            channel_functions.insert(cf.0.unwrap(), cf.1);
-                        } else {
-                            tree_down += 1;
-                        }
-                    }
-                    Event::Eof => {
-                        break;
-                    }
-                    Event::End(_) => {
-                        tree_down -= 1;
-                        if tree_down <= 0 {
-                            break;
-                        }
-                    }
-                    _ => {}
-                }
-            }
-            buf.clear();
+    fn read_any_child(&mut self, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, _: bool) -> Result<(), <LogicalChannel as ReadGdtf<Self>>::Error> {
+        if event.name() == ChannelFunction::NODE_NAME {
+            let cf = ChannelFunction::read_single_from_event(reader, event, true)?;
+            self.channel_functions.insert(cf.0.ok_or_else(|| Self::child_primary_key_not_found(ChannelFunction::NODE_NAME, ChannelFunction::PRIMARY_KEY_NAME))?, cf.1);
         }
-        Ok((None,
-            LogicalChannel {
-                attribute,
-                snap,
-                master,
-                mib_fade,
-                dmx_change_time_limit,
-                channel_functions,
-            }))
+        Ok(())
+    }
+
+    fn move_data(self) -> Result<LogicalChannel, <LogicalChannel as ReadGdtf<Self>>::Error> {
+        Ok(LogicalChannel {
+            attribute: self.attribute.ok_or_else(|| Self::attribute_not_found(b"Attribute"))?,
+            snap: self.snap.unwrap_or(Snap::No),
+            master: self.master.unwrap_or(Master::None),
+            mib_fade: self.mib_fade.unwrap_or(0_f32),
+            dmx_change_time_limit: self.dmx_change_time_limit.unwrap_or(0_f32),
+            channel_functions: self.channel_functions,
+        })
     }
 }
 
 #[cfg(test)]
-impl TestDeparseSingle for LogicalChannel {}
+impl TestReadGdtf<LogicalChannelDataHolder> for LogicalChannel {
+    fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
+        vec![
+            (None, Some(Self { attribute: Node::new_from_str("Pan").unwrap().unwrap(), snap: Snap::No, master: Master::None, mib_fade: 0.0, dmx_change_time_limit: 12.0, channel_functions: HashMap::new() })),
+            (None, Some(Self { attribute: Node::new_from_str("Pan").unwrap().unwrap(), snap: Snap::Yes, master: Master::None, mib_fade: 0.0, dmx_change_time_limit: 0.0, channel_functions: HashMap::new() })),
+            (None, Some(Self { attribute: Node::new_from_str("Pan").unwrap().unwrap(), snap: Snap::On, master: Master::Grand, mib_fade: 18.032032, dmx_change_time_limit: 12.0, channel_functions: ChannelFunction::testdata_hash_map() })),
+            (None, Some(Self { attribute: Node::new_from_str("Tilt").unwrap().unwrap(), snap: Snap::Off, master: Master::Group, mib_fade: 0.0, dmx_change_time_limit: 12.0, channel_functions: ChannelFunction::testdata_hash_map() })),
+            (None, Some(Self { attribute: Node::new_from_str("Pan").unwrap().unwrap(), snap: Snap::No, master: Master::None, mib_fade: 0.0, dmx_change_time_limit: 0.0, channel_functions: ChannelFunction::testdata_hash_map() })),
+            (None, Some(Self { attribute: Node::new_from_str("Pan").unwrap().unwrap(), snap: Snap::No, master: Master::None, mib_fade: 0.0, dmx_change_time_limit: 12.000001, channel_functions: ChannelFunction::testdata_hash_map() })),
+        ]
+    }
+
+    fn testdatas_xml() -> Vec<String> {
+        vec![
+            r#"<LogicalChannel Attribute="Pan" DMXChangeTimeLimit="12.000000" Master="None" MibFade="0.000000" Snap="No"/>"#.to_string(),
+            r#"<LogicalChannel Attribute="Pan" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="Yes"></LogicalChannel>"#.to_string(),
+            format!(r#"<LogicalChannel Attribute="Pan" DMXChangeTimeLimit="12.000000" Master="Grand" MibFade="18.032032" Snap="On">{}</LogicalChannel>"#, ChannelFunction::testdata_xml()),
+            format!(r#"<LogicalChannel Attribute="Tilt" DMXChangeTimeLimit="12.000000" Master="Group"  Snap="Off">{}</LogicalChannel>"#, ChannelFunction::testdata_xml()),
+            format!(r#"<LogicalChannel Attribute="Pan" MibFade="0.000000">{}</LogicalChannel>"#, ChannelFunction::testdata_xml()),
+            format!(r#"<LogicalChannel Attribute="Pan" DMXChangeTimeLimit="12.000001" Master="None" MibFade="0.000000" Snap="No">{}</LogicalChannel>"#, ChannelFunction::testdata_xml()),
+        ]
+    }
+
+    fn testdatas_xml_faulty() -> Vec<String> {
+        vec![
+            r#"<LogicalChannel DMXChangeTimeLimit="12.000000" Master="None" MibFade="0.000000" Snap="No"/>"#.to_string(),
+            r#"<LogicalChannel Attribute="Pan with invalid char {" DMXChangeTimeLimit="12.000000" Master="None" MibFade="0.000000" Snap="No"/>"#.to_string(),
+        ]
+    }
+}
+
 
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
@@ -257,126 +277,13 @@ impl Master {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::{LogicalChannel, Master, Snap};
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::{Attribute, ChannelFunction};
-    use crate::utils::deparse::TestDeparseSingle;
-    use crate::utils::errors::GdtfError;
+    use crate::utils::read::TestReadGdtf;
     use crate::utils::testdata;
-    use crate::utils::units::dmx_value::DmxValue;
-    use crate::utils::units::name::Name;
-    use crate::utils::units::node::Node;
 
     #[test]
-    fn test_normal() -> Result<(), GdtfError> {
-        LogicalChannel {
-            attribute: Node::new_from_str("ColorSub_M").unwrap(),
-            snap: Snap::Yes,
-            master: Master::Grand,
-            mib_fade: 0.1,
-            dmx_change_time_limit: 0.0,
-            channel_functions: testdata::vec_to_hash_map(
-                vec![
-                    Name::new("Magenta")?,
-                    Name::new("NoFeature")?],
-                vec![
-                    ChannelFunction {
-                        attribute: Attribute::new_from_str("ColorSub_M")?,
-                        original_attribute: "".to_string(),
-                        dmx_from: DmxValue::new_from_str("0/1")?,
-                        default: DmxValue::new_from_str("0/1")?,
-                        physical_from: 0.0,
-                        physical_to: 1.0,
-                        real_fade: 0.0,
-                        real_acceleration: 0.0,
-                        wheel: None,
-                        emitter: None,
-                        filter: Node::new_from_str("Magenta")?,
-                        mode_master: None,
-                        channel_sets: HashMap::new(),
-                    },
-                    ChannelFunction {
-                        attribute: Attribute::NoFeature,
-                        original_attribute: "".to_string(),
-                        dmx_from: DmxValue::new_from_str("0/1")?,
-                        default: DmxValue::new_from_str("0/1")?,
-                        physical_from: 0.0,
-                        physical_to: 1.0,
-                        real_fade: 0.0,
-                        real_acceleration: 0.0,
-                        wheel: None,
-                        emitter: None,
-                        filter: None,
-                        mode_master: None,
-                        channel_sets: HashMap::new(),
-                    }
-                ]),
-        }.compare_to_primary_key_and_xml(None,
-                                         r#"
-                    <LogicalChannel Attribute="ColorSub_M" DMXChangeTimeLimit="0.000000" Master="Grand" MibFade="0.100000" Snap="Yes">
-                      <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
-                      </ChannelFunction>
-                      <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Default="0/1" Name="NoFeature" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
-                    </LogicalChannel>
-                    "#);
-        Ok(())
-    }
-
-    #[test]
-    fn test_min() -> Result<(), GdtfError> {
-        LogicalChannel {
-            attribute: None,
-            snap: Snap::No,
-            master: Master::None,
-            mib_fade: 0.0,
-            dmx_change_time_limit: 0.0,
-            channel_functions: testdata::vec_to_hash_map(
-                vec![
-                    Name::new("Magenta")?,
-                    Name::new("NoFeature")?
-                ],
-                vec![
-                    ChannelFunction {
-                        attribute: Attribute::new_from_str("ColorSub_M")?,
-                        original_attribute: "".to_string(),
-                        dmx_from: DmxValue::new_from_str("0/1")?,
-                        default: DmxValue::new_from_str("0/1")?,
-                        physical_from: 0.0,
-                        physical_to: 1.0,
-                        real_fade: 0.0,
-                        real_acceleration: 0.0,
-                        wheel: None,
-                        emitter: None,
-                        filter: Node::new_from_str("Magenta")?,
-                        mode_master: None,
-                        channel_sets: HashMap::new(),
-                    },
-                    ChannelFunction {
-                        attribute: Attribute::new_from_str("NoFeature")?,
-                        original_attribute: "".to_string(),
-                        dmx_from: DmxValue::new_from_str("0/1")?,
-                        default: DmxValue::new_from_str("0/1")?,
-                        physical_from: 0.0,
-                        physical_to: 1.0,
-                        real_fade: 0.0,
-                        real_acceleration: 0.0,
-                        wheel: None,
-                        emitter: None,
-                        filter: None,
-                        mode_master: None,
-                        channel_sets: HashMap::new(),
-                    }
-                ]),
-        }.compare_to_primary_key_and_xml(None,
-                                         r#"
-                    <LogicalChannel Attribute="" DMXChangeTimeLimit="" Master="" MibFade="" Snap="">
-                      <ChannelFunction Attribute="ColorSub_M" DMXFrom="0/1" Default="0/1" Filter="Magenta" Name="Magenta" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
-                      </ChannelFunction>
-                      <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Default="0/1" Name="NoFeature" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
-                    </LogicalChannel>
-                    "#);
-        Ok(())
+    fn test_deparse() {
+        LogicalChannel::execute_tests();
     }
 
     #[test]

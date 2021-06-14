@@ -44,6 +44,16 @@ pub(crate) trait ReadGdtfDataHolder<T: ReadGdtf<Self>>: Default {
     fn attribute_not_found(attribute_name: &[u8]) -> GdtfReadError {
         GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME_DH, attribute_name)
     }
+
+    ///Function to return an error when a child node is missing
+    fn child_not_found(child_name: &[u8]) -> GdtfReadError {
+        GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DH, child_name)
+    }
+
+    ///Function to return an error when a child misses a required primary_key
+    fn child_primary_key_not_found(child_name: &[u8], child_primary_key_name: &[u8]) -> GdtfReadError {
+        GdtfReadError::new_xml_node_not_found(child_name, child_primary_key_name)
+    }
 }
 
 ///Trait to deparse an xml-node to a struct
@@ -172,17 +182,13 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
                     Event::Start(e) => {
                         if e.name() == Self::NODE_NAME {
                             let val = Self::read_single_from_event(reader, e, true)?;
-                            if val.0.is_some() {
-                                out.insert(val.0.unwrap(), val.1);
-                            }
+                            out.insert(val.0.ok_or_else(||Self::child_primary_key_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME))?, val.1);
                         }
                     }
                     Event::Empty(e) => {
                         if e.name() == Self::NODE_NAME {
                             let val = Self::read_single_from_event(reader, e, false)?;
-                            if val.0.is_some() {
-                                out.insert(val.0.unwrap(), val.1);
-                            }
+                            out.insert(val.0.ok_or_else(|| Self::child_primary_key_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME))?, val.1);
                         }
                     }
                     Event::End(e) => {
@@ -293,7 +299,20 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
         }
         Ok(out)
     }
+    ///Function to return an error when an xml-attribute is missing
+    fn attribute_not_found(attribute_name: &[u8]) -> GdtfReadError {
+        DataHolder::attribute_not_found(attribute_name)
+    }
 
+    ///Function to return an error when a child node is missing
+    fn child_not_found(child_name: &[u8]) -> GdtfReadError {
+        DataHolder::child_not_found(child_name)
+    }
+
+    ///Function to return an error when a child misses a required primary_key
+    fn child_primary_key_not_found(child_name: &[u8], child_primary_key_name: &[u8]) -> GdtfReadError {
+        DataHolder::child_primary_key_not_found(child_name, child_primary_key_name)
+    }
 }
 
 #[cfg(test)]
@@ -403,13 +422,27 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
     /// Don't call manually! `Use execute_tests()` instead. This function will check all values returned by `testdatas()` and `testdatas_xml()` and compare them while joined together and parsed in one shot. This additional test is important to detect if a child consumes an event that shouldn't be consumed. This would not be detecteble by `execute_test_read_single()`
     fn execute_test_read_vec() {
         let xml = format!("{}{}{}", Self::parent_node_start_xml(), Self::testdata_xml(), Self::parent_node_end_xml());
-        assert_eq!(Self::read_vec_from_xml(&xml).unwrap(), Self::testdata_vec())
+        let left = match Self::read_vec_from_xml(&xml) {
+            Ok(left) => left,
+            Err(e) => panic!("execute_test_read_vec failed in {}: {}", Self::node_name(), e)
+        };
+        let right = Self::testdata_vec();
+        if left != right {
+            panic!("execute_test_read_vec were not equal in {}\n  left: {:?}\n right: {:?}", Self::node_name(), left, right);
+        }
     }
 
     /// Don't call manually! `Use execute_tests()` instead. This function will check all values returned by `testdatas()` and `testdatas_xml()` and compare them while joined together and parsed in one shot. This additional test is important to detect if a child consumes an event that shouldn't be consumed. This would not be detecteble by `execute_test_read_single()`
     fn execute_test_read_hash_map() {
         let xml = format!("{}{}{}", Self::parent_node_start_xml(), Self::testdata_xml(), Self::parent_node_end_xml());
-        assert_eq!(Self::read_hash_map_from_xml(&xml).unwrap(), Self::testdata_hash_map())
+        let left = match Self::read_hash_map_from_xml(&xml) {
+            Ok(left) => left,
+            Err(e) => panic!("execute_test_read_hash_map failed in {}: {}", Self::node_name(), e)
+        };
+        let right = Self::testdata_hash_map();
+        if left != right {
+            panic!("execute_test_read_hash_map were not equal in {}\n  left: {:?}\n right: {:?}", Self::node_name(), left, right);
+        }
     }
 
     /// Don't call manually! `Use execute_tests()` instead. This function tests if all values returned by `testdatas_xml_faulty()` will return an error. This is useful for required values without default.
@@ -506,7 +539,7 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
             };
         }
         buf.clear();
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel", Self::NODE_NAME))?
     }
 
 
@@ -540,7 +573,7 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
             };
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel", Self::NODE_NAME))?
     }
 
     /// Helper function for testing deparsing  multiple nodes as vec from an xml
@@ -573,7 +606,7 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
             };
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel", Self::NODE_NAME))?
     }
 
     /// Helper function for testing deparsing a single node that only contains primary-key and no childen to just the primary-key from an xml
@@ -601,7 +634,7 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
             };
         }
         buf.clear();
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel", Self::NODE_NAME))?
     }
 
     /// Helper function for testing deparsing multiple nodes that only contain primary keys and no children as a vec of primary-keys from an xml
@@ -634,7 +667,7 @@ pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<Da
             };
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel", Self::NODE_NAME))?
     }
 }
 
@@ -645,15 +678,18 @@ pub enum GdtfReadError {
     ///Error when any error is returned from the underlying qick-xml
     QuickXmlError(quick_xml::Error),
     ///Error when an expected xml-node was not found
-    QuickXmlNodeNotFoundError(String),
+    QuickXmlNodeNotFoundError(String, String),
     ///Error when an expected xml-attribute was not found
     QuickXmlAttributeNotFoundError(String, String),
 }
 
 impl GdtfReadError {
     ///Constructor for `QuickXmlNodeNotFoundError`
-    pub fn new_xml_node_not_found(node_name: &[u8]) -> Self {
-        Self::QuickXmlNodeNotFoundError(u8_array_to_string(node_name))
+    pub fn new_xml_node_not_found(parent_node_name: &[u8], node_name: &[u8]) -> Self {
+        Self::QuickXmlNodeNotFoundError(
+            u8_array_to_string(parent_node_name),
+            u8_array_to_string(node_name),
+        )
     }
 
     ///Constructor for `QuickXmlAttributeNotFoundError`
@@ -670,7 +706,7 @@ impl Display for GdtfReadError {
         match self {
             GdtfReadError::QuickXmlError(e) => write!(f, "GdtfDeparseError: {}", e),
             GdtfReadError::QuickXmlAttributeNotFoundError(node_name, attribute) => write!(f, "Could not find xml-attribute '{}' in '{}'", attribute, node_name),
-            GdtfReadError::QuickXmlNodeNotFoundError(node_name) => write!(f, "Could not find xml-node name '{}'", node_name),
+            GdtfReadError::QuickXmlNodeNotFoundError(parent_node_name, node_name) => write!(f, "Could not find xml-node name '{}' in '{}'", node_name, parent_node_name),
         }
     }
 }

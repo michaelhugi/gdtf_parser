@@ -74,11 +74,11 @@ use quick_xml::events::attributes::Attribute;
 use quick_xml::Reader;
 
 use crate::fixture_type::FixtureType;
-use crate::utils::read;
 use crate::utils::deparse::DeparseSingle;
 #[cfg(test)]
 use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
+use crate::utils::read;
 use crate::utils::read::GdtfReadError;
 
 pub mod fixture_type;
@@ -153,7 +153,7 @@ impl DeparseSingle for Gdtf {
             }
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(FixtureType::NODE_NAME_DS).into())
+        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS, FixtureType::NODE_NAME_DS).into())
     }
 }
 
@@ -205,7 +205,7 @@ impl TryFrom<&Path> for Gdtf {
             };
         }
         buf.clear();
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS).into())
+        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel",Self::NODE_NAME_DS).into())
     }
 }
 

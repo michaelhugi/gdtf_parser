@@ -6,10 +6,9 @@ use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
-use crate::utils::read;
-use crate::utils::deparse::{DeparseSingle};
 use crate::utils::errors::GdtfError;
-use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder, GdtfReadError};
+use crate::utils::read;
+use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::dmx_value::DmxValue;

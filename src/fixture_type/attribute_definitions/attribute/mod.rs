@@ -6,7 +6,7 @@ use quick_xml::Reader;
 
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
-use crate::utils::read::{GdtfReadError, ReadGdtf, ReadGdtfDataHolder};
+use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::attribute_name::AttributeName;

@@ -2,21 +2,18 @@
 
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::hash::Hash;
 
-use quick_xml::{Error, Reader};
 use quick_xml::events::attributes::Attribute as XmlAttribute;
 use quick_xml::events::BytesStart;
+use quick_xml::Reader;
 
-use crate::fixture_type::attribute_definitions::AttributeDefinitions;
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
-use crate::utils::deparse::{DeparseHashMap, DeparseSingle};
-#[cfg(test)]
-use crate::utils::deparse::{TestDeparseHashMap, TestDeparseSingle};
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
-use crate::utils::read::{GdtfReadError, ReadGdtf, ReadGdtfDataHolder, TestReadGdtf};
+use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+#[cfg(test)]
+use crate::utils::read::TestReadGdtf;
 use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::{GdtfNodeError, Node};
@@ -103,7 +100,7 @@ impl ReadGdtf<ChannelFunctionDataHolder> for ChannelFunction {
     type PrimaryKey = Name;
     type Error = GdtfError;
     const NODE_NAME: &'static [u8] = b"ChannelFunction";
-    const PARENT_NODE_NAME: &'static [u8] = LogicalChannel::NODE_NAME_DS;
+    const PARENT_NODE_NAME: &'static [u8] = LogicalChannel::NODE_NAME;
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
     const ONLY_PRIMARY_KEY: bool = false;
 
@@ -142,10 +139,8 @@ impl ReadGdtfDataHolder<ChannelFunction> for ChannelFunctionDataHolder {
 
     fn read_any_child(&mut self, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), <ChannelFunction as ReadGdtf<Self>>::Error> {
         if event.name() == ChannelSet::NODE_NAME {
-            let s = ChannelSet::read_single_from_event(reader, event, has_children)?;
-            if s.0.is_some() {
-                self.channel_sets.insert(s.0.unwrap(), s.1);
-            }
+            let cs = ChannelSet::read_single_from_event(reader, event, has_children)?;
+            self.channel_sets.insert(cs.0.ok_or_else(|| Self::child_primary_key_not_found(ChannelSet::NODE_NAME, ChannelSet::PRIMARY_KEY_NAME))?, cs.1);
         }
         Ok(())
     }
@@ -157,7 +152,7 @@ impl ReadGdtfDataHolder<ChannelFunction> for ChannelFunctionDataHolder {
         };
         Ok(ChannelFunction {
             attribute: self.attribute.unwrap_or(Attribute::NoFeature),
-            original_attribute: self.original_attribute.unwrap_or("".to_string()),
+            original_attribute: self.original_attribute.unwrap_or_else(|| "".to_string()),
             dmx_from: self.dmx_from.unwrap_or(DEFAULT_DMX_FROM),
             default: self.default.unwrap_or(DEFAULT_DMX_DEFAULT),
             physical_from: self.physical_from.unwrap_or(0_f32),
@@ -341,9 +336,7 @@ impl ModeMaster {
 
 #[cfg(test)]
 pub mod tests {
-    use std::collections::HashMap;
-
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::{Attribute, ChannelFunction as T, ChannelFunction, ModeMaster};
+    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::{Attribute, ChannelFunction, ModeMaster};
     use crate::utils::errors::GdtfError;
     use crate::utils::read::TestReadGdtf;
     use crate::utils::testdata;
@@ -353,7 +346,7 @@ pub mod tests {
 
     #[test]
     fn test_deparse() {
-        T::execute_tests();
+        ChannelFunction::execute_tests();
     }
 
     #[test]

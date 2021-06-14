@@ -136,11 +136,11 @@ impl DeparseSingle for FixtureType {
         }
 
         if attribute_definitions.is_none() {
-            return Err(GdtfReadError::new_xml_node_not_found(AttributeDefinitions::NODE_NAME).into());
+            return Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS,AttributeDefinitions::NODE_NAME).into());
         }
         let attribute_definitions = attribute_definitions.unwrap();
         if dmx_modes.is_none() {
-            return Err(GdtfReadError::new_xml_node_not_found(DmxMode::NODE_NAME_DS).into());
+            return Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS,DmxMode::NODE_NAME_DS).into());
         }
         let dmx_modes = dmx_modes.unwrap();
 
