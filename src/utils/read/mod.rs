@@ -38,6 +38,12 @@ pub(crate) trait ReadGdtfDataHolder<T: ReadGdtf<Self>>: Default {
     /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
     ///
     fn move_data(self) -> Result<T, T::Error>;
+
+
+    ///Function to return an error when an xml-attribute is missing
+    fn attribute_not_found(attribute_name: &[u8]) -> GdtfReadError {
+        GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME_DH, attribute_name)
+    }
 }
 
 ///Trait to deparse an xml-node to a struct
@@ -287,6 +293,7 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
         }
         Ok(out)
     }
+
 }
 
 #[cfg(test)]

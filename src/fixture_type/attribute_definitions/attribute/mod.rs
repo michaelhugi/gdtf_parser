@@ -71,7 +71,7 @@ impl ReadGdtfDataHolder<Attribute> for AttributeDataHolder {
             Attribute {
                 pretty: self.pretty.unwrap_or_else(|| "".to_string()),
                 activation_group: self.activation_group,
-                feature: self.feature.ok_or_else(|| GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME_DH, b"Feature"))?,
+                feature: self.feature.ok_or_else(|| Self::attribute_not_found(b"Feature"))?,
                 main_attribute: self.main_attribute,
                 physical_unit: self.physical_unit.unwrap_or(PhysicalUnit::None),
                 color: self.color,

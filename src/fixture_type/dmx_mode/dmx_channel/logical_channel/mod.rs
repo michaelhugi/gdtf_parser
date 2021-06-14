@@ -14,6 +14,7 @@ use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
 use crate::utils::units::node::Node;
+use crate::utils::read::ReadGdtf;
 
 pub mod channel_function;
 

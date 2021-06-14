@@ -46,7 +46,7 @@ impl ReadGdtf<ChannelSetDataHolder> for ChannelSet {
     type PrimaryKey = Name;
     type Error = GdtfError;
     const NODE_NAME: &'static [u8] = b"ChannelSet";
-    const PARENT_NODE_NAME: &'static [u8] = ChannelFunction::NODE_NAME_DS;
+    const PARENT_NODE_NAME: &'static [u8] = ChannelFunction::NODE_NAME;
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
     const ONLY_PRIMARY_KEY: bool = false;
 
@@ -74,7 +74,7 @@ impl ReadGdtfDataHolder<ChannelSet> for ChannelSetDataHolder {
 
     fn move_data(self) -> Result<ChannelSet, <ChannelSet as ReadGdtf<Self>>::Error> {
         Ok(ChannelSet {
-            dmx_from: self.dmx_from.ok_or_else(|| GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME_DH, b"DmxFrom"))?,
+            dmx_from: self.dmx_from.ok_or_else(|| Self::attribute_not_found(b"DmxFrom"))?,
             physical_from: self.physical_from,
             physical_to: self.physical_to,
             wheel_slot_index: self.wheel_slot_index,
