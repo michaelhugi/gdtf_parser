@@ -2,14 +2,14 @@
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use quick_xml::Reader;
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
+use quick_xml::Reader;
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
-use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::dmx_value::DmxValue;
@@ -65,39 +65,37 @@ impl ReadGdtf<DmxChannelDataHolder> for DmxChannel {
     fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed");
     }
-}
 
-impl ReadGdtfDataHolder<DmxChannel> for DmxChannelDataHolder {
-    fn read_any_attribute(&mut self, attr: Attribute<'_>) -> Result<(), <DmxChannel as ReadGdtf<Self>>::Error> {
+    fn read_any_attribute(data_holder: &mut DmxChannelDataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
         match attr.key {
-            b"DMXBreak" => self.dmx_break = Some(DmxBreak::new_from_attr(attr)),
-            b"Offset" => self.offset = Offset::new_from_attr(attr),
-            b"InitialFunction" => self.initial_function = Node::new_from_attr(attr)?,
-            b"Highlight" => self.highlight = match DmxValue::new_from_attr(attr) {
+            b"DMXBreak" => data_holder.dmx_break = Some(DmxBreak::new_from_attr(attr)),
+            b"Offset" => data_holder.offset = Offset::new_from_attr(attr),
+            b"InitialFunction" => data_holder.initial_function = Node::new_from_attr(attr)?,
+            b"Highlight" => data_holder.highlight = match DmxValue::new_from_attr(attr) {
                 Ok(attr) => Some(attr),
                 Err(_) => None
             },
-            b"Geometry" => self.geometry = Some(Name::new_from_attr(attr)?),
+            b"Geometry" => data_holder.geometry = Some(Name::new_from_attr(attr)?),
             _ => {}
         }
         Ok(())
     }
 
-    fn read_any_child(&mut self, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), <DmxChannel as ReadGdtf<Self>>::Error> {
+    fn read_any_child(data_holder: &mut DmxChannelDataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
         if event.name() == b"LogicalChannel" {
-            self.logical_channels.push(LogicalChannel::read_single_from_event(reader, event, has_children)?.1);
+            data_holder.logical_channels.push(LogicalChannel::read_single_from_event(reader, event, has_children)?.1);
         }
         Ok(())
     }
 
-    fn move_data(self) -> Result<DmxChannel, <DmxChannel as ReadGdtf<Self>>::Error> {
-        Ok(DmxChannel {
-            dmx_break: self.dmx_break.unwrap_or(DmxBreak::Value(1)),
-            offset: self.offset,
-            initial_function: self.initial_function,
-            highlight: self.highlight,
-            geometry: self.geometry.ok_or_else(|| Self::attribute_not_found(b"Geometry"))?,
-            logical_channels: self.logical_channels,
+    fn move_data(data_holder: DmxChannelDataHolder) -> Result<DmxChannel, Self::Error> {
+        Ok(Self {
+            dmx_break: data_holder.dmx_break.unwrap_or(DmxBreak::Value(1)),
+            offset: data_holder.offset,
+            initial_function: data_holder.initial_function,
+            highlight: data_holder.highlight,
+            geometry: data_holder.geometry.ok_or_else(|| Self::attribute_not_found(b"Geometry"))?,
+            logical_channels: data_holder.logical_channels,
         })
     }
 }

@@ -8,7 +8,7 @@ use quick_xml::Reader;
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
-use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::dmx_value::DmxValue;
@@ -53,30 +53,28 @@ impl ReadGdtf<ChannelSetDataHolder> for ChannelSet {
     fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
-}
 
-impl ReadGdtfDataHolder<ChannelSet> for ChannelSetDataHolder {
-    fn read_any_attribute(&mut self, attr: Attribute<'_>) -> Result<(), <ChannelSet as ReadGdtf<Self>>::Error> {
+    fn read_any_attribute(data_holder: &mut ChannelSetDataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
         match attr.key {
-            b"DMXFrom" => self.dmx_from = Some(DmxValue::new_from_attr(attr)?),
-            b"PhysicalFrom" => self.physical_from = read::attr_to_f32_option(attr),
-            b"PhysicalTo" => self.physical_to = read::attr_to_f32_option(attr),
-            b"WheelSlotIndex" => self.wheel_slot_index = read::attr_to_u8_option(attr),
+            b"DMXFrom" => data_holder.dmx_from = Some(DmxValue::new_from_attr(attr)?),
+            b"PhysicalFrom" => data_holder.physical_from = read::attr_to_f32_option(attr),
+            b"PhysicalTo" => data_holder.physical_to = read::attr_to_f32_option(attr),
+            b"WheelSlotIndex" => data_holder.wheel_slot_index = read::attr_to_u8_option(attr),
             _ => {}
         }
         Ok(())
     }
 
-    fn read_any_child(&mut self, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), <ChannelSet as ReadGdtf<Self>>::Error> {
+    fn read_any_child(_: &mut ChannelSetDataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
         Ok(())
     }
 
-    fn move_data(self) -> Result<ChannelSet, <ChannelSet as ReadGdtf<Self>>::Error> {
+    fn move_data(data_holder: ChannelSetDataHolder) -> Result<ChannelSet, Self::Error> {
         Ok(ChannelSet {
-            dmx_from: self.dmx_from.ok_or_else(|| Self::attribute_not_found(b"DmxFrom"))?,
-            physical_from: self.physical_from,
-            physical_to: self.physical_to,
-            wheel_slot_index: self.wheel_slot_index,
+            dmx_from: data_holder.dmx_from.ok_or_else(|| Self::attribute_not_found(b"DmxFrom"))?,
+            physical_from: data_holder.physical_from,
+            physical_to: data_holder.physical_to,
+            wheel_slot_index: data_holder.wheel_slot_index,
         })
     }
 }

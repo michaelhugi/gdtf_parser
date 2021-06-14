@@ -10,7 +10,7 @@ use crate::fixture_type::dmx_mode::dmx_channel::DmxChannel;
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
-use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::name::Name;
@@ -64,37 +64,35 @@ impl ReadGdtf<LogicalChannelDataHolder> for LogicalChannel {
     fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed")
     }
-}
 
-impl ReadGdtfDataHolder<LogicalChannel> for LogicalChannelDataHolder {
-    fn read_any_attribute(&mut self, attr: Attribute<'_>) -> Result<(), <LogicalChannel as ReadGdtf<Self>>::Error> {
+    fn read_any_attribute(data_holder: &mut LogicalChannelDataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
         match attr.key {
-            b"Attribute" => self.attribute = Node::new_from_attr(attr)?,
-            b"Snap" => self.snap = Some(Snap::new_from_attr(attr)),
-            b"Master" => self.master = Some(Master::new_from_attr(attr)),
-            b"MibFade" => self.mib_fade = Some(read::attr_to_f32(attr)),
-            b"DMXChangeTimeLimit" => self.dmx_change_time_limit = Some(read::attr_to_f32(attr)),
+            b"Attribute" => data_holder.attribute = Node::new_from_attr(attr)?,
+            b"Snap" => data_holder.snap = Some(Snap::new_from_attr(attr)),
+            b"Master" => data_holder.master = Some(Master::new_from_attr(attr)),
+            b"MibFade" => data_holder.mib_fade = Some(read::attr_to_f32(attr)),
+            b"DMXChangeTimeLimit" => data_holder.dmx_change_time_limit = Some(read::attr_to_f32(attr)),
             _ => {}
         }
         Ok(())
     }
 
-    fn read_any_child(&mut self, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, _: bool) -> Result<(), <LogicalChannel as ReadGdtf<Self>>::Error> {
+    fn read_any_child(data_holder: &mut LogicalChannelDataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
         if event.name() == ChannelFunction::NODE_NAME {
             let cf = ChannelFunction::read_single_from_event(reader, event, true)?;
-            self.channel_functions.insert(cf.0.ok_or_else(|| Self::child_primary_key_not_found(ChannelFunction::NODE_NAME, ChannelFunction::PRIMARY_KEY_NAME))?, cf.1);
+            data_holder.channel_functions.insert(cf.0.ok_or_else(|| Self::child_primary_key_not_found(ChannelFunction::NODE_NAME, ChannelFunction::PRIMARY_KEY_NAME))?, cf.1);
         }
         Ok(())
     }
 
-    fn move_data(self) -> Result<LogicalChannel, <LogicalChannel as ReadGdtf<Self>>::Error> {
+    fn move_data(data_holder: LogicalChannelDataHolder) -> Result<LogicalChannel, Self::Error> {
         Ok(LogicalChannel {
-            attribute: self.attribute.ok_or_else(|| Self::attribute_not_found(b"Attribute"))?,
-            snap: self.snap.unwrap_or(Snap::No),
-            master: self.master.unwrap_or(Master::None),
-            mib_fade: self.mib_fade.unwrap_or(0_f32),
-            dmx_change_time_limit: self.dmx_change_time_limit.unwrap_or(0_f32),
-            channel_functions: self.channel_functions,
+            attribute: data_holder.attribute.ok_or_else(|| Self::attribute_not_found(b"Attribute"))?,
+            snap: data_holder.snap.unwrap_or(Snap::No),
+            master: data_holder.master.unwrap_or(Master::None),
+            mib_fade: data_holder.mib_fade.unwrap_or(0_f32),
+            dmx_change_time_limit: data_holder.dmx_change_time_limit.unwrap_or(0_f32),
+            channel_functions: data_holder.channel_functions,
         })
     }
 }

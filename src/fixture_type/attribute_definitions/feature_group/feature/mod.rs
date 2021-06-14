@@ -3,13 +3,13 @@
 //!
 use std::fmt::Debug;
 
-use quick_xml::Reader;
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
+use quick_xml::Reader;
 
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
 use crate::utils::errors::GdtfError;
-use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::name::Name;
@@ -30,18 +30,16 @@ impl ReadGdtf<Feature> for Feature {
     fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
-}
 
-impl ReadGdtfDataHolder<Feature> for Feature {
-    fn read_any_attribute(&mut self, _: Attribute<'_>) -> Result<(), <Feature as ReadGdtf<Self>>::Error> {
+    fn read_any_attribute(data_holder: &mut Feature, _: Attribute<'_>) -> Result<(), Self::Error> {
         panic!("Should not be executed");
     }
 
-    fn read_any_child(&mut self, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), <Feature as ReadGdtf<Self>>::Error> {
+    fn read_any_child(data_holder: &mut Feature, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
         panic!("Should not be executed");
     }
 
-    fn move_data(self) -> Result<Feature, <Feature as ReadGdtf<Self>>::Error> {
+    fn move_data(data_holder: Feature) -> Result<Feature, Self::Error> {
         panic!("Should not be executed");
     }
 }

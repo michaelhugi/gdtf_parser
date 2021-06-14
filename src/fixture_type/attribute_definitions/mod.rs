@@ -11,7 +11,7 @@ use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
 use crate::fixture_type::FixtureType;
 use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
-use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::attribute_name::AttributeName;
@@ -48,25 +48,23 @@ impl ReadGdtf<AttributeDefinitions> for AttributeDefinitions {
     fn read_primary_key_from_attr(_: quick_xml::events::attributes::Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed");
     }
-}
 
-impl ReadGdtfDataHolder<AttributeDefinitions> for AttributeDefinitions {
-    fn read_any_attribute(&mut self, _: quick_xml::events::attributes::Attribute<'_>) -> Result<(), <AttributeDefinitions as ReadGdtf<Self>>::Error> {
+    fn read_any_attribute(data_holder: &mut AttributeDefinitions, _: quick_xml::events::attributes::Attribute<'_>) -> Result<(), Self::Error> {
         Ok(())
     }
 
-    fn read_any_child(&mut self, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), <AttributeDefinitions as ReadGdtf<Self>>::Error> {
+    fn read_any_child(data_holder: &mut AttributeDefinitions, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
         match event.name() {
-            FeatureGroup::PARENT_NODE_NAME => self.feature_groups = FeatureGroup::read_hash_map_from_event(reader, event, has_children)?,
-            Attribute::PARENT_NODE_NAME => self.attributes = Attribute::read_hash_map_from_event(reader, event, has_children)?,
-            ActivationGroup::PARENT_NODE_NAME => self.activation_groups = ActivationGroup::read_primary_key_vec_from_event(reader, event, has_children)?,
+            FeatureGroup::PARENT_NODE_NAME => data_holder.feature_groups = FeatureGroup::read_hash_map_from_event(reader, event, has_children)?,
+            Attribute::PARENT_NODE_NAME => data_holder.attributes = Attribute::read_hash_map_from_event(reader, event, has_children)?,
+            ActivationGroup::PARENT_NODE_NAME => data_holder.activation_groups = ActivationGroup::read_primary_key_vec_from_event(reader, event, has_children)?,
             _ => {}
         }
         Ok(())
     }
 
-    fn move_data(self) -> Result<AttributeDefinitions, <AttributeDefinitions as ReadGdtf<Self>>::Error> {
-        Ok(self)
+    fn move_data(data_holder: AttributeDefinitions) -> Result<AttributeDefinitions, Self::Error> {
+        Ok(data_holder)
     }
 }
 

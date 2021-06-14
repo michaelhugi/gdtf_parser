@@ -14,50 +14,8 @@ use quick_xml::Reader;
 
 use crate::utils::errors::GdtfError;
 
-///Trait to store data during deparsing from xml in a mutable and Optional way. All Data will be moved from this struct to the actual Self in the last step.
-pub(crate) trait ReadGdtfDataHolder<T: ReadGdtf<Self>>: Default {
-    ///The name of the node that contains the data for the struct. Declare it as b"GDTF" for example.
-    const NODE_NAME_DH: &'static [u8] = T::NODE_NAME;
-    ///The name of the parent node
-    const PARENT_NODE_NAME_DH: &'static [u8] = T::PARENT_NODE_NAME;
-
-    /// Is called when an attribute is found in the xml tree. Usually this method contains a match statement that checks attr.key.
-    ///
-    /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
-    ///
-    fn read_any_attribute(&mut self, attr: Attribute<'_>) -> Result<(), T::Error>;
-
-    /// Is callen when a child node is found in the xml tree. This method should call `read_single_from_event` on the right child
-    ///
-    /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
-    ///
-    fn read_any_child(&mut self, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), T::Error>;
-
-    /// Validates the DataHolder and puts it's data into the struct
-    ///
-    /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
-    ///
-    fn move_data(self) -> Result<T, T::Error>;
-
-
-    ///Function to return an error when an xml-attribute is missing
-    fn attribute_not_found(attribute_name: &[u8]) -> GdtfReadError {
-        GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME_DH, attribute_name)
-    }
-
-    ///Function to return an error when a child node is missing
-    fn child_not_found(child_name: &[u8]) -> GdtfReadError {
-        GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DH, child_name)
-    }
-
-    ///Function to return an error when a child misses a required primary_key
-    fn child_primary_key_not_found(child_name: &[u8], child_primary_key_name: &[u8]) -> GdtfReadError {
-        GdtfReadError::new_xml_node_not_found(child_name, child_primary_key_name)
-    }
-}
-
 ///Trait to deparse an xml-node to a struct
-pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug + Sized + PartialEq {
+pub(crate) trait ReadGdtf<DataHolder: Default>: std::fmt::Debug + Sized + PartialEq {
     ///The primary-key of the struct if used in a hash-map or () if no primary key present
     /// A PrimaryKey should be unique across all xml-nodes of the same type in one GDTF file
     type PrimaryKey: Eq + Hash + Debug + Clone;
@@ -72,6 +30,41 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
     const PRIMARY_KEY_NAME: &'static [u8];
     ///If true the struct won't be deparsed but only the method read_primary_key_from_attr will be executed
     const ONLY_PRIMARY_KEY: bool;
+
+
+    /// Is called when an attribute is found in the xml tree. Usually this method contains a match statement that checks attr.key.
+   ///
+   /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
+   ///
+    fn read_any_attribute(data_holder: &mut DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error>;
+
+    /// Is callen when a child node is found in the xml tree. This method should call `read_single_from_event` on the right child
+    ///
+    /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
+    ///
+    fn read_any_child(data_holder: &mut DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error>;
+
+    /// Validates the DataHolder and puts it's data into the struct
+    ///
+    /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
+    ///
+    fn move_data(data_holder: DataHolder) -> Result<Self, Self::Error>;
+
+
+    ///Function to return an error when an xml-attribute is missing
+    fn attribute_not_found(attribute_name: &[u8]) -> GdtfReadError {
+        GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME, attribute_name)
+    }
+
+    ///Function to return an error when a child node is missing
+    fn child_not_found(child_name: &[u8]) -> GdtfReadError {
+        GdtfReadError::new_xml_node_not_found(Self::NODE_NAME, child_name)
+    }
+
+    ///Function to return an error when a child misses a required primary_key
+    fn child_primary_key_not_found(child_name: &[u8], child_primary_key_name: &[u8]) -> GdtfReadError {
+        GdtfReadError::new_xml_node_not_found(child_name, child_primary_key_name)
+    }
 
     ///Returns NODE_NAME as String
     fn node_name() -> String {
@@ -103,7 +96,7 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
             if attr.key == Self::PRIMARY_KEY_NAME {
                 primary_key = Self::read_primary_key_from_attr(attr)?;
             } else {
-                data_holder.read_any_attribute(attr)?;
+                Self::read_any_attribute(&mut data_holder, attr)?;
             }
         }
         if has_children {
@@ -111,10 +104,10 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
             loop {
                 match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
                     Event::Start(e) => {
-                        data_holder.read_any_child(reader, e, true)?;
+                        Self::read_any_child(&mut data_holder, reader, e, true)?;
                     }
                     Event::Empty(e) => {
-                        data_holder.read_any_child(reader, e, false)?;
+                        Self::read_any_child(&mut data_holder, reader, e, false)?;
                     }
                     Event::End(e) => {
                         if e.name() == Self::NODE_NAME {
@@ -129,7 +122,7 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
             }
         }
 
-        Ok((primary_key, data_holder.move_data()?))
+        Ok((primary_key, Self::move_data(data_holder)?))
     }
 
     /// Returns the primary_key of the node if the node hase a primary_key, else it returns none
@@ -182,7 +175,7 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
                     Event::Start(e) => {
                         if e.name() == Self::NODE_NAME {
                             let val = Self::read_single_from_event(reader, e, true)?;
-                            out.insert(val.0.ok_or_else(||Self::child_primary_key_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME))?, val.1);
+                            out.insert(val.0.ok_or_else(|| Self::child_primary_key_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME))?, val.1);
                         }
                     }
                     Event::Empty(e) => {
@@ -299,25 +292,11 @@ pub(crate) trait ReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: std::fmt::Debug
         }
         Ok(out)
     }
-    ///Function to return an error when an xml-attribute is missing
-    fn attribute_not_found(attribute_name: &[u8]) -> GdtfReadError {
-        DataHolder::attribute_not_found(attribute_name)
-    }
-
-    ///Function to return an error when a child node is missing
-    fn child_not_found(child_name: &[u8]) -> GdtfReadError {
-        DataHolder::child_not_found(child_name)
-    }
-
-    ///Function to return an error when a child misses a required primary_key
-    fn child_primary_key_not_found(child_name: &[u8], child_primary_key_name: &[u8]) -> GdtfReadError {
-        DataHolder::child_primary_key_not_found(child_name, child_primary_key_name)
-    }
 }
 
 #[cfg(test)]
 ///Trait only compiled in testing. Offers testing of different stuff
-pub(crate) trait TestReadGdtf<DataHolder: ReadGdtfDataHolder<Self>>: ReadGdtf<DataHolder> {
+pub(crate) trait TestReadGdtf<DataHolder: Default>: ReadGdtf<DataHolder> {
     /// Should return a vec of structs to be tested.
     /// * If a struct has only a primary-key, only the first part of the tuple must be returned.
     /// * If a struct has primary-key and (attributes or children) both parts of the tuple are required

@@ -6,7 +6,7 @@ use quick_xml::Reader;
 
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
-use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::attribute_name::AttributeName;
@@ -63,35 +63,33 @@ impl ReadGdtf<AttributeDataHolder> for Attribute {
     fn read_primary_key_from_attr(attr: quick_xml::events::attributes::Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(AttributeName::new_from_attr(attr)?))
     }
-}
 
-impl ReadGdtfDataHolder<Attribute> for AttributeDataHolder {
-    fn move_data(self) -> Result<Attribute, <Attribute as ReadGdtf<Self>>::Error> {
+    fn move_data(data_holder: AttributeDataHolder) -> Result<Attribute, Self::Error> {
         Ok(
             Attribute {
-                pretty: self.pretty.unwrap_or_else(|| "".to_string()),
-                activation_group: self.activation_group,
-                feature: self.feature.ok_or_else(|| Self::attribute_not_found(b"Feature"))?,
-                main_attribute: self.main_attribute,
-                physical_unit: self.physical_unit.unwrap_or(PhysicalUnit::None),
-                color: self.color,
+                pretty: data_holder.pretty.unwrap_or_else(|| "".to_string()),
+                activation_group: data_holder.activation_group,
+                feature: data_holder.feature.ok_or_else(|| Self::attribute_not_found(b"Feature"))?,
+                main_attribute: data_holder.main_attribute,
+                physical_unit: data_holder.physical_unit.unwrap_or(PhysicalUnit::None),
+                color: data_holder.color,
             }
         )
     }
-    fn read_any_attribute(&mut self, attr: quick_xml::events::attributes::Attribute<'_>) -> Result<(), <Attribute as ReadGdtf<Self>>::Error> {
+    fn read_any_attribute(data_holder: &mut AttributeDataHolder, attr: quick_xml::events::attributes::Attribute<'_>) -> Result<(), Self::Error> {
         match attr.key {
-            b"Pretty" => self.pretty = read::attr_to_string_option(attr),
-            b"ActivationGroup" => self.activation_group = Node::new_from_attr(attr)?,
-            b"Feature" => self.feature = Node::new_from_attr(attr)?,
-            b"MainAttribute" => self.main_attribute = Node::new_from_attr(attr)?,
-            b"PhysicalUnit" => self.physical_unit = Some(PhysicalUnit::new_from_attr(attr)),
-            b"Color" => self.color = ColorCie::new_from_attr(attr).ok(),
+            b"Pretty" => data_holder.pretty = read::attr_to_string_option(attr),
+            b"ActivationGroup" => data_holder.activation_group = Node::new_from_attr(attr)?,
+            b"Feature" => data_holder.feature = Node::new_from_attr(attr)?,
+            b"MainAttribute" => data_holder.main_attribute = Node::new_from_attr(attr)?,
+            b"PhysicalUnit" => data_holder.physical_unit = Some(PhysicalUnit::new_from_attr(attr)),
+            b"Color" => data_holder.color = ColorCie::new_from_attr(attr).ok(),
             _ => {}
         }
         Ok(())
     }
 
-    fn read_any_child(&mut self, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), <Attribute as ReadGdtf<Self>>::Error> {
+    fn read_any_child(_: &mut AttributeDataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
         Ok(())
     }
 }

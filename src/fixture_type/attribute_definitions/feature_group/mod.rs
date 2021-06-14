@@ -11,7 +11,7 @@ use quick_xml::Reader;
 use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
-use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::name::Name;
@@ -40,25 +40,23 @@ impl ReadGdtf<FeatureGroup> for FeatureGroup {
     fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
-}
 
-impl ReadGdtfDataHolder<FeatureGroup> for FeatureGroup {
-    fn read_any_attribute(&mut self, attr: Attribute<'_>) -> Result<(), <FeatureGroup as ReadGdtf<Self>>::Error> {
+    fn read_any_attribute(data_holder: &mut FeatureGroup, attr: Attribute<'_>) -> Result<(), Self::Error> {
         if attr.key == b"Pretty" {
-            self.pretty = read::attr_to_string(attr);
+            data_holder.pretty = read::attr_to_string(attr);
         }
         Ok(())
     }
 
-    fn read_any_child(&mut self, _: &mut Reader<&[u8]>, event: BytesStart<'_>, _: bool) -> Result<(), <FeatureGroup as ReadGdtf<Self>>::Error> {
+    fn read_any_child(data_holder: &mut FeatureGroup, _: &mut Reader<&[u8]>, event: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
         if event.name() == Feature::NODE_NAME {
-            self.features.push(Feature::read_primary_key_from_event(event)?.unwrap_or_else(|| Name::new("").unwrap()));
+            data_holder.features.push(Feature::read_primary_key_from_event(event)?.unwrap_or_else(|| Name::new("").unwrap()));
         }
         Ok(())
     }
 
-    fn move_data(self) -> Result<FeatureGroup, <FeatureGroup as ReadGdtf<Self>>::Error> {
-        Ok(self)
+    fn move_data(data_holder: FeatureGroup) -> Result<FeatureGroup, Self::Error> {
+        Ok(data_holder)
     }
 }
 

@@ -5,33 +5,19 @@
 use std::fmt::Debug;
 
 use quick_xml::events::attributes::Attribute;
+use quick_xml::events::BytesStart;
+use quick_xml::Reader;
 
 use crate::utils::errors::GdtfError;
-use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::name::Name;
-use quick_xml::Reader;
-use quick_xml::events::BytesStart;
 
 ///ActivationGroup only contains one attribute Name, so only this primary keys are stored in a vec in AttributeDefinitions
 #[derive(Debug, PartialEq, Default)]
 pub struct ActivationGroup {}
 
-
-impl ReadGdtfDataHolder<ActivationGroup> for ActivationGroup {
-    fn read_any_attribute(&mut self, _: Attribute<'_>) -> Result<(), <ActivationGroup as ReadGdtf<Self>>::Error> {
-        panic!("Should not be used!");
-    }
-
-    fn read_any_child(&mut self, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), <ActivationGroup as ReadGdtf<Self>>::Error> {
-        panic!("Should not be used!");
-    }
-
-    fn move_data(self) -> Result<ActivationGroup, <ActivationGroup as ReadGdtf<Self>>::Error> {
-        panic!("Should not be used!");
-    }
-}
 
 impl ReadGdtf<ActivationGroup> for ActivationGroup {
     type PrimaryKey = Name;
@@ -43,6 +29,17 @@ impl ReadGdtf<ActivationGroup> for ActivationGroup {
 
     fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
+    }
+    fn read_any_attribute(data_holder: &mut ActivationGroup, _: Attribute<'_>) -> Result<(), Self::Error> {
+        panic!("Should not be used!");
+    }
+
+    fn read_any_child(data_holder: &mut ActivationGroup, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+        panic!("Should not be used!");
+    }
+
+    fn move_data(data_holder: ActivationGroup) -> Result<ActivationGroup, Self::Error> {
+        panic!("Should not be used!");
     }
 }
 

@@ -11,7 +11,7 @@ use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_functio
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
-use crate::utils::read::{ReadGdtf, ReadGdtfDataHolder};
+use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 use crate::utils::units::dmx_value::DmxValue;
@@ -107,28 +107,26 @@ impl ReadGdtf<ChannelFunctionDataHolder> for ChannelFunction {
     fn read_primary_key_from_attr(attr: quick_xml::events::attributes::Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
-}
 
-impl ReadGdtfDataHolder<ChannelFunction> for ChannelFunctionDataHolder {
-    fn read_any_attribute(&mut self, attr: quick_xml::events::attributes::Attribute<'_>) -> Result<(), <ChannelFunction as ReadGdtf<Self>>::Error> {
+    fn read_any_attribute(data_holder: &mut ChannelFunctionDataHolder, attr: quick_xml::events::attributes::Attribute<'_>) -> Result<(), Self::Error> {
         match attr.key {
-            b"Attribute" => self.attribute = Some(Attribute::new_from_attr(attr)?),
-            b"OriginalAttribute" => self.original_attribute = Some(read::attr_to_string(attr)),
-            b"DMXFrom" => self.dmx_from = Some(DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_FROM)),
-            b"Default" => self.default = Some(DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_DEFAULT)),
-            b"PhysicalFrom" => self.physical_from = Some(read::attr_to_f32(attr)),
-            b"PhysicalTo" => self.physical_to = Some(read::attr_to_f32(attr)),
-            b"RealFade" => self.real_fade = Some(read::attr_to_f32(attr)),
-            b"RealAcceleration" => self.real_acceleration = Some(read::attr_to_f32(attr)),
-            b"Wheel" => self.wheel = Node::new_from_attr(attr)?,
-            b"Emitter" => self.emitter = Node::new_from_attr(attr)?,
-            b"Filter" => self.filter = Node::new_from_attr(attr)?,
-            b"ModeMaster" => self.mode_master = Node::new_from_attr(attr)?,
-            b"ModeFrom" => self.mode_from = match DmxValue::new_from_attr(attr) {
+            b"Attribute" => data_holder.attribute = Some(Attribute::new_from_attr(attr)?),
+            b"OriginalAttribute" => data_holder.original_attribute = Some(read::attr_to_string(attr)),
+            b"DMXFrom" => data_holder.dmx_from = Some(DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_FROM)),
+            b"Default" => data_holder.default = Some(DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_DEFAULT)),
+            b"PhysicalFrom" => data_holder.physical_from = Some(read::attr_to_f32(attr)),
+            b"PhysicalTo" => data_holder.physical_to = Some(read::attr_to_f32(attr)),
+            b"RealFade" => data_holder.real_fade = Some(read::attr_to_f32(attr)),
+            b"RealAcceleration" => data_holder.real_acceleration = Some(read::attr_to_f32(attr)),
+            b"Wheel" => data_holder.wheel = Node::new_from_attr(attr)?,
+            b"Emitter" => data_holder.emitter = Node::new_from_attr(attr)?,
+            b"Filter" => data_holder.filter = Node::new_from_attr(attr)?,
+            b"ModeMaster" => data_holder.mode_master = Node::new_from_attr(attr)?,
+            b"ModeFrom" => data_holder.mode_from = match DmxValue::new_from_attr(attr) {
                 Ok(val) => Some(val),
                 Err(_) => None
             },
-            b"ModeTo" => self.mode_to = match DmxValue::new_from_attr(attr) {
+            b"ModeTo" => data_holder.mode_to = match DmxValue::new_from_attr(attr) {
                 Ok(val) => Some(val),
                 Err(_) => None
             },
@@ -137,33 +135,33 @@ impl ReadGdtfDataHolder<ChannelFunction> for ChannelFunctionDataHolder {
         Ok(())
     }
 
-    fn read_any_child(&mut self, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), <ChannelFunction as ReadGdtf<Self>>::Error> {
+    fn read_any_child(data_holder: &mut ChannelFunctionDataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
         if event.name() == ChannelSet::NODE_NAME {
             let cs = ChannelSet::read_single_from_event(reader, event, has_children)?;
-            self.channel_sets.insert(cs.0.ok_or_else(|| Self::child_primary_key_not_found(ChannelSet::NODE_NAME, ChannelSet::PRIMARY_KEY_NAME))?, cs.1);
+            data_holder.channel_sets.insert(cs.0.ok_or_else(|| Self::child_primary_key_not_found(ChannelSet::NODE_NAME, ChannelSet::PRIMARY_KEY_NAME))?, cs.1);
         }
         Ok(())
     }
 
-    fn move_data(self) -> Result<ChannelFunction, <ChannelFunction as ReadGdtf<Self>>::Error> {
-        let mode_master = match self.mode_master {
+    fn move_data(data_holder: ChannelFunctionDataHolder) -> Result<ChannelFunction, Self::Error> {
+        let mode_master = match data_holder.mode_master {
             None => None,
-            Some(node) => Some(ModeMaster::new(node, self.mode_from, self.mode_to))
+            Some(node) => Some(ModeMaster::new(node, data_holder.mode_from, data_holder.mode_to))
         };
         Ok(ChannelFunction {
-            attribute: self.attribute.unwrap_or(Attribute::NoFeature),
-            original_attribute: self.original_attribute.unwrap_or_else(|| "".to_string()),
-            dmx_from: self.dmx_from.unwrap_or(DEFAULT_DMX_FROM),
-            default: self.default.unwrap_or(DEFAULT_DMX_DEFAULT),
-            physical_from: self.physical_from.unwrap_or(0_f32),
-            physical_to: self.physical_to.unwrap_or(1_f32),
-            real_fade: self.real_fade.unwrap_or(0_f32),
-            real_acceleration: self.real_acceleration.unwrap_or(0_f32),
-            wheel: self.wheel,
-            emitter: self.emitter,
-            filter: self.filter,
+            attribute: data_holder.attribute.unwrap_or(Attribute::NoFeature),
+            original_attribute: data_holder.original_attribute.unwrap_or_else(|| "".to_string()),
+            dmx_from: data_holder.dmx_from.unwrap_or(DEFAULT_DMX_FROM),
+            default: data_holder.default.unwrap_or(DEFAULT_DMX_DEFAULT),
+            physical_from: data_holder.physical_from.unwrap_or(0_f32),
+            physical_to: data_holder.physical_to.unwrap_or(1_f32),
+            real_fade: data_holder.real_fade.unwrap_or(0_f32),
+            real_acceleration: data_holder.real_acceleration.unwrap_or(0_f32),
+            wheel: data_holder.wheel,
+            emitter: data_holder.emitter,
+            filter: data_holder.filter,
             mode_master,
-            channel_sets: self.channel_sets,
+            channel_sets: data_holder.channel_sets,
         })
     }
 }
