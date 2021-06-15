@@ -14,7 +14,6 @@ use crate::fixture_type::attribute_definitions::AttributeDefinitions;
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
 use crate::fixture_type::dmx_mode::DmxMode;
 use crate::Gdtf;
-use crate::utils::deparse::DeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
 use crate::utils::read::ReadGdtf;
@@ -88,7 +87,7 @@ impl ReadGdtf for FixtureType {
     type Error = GdtfError;
     type DataHolder = FixtureTypeDataHolder;
     const NODE_NAME: &'static [u8] = b"FixtureType";
-    const PARENT_NODE_NAME: &'static [u8] = Gdtf::NODE_NAME_DS;
+    const PARENT_NODE_NAME: &'static [u8] = Gdtf::NODE_NAME;
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 

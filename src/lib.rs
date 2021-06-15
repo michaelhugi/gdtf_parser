@@ -74,9 +74,6 @@ use quick_xml::events::attributes::Attribute;
 use quick_xml::Reader;
 
 use crate::fixture_type::FixtureType;
-use crate::utils::deparse::DeparseSingle;
-#[cfg(test)]
-use crate::utils::deparse::TestDeparseSingle;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
 use crate::utils::read::{GdtfReadError, ReadGdtf};
@@ -87,78 +84,55 @@ pub mod utils;
 ///Describes the hierarchical and logical structure and controls of any type of controllable device (e.g. luminaires, fog machines, etc.) in the lighting and entertainment industry.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Gdtf {
+    ///The DataVersion attribute defines the minimal version of compatibility
     pub data_version: DataVersion,
+    ///Describes the fixture type
     pub fixture_type: FixtureType,
 }
 
-impl DeparseSingle for Gdtf {
+///Helper struct for temporary data during deparse
+#[derive(Default)]
+pub(crate) struct GdtfDataHolder {
+    pub data_version: Option<DataVersion>,
+    pub fixture_type: Option<FixtureType>,
+}
+
+impl ReadGdtf for Gdtf {
     type PrimaryKey = ();
     type Error = GdtfError;
-    const NODE_NAME_DS: &'static [u8] = b"GDTF";
+    type DataHolder = GdtfDataHolder;
 
+    const NODE_NAME: &'static [u8] = b"GDTF";
+    const PARENT_NODE_NAME: &'static [u8] = b"Top";
+    const PRIMARY_KEY_NAME: &'static [u8] = &[];
+    const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), GdtfError> where
-        Self: Sized {
-        let mut data_version = DataVersion::dummy();
-        for attr in event.attributes().into_iter() {
-            let attr = attr?;
-            if attr.key == b"DataVersion" {
-                data_version = DataVersion::new_from_attr(attr);
-            }
+    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+        if attr.key == b"DataVersion" {
+            data_holder.data_version = Some(DataVersion::new_from_attr(attr));
         }
+        Ok(())
+    }
 
-        if has_children {
-            let mut buf: Vec<u8> = Vec::new();
-            let mut tree_down = 0;
-
-            loop {
-                match reader.read_event(&mut buf)? {
-                    Event::Start(e) => {
-                        if e.name() == FixtureType::NODE_NAME {
-                            return Ok(
-                                (None,
-                                 Gdtf {
-                                     fixture_type: FixtureType::read_single_from_event(reader, e, true)?.1,
-                                     data_version,
-                                 })
-                            );
-                        } else {
-                            tree_down += 1;
-                        }
-                    }
-                    Event::Empty(e) => {
-                        if e.name() == FixtureType::NODE_NAME {
-                            return Ok(
-                                (None,
-                                 Gdtf {
-                                     fixture_type: FixtureType::read_single_from_event(reader, e, false)?.1,
-                                     data_version,
-                                 })
-                            );
-                        } else {
-                            tree_down += 1;
-                        }
-                    }
-                    Event::Eof => {
-                        break;
-                    }
-                    Event::End(_) => {
-                        tree_down -= 1;
-                        if tree_down <= 0 {
-                            break;
-                        }
-                    }
-                    _ => {}
-                }
-            }
-            buf.clear();
+    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+        if event.name() == FixtureType::NODE_NAME {
+            data_holder.fixture_type = Some(FixtureType::read_single_from_event(reader, event, has_children)?.1);
         }
-        Err(GdtfReadError::new_xml_node_not_found(Self::NODE_NAME_DS, FixtureType::NODE_NAME).into())
+        Ok(())
+    }
+
+    fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
+        Ok(Self {
+            data_version: data_holder.data_version.ok_or_else(|| Self::attribute_not_found(b"DataVersion"))?,
+            fixture_type: data_holder.fixture_type.ok_or_else(|| Self::child_not_found(b"FixtureType"))?,
+        })
+    }
+
+    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+        panic!("Should not be executed");
     }
 }
 
-#[cfg(test)]
-impl TestDeparseSingle for Gdtf {}
 
 impl TryFrom<&Path> for Gdtf {
     type Error = GdtfError;
@@ -171,7 +145,6 @@ impl TryFrom<&Path> for Gdtf {
 
         let mut reader = Reader::from_str(&description_xml);
         let mut buf: Vec<u8> = Vec::new();
-        let mut tree_down = 0;
         loop {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) => {
@@ -179,8 +152,6 @@ impl TryFrom<&Path> for Gdtf {
                         return Ok(
                             Gdtf::read_single_from_event(&mut reader, e, true)?.1
                         );
-                    } else {
-                        tree_down += 1;
                     }
                 }
                 Event::Empty(e) => {
@@ -188,16 +159,13 @@ impl TryFrom<&Path> for Gdtf {
                         return Ok(
                             Gdtf::read_single_from_event(&mut reader, e, false)?.1
                         );
-                    } else {
-                        tree_down += 1;
                     }
                 }
                 Event::Eof => {
                     break;
                 }
-                Event::End(_) => {
-                    tree_down -= 1;
-                    if tree_down <= 0 {
+                Event::End(e) => {
+                    if e.name() == Self::NODE_NAME {
                         break;
                     }
                 }
@@ -205,7 +173,7 @@ impl TryFrom<&Path> for Gdtf {
             };
         }
         buf.clear();
-        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel", Self::NODE_NAME_DS).into())
+        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel", Self::NODE_NAME).into())
     }
 }
 
