@@ -3,5 +3,4 @@ pub mod units;
 #[cfg(test)]
 pub mod testdata;
 pub mod errors;
-pub(crate) mod deparse;
 pub(crate) mod read;
