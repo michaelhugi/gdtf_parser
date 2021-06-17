@@ -81,18 +81,15 @@ impl ReadGdtf for AnimationSystem {
 impl TestReadGdtf for AnimationSystem {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(AnimationSystem {
-                p1: PixelArray(Pixel(-0.7), Pixel(0.0)),
-                p2: PixelArray(Pixel(0.0), Pixel(0.7)),
-                p3: PixelArray(Pixel(1.4), Pixel(0.7)),
-                radius: Pixel(0.5),
-            }))
+            (None, Some(AnimationSystem { p1: PixelArray(Pixel(-0.7), Pixel(0.0)), p2: PixelArray(Pixel(0.0), Pixel(0.7)), p3: PixelArray(Pixel(1.4), Pixel(0.7)), radius: Pixel(0.5) })),
+            (None, Some(AnimationSystem { p1: PixelArray(Pixel(-0.7), Pixel(0.0)), p2: PixelArray(Pixel(0.0), Pixel(0.7)), p3: PixelArray(Pixel(1.4), Pixel(0.7)), radius: Pixel(0.5) }))
         ]
     }
 
     fn testdatas_xml() -> Vec<String> {
         vec![
-            r#"<AnimationSystem P1="-0.700000,0.000000" P2="0.000000,0.700000" P3="1.400000,0.700000" Radius="0.500000"/>"#.to_string()
+            r#"<AnimationSystem P1="-0.700000,0.000000" P2="0.000000,0.700000" P3="1.400000,0.700000" Radius="0.500000"/>"#.to_string(),
+            r#"<AnimationSystem P1="-0.700000,0.000000" P2="0.000000,0.700000" P3="1.400000,0.700000" Radius="0.500000"></AnimationSystem>"#.to_string(),
         ]
     }
 

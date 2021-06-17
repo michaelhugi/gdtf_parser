@@ -13,7 +13,7 @@ use regex::Regex;
 use crate::utils::read;
 
 ///The Rotation matrix consists of 3*3 floats. Stored as row-major matrix, i.e. each row of the matrix is stored as a 3-component vector. Mathematical definition of the matrix is column-major, i.e. the matrix rotation is stored in the three columns. Metric system, right-handed Cartesian coordinates XYZ
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Rotation(pub [[f32; 3]; 3]);
 
 

@@ -13,6 +13,7 @@ use crate::utils::units::name::GdtfNameError;
 use crate::utils::units::node::GdtfNodeError;
 use crate::utils::units::pixel::GdtfPixelError;
 use crate::utils::units::pixel_array::GdtfPixelArrayError;
+use crate::utils::units::rotation::GdtfRotationError;
 
 #[derive(Debug)]
 pub enum GdtfError {
@@ -33,6 +34,13 @@ pub enum GdtfError {
     GdtfDeparseError(GdtfReadError),
     GdtfPixelArrayError(GdtfPixelArrayError),
     GdtfPixelError(GdtfPixelError),
+    GdtfRotationError(GdtfRotationError),
+}
+
+impl From<GdtfRotationError> for GdtfError {
+    fn from(e: GdtfRotationError) -> Self {
+        GdtfError::GdtfRotationError(e)
+    }
 }
 
 impl From<GdtfPixelArrayError> for GdtfError {
@@ -107,6 +115,7 @@ impl fmt::Display for GdtfError {
             GdtfError::GdtfDeparseError(e) => write!(f, "GdtfError: {}", e),
             GdtfError::GdtfPixelArrayError(e) => write!(f, "GdtfError: {}", e),
             GdtfError::GdtfPixelError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::GdtfRotationError(e) => write!(f, "GdtfError: {}", e),
         }
     }
 }
