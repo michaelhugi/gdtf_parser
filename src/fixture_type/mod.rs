@@ -25,6 +25,7 @@ use crate::utils::units::resource::Resource;
 
 pub mod attribute_definitions;
 pub mod dmx_mode;
+pub mod wheel;
 
 ///The FixtureType node_2 is the starting point of the description of the fixture type
 #[derive(Debug, PartialEq, Clone)]
@@ -50,7 +51,7 @@ pub struct FixtureType {
     ///This section defines all attributes that are used in the fixture type.
     pub attribute_definitions: AttributeDefinitions,
     //Defines the physical or virtual color wheels, gobo wheels, media server content and others.
-    // pub wheels: Option<Wheels>,
+    // pub wheels: Option<HashMap<Name,Wheel>>,
     //Contains additional physical descriptions.
     // pub physical_descriptions: Option<PhysicalDescriptions>,
     //Contains models of physically separated parts of the device.

@@ -5,12 +5,14 @@ use std::str::Utf8Error;
 
 use zip::result::ZipError;
 
+use crate::utils::read::GdtfReadError;
 use crate::utils::units::color_cie::GdtfColorCieError;
 use crate::utils::units::dmx_value::GdtfDmxValueError;
 use crate::utils::units::guid::GdtfGuidError;
 use crate::utils::units::name::GdtfNameError;
 use crate::utils::units::node::GdtfNodeError;
-use crate::utils::read::GdtfReadError;
+use crate::utils::units::pixel::GdtfPixelError;
+use crate::utils::units::pixel_array::GdtfPixelArrayError;
 
 #[derive(Debug)]
 pub enum GdtfError {
@@ -29,6 +31,20 @@ pub enum GdtfError {
     GdtfNodeError(GdtfNodeError),
     GdtfColorCieError(GdtfColorCieError),
     GdtfDeparseError(GdtfReadError),
+    GdtfPixelArrayError(GdtfPixelArrayError),
+    GdtfPixelError(GdtfPixelError),
+}
+
+impl From<GdtfPixelArrayError> for GdtfError {
+    fn from(e: GdtfPixelArrayError) -> Self {
+        GdtfError::GdtfPixelArrayError(e)
+    }
+}
+
+impl From<GdtfPixelError> for GdtfError {
+    fn from(e: GdtfPixelError) -> Self {
+        GdtfError::GdtfPixelError(e)
+    }
 }
 
 impl From<GdtfReadError> for GdtfError {
@@ -89,6 +105,8 @@ impl fmt::Display for GdtfError {
             GdtfError::GdtfNodeError(e) => write!(f, "GdtfError: {}", e),
             GdtfError::GdtfColorCieError(e) => write!(f, "GdtfError: {}", e),
             GdtfError::GdtfDeparseError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::GdtfPixelArrayError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::GdtfPixelError(e) => write!(f, "GdtfError: {}", e),
         }
     }
 }

@@ -11,3 +11,4 @@ pub mod matrix;
 pub mod rotation;
 pub mod resource;
 pub mod pixel;
+pub mod pixel_array;
