@@ -27,6 +27,7 @@ use crate::utils::units::resource::Resource;
 pub mod attribute_definitions;
 pub mod dmx_mode;
 pub mod wheel;
+pub mod physical_descriptions;
 
 ///The FixtureType node_2 is the starting point of the description of the fixture type
 #[derive(Debug, PartialEq, Clone)]
