@@ -55,6 +55,13 @@ impl ColorCie {
     }
 }
 
+///ColorCIE representation of white (often used as default)
+pub const COLOR_CIE_WHITE: ColorCie = ColorCie {
+    x: 0.3127,
+    y: 0.329,
+    Y: 100.0,
+};
+
 #[derive(Debug)]
 ///Error when ColorCIE could not be parsed
 pub enum GdtfColorCieError {
@@ -85,9 +92,10 @@ impl Error for GdtfColorCieError {}
 
 #[cfg(test)]
 mod tests {
+
     use crate::utils::errors::GdtfError;
     use crate::utils::testdata;
-    use crate::utils::units::color_cie::ColorCie;
+    use crate::utils::units::color_cie::{ColorCie, COLOR_CIE_WHITE};
 
     #[test]
     fn test_new_from_str() -> Result<(), GdtfError> {
@@ -111,5 +119,10 @@ mod tests {
         assert_eq!(ColorCie { x: 234.2, y: 0.329003, Y: 123. }, ColorCie::new_from_attr(testdata::to_attr_owned(b"234.2,0.329003,123.000"))?);
         assert!(ColorCie::new_from_attr(testdata::to_attr_owned(b"Something invalid")).is_err());
         Ok(())
+    }
+
+    #[test]
+    fn test_white() {
+        assert_eq!(COLOR_CIE_WHITE, ColorCie { x: 0.3127, y: 0.3290, Y: 100.0 });
     }
 }

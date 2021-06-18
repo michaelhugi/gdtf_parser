@@ -11,7 +11,7 @@ use crate::utils::errors::GdtfError;
 use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
-use crate::utils::units::color_cie::ColorCie;
+use crate::utils::units::color_cie::{COLOR_CIE_WHITE, ColorCie};
 use crate::utils::units::rotation::Rotation;
 
 /// Contains information about PrismFacet for a wheel slot
@@ -33,11 +33,7 @@ pub(crate) struct FacetDataHolder {
 }
 
 ///White
-pub const DEFAULT_COLOR: ColorCie = ColorCie {
-    x: 0.3127,
-    y: 0.3290,
-    Y: 100.0,
-};
+const DEFAULT_COLOR: ColorCie = COLOR_CIE_WHITE;
 
 impl ReadGdtf for Facet {
     type PrimaryKey = ();
@@ -103,11 +99,17 @@ impl TestReadGdtf for Facet {
 
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::wheel::slot::facet::Facet;
+    use crate::fixture_type::wheel::slot::facet::{DEFAULT_COLOR, Facet};
     use crate::utils::read::TestReadGdtf;
+    use crate::utils::units::color_cie::ColorCie;
 
     #[test]
     fn test_deparse() {
         Facet::execute_tests();
+    }
+
+    #[test]
+    fn test_default_color() {
+        assert_eq!(DEFAULT_COLOR, ColorCie { x: 0.3127, y: 0.3290, Y: 100.0 });
     }
 }
