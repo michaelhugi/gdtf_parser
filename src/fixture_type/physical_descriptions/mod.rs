@@ -4,6 +4,7 @@ pub mod filters;
 pub mod color_space;
 pub mod dmx_profiles;
 pub mod cris;
+pub mod connectors;
 
 pub struct PhysicalDescriptions{
 

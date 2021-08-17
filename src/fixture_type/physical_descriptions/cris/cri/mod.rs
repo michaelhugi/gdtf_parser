@@ -9,7 +9,9 @@ use regex::Regex;
 use crate::fixture_type::physical_descriptions::cris::CRIGroup;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
-use crate::utils::read::{ReadGdtf, TestReadGdtf};
+use crate::utils::read::ReadGdtf;
+#[cfg(test)]
+use crate::utils::read::TestReadGdtf;
 
 ///Defines the CRI for one of the 99 color samples
 #[derive(Debug, PartialEq, Clone)]

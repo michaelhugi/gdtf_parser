@@ -12,3 +12,4 @@ pub mod rotation;
 pub mod resource;
 pub mod pixel;
 pub mod pixel_array;
+pub mod connector_type;
