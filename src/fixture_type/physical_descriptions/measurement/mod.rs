@@ -20,15 +20,15 @@ pub mod measurement_point;
 pub struct Measurement {
     ///For additive color mixing: uniquely given emitter intensity DMX percentage. Value range between > 0 and ≤ 100.
     ///For subtractive color mixing: uniquely given flag insertion DMX percentage. Value range between 0 and 100.
-    physical: f32,
+    pub physical: f32,
     ///Used for additive color mixing: overall candela value for the enclosed set of measurements
-    luminous_intensity: f32,
+    pub luminous_intensity: f32,
     ///Used for subtractive color mixing: total amount of lighting energy passed at this insertion percentage.
-    transmission: f32,
+    pub transmission: f32,
     ///Interpolation scheme from the previous value. The currently defined values are: "Linear", "Step", "Log"; Default: Linear
-    interpolation_to: InterpolationTo,
+    pub interpolation_to: InterpolationTo,
     ///The measurement point defines the energy of a specific wavelength of a spectrum
-    measurement_points: Vec<MeasurementPoint>,
+    pub measurement_points: Vec<MeasurementPoint>,
 }
 
 impl ReadGdtf for Measurement {

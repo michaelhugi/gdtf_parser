@@ -2,6 +2,8 @@ pub mod emitters;
 pub mod measurement;
 pub mod filters;
 pub mod color_space;
+pub mod dmx_profiles;
+pub mod cris;
 
 pub struct PhysicalDescriptions{
 

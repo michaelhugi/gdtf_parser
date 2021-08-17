@@ -368,7 +368,7 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
         for (i, xml) in xmls.enumerate() {
             let s1 = match Self::read_single_from_xml(&xml) {
                 Ok(s1) => s1,
-                Err(e) => panic!("execute_test_read_single failed nr{} in {}: {}", i, Self::node_name(), e)
+                Err(e) => panic!("execute_test_read_single failed nr {} in {}: {}", i, Self::node_name(), e)
             };
             let s2 = match structs.next() {
                 None => panic!("testdatas_xml() and testdatas() do not return the same length for node {}", Self::node_name()),
@@ -376,25 +376,25 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
             };
             if Self::PRIMARY_KEY_NAME != b"" {
                 let s1 = match s1.0 {
-                    None => panic!("execute_test_read_single did not return primary_key from xml nr{} in {}", i, Self::node_name()),
+                    None => panic!("execute_test_read_single did not return primary_key from xml nr {} in {}", i, Self::node_name()),
                     Some(s1) => s1
                 };
                 let s2 = match s2.0 {
-                    None => panic!("execute_test_read_single did not return primary_key from testdata nr{} in {}", i, Self::node_name()),
+                    None => panic!("execute_test_read_single did not return primary_key from testdata nr {} in {}", i, Self::node_name()),
                     Some(s2) => s2
                 };
                 if s1 != s2 {
-                    panic!("execute_test_read_single Primary_keys were not equal nr{} in {}\n  left: {:?}\n right: {:?}", i, Self::node_name(), s1, s2);
+                    panic!("execute_test_read_single Primary_keys were not equal nr {} in {}\n  left: {:?}\n right: {:?}", i, Self::node_name(), s1, s2);
                 }
                 assert_eq!(s1, s2);
             }
             let s1 = s1.1;
             let s2 = match s2.1 {
-                None => panic!("execute_test_read_single testdata provided none nr{} in {}", i, Self::node_name()),
+                None => panic!("execute_test_read_single testdata provided none nr {} in {}", i, Self::node_name()),
                 Some(s2) => s2
             };
             if s1 != s2 {
-                panic!("execute_test_read_single structs were not equal nr{} in {}\n  left: {:?}\n right: {:?}", i, Self::node_name(), s1, s2);
+                panic!("execute_test_read_single structs were not equal nr {} in {}\n  left: {:?}\n right: {:?}", i, Self::node_name(), s1, s2);
             }
         }
     }
@@ -429,7 +429,7 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
     fn execute_test_faulty() {
         for (pos, xml) in Self::testdatas_xml_faulty().iter().enumerate() {
             if !Self::read_single_from_xml(xml).is_err() {
-                panic!("execute_test_faulty nr{} was no error in {}", pos, Self::node_name());
+                panic!("execute_test_faulty nr {} was no error in {}", pos, Self::node_name());
             }
         }
     }
@@ -438,7 +438,7 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
     fn execute_test_primary_key_faulty() {
         for (pos, xml) in Self::testdatas_xml_faulty().iter().enumerate() {
             if !Self::read_primary_key_from_xml(xml).is_err() {
-                panic!("execute_test_primary_key_faulty nr{} was no error in {}", pos, Self::node_name());
+                panic!("execute_test_primary_key_faulty nr {} was no error in {}", pos, Self::node_name());
             }
         }
     }
