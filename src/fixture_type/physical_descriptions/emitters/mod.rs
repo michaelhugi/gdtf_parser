@@ -90,7 +90,7 @@ impl TestReadGdtf for Emitter {
 
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::physical_descriptions::emitter::Emitter;
+    use crate::fixture_type::physical_descriptions::emitters::Emitter;
     use crate::utils::read::TestReadGdtf;
 
     #[test]
