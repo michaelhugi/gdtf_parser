@@ -40,11 +40,11 @@ impl ReadGdtf for Cri {
             b"ColorRenderingIndex" => data_holder.color_rendering_index = read::attr_to_u8_option(attr).ok_or_else(|| Self::attribute_not_found(b"ColorRenderingIndex"))?,
             b"CES" => {
                 lazy_static! {
-                        static ref RE2: Regex = Regex::new(r"CES\d{1,}").unwrap();
+                        static ref REG: Regex = Regex::new(r"CES(\d{2})").unwrap();
                     }
-
-                let mut caps = RE2.captures_iter(&read::attr_to_str(&attr));
-                data_holder.ces = caps.next().map_or(0_u8, |m| u8::from_str(&m[0]).unwrap_or(0));
+                for cap in REG.captures_iter(read::attr_to_str(&attr)) {
+                    data_holder.ces = u8::from_str(&cap[1]).unwrap_or(0);
+                }
             }
             _ => {}
         }
