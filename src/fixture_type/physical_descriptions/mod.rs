@@ -1,4 +1,4 @@
-pub mod measurement;
+pub mod emitter;
 
 pub struct PhysicalDescriptions{
 

@@ -34,9 +34,9 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
 
 
     /// Is called when an attribute is found in the xml tree. Usually this method contains a match statement that checks attr.key.
-   ///
-   /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
-   ///
+    ///
+    /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
+    ///
     fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error>;
 
     /// Is callen when a child node is found in the xml tree. This method should call `read_single_from_event` on the right child

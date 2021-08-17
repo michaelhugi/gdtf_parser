@@ -12,6 +12,8 @@ use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 
+pub mod measurement_point;
+
 ///The measurement defines the relation between the requested output by a control channel and the physically achieved intensity
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct Measurement {
@@ -24,6 +26,7 @@ pub struct Measurement {
     transmission: f32,
     ///Interpolation scheme from the previous value. The currently defined values are: "Linear", "Step", "Log"; Default: Linear
     interpolation_to: InterpolationTo,
+
 }
 
 impl ReadGdtf for Measurement {
@@ -73,7 +76,7 @@ impl TestReadGdtf for Measurement {
     fn testdatas_xml() -> Vec<String> {
         vec![
             r#"<Measurement InterpolationTo="Linear" Physical="100.000000" Transmission="1.000000"/>"#.to_string(),
-            r#"<Measurement  Physical="76.000001" Transmission="1.000000"/>"#.to_string(),
+            r#"<Measurement Physical="76.000001" Transmission="1.000000"/>"#.to_string(),
             r#"<Measurement InterpolationTo="Step" Physical="100.000000" Transmission="76.000000"></Measurement>"#.to_string(),
             r#"<Measurement InterpolationTo="Log" LuminousIntensity="300000.000000"/>"#.to_string(),
         ]
@@ -101,7 +104,7 @@ pub enum InterpolationTo {
 impl InterpolationTo {
     /// Parses a str provided by gdtf-xml-description to InterpolationTo
     /// ```rust
-    /// use gdtf_parser::fixture_type::physical_descriptions::measurement::InterpolationTo;
+    /// use gdtf_parser::fixture_type::physical_descriptions::emitter::measurement::InterpolationTo;
     /// assert_eq!(InterpolationTo::Linear, InterpolationTo::new_from_str("Linear"));
     /// assert_eq!(InterpolationTo::Log, InterpolationTo::new_from_str("Log"));
     /// assert_eq!(InterpolationTo::Step, InterpolationTo::new_from_str("Step"));
@@ -117,7 +120,7 @@ impl InterpolationTo {
 
     /// Parses a quick-xml-attribute provided by gdtf-xml-description to InterpolationTo
     /// ```rust
-    /// use gdtf_parser::fixture_type::physical_descriptions::measurement::InterpolationTo;
+    /// use gdtf_parser::fixture_type::physical_descriptions::emitter::measurement::InterpolationTo;
     /// use quick_xml::events::attributes::Attribute;
     /// use std::borrow::Cow;
     /// assert_eq!(InterpolationTo::Linear, InterpolationTo::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Linear")}));
@@ -131,7 +134,7 @@ impl InterpolationTo {
 }
 
 ///```rust
-/// use gdtf_parser::fixture_type::physical_descriptions::measurement::InterpolationTo;
+/// use gdtf_parser::fixture_type::physical_descriptions::emitter::measurement::InterpolationTo;
 /// assert_eq!(InterpolationTo::Linear, Default::default())
 /// ```
 impl Default for InterpolationTo {
@@ -147,7 +150,7 @@ impl Default for InterpolationTo {
 //-----------------------------------------------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::physical_descriptions::measurement::{InterpolationTo, Measurement};
+    use crate::fixture_type::physical_descriptions::emitter::measurement::{InterpolationTo, Measurement};
     use crate::utils::read::TestReadGdtf;
     use crate::utils::testdata;
 
