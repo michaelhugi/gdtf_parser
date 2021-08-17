@@ -2,19 +2,20 @@ use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
+use crate::fixture_type::physical_descriptions::measurement::Measurement;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
+use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
-use crate::utils::read::ReadGdtf;
 
 ///The measurement point defines the energy of a specific wavelength of a spectrum
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct MeasurementPoint {
     ///Center wavelength of measurement (nm).
-    wave_length: f32,
+    pub wave_length: f32,
     ///Lighting energy (W/m2/nm).
-    energy: f32,
+    pub energy: f32,
 }
 
 impl ReadGdtf for MeasurementPoint {
@@ -22,7 +23,7 @@ impl ReadGdtf for MeasurementPoint {
     type Error = GdtfError;
     type DataHolder = MeasurementPoint;
     const NODE_NAME: &'static [u8] = b"MeasurementPoint";
-    const PARENT_NODE_NAME: &'static [u8] = &[];
+    const PARENT_NODE_NAME: &'static [u8] = Measurement::NODE_NAME;
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 
@@ -81,7 +82,7 @@ impl TestReadGdtf for MeasurementPoint {
 
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::physical_descriptions::emitter::measurement::measurement_point::MeasurementPoint as T;
+    use crate::fixture_type::physical_descriptions::measurement::measurement_point::MeasurementPoint as T;
     use crate::utils::read::TestReadGdtf;
 
     #[test]
