@@ -6,6 +6,7 @@ use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
+use crate::fixture_type::physical_descriptions::emitter::measurement::measurement_point::MeasurementPoint;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
 use crate::utils::read::ReadGdtf;
@@ -26,7 +27,8 @@ pub struct Measurement {
     transmission: f32,
     ///Interpolation scheme from the previous value. The currently defined values are: "Linear", "Step", "Log"; Default: Linear
     interpolation_to: InterpolationTo,
-
+    ///The measurement point defines the energy of a specific wavelength of a spectrum
+    measurement_points: Vec<MeasurementPoint>,
 }
 
 impl ReadGdtf for Measurement {
@@ -49,9 +51,14 @@ impl ReadGdtf for Measurement {
         Ok(())
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+        match event.name() {
+            MeasurementPoint::NODE_NAME => data_holder.measurement_points.push(MeasurementPoint::read_single_from_event(reader, event, has_children)?.1),
+            _ => {}
+        }
         Ok(())
     }
+
 
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(data_holder)
@@ -66,10 +73,10 @@ impl ReadGdtf for Measurement {
 impl TestReadGdtf for Measurement {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(Self { physical: 100.0, luminous_intensity: 0.0, transmission: 1.0, interpolation_to: InterpolationTo::Linear })),
-            (None, Some(Self { physical: 76.000001, luminous_intensity: 0.0, transmission: 1.0, interpolation_to: InterpolationTo::Linear })),
-            (None, Some(Self { physical: 100.0, luminous_intensity: 0.0, transmission: 76.000000, interpolation_to: InterpolationTo::Step })),
-            (None, Some(Self { physical: 0.0, luminous_intensity: 300000.000000, transmission: 0.0, interpolation_to: InterpolationTo::Log })),
+            (None, Some(Self { physical: 100.0, luminous_intensity: 0.0, transmission: 1.0, interpolation_to: InterpolationTo::Linear, measurement_points: vec![] })),
+            (None, Some(Self { physical: 76.000001, luminous_intensity: 0.0, transmission: 1.0, interpolation_to: InterpolationTo::Linear, measurement_points: vec![] })),
+            (None, Some(Self { physical: 100.0, luminous_intensity: 0.0, transmission: 76.000000, interpolation_to: InterpolationTo::Step, measurement_points: MeasurementPoint::testdata_vec() })),
+            (None, Some(Self { physical: 0.0, luminous_intensity: 300000.000000, transmission: 0.0, interpolation_to: InterpolationTo::Log, measurement_points: vec![] })),
         ]
     }
 
@@ -77,7 +84,7 @@ impl TestReadGdtf for Measurement {
         vec![
             r#"<Measurement InterpolationTo="Linear" Physical="100.000000" Transmission="1.000000"/>"#.to_string(),
             r#"<Measurement Physical="76.000001" Transmission="1.000000"/>"#.to_string(),
-            r#"<Measurement InterpolationTo="Step" Physical="100.000000" Transmission="76.000000"></Measurement>"#.to_string(),
+            format!(r#"<Measurement InterpolationTo="Step" Physical="100.000000" Transmission="76.000000">{}</Measurement>"#, MeasurementPoint::testdata_xml()),
             r#"<Measurement InterpolationTo="Log" LuminousIntensity="300000.000000"/>"#.to_string(),
         ]
     }
