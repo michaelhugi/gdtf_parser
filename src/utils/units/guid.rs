@@ -1,7 +1,7 @@
 //! Module for the unit GUID used in FixtureType in GDTF
 use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::fmt::{Display, Formatter};
 use std::str::Utf8Error;
 
 use quick_xml::events::attributes::Attribute;
@@ -220,16 +220,13 @@ impl Guid {
     fn pop_last_byte(vec: &mut Vec<u8>) -> Result<u8, GdtfGuidError> {
         let (first, second) = match vec.pop() {
             None => Err(GdtfGuidError {}),
-            Some(val2) => {
-                match vec.pop() {
-                    None => Err(GdtfGuidError {}),
-                    Some(val1) => Ok((val1, val2))
-                }
-            }
+            Some(val2) => match vec.pop() {
+                None => Err(GdtfGuidError {}),
+                Some(val1) => Ok((val1, val2)),
+            },
         }?;
         Self::hexcharbytes_to_byte(first, second)
     }
-
 
     ///Interprets a UTF8 formated hex charbyte to a halfbyte.
     /// ```ignore
@@ -255,10 +252,9 @@ impl Guid {
             CHAR_D_AS_U8 => Ok(13),
             CHAR_E_AS_U8 => Ok(14),
             CHAR_F_AS_U8 => Ok(15),
-            _ => Err(GdtfGuidError {})
+            _ => Err(GdtfGuidError {}),
         }
     }
-
 
     ///Interprets a u8 as UTF8 formated hex charbyte to a halfbyte.
     /// ```ignore
@@ -284,7 +280,7 @@ impl Guid {
             13 => Ok(CHAR_D_AS_U8),
             14 => Ok(CHAR_E_AS_U8),
             15 => Ok(CHAR_F_AS_U8),
-            _ => Err(GdtfGuidError {})
+            _ => Err(GdtfGuidError {}),
         }
     }
 
@@ -306,7 +302,7 @@ impl Guid {
             5 => Ok(0b0000_0100_u8 & byte == 0b0000_0100_u8),
             6 => Ok(0b0000_0010_u8 & byte == 0b0000_0010_u8),
             7 => Ok(0b0000_0001_u8 & byte == 0b0000_0001_u8),
-            _ => Err(GdtfGuidError {})
+            _ => Err(GdtfGuidError {}),
         }
     }
 
@@ -316,13 +312,28 @@ impl Guid {
     /// assert_eq!(Guid::shift_byte_lower_to_upper(0b0100_0101).unwrap(), 0b0101_0000);
     /// ```
     fn shift_byte_lower_to_upper(byte: u8) -> Result<u8, GdtfGuidError> {
-        let s1 = if Self::is_byte_one_at_index(byte, 4)? { 0b1000_0000_u8 } else { 0 };
-        let s2 = if Self::is_byte_one_at_index(byte, 5)? { 0b0100_0000_u8 } else { 0 };
-        let s3 = if Self::is_byte_one_at_index(byte, 6)? { 0b0010_0000_u8 } else { 0 };
-        let s4 = if Self::is_byte_one_at_index(byte, 7)? { 0b0001_0000_u8 } else { 0 };
+        let s1 = if Self::is_byte_one_at_index(byte, 4)? {
+            0b1000_0000_u8
+        } else {
+            0
+        };
+        let s2 = if Self::is_byte_one_at_index(byte, 5)? {
+            0b0100_0000_u8
+        } else {
+            0
+        };
+        let s3 = if Self::is_byte_one_at_index(byte, 6)? {
+            0b0010_0000_u8
+        } else {
+            0
+        };
+        let s4 = if Self::is_byte_one_at_index(byte, 7)? {
+            0b0001_0000_u8
+        } else {
+            0
+        };
         Ok(s1 + s2 + s3 + s4)
     }
-
 
     ///joins two halfbytes to one byte.
     /// ```ignore
@@ -334,7 +345,6 @@ impl Guid {
         Ok(Self::shift_byte_lower_to_upper(first_half)? + second_half)
     }
 
-
     ///shifts bytes from upper to lower.
     /// ```ignore
     /// use gdtf_parser::utils::units::guid::Guid;
@@ -342,13 +352,28 @@ impl Guid {
     /// assert_eq!(Guid::get_upper_halfbyte(0b0010_1100).unwrap(),0b0000_0010);
     ///  ```
     fn get_upper_halfbyte(byte: u8) -> Result<u8, GdtfGuidError> {
-        let s1 = if Self::is_byte_one_at_index(byte, 0)? { 0b0000_1000_u8 } else { 0 };
-        let s2 = if Self::is_byte_one_at_index(byte, 1)? { 0b0000_0100_u8 } else { 0 };
-        let s3 = if Self::is_byte_one_at_index(byte, 2)? { 0b0000_0010_u8 } else { 0 };
-        let s4 = if Self::is_byte_one_at_index(byte, 3)? { 0b0000_0001_u8 } else { 0 };
+        let s1 = if Self::is_byte_one_at_index(byte, 0)? {
+            0b0000_1000_u8
+        } else {
+            0
+        };
+        let s2 = if Self::is_byte_one_at_index(byte, 1)? {
+            0b0000_0100_u8
+        } else {
+            0
+        };
+        let s3 = if Self::is_byte_one_at_index(byte, 2)? {
+            0b0000_0010_u8
+        } else {
+            0
+        };
+        let s4 = if Self::is_byte_one_at_index(byte, 3)? {
+            0b0000_0001_u8
+        } else {
+            0
+        };
         Ok(s1 + s2 + s3 + s4)
     }
-
 
     ///removes the upper half of a byte.
     ///```ignore
@@ -358,10 +383,26 @@ impl Guid {
     ///  ```
     ///
     fn get_lower_halfbyte(byte: u8) -> Result<u8, GdtfGuidError> {
-        let s1 = if Self::is_byte_one_at_index(byte, 4)? { 0b0000_1000_u8 } else { 0 };
-        let s2 = if Self::is_byte_one_at_index(byte, 5)? { 0b0000_0100_u8 } else { 0 };
-        let s3 = if Self::is_byte_one_at_index(byte, 6)? { 0b0000_0010_u8 } else { 0 };
-        let s4 = if Self::is_byte_one_at_index(byte, 7)? { 0b0000_0001_u8 } else { 0 };
+        let s1 = if Self::is_byte_one_at_index(byte, 4)? {
+            0b0000_1000_u8
+        } else {
+            0
+        };
+        let s2 = if Self::is_byte_one_at_index(byte, 5)? {
+            0b0000_0100_u8
+        } else {
+            0
+        };
+        let s3 = if Self::is_byte_one_at_index(byte, 6)? {
+            0b0000_0010_u8
+        } else {
+            0
+        };
+        let s4 = if Self::is_byte_one_at_index(byte, 7)? {
+            0b0000_0001_u8
+        } else {
+            0
+        };
         Ok(s1 + s2 + s3 + s4)
     }
 
@@ -381,7 +422,10 @@ impl Guid {
     /// assert_eq!(Guid::hexcharbytes_to_byte(0x41,0x33).unwrap(),163_u8);
     ///  ```
     fn hexcharbytes_to_byte(c1: u8, c2: u8) -> Result<u8, GdtfGuidError> {
-        Self::join_two_halfbytes(Self::hexcharbyte_to_halfbyte(c1)?, Self::hexcharbyte_to_halfbyte(c2)?)
+        Self::join_two_halfbytes(
+            Self::hexcharbyte_to_halfbyte(c1)?,
+            Self::hexcharbyte_to_halfbyte(c2)?,
+        )
     }
 }
 
@@ -394,7 +438,7 @@ impl Display for Guid {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self.to_str() {
             Ok(s) => write!(f, "{}", s),
-            Err(_) => write!(f, "Unknown!!")
+            Err(_) => write!(f, "Unknown!!"),
         }
     }
 }
@@ -455,7 +499,6 @@ mod tests {
 
         assert!(T::is_byte_one_at_index(0b1111_1111, 8).is_err());
     }
-
 
     #[test]
     fn test_hexcharbyte_to_halfbyte() {
@@ -585,12 +628,30 @@ mod tests {
 
     #[test]
     fn test_hexcharbytes_to_byte() {
-        assert_eq!(T::hexcharbytes_to_byte((*"0".as_bytes())[0], (*"0".as_bytes())[0]).unwrap(), 0_u8);
-        assert_eq!(T::hexcharbytes_to_byte((*"A".as_bytes())[0], (*"0".as_bytes())[0]).unwrap(), 160_u8);
-        assert_eq!(T::hexcharbytes_to_byte((*"0".as_bytes())[0], (*"7".as_bytes())[0]).unwrap(), 7_u8);
-        assert_eq!(T::hexcharbytes_to_byte((*"7".as_bytes())[0], (*"0".as_bytes())[0]).unwrap(), 112_u8);
-        assert_eq!(T::hexcharbytes_to_byte((*"7".as_bytes())[0], (*"7".as_bytes())[0]).unwrap(), 119_u8);
-        assert_eq!(T::hexcharbytes_to_byte((*"7".as_bytes())[0], (*"C".as_bytes())[0]).unwrap(), 124_u8);
+        assert_eq!(
+            T::hexcharbytes_to_byte((*"0".as_bytes())[0], (*"0".as_bytes())[0]).unwrap(),
+            0_u8
+        );
+        assert_eq!(
+            T::hexcharbytes_to_byte((*"A".as_bytes())[0], (*"0".as_bytes())[0]).unwrap(),
+            160_u8
+        );
+        assert_eq!(
+            T::hexcharbytes_to_byte((*"0".as_bytes())[0], (*"7".as_bytes())[0]).unwrap(),
+            7_u8
+        );
+        assert_eq!(
+            T::hexcharbytes_to_byte((*"7".as_bytes())[0], (*"0".as_bytes())[0]).unwrap(),
+            112_u8
+        );
+        assert_eq!(
+            T::hexcharbytes_to_byte((*"7".as_bytes())[0], (*"7".as_bytes())[0]).unwrap(),
+            119_u8
+        );
+        assert_eq!(
+            T::hexcharbytes_to_byte((*"7".as_bytes())[0], (*"C".as_bytes())[0]).unwrap(),
+            124_u8
+        );
 
         assert!(T::hexcharbytes_to_byte((*"/".as_bytes())[0], (*"0".as_bytes())[0]).is_err());
         assert!(T::hexcharbytes_to_byte((*";".as_bytes())[0], (*"0".as_bytes())[0]).is_err());
@@ -603,7 +664,10 @@ mod tests {
 
     #[test]
     fn test_new_from_str() {
-        assert_eq!(T([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]), T::new_from_str("308EA87D-7164-42DE-8106-A6D273F57A51").unwrap());
+        assert_eq!(
+            T([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
+            T::new_from_str("308EA87D-7164-42DE-8106-A6D273F57A51").unwrap()
+        );
         assert!(T::new_from_str("Something invalid").is_err());
         assert!(T::new_from_str("308EA87D/7164-42DE-8106-A6D273F57A51").is_err());
         assert!(T::new_from_str("308EA87D-7164_42DE-8106-A6D273F57A51").is_err());
@@ -613,19 +677,37 @@ mod tests {
 
     #[test]
     fn test_new_from_attr_borrowed() {
-        assert_eq!(T([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]), T::new_from_attr(testdata::to_attr_borrowed(b"308EA87D-7164-42DE-8106-A6D273F57A51")).unwrap());
+        assert_eq!(
+            T([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
+            T::new_from_attr(testdata::to_attr_borrowed(
+                b"308EA87D-7164-42DE-8106-A6D273F57A51"
+            ))
+            .unwrap()
+        );
         assert!(T::new_from_attr(testdata::to_attr_borrowed(b"Something invalid")).is_err());
     }
 
     #[test]
     fn test_new_from_attr_owned() {
-        assert_eq!(T([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]), T::new_from_attr(testdata::to_attr_owned(b"308EA87D-7164-42DE-8106-A6D273F57A51")).unwrap());
+        assert_eq!(
+            T([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
+            T::new_from_attr(testdata::to_attr_owned(
+                b"308EA87D-7164-42DE-8106-A6D273F57A51"
+            ))
+            .unwrap()
+        );
         assert!(T::new_from_attr(testdata::to_attr_owned(b"Something invalid")).is_err());
     }
 
     #[test]
     fn test_display() {
-        assert_eq!(format!("{}", T([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81])), "308EA87D-7164-42DE-8106-A6D273F57A51");
+        assert_eq!(
+            format!(
+                "{}",
+                T([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81])
+            ),
+            "308EA87D-7164-42DE-8106-A6D273F57A51"
+        );
     }
 
     #[cfg(test)]
@@ -698,4 +780,3 @@ mod tests {
     ///Deparsed by Rust is slower but needed in this context so code is not tested with itself
     const CHAR_G_AS_BYTE: u8 = "G".as_bytes()[0];
 }
-

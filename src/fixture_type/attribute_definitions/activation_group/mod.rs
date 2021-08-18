@@ -18,7 +18,6 @@ use crate::utils::units::name::Name;
 #[derive(Debug, PartialEq, Default)]
 pub struct ActivationGroup {}
 
-
 impl ReadGdtf for ActivationGroup {
     type PrimaryKey = Name;
     type Error = GdtfError;
@@ -29,14 +28,21 @@ impl ReadGdtf for ActivationGroup {
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
     const ONLY_PRIMARY_KEY: bool = true;
 
-    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        attr: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
     fn read_any_attribute(_: &mut Self::DataHolder, _: Attribute<'_>) -> Result<(), Self::Error> {
         panic!("Should not be used!");
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        _: &mut Self::DataHolder,
+        _: &mut Reader<&[u8]>,
+        _: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         panic!("Should not be used!");
     }
 
@@ -55,7 +61,7 @@ impl TestReadGdtf for ActivationGroup {
             (Some(Name::new("ColorIndirect").unwrap()), None),
             (Some(Name::new("Gobo2").unwrap()), None),
             (Some(Name::new("Prism").unwrap()), None),
-            (Some(Name::new("").unwrap()), None)
+            (Some(Name::new("").unwrap()), None),
         ]
     }
 
@@ -67,7 +73,7 @@ impl TestReadGdtf for ActivationGroup {
             r#"<ActivationGroup Name="ColorIndirect"/>"#.to_string(),
             r#"<ActivationGroup Name="Gobo2"/>"#.to_string(),
             r#"<ActivationGroup Name="Prism"/>"#.to_string(),
-            r#"<ActivationGroup Name=""/>"#.to_string()
+            r#"<ActivationGroup Name=""/>"#.to_string(),
         ]
     }
 

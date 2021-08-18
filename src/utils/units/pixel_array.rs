@@ -1,8 +1,8 @@
 //! Module for the unit Pixel used in GDTF
 
 use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::fmt::{Display, Formatter};
 
 use quick_xml::events::attributes::Attribute;
 
@@ -56,7 +56,10 @@ pub struct GdtfPixelArrayError {}
 
 impl Display for GdtfPixelArrayError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "Pixel must be formatted as two comma separated unsigned integers")
+        write!(
+            f,
+            "Pixel must be formatted as two comma separated unsigned integers"
+        )
     }
 }
 
@@ -76,27 +79,54 @@ mod tests {
 
     #[test]
     pub fn test_new_from_str() {
-        assert_eq!(PixelArray::new_from_str("0,12").unwrap(), PixelArray(Pixel(0.0), Pixel(12.0)));
-        assert_eq!(PixelArray::new_from_str("12,13.000001").unwrap(), PixelArray(Pixel(12.0), Pixel(13.000001)));
-        assert_eq!(PixelArray::new_from_str("-1,16").unwrap(), PixelArray(Pixel(-1.0), Pixel(16.0)));
+        assert_eq!(
+            PixelArray::new_from_str("0,12").unwrap(),
+            PixelArray(Pixel(0.0), Pixel(12.0))
+        );
+        assert_eq!(
+            PixelArray::new_from_str("12,13.000001").unwrap(),
+            PixelArray(Pixel(12.0), Pixel(13.000001))
+        );
+        assert_eq!(
+            PixelArray::new_from_str("-1,16").unwrap(),
+            PixelArray(Pixel(-1.0), Pixel(16.0))
+        );
         assert!(PixelArray::new_from_str("12").is_err());
         assert!(PixelArray::new_from_str("Something else").is_err());
     }
 
     #[test]
     pub fn test_new_from_attr_owned() {
-        assert_eq!(PixelArray::new_from_attr(testdata::to_attr_owned(b"0, 12")).unwrap(), PixelArray(Pixel(0.0), Pixel(12.0)));
-        assert_eq!(PixelArray::new_from_attr(testdata::to_attr_owned(b"12, 13.000001")).unwrap(), PixelArray(Pixel(12.0), Pixel(13.000001)));
-        assert_eq!(PixelArray::new_from_attr(testdata::to_attr_owned(b"-1,16")).unwrap(), PixelArray(Pixel(-1.0), Pixel(16.0)));
+        assert_eq!(
+            PixelArray::new_from_attr(testdata::to_attr_owned(b"0, 12")).unwrap(),
+            PixelArray(Pixel(0.0), Pixel(12.0))
+        );
+        assert_eq!(
+            PixelArray::new_from_attr(testdata::to_attr_owned(b"12, 13.000001")).unwrap(),
+            PixelArray(Pixel(12.0), Pixel(13.000001))
+        );
+        assert_eq!(
+            PixelArray::new_from_attr(testdata::to_attr_owned(b"-1,16")).unwrap(),
+            PixelArray(Pixel(-1.0), Pixel(16.0))
+        );
         assert!(PixelArray::new_from_attr(testdata::to_attr_owned(b"12")).is_err());
         assert!(PixelArray::new_from_attr(testdata::to_attr_owned(b"Something else")).is_err());
     }
 
     #[test]
     pub fn test_new_from_attr_borrowed() {
-        assert_eq!(PixelArray::new_from_attr(testdata::to_attr_borrowed(b"0, 12")).unwrap(), PixelArray(Pixel(0.0), Pixel(12.0)));
-        assert_eq!(PixelArray::new_from_attr(testdata::to_attr_borrowed(b"12, 13.000001")).unwrap(), PixelArray(Pixel(12.0), Pixel(13.000001)));
-        assert_eq!(PixelArray::new_from_attr(testdata::to_attr_borrowed(b"-1,16")).unwrap(), PixelArray(Pixel(-1.0), Pixel(16.0)));
+        assert_eq!(
+            PixelArray::new_from_attr(testdata::to_attr_borrowed(b"0, 12")).unwrap(),
+            PixelArray(Pixel(0.0), Pixel(12.0))
+        );
+        assert_eq!(
+            PixelArray::new_from_attr(testdata::to_attr_borrowed(b"12, 13.000001")).unwrap(),
+            PixelArray(Pixel(12.0), Pixel(13.000001))
+        );
+        assert_eq!(
+            PixelArray::new_from_attr(testdata::to_attr_borrowed(b"-1,16")).unwrap(),
+            PixelArray(Pixel(-1.0), Pixel(16.0))
+        );
         assert!(PixelArray::new_from_attr(testdata::to_attr_borrowed(b"12")).is_err());
         assert!(PixelArray::new_from_attr(testdata::to_attr_borrowed(b"Something else")).is_err());
     }

@@ -65,23 +65,23 @@ impl Date {
     }
 
     ///Parses a quick-xml-attribute defined in gdtf-xml-description to a Date
-   /// ```rust
-   /// use gdtf_parser::utils::units::date::Date;
-   /// use quick_xml::events::attributes::Attribute;
-   /// use std::borrow::Cow;
-   /// assert_eq!(
-   ///    Date::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"2021-04-01T15:23:16")}).unwrap(),
-   ///    Date{
-   ///        year: 2021,
-   ///        month: 4,
-   ///        day: 1,
-   ///        hour: 15,
-   ///        minute: 23,
-   ///        second: 16
-   ///    }
-   /// );
-   /// assert!(Date::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something else")}).is_err());
-   /// ```
+    /// ```rust
+    /// use gdtf_parser::utils::units::date::Date;
+    /// use quick_xml::events::attributes::Attribute;
+    /// use std::borrow::Cow;
+    /// assert_eq!(
+    ///    Date::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"2021-04-01T15:23:16")}).unwrap(),
+    ///    Date{
+    ///        year: 2021,
+    ///        month: 4,
+    ///        day: 1,
+    ///        hour: 15,
+    ///        minute: 23,
+    ///        second: 16
+    ///    }
+    /// );
+    /// assert!(Date::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something else")}).is_err());
+    /// ```
     pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfDateError> {
         Self::new_from_str(read::attr_to_str(&attr))
     }
@@ -91,10 +91,12 @@ impl Date {
 /// Error that occures if the format of Date is wrong e.q. not yyyy-mm-ddThh:mm:ss
 pub struct GdtfDateError {}
 
-
 impl Display for GdtfDateError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "The Date must be formatted yyyy-mm-ddThh:mm:ss instance of T != 1")
+        write!(
+            f,
+            "The Date must be formatted yyyy-mm-ddThh:mm:ss instance of T != 1"
+        )
     }
 }
 
@@ -120,11 +122,25 @@ mod tests {
     #[test]
     fn test_new_from_str() {
         assert_eq!(
-            Date { year: 2021, month: 5, day: 16, hour: 17, minute: 41, second: 12 },
+            Date {
+                year: 2021,
+                month: 5,
+                day: 16,
+                hour: 17,
+                minute: 41,
+                second: 12
+            },
             Date::new_from_str("2021-05-16T17:41:12").unwrap()
         );
         assert_eq!(
-            Date { year: 2022, month: 2, day: 8, hour: 17, minute: 12, second: 12 },
+            Date {
+                year: 2022,
+                month: 2,
+                day: 8,
+                hour: 17,
+                minute: 12,
+                second: 12
+            },
             Date::new_from_str("2022-02-08T17:12:12").unwrap()
         );
         assert!(Date::new_from_str("2021-05/16T17:41:12").is_err());
@@ -140,11 +156,25 @@ mod tests {
     #[test]
     fn test_try_from_attr_owned() {
         assert_eq!(
-            Date { year: 2021, month: 5, day: 16, hour: 17, minute: 41, second: 12 },
+            Date {
+                year: 2021,
+                month: 5,
+                day: 16,
+                hour: 17,
+                minute: 41,
+                second: 12
+            },
             Date::new_from_attr(testdata::to_attr_owned(b"2021-05-16T17:41:12")).unwrap()
         );
         assert_eq!(
-            Date { year: 2022, month: 2, day: 8, hour: 17, minute: 12, second: 12 },
+            Date {
+                year: 2022,
+                month: 2,
+                day: 8,
+                hour: 17,
+                minute: 12,
+                second: 12
+            },
             Date::new_from_attr(testdata::to_attr_owned(b"2022-02-08T17:12:12")).unwrap()
         );
         assert!(Date::new_from_attr(testdata::to_attr_owned(b"2021-05/16T17:41:12")).is_err());
@@ -157,15 +187,28 @@ mod tests {
         assert!(Date::new_from_attr(testdata::to_attr_owned(b"2021-05-16T1741:12")).is_err());
     }
 
-
     #[test]
     fn test_try_from_attr_borrowed() {
         assert_eq!(
-            Date { year: 2021, month: 5, day: 16, hour: 17, minute: 41, second: 12 },
+            Date {
+                year: 2021,
+                month: 5,
+                day: 16,
+                hour: 17,
+                minute: 41,
+                second: 12
+            },
             Date::new_from_attr(testdata::to_attr_borrowed(b"2021-05-16T17:41:12")).unwrap()
         );
         assert_eq!(
-            Date { year: 2022, month: 2, day: 8, hour: 17, minute: 12, second: 12 },
+            Date {
+                year: 2022,
+                month: 2,
+                day: 8,
+                hour: 17,
+                minute: 12,
+                second: 12
+            },
             Date::new_from_attr(testdata::to_attr_borrowed(b"2022-02-08T17:12:12")).unwrap()
         );
         assert!(Date::new_from_attr(testdata::to_attr_borrowed(b"2021-05/16T17:41:12")).is_err());

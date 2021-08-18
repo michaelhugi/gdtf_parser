@@ -1,9 +1,9 @@
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::error::Error;
+use std::fmt;
 ///! Module contains traits that can be implemented to simpler deparse structs from quick-xml without serde to have full control of the flow
 use std::fmt::{Debug, Display, Formatter};
-use std::fmt;
 use std::hash::Hash;
 use std::str::FromStr;
 
@@ -32,25 +32,31 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
     ///If true the struct won't be deparsed but only the method read_primary_key_from_attr will be executed
     const ONLY_PRIMARY_KEY: bool;
 
-
     /// Is called when an attribute is found in the xml tree. Usually this method contains a match statement that checks attr.key.
     ///
     /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
     ///
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error>;
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error>;
 
     /// Is callen when a child node is found in the xml tree. This method should call `read_single_from_event` on the right child
     ///
     /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
     ///
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error>;
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(), Self::Error>;
 
     /// Validates the DataHolder and puts it's data into the struct
     ///
     /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
     ///
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error>;
-
 
     ///Function to return an error when an xml-attribute is missing
     fn attribute_not_found(attribute_name: &[u8]) -> GdtfReadError {
@@ -63,7 +69,10 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
     }
 
     ///Function to return an error when a child misses a required primary_key
-    fn child_primary_key_not_found(child_name: &[u8], child_primary_key_name: &[u8]) -> GdtfReadError {
+    fn child_primary_key_not_found(
+        child_name: &[u8],
+        child_primary_key_name: &[u8],
+    ) -> GdtfReadError {
         GdtfReadError::new_xml_node_not_found(child_name, child_primary_key_name)
     }
 
@@ -74,7 +83,9 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
 
     ///Returns PARENT_NODE_NAME as String
     fn parent_node_name() -> String {
-        std::str::from_utf8(Self::PARENT_NODE_NAME).unwrap().to_string()
+        std::str::from_utf8(Self::PARENT_NODE_NAME)
+            .unwrap()
+            .to_string()
     }
 
     /// When a gdtf is deparsed it will go down the tree if a event hits and returns when end of the Node from the event is detected.
@@ -89,7 +100,11 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
     ///
     /// * `Self` - The struct deparsed from the reader
     /// * `Self::PrimaryKey` - If the struct has a primary key (to use in a hashmap for example) it will be returned here
-    fn read_single_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(Option<Self::PrimaryKey>, Self), Self::Error> {
+    fn read_single_from_event(
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(Option<Self::PrimaryKey>, Self), Self::Error> {
         let mut data_holder: Self::DataHolder = Default::default();
         let mut primary_key = None;
         for attr in event.attributes().into_iter() {
@@ -103,7 +118,10 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
         if has_children {
             let mut buf: Vec<u8> = Vec::new();
             loop {
-                match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
+                match reader
+                    .read_event(&mut buf)
+                    .map_err(GdtfReadError::QuickXmlError)?
+                {
                     Event::Start(e) => {
                         Self::read_any_child(&mut data_holder, reader, e, true)?;
                     }
@@ -130,7 +148,9 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
     ///
     /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
     //
-    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error>;
+    fn read_primary_key_from_attr(
+        attr: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error>;
 
     /// Can be used if a node only has a primary key and no children, so the struct is not required to be instanced during deparsing
     ///
@@ -140,14 +160,19 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
     /// # Returns
     ///
     /// * `PrimaryKey` - The primary key as only attribute hold in the node
-    fn read_primary_key_from_event(event: BytesStart<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_event(
+        event: BytesStart<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         for attr in event.attributes().into_iter() {
             let attr = attr?;
             if attr.key == Self::PRIMARY_KEY_NAME {
                 return Self::read_primary_key_from_attr(attr);
             }
         }
-        Err(GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME).into())
+        Err(
+            GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME)
+                .into(),
+        )
     }
 
     /// ⚠️**This function can only be used on the event of the parent-struct if the parent-struct only has one kind of children. It will consume all children!** ⚠️
@@ -163,7 +188,14 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
     /// # Returns
     ///
     /// * `HashMap` - The hashmap containing the structs with key as it's primary-key
-    fn read_hash_map_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<HashMap<Self::PrimaryKey, Self>, Self::Error> where Self: Sized {
+    fn read_hash_map_from_event(
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<HashMap<Self::PrimaryKey, Self>, Self::Error>
+    where
+        Self: Sized,
+    {
         if event.name() != Self::PARENT_NODE_NAME {
             panic!("Wrong call of read_hash_map_from_event for node {}. This method can only be used if you have an empty {}. If this is not empty, fill the map manually in your read_one_child() entry by entry.", Self::node_name(), Self::parent_node_name());
         }
@@ -172,17 +204,36 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
 
         if has_children {
             loop {
-                match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
+                match reader
+                    .read_event(&mut buf)
+                    .map_err(GdtfReadError::QuickXmlError)?
+                {
                     Event::Start(e) => {
                         if e.name() == Self::NODE_NAME {
                             let val = Self::read_single_from_event(reader, e, true)?;
-                            out.insert(val.0.ok_or_else(|| Self::child_primary_key_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME))?, val.1);
+                            out.insert(
+                                val.0.ok_or_else(|| {
+                                    Self::child_primary_key_not_found(
+                                        Self::NODE_NAME,
+                                        Self::PRIMARY_KEY_NAME,
+                                    )
+                                })?,
+                                val.1,
+                            );
                         }
                     }
                     Event::Empty(e) => {
                         if e.name() == Self::NODE_NAME {
                             let val = Self::read_single_from_event(reader, e, false)?;
-                            out.insert(val.0.ok_or_else(|| Self::child_primary_key_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME))?, val.1);
+                            out.insert(
+                                val.0.ok_or_else(|| {
+                                    Self::child_primary_key_not_found(
+                                        Self::NODE_NAME,
+                                        Self::PRIMARY_KEY_NAME,
+                                    )
+                                })?,
+                                val.1,
+                            );
                         }
                     }
                     Event::End(e) => {
@@ -214,7 +265,14 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
     /// # Returns
     ///
     /// * `Vec<Self>` - All structs found by xml-nodes in a vec
-    fn read_vec_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<Vec<Self>, Self::Error> where Self: Sized {
+    fn read_vec_from_event(
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<Vec<Self>, Self::Error>
+    where
+        Self: Sized,
+    {
         if event.name() != Self::PARENT_NODE_NAME {
             panic!("Wrong call of read_vec_from_event for node {}. This method can only be used if you have an empty {}. If this is not empty, fill the vec manually in your read_one_child() entry by entry.", Self::node_name(), Self::parent_node_name());
         }
@@ -223,7 +281,10 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
         let mut out: Vec<Self> = Vec::new();
         if has_children {
             loop {
-                match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
+                match reader
+                    .read_event(&mut buf)
+                    .map_err(GdtfReadError::QuickXmlError)?
+                {
                     Event::Start(e) => {
                         if e.name() == Self::NODE_NAME {
                             out.push(Self::read_single_from_event(reader, e, true)?.1);
@@ -249,7 +310,6 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
         Ok(out)
     }
 
-
     /// ⚠️**This function can only be used on the event of the parent-struct if the parent-struct only has one kind of children. It will consume all children!** ⚠️
     ///
     /// If a xml-node only contains one primary key and no children, this method can be used to avoid instancing unnessecary structs.
@@ -264,7 +324,14 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
     /// # Returns
     ///
     /// * `Vec<Self::PrimaryKey>` - All PrimaryKeys found by xml-nodes in a vec
-    fn read_primary_key_vec_from_event(reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<Vec<Self::PrimaryKey>, Self::Error> where Self: Sized {
+    fn read_primary_key_vec_from_event(
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<Vec<Self::PrimaryKey>, Self::Error>
+    where
+        Self: Sized,
+    {
         if event.name() != Self::PARENT_NODE_NAME {
             panic!("Wrong call of read_vec_from_event for node {}. This method can only be used if you have an empty {}. If this is not empty, fill the vec manually in your read_one_child() entry by entry.", Self::node_name(), Self::parent_node_name());
         }
@@ -273,10 +340,18 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
         let mut out: Vec<Self::PrimaryKey> = Vec::new();
         if has_children {
             loop {
-                match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
+                match reader
+                    .read_event(&mut buf)
+                    .map_err(GdtfReadError::QuickXmlError)?
+                {
                     Event::Start(e) | Event::Empty(e) => {
                         if e.name() == Self::NODE_NAME {
-                            out.push(Self::read_primary_key_from_event(e)?.ok_or_else(|| GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME))?);
+                            out.push(Self::read_primary_key_from_event(e)?.ok_or_else(|| {
+                                GdtfReadError::new_xml_attribute_not_found(
+                                    Self::NODE_NAME,
+                                    Self::PRIMARY_KEY_NAME,
+                                )
+                            })?);
                         }
                     }
                     Event::End(e) => {
@@ -322,7 +397,10 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
     /// If the node has a primary_key, this method will return a hashmap of testvalues returned by `testdatas()` with the primary_key as the hash-map's key. This is useful for avoiding duplicate coding in testing of parent nodes.
     fn testdata_hash_map() -> HashMap<Self::PrimaryKey, Self> {
         if Self::PRIMARY_KEY_NAME == b"" {
-            panic!("The node {} did not declare a PRIMARY_KEY_NAME", Self::node_name());
+            panic!(
+                "The node {} did not declare a PRIMARY_KEY_NAME",
+                Self::node_name()
+            );
         }
         let mut map: HashMap<Self::PrimaryKey, Self> = Default::default();
         for tup in Self::testdatas().into_iter() {
@@ -362,22 +440,37 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
         let xmls = Self::testdatas_xml().into_iter();
         let mut structs = Self::testdatas().into_iter();
         if xmls.len() != structs.len() {
-            panic!("testdatas_xml() and testdatas() do not return the same length for node {}", Self::node_name());
+            panic!(
+                "testdatas_xml() and testdatas() do not return the same length for node {}",
+                Self::node_name()
+            );
         }
 
         for (i, xml) in xmls.enumerate() {
             let s1 = match Self::read_single_from_xml(&xml) {
                 Ok(s1) => s1,
-                Err(e) => panic!("execute_test_read_single failed nr {} in {}: {}", i, Self::node_name(), e)
+                Err(e) => panic!(
+                    "execute_test_read_single failed nr {} in {}: {}",
+                    i,
+                    Self::node_name(),
+                    e
+                ),
             };
             let s2 = match structs.next() {
-                None => panic!("testdatas_xml() and testdatas() do not return the same length for node {}", Self::node_name()),
-                Some(s2) => s2
+                None => panic!(
+                    "testdatas_xml() and testdatas() do not return the same length for node {}",
+                    Self::node_name()
+                ),
+                Some(s2) => s2,
             };
             if Self::PRIMARY_KEY_NAME != b"" {
                 let s1 = match s1.0 {
-                    None => panic!("execute_test_read_single did not return primary_key from xml nr {} in {}", i, Self::node_name()),
-                    Some(s1) => s1
+                    None => panic!(
+                        "execute_test_read_single did not return primary_key from xml nr {} in {}",
+                        i,
+                        Self::node_name()
+                    ),
+                    Some(s1) => s1,
                 };
                 let s2 = match s2.0 {
                     None => panic!("execute_test_read_single did not return primary_key from testdata nr {} in {}", i, Self::node_name()),
@@ -390,8 +483,12 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
             }
             let s1 = s1.1;
             let s2 = match s2.1 {
-                None => panic!("execute_test_read_single testdata provided none nr {} in {}", i, Self::node_name()),
-                Some(s2) => s2
+                None => panic!(
+                    "execute_test_read_single testdata provided none nr {} in {}",
+                    i,
+                    Self::node_name()
+                ),
+                Some(s2) => s2,
             };
             if s1 != s2 {
                 panic!("execute_test_read_single structs were not equal nr {} in {}\n  left: {:?}\n right: {:?}", i, Self::node_name(), s1, s2);
@@ -401,27 +498,55 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
 
     /// Don't call manually! `Use execute_tests()` instead. This function will check all values returned by `testdatas()` and `testdatas_xml()` and compare them while joined together and parsed in one shot. This additional test is important to detect if a child consumes an event that shouldn't be consumed. This would not be detecteble by `execute_test_read_single()`
     fn execute_test_read_vec() {
-        let xml = format!("{}{}{}", Self::parent_node_start_xml(), Self::testdata_xml(), Self::parent_node_end_xml());
+        let xml = format!(
+            "{}{}{}",
+            Self::parent_node_start_xml(),
+            Self::testdata_xml(),
+            Self::parent_node_end_xml()
+        );
         let left = match Self::read_vec_from_xml(&xml) {
             Ok(left) => left,
-            Err(e) => panic!("execute_test_read_vec failed in {}: {}", Self::node_name(), e)
+            Err(e) => panic!(
+                "execute_test_read_vec failed in {}: {}",
+                Self::node_name(),
+                e
+            ),
         };
         let right = Self::testdata_vec();
         if left != right {
-            panic!("execute_test_read_vec were not equal in {}\n  left: {:?}\n right: {:?}", Self::node_name(), left, right);
+            panic!(
+                "execute_test_read_vec were not equal in {}\n  left: {:?}\n right: {:?}",
+                Self::node_name(),
+                left,
+                right
+            );
         }
     }
 
     /// Don't call manually! `Use execute_tests()` instead. This function will check all values returned by `testdatas()` and `testdatas_xml()` and compare them while joined together and parsed in one shot. This additional test is important to detect if a child consumes an event that shouldn't be consumed. This would not be detecteble by `execute_test_read_single()`
     fn execute_test_read_hash_map() {
-        let xml = format!("{}{}{}", Self::parent_node_start_xml(), Self::testdata_xml(), Self::parent_node_end_xml());
+        let xml = format!(
+            "{}{}{}",
+            Self::parent_node_start_xml(),
+            Self::testdata_xml(),
+            Self::parent_node_end_xml()
+        );
         let left = match Self::read_hash_map_from_xml(&xml) {
             Ok(left) => left,
-            Err(e) => panic!("execute_test_read_hash_map failed in {}: {}", Self::node_name(), e)
+            Err(e) => panic!(
+                "execute_test_read_hash_map failed in {}: {}",
+                Self::node_name(),
+                e
+            ),
         };
         let right = Self::testdata_hash_map();
         if left != right {
-            panic!("execute_test_read_hash_map were not equal in {}\n  left: {:?}\n right: {:?}", Self::node_name(), left, right);
+            panic!(
+                "execute_test_read_hash_map were not equal in {}\n  left: {:?}\n right: {:?}",
+                Self::node_name(),
+                left,
+                right
+            );
         }
     }
 
@@ -429,7 +554,11 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
     fn execute_test_faulty() {
         for (pos, xml) in Self::testdatas_xml_faulty().iter().enumerate() {
             if !Self::read_single_from_xml(xml).is_err() {
-                panic!("execute_test_faulty nr {} was no error in {}", pos, Self::node_name());
+                panic!(
+                    "execute_test_faulty nr {} was no error in {}",
+                    pos,
+                    Self::node_name()
+                );
             }
         }
     }
@@ -438,7 +567,11 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
     fn execute_test_primary_key_faulty() {
         for (pos, xml) in Self::testdatas_xml_faulty().iter().enumerate() {
             if !Self::read_primary_key_from_xml(xml).is_err() {
-                panic!("execute_test_primary_key_faulty nr {} was no error in {}", pos, Self::node_name());
+                panic!(
+                    "execute_test_primary_key_faulty nr {} was no error in {}",
+                    pos,
+                    Self::node_name()
+                );
             }
         }
     }
@@ -448,7 +581,10 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
         let xmls = Self::testdatas_xml().into_iter();
         let mut structs = Self::testdatas().into_iter();
         if xmls.len() != structs.len() {
-            panic!("testdatas_xml() and testdatas() do not return the same length for node {}", Self::node_name());
+            panic!(
+                "testdatas_xml() and testdatas() do not return the same length for node {}",
+                Self::node_name()
+            );
         }
 
         for xml in xmls {
@@ -460,8 +596,16 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
 
     /// Don't call manually! `Use execute_tests()` instead. This function will check all values returned by `testdatas()` and `testdatas_xml()` and compare them while joined together and parsed in one shot. This additional test is important to detect if a child consumes an event that shouldn't be consumed. This would not be detecteble by `execute_test_read_single()`
     fn execute_test_read_primary_key_vec() {
-        let xml = format!("{}{}{}", Self::parent_node_start_xml(), Self::testdata_xml(), Self::parent_node_end_xml());
-        assert_eq!(Self::read_primary_key_vec_from_xml(&xml).unwrap(), Self::testdata_primary_key_vec())
+        let xml = format!(
+            "{}{}{}",
+            Self::parent_node_start_xml(),
+            Self::testdata_xml(),
+            Self::parent_node_end_xml()
+        );
+        assert_eq!(
+            Self::read_primary_key_vec_from_xml(&xml).unwrap(),
+            Self::testdata_primary_key_vec()
+        )
     }
 
     /// Main function to run all tests for deparsing the node
@@ -500,7 +644,10 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
 
         let mut buf: Vec<u8> = Vec::new();
         loop {
-            match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
+            match reader
+                .read_event(&mut buf)
+                .map_err(GdtfReadError::QuickXmlError)?
+            {
                 Event::Start(e) => {
                     if e.name() == Self::NODE_NAME {
                         return Self::read_single_from_event(&mut reader, e, true);
@@ -523,18 +670,26 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
             };
         }
         buf.clear();
-        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel", Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(
+            b"TopLevel",
+            Self::NODE_NAME,
+        ))?
     }
 
-
     /// Helper function for testing deparsing  multiple nodes as hash map from an xml
-    fn read_hash_map_from_xml(xml: &str) -> Result<HashMap<Self::PrimaryKey, Self>, Self::Error> where Self: Sized {
+    fn read_hash_map_from_xml(xml: &str) -> Result<HashMap<Self::PrimaryKey, Self>, Self::Error>
+    where
+        Self: Sized,
+    {
         let mut reader = Reader::from_str(xml);
         reader.trim_text(true);
 
         let mut buf: Vec<u8> = Vec::new();
         loop {
-            match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
+            match reader
+                .read_event(&mut buf)
+                .map_err(GdtfReadError::QuickXmlError)?
+            {
                 Event::Start(e) => {
                     if e.name() == Self::PARENT_NODE_NAME {
                         return Self::read_hash_map_from_event(&mut reader, e, true);
@@ -557,17 +712,26 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
             };
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel", Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(
+            b"TopLevel",
+            Self::NODE_NAME,
+        ))?
     }
 
     /// Helper function for testing deparsing  multiple nodes as vec from an xml
-    fn read_vec_from_xml(xml: &str) -> Result<Vec<Self>, Self::Error> where Self: Sized {
+    fn read_vec_from_xml(xml: &str) -> Result<Vec<Self>, Self::Error>
+    where
+        Self: Sized,
+    {
         let mut reader = Reader::from_str(xml);
         reader.trim_text(true);
 
         let mut buf: Vec<u8> = Vec::new();
         loop {
-            match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
+            match reader
+                .read_event(&mut buf)
+                .map_err(GdtfReadError::QuickXmlError)?
+            {
                 Event::Start(e) => {
                     if e.name() == Self::PARENT_NODE_NAME {
                         return Self::read_vec_from_event(&mut reader, e, true);
@@ -590,7 +754,10 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
             };
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel", Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(
+            b"TopLevel",
+            Self::NODE_NAME,
+        ))?
     }
 
     /// Helper function for testing deparsing a single node that only contains primary-key and no childen to just the primary-key from an xml
@@ -600,10 +767,18 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
 
         let mut buf: Vec<u8> = Vec::new();
         loop {
-            match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
+            match reader
+                .read_event(&mut buf)
+                .map_err(GdtfReadError::QuickXmlError)?
+            {
                 Event::Start(e) | Event::Empty(e) => {
                     if e.name() == Self::NODE_NAME {
-                        return Ok(Self::read_primary_key_from_event(e)?.ok_or(GdtfReadError::new_xml_attribute_not_found(Self::NODE_NAME, Self::PRIMARY_KEY_NAME))?);
+                        return Ok(Self::read_primary_key_from_event(e)?.ok_or(
+                            GdtfReadError::new_xml_attribute_not_found(
+                                Self::NODE_NAME,
+                                Self::PRIMARY_KEY_NAME,
+                            ),
+                        )?);
                     }
                 }
                 Event::Eof => {
@@ -618,17 +793,26 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
             };
         }
         buf.clear();
-        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel", Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(
+            b"TopLevel",
+            Self::NODE_NAME,
+        ))?
     }
 
     /// Helper function for testing deparsing multiple nodes that only contain primary keys and no children as a vec of primary-keys from an xml
-    fn read_primary_key_vec_from_xml(xml: &str) -> Result<Vec<Self::PrimaryKey>, Self::Error> where Self: Sized {
+    fn read_primary_key_vec_from_xml(xml: &str) -> Result<Vec<Self::PrimaryKey>, Self::Error>
+    where
+        Self: Sized,
+    {
         let mut reader = Reader::from_str(xml);
         reader.trim_text(true);
 
         let mut buf: Vec<u8> = Vec::new();
         loop {
-            match reader.read_event(&mut buf).map_err(GdtfReadError::QuickXmlError)? {
+            match reader
+                .read_event(&mut buf)
+                .map_err(GdtfReadError::QuickXmlError)?
+            {
                 Event::Start(e) => {
                     if e.name() == Self::PARENT_NODE_NAME {
                         return Self::read_primary_key_vec_from_event(&mut reader, e, true);
@@ -651,10 +835,12 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
             };
             buf.clear();
         }
-        Err(GdtfReadError::new_xml_node_not_found(b"TopLevel", Self::NODE_NAME))?
+        Err(GdtfReadError::new_xml_node_not_found(
+            b"TopLevel",
+            Self::NODE_NAME,
+        ))?
     }
 }
-
 
 ///Error used if an Error in global Deparsing occrus
 #[derive(Debug)]
@@ -689,15 +875,21 @@ impl Display for GdtfReadError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             GdtfReadError::QuickXmlError(e) => write!(f, "GdtfDeparseError: {}", e),
-            GdtfReadError::QuickXmlAttributeNotFoundError(node_name, attribute) => write!(f, "Could not find xml-attribute '{}' in '{}'", attribute, node_name),
-            GdtfReadError::QuickXmlNodeNotFoundError(parent_node_name, node_name) => write!(f, "Could not find xml-node name '{}' in '{}'", node_name, parent_node_name),
+            GdtfReadError::QuickXmlAttributeNotFoundError(node_name, attribute) => write!(
+                f,
+                "Could not find xml-attribute '{}' in '{}'",
+                attribute, node_name
+            ),
+            GdtfReadError::QuickXmlNodeNotFoundError(parent_node_name, node_name) => write!(
+                f,
+                "Could not find xml-node name '{}' in '{}'",
+                node_name, parent_node_name
+            ),
         }
     }
 }
 
-
 impl Error for GdtfReadError {}
-
 
 ///Parses an xml-attribute to str but returns "" if any error occurs
 pub(crate) fn attr_to_str<'a>(attr: &'a Attribute) -> &'a str {
@@ -718,7 +910,7 @@ pub(crate) fn attr_to_f32(attr: Attribute) -> f32 {
 pub(crate) fn attr_to_f32_option(attr: Attribute) -> Option<f32> {
     match f32::from_str(attr_try_to_str(&attr).unwrap_or("")) {
         Ok(f) => Some(f),
-        Err(_) => None
+        Err(_) => None,
     }
 }
 
@@ -726,7 +918,7 @@ pub(crate) fn attr_to_f32_option(attr: Attribute) -> Option<f32> {
 pub(crate) fn attr_to_string_option(attr: Attribute) -> Option<String> {
     match attr_try_to_str(&attr).unwrap_or("") {
         "" => None,
-        s => Some(s.to_owned())
+        s => Some(s.to_owned()),
     }
 }
 
@@ -739,13 +931,11 @@ pub(crate) fn attr_to_string(attr: Attribute) -> String {
 pub(crate) fn attr_to_u8_option(attr: Attribute) -> Option<u8> {
     match u8::from_str(attr_try_to_str(&attr).unwrap_or("")) {
         Ok(f) => Some(f),
-        Err(_) => None
+        Err(_) => None,
     }
 }
-
 
 ///Helper function to create useful error messages
 fn u8_array_to_string(val: &[u8]) -> String {
     std::str::from_utf8(val).map_or("?".to_string(), |e| e.to_string())
 }
-

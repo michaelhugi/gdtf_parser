@@ -16,10 +16,9 @@ use crate::utils::read::TestReadGdtf;
 use crate::utils::units::attribute_name::AttributeName;
 use crate::utils::units::name::Name;
 
-pub mod feature_group;
-pub mod attribute;
 pub(crate) mod activation_group;
-
+pub mod attribute;
+pub mod feature_group;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 /// Defines the attribute definitions for the Fixture Type Attributes.
@@ -45,19 +44,38 @@ impl ReadGdtf for AttributeDefinitions {
     const PRIMARY_KEY_NAME: &'static [u8] = b"";
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_primary_key_from_attr(_: quick_xml::events::attributes::Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: quick_xml::events::attributes::Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed");
     }
 
-    fn read_any_attribute(_: &mut Self::DataHolder, _: quick_xml::events::attributes::Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        _: &mut Self::DataHolder,
+        _: quick_xml::events::attributes::Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(), Self::Error> {
         match event.name() {
-            FeatureGroup::PARENT_NODE_NAME => data_holder.feature_groups = FeatureGroup::read_hash_map_from_event(reader, event, has_children)?,
-            Attribute::PARENT_NODE_NAME => data_holder.attributes = Attribute::read_hash_map_from_event(reader, event, has_children)?,
-            ActivationGroup::PARENT_NODE_NAME => data_holder.activation_groups = ActivationGroup::read_primary_key_vec_from_event(reader, event, has_children)?,
+            FeatureGroup::PARENT_NODE_NAME => {
+                data_holder.feature_groups =
+                    FeatureGroup::read_hash_map_from_event(reader, event, has_children)?
+            }
+            Attribute::PARENT_NODE_NAME => {
+                data_holder.attributes =
+                    Attribute::read_hash_map_from_event(reader, event, has_children)?
+            }
+            ActivationGroup::PARENT_NODE_NAME => {
+                data_holder.activation_groups =
+                    ActivationGroup::read_primary_key_vec_from_event(reader, event, has_children)?
+            }
             _ => {}
         }
         Ok(())
@@ -68,40 +86,158 @@ impl ReadGdtf for AttributeDefinitions {
     }
 }
 
-
 #[cfg(test)]
 impl TestReadGdtf for AttributeDefinitions {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(Self { feature_groups: FeatureGroup::testdata_hash_map(), attributes: Attribute::testdata_hash_map(), activation_groups: ActivationGroup::testdata_primary_key_vec() })),
-            (None, Some(Self { feature_groups: HashMap::new(), attributes: Attribute::testdata_hash_map(), activation_groups: ActivationGroup::testdata_primary_key_vec() })),
-            (None, Some(Self { feature_groups: HashMap::new(), attributes: Attribute::testdata_hash_map(), activation_groups: ActivationGroup::testdata_primary_key_vec() })),
-            (None, Some(Self { feature_groups: FeatureGroup::testdata_hash_map(), attributes: HashMap::new(), activation_groups: ActivationGroup::testdata_primary_key_vec() })),
-            (None, Some(Self { feature_groups: FeatureGroup::testdata_hash_map(), attributes: HashMap::new(), activation_groups: ActivationGroup::testdata_primary_key_vec() })),
-            (None, Some(Self { feature_groups: FeatureGroup::testdata_hash_map(), attributes: Attribute::testdata_hash_map(), activation_groups: vec![] })),
-            (None, Some(Self { feature_groups: FeatureGroup::testdata_hash_map(), attributes: Attribute::testdata_hash_map(), activation_groups: vec![] })),
-            (None, Some(Self { feature_groups: HashMap::new(), attributes: HashMap::new(), activation_groups: vec![] })),
-            (None, Some(Self { feature_groups: HashMap::new(), attributes: HashMap::new(), activation_groups: vec![] })),
-            (None, Some(Self { feature_groups: HashMap::new(), attributes: HashMap::new(), activation_groups: vec![] })),
-            (None, Some(Self { feature_groups: HashMap::new(), attributes: HashMap::new(), activation_groups: vec![] })),
-            (None, Some(Self { feature_groups: HashMap::new(), attributes: HashMap::new(), activation_groups: vec![] })),
+            (
+                None,
+                Some(Self {
+                    feature_groups: FeatureGroup::testdata_hash_map(),
+                    attributes: Attribute::testdata_hash_map(),
+                    activation_groups: ActivationGroup::testdata_primary_key_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    feature_groups: HashMap::new(),
+                    attributes: Attribute::testdata_hash_map(),
+                    activation_groups: ActivationGroup::testdata_primary_key_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    feature_groups: HashMap::new(),
+                    attributes: Attribute::testdata_hash_map(),
+                    activation_groups: ActivationGroup::testdata_primary_key_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    feature_groups: FeatureGroup::testdata_hash_map(),
+                    attributes: HashMap::new(),
+                    activation_groups: ActivationGroup::testdata_primary_key_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    feature_groups: FeatureGroup::testdata_hash_map(),
+                    attributes: HashMap::new(),
+                    activation_groups: ActivationGroup::testdata_primary_key_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    feature_groups: FeatureGroup::testdata_hash_map(),
+                    attributes: Attribute::testdata_hash_map(),
+                    activation_groups: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    feature_groups: FeatureGroup::testdata_hash_map(),
+                    attributes: Attribute::testdata_hash_map(),
+                    activation_groups: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    feature_groups: HashMap::new(),
+                    attributes: HashMap::new(),
+                    activation_groups: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    feature_groups: HashMap::new(),
+                    attributes: HashMap::new(),
+                    activation_groups: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    feature_groups: HashMap::new(),
+                    attributes: HashMap::new(),
+                    activation_groups: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    feature_groups: HashMap::new(),
+                    attributes: HashMap::new(),
+                    activation_groups: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    feature_groups: HashMap::new(),
+                    attributes: HashMap::new(),
+                    activation_groups: vec![],
+                }),
+            ),
         ]
     }
 
     fn testdatas_xml() -> Vec<String> {
         vec![
-            format!(r#"<AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes>{}</Attributes><ActivationGroups>{}</ActivationGroups></AttributeDefinitions>"#, FeatureGroup::testdata_xml(), Attribute::testdata_xml(), ActivationGroup::testdata_xml()),
-            format!(r#"$<AttributeDefinitions><FeatureGroups></FeatureGroups><Attributes>{}</Attributes><ActivationGroups>{}</ActivationGroups></AttributeDefinitions>"#, Attribute::testdata_xml(), ActivationGroup::testdata_xml()),
-            format!(r#"$<AttributeDefinitions><FeatureGroups/><Attributes>{}</Attributes><ActivationGroups>{}</ActivationGroups></AttributeDefinitions>"#, Attribute::testdata_xml(), ActivationGroup::testdata_xml()),
-            format!(r#"$<AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes></Attributes><ActivationGroups>{}</ActivationGroups></AttributeDefinitions>"#, FeatureGroup::testdata_xml(), ActivationGroup::testdata_xml()),
-            format!(r#"$<AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes/><ActivationGroups>{}</ActivationGroups></AttributeDefinitions>"#, FeatureGroup::testdata_xml(), ActivationGroup::testdata_xml()),
-            format!(r#"$<AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes>{}</Attributes><ActivationGroups></ActivationGroups></AttributeDefinitions>"#, FeatureGroup::testdata_xml(), Attribute::testdata_xml()),
-            format!(r#"$<AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes>{}</Attributes><ActivationGroups/></AttributeDefinitions>"#, FeatureGroup::testdata_xml(), Attribute::testdata_xml()),
-            format!(r#"$<AttributeDefinitions><FeatureGroups></FeatureGroups><Attributes></Attributes><ActivationGroups></ActivationGroups></AttributeDefinitions>"#),
-            format!(r#"$<AttributeDefinitions><FeatureGroups/><Attributes/><ActivationGroups/></AttributeDefinitions>"#),
-            format!(r#"$<AttributeDefinitions><FeatureGroups/><Attributes/><ActivationGroups/></AttributeDefinitions>"#),
+            format!(
+                r#"<AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes>{}</Attributes><ActivationGroups>{}</ActivationGroups></AttributeDefinitions>"#,
+                FeatureGroup::testdata_xml(),
+                Attribute::testdata_xml(),
+                ActivationGroup::testdata_xml()
+            ),
+            format!(
+                r#"$<AttributeDefinitions><FeatureGroups></FeatureGroups><Attributes>{}</Attributes><ActivationGroups>{}</ActivationGroups></AttributeDefinitions>"#,
+                Attribute::testdata_xml(),
+                ActivationGroup::testdata_xml()
+            ),
+            format!(
+                r#"$<AttributeDefinitions><FeatureGroups/><Attributes>{}</Attributes><ActivationGroups>{}</ActivationGroups></AttributeDefinitions>"#,
+                Attribute::testdata_xml(),
+                ActivationGroup::testdata_xml()
+            ),
+            format!(
+                r#"$<AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes></Attributes><ActivationGroups>{}</ActivationGroups></AttributeDefinitions>"#,
+                FeatureGroup::testdata_xml(),
+                ActivationGroup::testdata_xml()
+            ),
+            format!(
+                r#"$<AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes/><ActivationGroups>{}</ActivationGroups></AttributeDefinitions>"#,
+                FeatureGroup::testdata_xml(),
+                ActivationGroup::testdata_xml()
+            ),
+            format!(
+                r#"$<AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes>{}</Attributes><ActivationGroups></ActivationGroups></AttributeDefinitions>"#,
+                FeatureGroup::testdata_xml(),
+                Attribute::testdata_xml()
+            ),
+            format!(
+                r#"$<AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes>{}</Attributes><ActivationGroups/></AttributeDefinitions>"#,
+                FeatureGroup::testdata_xml(),
+                Attribute::testdata_xml()
+            ),
+            format!(
+                r#"$<AttributeDefinitions><FeatureGroups></FeatureGroups><Attributes></Attributes><ActivationGroups></ActivationGroups></AttributeDefinitions>"#
+            ),
+            format!(
+                r#"$<AttributeDefinitions><FeatureGroups/><Attributes/><ActivationGroups/></AttributeDefinitions>"#
+            ),
+            format!(
+                r#"$<AttributeDefinitions><FeatureGroups/><Attributes/><ActivationGroups/></AttributeDefinitions>"#
+            ),
             format!(r#"$<AttributeDefinitions></AttributeDefinitions>"#),
-            format!(r#"$<AttributeDefinitions/>"#)
+            format!(r#"$<AttributeDefinitions/>"#),
         ]
     }
 

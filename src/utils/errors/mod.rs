@@ -92,7 +92,9 @@ impl From<GdtfDmxValueError> for GdtfError {
 }
 
 impl From<GdtfNodeError> for GdtfError {
-    fn from(e: GdtfNodeError) -> Self { GdtfError::GdtfNodeError(e) }
+    fn from(e: GdtfNodeError) -> Self {
+        GdtfError::GdtfNodeError(e)
+    }
 }
 
 impl fmt::Display for GdtfError {

@@ -21,14 +21,16 @@ pub struct CriGroup {
     pub cris: Vec<Cri>,
 }
 
-
 ///```rust
 /// use gdtf_parser::fixture_type::physical_descriptions::cris::CriGroup;
 /// assert_eq!(CriGroup::default(),CriGroup{color_temperature:6000.0,cris:vec![]})
 /// ```
 impl Default for CriGroup {
     fn default() -> Self {
-        Self { color_temperature: 6000.0, cris: vec![] }
+        Self {
+            color_temperature: 6000.0,
+            cris: vec![],
+        }
     }
 }
 
@@ -41,16 +43,26 @@ impl ReadGdtf for CriGroup {
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         if let b"ColorTemperature" = attr.key {
             data_holder.color_temperature = read::attr_to_f32(attr)
         }
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(), Self::Error> {
         if let Cri::NODE_NAME = event.name() {
-            data_holder.cris.push(Cri::read_single_from_event(reader, event, has_children)?.1)
+            data_holder
+                .cris
+                .push(Cri::read_single_from_event(reader, event, has_children)?.1)
         }
         Ok(())
     }
@@ -59,7 +71,9 @@ impl ReadGdtf for CriGroup {
         Ok(data_holder)
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed")
     }
 }
@@ -68,10 +82,34 @@ impl ReadGdtf for CriGroup {
 impl TestReadGdtf for CriGroup {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(CriGroup { color_temperature: 2345.4, cris: vec![] })),
-            (None, Some(CriGroup { color_temperature: 6000.0, cris: vec![] })),
-            (None, Some(CriGroup { color_temperature: 2345.4, cris: Cri::testdata_vec() })),
-            (None, Some(CriGroup { color_temperature: 6000.0, cris: Cri::testdata_vec() })),
+            (
+                None,
+                Some(CriGroup {
+                    color_temperature: 2345.4,
+                    cris: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(CriGroup {
+                    color_temperature: 6000.0,
+                    cris: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(CriGroup {
+                    color_temperature: 2345.4,
+                    cris: Cri::testdata_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(CriGroup {
+                    color_temperature: 6000.0,
+                    cris: Cri::testdata_vec(),
+                }),
+            ),
         ]
     }
 
@@ -79,7 +117,10 @@ impl TestReadGdtf for CriGroup {
         vec![
             r#"<CRIGroup ColorTemperature="2345.4"/>"#.to_string(),
             r#"<CRIGroup/>"#.to_string(),
-            format!(r#"<CRIGroup ColorTemperature="2345.4">{}</CRIGroup>"#, Cri::testdata_xml()),
+            format!(
+                r#"<CRIGroup ColorTemperature="2345.4">{}</CRIGroup>"#,
+                Cri::testdata_xml()
+            ),
             format!(r#"<CRIGroup>{}</CRIGroup>"#, Cri::testdata_xml()),
         ]
     }

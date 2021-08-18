@@ -5,7 +5,9 @@ use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
-use crate::fixture_type::physical_descriptions::connectors::ConnectionGender::{Female, Male, Neutral};
+use crate::fixture_type::physical_descriptions::connectors::ConnectionGender::{
+    Female, Male, Neutral,
+};
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
 use crate::utils::read::ReadGdtf;
@@ -46,19 +48,19 @@ impl Default for ConnectionGender {
     }
 }
 
-
 impl Connector {
     ///Tells if two connectors are able to connect or not. They must be of right type and the gender must be correct
     pub fn can_connect(&self, other: &Self) -> bool {
-        self.connector_type == other.connector_type && match self.gender {
-            Female => -1,
-            Male => 1,
-            _ => 0
-        } + match other.gender {
-            Female => -1,
-            Male => 1,
-            _ => 0
-        } == 0
+        self.connector_type == other.connector_type
+            && match self.gender {
+                Female => -1,
+                Male => 1,
+                _ => 0,
+            } + match other.gender {
+                Female => -1,
+                Male => 1,
+                _ => 0,
+            } == 0
     }
 }
 
@@ -71,16 +73,23 @@ impl ReadGdtf for Connector {
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"Type" => data_holder.connector_type = ConnectorType::new_from_attr(attr)?,
-            b"DMXBreak" => data_holder.dmx_break = Some(u32::from_str(read::attr_try_to_str(&attr).unwrap_or("")).unwrap_or(0_u32)),
+            b"DMXBreak" => {
+                data_holder.dmx_break =
+                    Some(u32::from_str(read::attr_try_to_str(&attr).unwrap_or("")).unwrap_or(0_u32))
+            }
             b"Gender" => {
-                data_holder.gender = match i8::from_str(read::attr_try_to_str(&attr).unwrap_or("")).unwrap_or(0_i8) {
-                    -1 => Female,
-                    1 => Male,
-                    _ => Neutral
-                }
+                data_holder.gender =
+                    match i8::from_str(read::attr_try_to_str(&attr).unwrap_or("")).unwrap_or(0_i8) {
+                        -1 => Female,
+                        1 => Male,
+                        _ => Neutral,
+                    }
             }
             b"Length" => data_holder.length = read::attr_to_f32(attr),
             _ => {}
@@ -88,7 +97,12 @@ impl ReadGdtf for Connector {
         Ok(())
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        _: &mut Self::DataHolder,
+        _: &mut Reader<&[u8]>,
+        _: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         Ok(())
     }
 
@@ -96,7 +110,9 @@ impl ReadGdtf for Connector {
         Ok(data_holder)
     }
 
-    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        attr: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
 }
@@ -105,12 +121,60 @@ impl ReadGdtf for Connector {
 impl TestReadGdtf for Connector {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (Some(Name::new("DMX-IN").unwrap()), Some(Connector { connector_type: ConnectorType::Xlr5, dmx_break: None, gender: Female, length: 0.0 })),
-            (Some(Name::new("DMX-OUT").unwrap()), Some(Connector { connector_type: ConnectorType::Xlr5, dmx_break: Some(0), gender: Male, length: 0.0 })),
-            (Some(Name::new("Ethernet1").unwrap()), Some(Connector { connector_type: ConnectorType::Rj45, dmx_break: Some(1), gender: Neutral, length: 0.0 })),
-            (Some(Name::new("Ethernet2").unwrap()), Some(Connector { connector_type: ConnectorType::Rj45, dmx_break: Some(1), gender: Neutral, length: 12.0 })),
-            (Some(Name::new("powerCON TRUE1 IN").unwrap()), Some(Connector { connector_type: ConnectorType::PowerconTrue1, dmx_break: Some(1), gender: Female, length: 0.001 })),
-            (Some(Name::new("powerCON TRUE1 OUT").unwrap()), Some(Connector { connector_type: ConnectorType::Other(Name::new("Something Else").unwrap()), dmx_break: Some(1), gender: Male, length: 0.0 })),
+            (
+                Some(Name::new("DMX-IN").unwrap()),
+                Some(Connector {
+                    connector_type: ConnectorType::Xlr5,
+                    dmx_break: None,
+                    gender: Female,
+                    length: 0.0,
+                }),
+            ),
+            (
+                Some(Name::new("DMX-OUT").unwrap()),
+                Some(Connector {
+                    connector_type: ConnectorType::Xlr5,
+                    dmx_break: Some(0),
+                    gender: Male,
+                    length: 0.0,
+                }),
+            ),
+            (
+                Some(Name::new("Ethernet1").unwrap()),
+                Some(Connector {
+                    connector_type: ConnectorType::Rj45,
+                    dmx_break: Some(1),
+                    gender: Neutral,
+                    length: 0.0,
+                }),
+            ),
+            (
+                Some(Name::new("Ethernet2").unwrap()),
+                Some(Connector {
+                    connector_type: ConnectorType::Rj45,
+                    dmx_break: Some(1),
+                    gender: Neutral,
+                    length: 12.0,
+                }),
+            ),
+            (
+                Some(Name::new("powerCON TRUE1 IN").unwrap()),
+                Some(Connector {
+                    connector_type: ConnectorType::PowerconTrue1,
+                    dmx_break: Some(1),
+                    gender: Female,
+                    length: 0.001,
+                }),
+            ),
+            (
+                Some(Name::new("powerCON TRUE1 OUT").unwrap()),
+                Some(Connector {
+                    connector_type: ConnectorType::Other(Name::new("Something Else").unwrap()),
+                    dmx_break: Some(1),
+                    gender: Male,
+                    length: 0.0,
+                }),
+            ),
         ]
     }
 

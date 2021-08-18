@@ -42,16 +42,26 @@ impl ReadGdtf for MacroDmxStep {
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         if attr.key == b"Duration" {
             data_holder.duration = Some(read::attr_to_f32(attr));
         }
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(), Self::Error> {
         if event.name() == MacroDmxValue::NODE_NAME {
-            data_holder.dmx_values.push(MacroDmxValue::read_single_from_event(reader, event, has_children)?.1);
+            data_holder
+                .dmx_values
+                .push(MacroDmxValue::read_single_from_event(reader, event, has_children)?.1);
         }
         Ok(())
     }
@@ -63,7 +73,9 @@ impl ReadGdtf for MacroDmxStep {
         })
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed");
     }
 }
@@ -72,10 +84,34 @@ impl ReadGdtf for MacroDmxStep {
 impl TestReadGdtf for MacroDmxStep {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(Self { duration: 1.302, dmx_values: vec![] })),
-            (None, Some(Self { duration: 12.0, dmx_values: vec![] })),
-            (None, Some(Self { duration: 1_f32, dmx_values: MacroDmxValue::testdata_vec() })),
-            (None, Some(Self { duration: 17_f32, dmx_values: MacroDmxValue::testdata_vec() })),
+            (
+                None,
+                Some(Self {
+                    duration: 1.302,
+                    dmx_values: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    duration: 12.0,
+                    dmx_values: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    duration: 1_f32,
+                    dmx_values: MacroDmxValue::testdata_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    duration: 17_f32,
+                    dmx_values: MacroDmxValue::testdata_vec(),
+                }),
+            ),
         ]
     }
 
@@ -83,8 +119,14 @@ impl TestReadGdtf for MacroDmxStep {
         vec![
             r#"<MacroDMXStep Duration="1.302"/>"#.to_string(),
             r#"<MacroDMXStep Duration="12"></MacroDMXStep>"#.to_string(),
-            format!(r#"<MacroDMXStep>{}</MacroDMXStep>"#, MacroDmxValue::testdata_xml()),
-            format!(r#"<MacroDMXStep Duration="17">{}</MacroDMXStep>"#, MacroDmxValue::testdata_xml())
+            format!(
+                r#"<MacroDMXStep>{}</MacroDMXStep>"#,
+                MacroDmxValue::testdata_xml()
+            ),
+            format!(
+                r#"<MacroDMXStep Duration="17">{}</MacroDMXStep>"#,
+                MacroDmxValue::testdata_xml()
+            ),
         ]
     }
 
@@ -92,7 +134,6 @@ impl TestReadGdtf for MacroDmxStep {
         vec![]
     }
 }
-
 
 #[cfg(test)]
 mod tests {

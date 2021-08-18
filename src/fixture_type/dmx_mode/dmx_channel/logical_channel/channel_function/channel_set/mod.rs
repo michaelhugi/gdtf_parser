@@ -40,7 +40,6 @@ pub(crate) struct ChannelSetDataHolder {
     pub wheel_slot_index: Option<u8>,
 }
 
-
 impl ReadGdtf for ChannelSet {
     type PrimaryKey = Name;
     type Error = GdtfError;
@@ -51,12 +50,16 @@ impl ReadGdtf for ChannelSet {
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
     const ONLY_PRIMARY_KEY: bool = false;
 
-
-    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        attr: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"DMXFrom" => data_holder.dmx_from = Some(DmxValue::new_from_attr(attr)?),
             b"PhysicalFrom" => data_holder.physical_from = read::attr_to_f32_option(attr),
@@ -67,13 +70,20 @@ impl ReadGdtf for ChannelSet {
         Ok(())
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        _: &mut Self::DataHolder,
+        _: &mut Reader<&[u8]>,
+        _: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         Ok(())
     }
 
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(Self {
-            dmx_from: data_holder.dmx_from.ok_or_else(|| Self::attribute_not_found(b"DmxFrom"))?,
+            dmx_from: data_holder
+                .dmx_from
+                .ok_or_else(|| Self::attribute_not_found(b"DmxFrom"))?,
             physical_from: data_holder.physical_from,
             physical_to: data_holder.physical_to,
             wheel_slot_index: data_holder.wheel_slot_index,
@@ -85,16 +95,96 @@ impl ReadGdtf for ChannelSet {
 impl TestReadGdtf for ChannelSet {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (Some(Name::new("Closed").unwrap()), Some(Self { dmx_from: DmxValue::new_from_str("0/1").unwrap(), physical_from: None, physical_to: None, wheel_slot_index: None })),
-            (Some(Name::new("Open").unwrap()), Some(Self { dmx_from: DmxValue::new_from_str("5/1s").unwrap(), wheel_slot_index: Some(0), physical_from: None, physical_to: None })),
-            (Some(Name::new("Slow").unwrap()), Some(Self { dmx_from: DmxValue::new_from_str("10/1").unwrap(), wheel_slot_index: Some(0), physical_from: None, physical_to: None })),
-            (Some(Name::new("WSI").unwrap()), Some(Self { dmx_from: DmxValue::new_from_str("11/1").unwrap(), wheel_slot_index: Some(0), physical_from: None, physical_to: None })),
-            (Some(Name::new("Wired DMX").unwrap()), Some(Self { dmx_from: DmxValue::new_from_str("10/1").unwrap(), wheel_slot_index: Some(0), physical_from: Some(0.000012), physical_to: Some(12.040001) })),
-            (Some(Name::new("Slow").unwrap()), Some(Self { dmx_from: DmxValue::new_from_str("55/1").unwrap(), wheel_slot_index: Some(0), physical_from: None, physical_to: None })),
-            (Some(Name::new("STH").unwrap()), Some(Self { dmx_from: DmxValue::new_from_str("56/1").unwrap(), wheel_slot_index: Some(0), physical_from: None, physical_to: None })),
-            (Some(Name::new("Fast").unwrap()), Some(Self { dmx_from: DmxValue::new_from_str("79/1").unwrap(), wheel_slot_index: Some(0), physical_from: None, physical_to: None })),
-            (Some(Name::new("").unwrap()), Some(Self { dmx_from: DmxValue::new_from_str("235/1").unwrap(), wheel_slot_index: Some(1), physical_from: None, physical_to: None })),
-            (Some(Name::new("Something").unwrap()), Some(Self { dmx_from: DmxValue::new_from_str("236/1").unwrap(), wheel_slot_index: Some(0), physical_from: None, physical_to: None })),
+            (
+                Some(Name::new("Closed").unwrap()),
+                Some(Self {
+                    dmx_from: DmxValue::new_from_str("0/1").unwrap(),
+                    physical_from: None,
+                    physical_to: None,
+                    wheel_slot_index: None,
+                }),
+            ),
+            (
+                Some(Name::new("Open").unwrap()),
+                Some(Self {
+                    dmx_from: DmxValue::new_from_str("5/1s").unwrap(),
+                    wheel_slot_index: Some(0),
+                    physical_from: None,
+                    physical_to: None,
+                }),
+            ),
+            (
+                Some(Name::new("Slow").unwrap()),
+                Some(Self {
+                    dmx_from: DmxValue::new_from_str("10/1").unwrap(),
+                    wheel_slot_index: Some(0),
+                    physical_from: None,
+                    physical_to: None,
+                }),
+            ),
+            (
+                Some(Name::new("WSI").unwrap()),
+                Some(Self {
+                    dmx_from: DmxValue::new_from_str("11/1").unwrap(),
+                    wheel_slot_index: Some(0),
+                    physical_from: None,
+                    physical_to: None,
+                }),
+            ),
+            (
+                Some(Name::new("Wired DMX").unwrap()),
+                Some(Self {
+                    dmx_from: DmxValue::new_from_str("10/1").unwrap(),
+                    wheel_slot_index: Some(0),
+                    physical_from: Some(0.000012),
+                    physical_to: Some(12.040001),
+                }),
+            ),
+            (
+                Some(Name::new("Slow").unwrap()),
+                Some(Self {
+                    dmx_from: DmxValue::new_from_str("55/1").unwrap(),
+                    wheel_slot_index: Some(0),
+                    physical_from: None,
+                    physical_to: None,
+                }),
+            ),
+            (
+                Some(Name::new("STH").unwrap()),
+                Some(Self {
+                    dmx_from: DmxValue::new_from_str("56/1").unwrap(),
+                    wheel_slot_index: Some(0),
+                    physical_from: None,
+                    physical_to: None,
+                }),
+            ),
+            (
+                Some(Name::new("Fast").unwrap()),
+                Some(Self {
+                    dmx_from: DmxValue::new_from_str("79/1").unwrap(),
+                    wheel_slot_index: Some(0),
+                    physical_from: None,
+                    physical_to: None,
+                }),
+            ),
+            (
+                Some(Name::new("").unwrap()),
+                Some(Self {
+                    dmx_from: DmxValue::new_from_str("235/1").unwrap(),
+                    wheel_slot_index: Some(1),
+                    physical_from: None,
+                    physical_to: None,
+                }),
+            ),
+            (
+                Some(Name::new("Something").unwrap()),
+                Some(Self {
+                    dmx_from: DmxValue::new_from_str("236/1").unwrap(),
+                    wheel_slot_index: Some(0),
+                    physical_from: None,
+                    physical_to: None,
+                }),
+            ),
         ]
     }
 

@@ -28,7 +28,10 @@ impl ReadGdtf for MeasurementPoint {
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"WaveLength" => data_holder.wave_length = read::attr_to_f32(attr),
             b"Energy" => data_holder.energy = read::attr_to_f32(attr),
@@ -37,7 +40,12 @@ impl ReadGdtf for MeasurementPoint {
         Ok(())
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        _: &mut Self::DataHolder,
+        _: &mut Reader<&[u8]>,
+        _: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         Ok(())
     }
 
@@ -45,7 +53,9 @@ impl ReadGdtf for MeasurementPoint {
         Ok(data_holder)
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed")
     }
 }
@@ -54,13 +64,55 @@ impl ReadGdtf for MeasurementPoint {
 impl TestReadGdtf for MeasurementPoint {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(MeasurementPoint { wave_length: 0.3, energy: 1.2 })),
-            (None, Some(MeasurementPoint { wave_length: 0.0, energy: 1.2 })),
-            (None, Some(MeasurementPoint { wave_length: 0.3, energy: 12.0 })),
-            (None, Some(MeasurementPoint { wave_length: 0.3, energy: 0.0 })),
-            (None, Some(MeasurementPoint { wave_length: 0.0, energy: 12.0 })),
-            (None, Some(MeasurementPoint { wave_length: 0.3, energy: 0.0 })),
-            (None, Some(MeasurementPoint { wave_length: 0.0, energy: 0.0 })),
+            (
+                None,
+                Some(MeasurementPoint {
+                    wave_length: 0.3,
+                    energy: 1.2,
+                }),
+            ),
+            (
+                None,
+                Some(MeasurementPoint {
+                    wave_length: 0.0,
+                    energy: 1.2,
+                }),
+            ),
+            (
+                None,
+                Some(MeasurementPoint {
+                    wave_length: 0.3,
+                    energy: 12.0,
+                }),
+            ),
+            (
+                None,
+                Some(MeasurementPoint {
+                    wave_length: 0.3,
+                    energy: 0.0,
+                }),
+            ),
+            (
+                None,
+                Some(MeasurementPoint {
+                    wave_length: 0.0,
+                    energy: 12.0,
+                }),
+            ),
+            (
+                None,
+                Some(MeasurementPoint {
+                    wave_length: 0.3,
+                    energy: 0.0,
+                }),
+            ),
+            (
+                None,
+                Some(MeasurementPoint {
+                    wave_length: 0.0,
+                    energy: 0.0,
+                }),
+            ),
         ]
     }
 

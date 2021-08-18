@@ -12,13 +12,13 @@ use crate::utils::errors::GdtfError;
 use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
-use crate::utils::units::color_cie::{COLOR_CIE_WHITE, ColorCie};
+use crate::utils::units::color_cie::{ColorCie, COLOR_CIE_WHITE};
 use crate::utils::units::name::Name;
 use crate::utils::units::node::Node;
 use crate::utils::units::resource::Resource;
 
-pub mod facet;
 pub mod animation_system;
+pub mod facet;
 
 /// Represents a slot on a wheel
 #[derive(Debug, PartialEq, Clone)]
@@ -70,7 +70,10 @@ impl ReadGdtf for Slot {
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"Color" => data_holder.color = Some(ColorCie::new_from_attr(attr)?),
             b"Filter" => data_holder.filter = Node::new_from_attr(attr)?,
@@ -80,10 +83,20 @@ impl ReadGdtf for Slot {
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(), Self::Error> {
         match event.name() {
-            Facet::NODE_NAME => data_holder.prism_facets.push(Facet::read_single_from_event(reader, event, has_children)?.1),
-            AnimationSystem::NODE_NAME => data_holder.animation_wheel = Some(AnimationSystem::read_single_from_event(reader, event, has_children)?.1),
+            Facet::NODE_NAME => data_holder
+                .prism_facets
+                .push(Facet::read_single_from_event(reader, event, has_children)?.1),
+            AnimationSystem::NODE_NAME => {
+                data_holder.animation_wheel =
+                    Some(AnimationSystem::read_single_from_event(reader, event, has_children)?.1)
+            }
             _ => {}
         }
         Ok(())
@@ -91,11 +104,19 @@ impl ReadGdtf for Slot {
 
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         let media_file_name = if let Some(media_file_name) = data_holder.media_file_name {
-            if media_file_name.0 == "empty" { None } else { Some(media_file_name) }
+            if media_file_name.0 == "empty" {
+                None
+            } else {
+                Some(media_file_name)
+            }
         } else {
             None
         };
-        let prism_facets = if data_holder.prism_facets.is_empty() { None } else { Some(data_holder.prism_facets) };
+        let prism_facets = if data_holder.prism_facets.is_empty() {
+            None
+        } else {
+            Some(data_holder.prism_facets)
+        };
         Ok(Self {
             color: data_holder.color.unwrap_or(DEFAULT_COLOR),
             filter: data_holder.filter,
@@ -105,7 +126,9 @@ impl ReadGdtf for Slot {
         })
     }
 
-    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        attr: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
 }
@@ -114,12 +137,93 @@ impl ReadGdtf for Slot {
 impl TestReadGdtf for Slot {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (Some(Name::new("Open").unwrap()), Some(Self { color: ColorCie { x: 0.3127, y: 0.329, Y: 100.0 }, filter: None, media_file_name: None, animation_wheel: None, prism_facets: None })),
-            (Some(Name::new("Closed").unwrap()), Some(Self { color: ColorCie { x: 0.3127, y: 0.329, Y: 100.0 }, filter: None, media_file_name: None, animation_wheel: None, prism_facets: None })),
-            (Some(Name::new("Something").unwrap()), Some(Self { color: ColorCie { x: 0.3127, y: 0.234001, Y: 99.000001 }, filter: None, media_file_name: None, animation_wheel: None, prism_facets: None })),
-            (Some(Name::new("Open").unwrap()), Some(Self { color: ColorCie { x: 0.3127, y: 0.234001, Y: 99.000001 }, filter: None, media_file_name: None, animation_wheel: None, prism_facets: Some(Facet::testdata_vec()) })),
-            (Some(Name::new("Open").unwrap()), Some(Self { color: ColorCie { x: 0.3127, y: 0.234001, Y: 99.000001 }, filter: Some(Node(vec![Name::new("MyFilter").unwrap(), Name::new("MyFilter2").unwrap()])), media_file_name: None, animation_wheel: AnimationSystem::testdatas().get(0).unwrap().1.clone(), prism_facets: None })),
-            (Some(Name::new("Open").unwrap()), Some(Self { color: ColorCie { x: 0.3127, y: 0.234001, Y: 99.000001 }, filter: None, media_file_name: Some(Resource("media.jpg".to_string())), animation_wheel: AnimationSystem::testdatas().get(1).unwrap().1.clone(), prism_facets: Some(Facet::testdata_vec()) }))
+            (
+                Some(Name::new("Open").unwrap()),
+                Some(Self {
+                    color: ColorCie {
+                        x: 0.3127,
+                        y: 0.329,
+                        Y: 100.0,
+                    },
+                    filter: None,
+                    media_file_name: None,
+                    animation_wheel: None,
+                    prism_facets: None,
+                }),
+            ),
+            (
+                Some(Name::new("Closed").unwrap()),
+                Some(Self {
+                    color: ColorCie {
+                        x: 0.3127,
+                        y: 0.329,
+                        Y: 100.0,
+                    },
+                    filter: None,
+                    media_file_name: None,
+                    animation_wheel: None,
+                    prism_facets: None,
+                }),
+            ),
+            (
+                Some(Name::new("Something").unwrap()),
+                Some(Self {
+                    color: ColorCie {
+                        x: 0.3127,
+                        y: 0.234001,
+                        Y: 99.000001,
+                    },
+                    filter: None,
+                    media_file_name: None,
+                    animation_wheel: None,
+                    prism_facets: None,
+                }),
+            ),
+            (
+                Some(Name::new("Open").unwrap()),
+                Some(Self {
+                    color: ColorCie {
+                        x: 0.3127,
+                        y: 0.234001,
+                        Y: 99.000001,
+                    },
+                    filter: None,
+                    media_file_name: None,
+                    animation_wheel: None,
+                    prism_facets: Some(Facet::testdata_vec()),
+                }),
+            ),
+            (
+                Some(Name::new("Open").unwrap()),
+                Some(Self {
+                    color: ColorCie {
+                        x: 0.3127,
+                        y: 0.234001,
+                        Y: 99.000001,
+                    },
+                    filter: Some(Node(vec![
+                        Name::new("MyFilter").unwrap(),
+                        Name::new("MyFilter2").unwrap(),
+                    ])),
+                    media_file_name: None,
+                    animation_wheel: AnimationSystem::testdatas().get(0).unwrap().1.clone(),
+                    prism_facets: None,
+                }),
+            ),
+            (
+                Some(Name::new("Open").unwrap()),
+                Some(Self {
+                    color: ColorCie {
+                        x: 0.3127,
+                        y: 0.234001,
+                        Y: 99.000001,
+                    },
+                    filter: None,
+                    media_file_name: Some(Resource("media.jpg".to_string())),
+                    animation_wheel: AnimationSystem::testdatas().get(1).unwrap().1.clone(),
+                    prism_facets: Some(Facet::testdata_vec()),
+                }),
+            ),
         ]
     }
 
@@ -128,9 +232,19 @@ impl TestReadGdtf for Slot {
             r#"<Slot Color="0.312700,0.329000,100.000000" Name="Open"/>"#.to_string(),
             r#"<Slot Name="Closed"/>"#.to_string(),
             r#"<Slot Color="0.312700,0.234001,99.000001" Name="Something"></Slot>"#.to_string(),
-            format!(r#"<Slot Color="0.312700,0.234001,99.000001" Name="Open">{}</Slot>"#, Facet::testdata_xml()),
-            format!(r#"<Slot Color="0.312700,0.234001,99.000001" Name="Open" Filter="MyFilter.MyFilter2" MediaFileName="empty">{}</Slot>"#, AnimationSystem::testdatas_xml().get(0).unwrap()),
-            format!(r#"<Slot Color="0.312700,0.234001,99.000001" Name="Open" MediaFileName="media.jpg">{}{}</Slot>"#, Facet::testdata_xml(), AnimationSystem::testdatas_xml().get(1).unwrap()),
+            format!(
+                r#"<Slot Color="0.312700,0.234001,99.000001" Name="Open">{}</Slot>"#,
+                Facet::testdata_xml()
+            ),
+            format!(
+                r#"<Slot Color="0.312700,0.234001,99.000001" Name="Open" Filter="MyFilter.MyFilter2" MediaFileName="empty">{}</Slot>"#,
+                AnimationSystem::testdatas_xml().get(0).unwrap()
+            ),
+            format!(
+                r#"<Slot Color="0.312700,0.234001,99.000001" Name="Open" MediaFileName="media.jpg">{}{}</Slot>"#,
+                Facet::testdata_xml(),
+                AnimationSystem::testdatas_xml().get(1).unwrap()
+            ),
         ]
     }
 
@@ -143,7 +257,7 @@ impl TestReadGdtf for Slot {
 
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::wheel::slot::{DEFAULT_COLOR, Slot};
+    use crate::fixture_type::wheel::slot::{Slot, DEFAULT_COLOR};
     use crate::utils::read::TestReadGdtf;
     use crate::utils::units::color_cie::ColorCie;
 
@@ -154,6 +268,13 @@ mod tests {
 
     #[test]
     fn test_default_color() {
-        assert_eq!(DEFAULT_COLOR, ColorCie { x: 0.3127, y: 0.3290, Y: 100.0 });
+        assert_eq!(
+            DEFAULT_COLOR,
+            ColorCie {
+                x: 0.3127,
+                y: 0.3290,
+                Y: 100.0
+            }
+        );
     }
 }

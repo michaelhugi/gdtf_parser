@@ -35,9 +35,15 @@ impl ReadGdtf for FtMacro {
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(), Self::Error> {
         if event.name() == MacroDmxStep::PARENT_NODE_NAME {
-            data_holder.macro_dmx_steps = MacroDmxStep::read_vec_from_event(reader, event, has_children)?;
+            data_holder.macro_dmx_steps =
+                MacroDmxStep::read_vec_from_event(reader, event, has_children)?;
         }
         Ok(())
     }
@@ -46,7 +52,9 @@ impl ReadGdtf for FtMacro {
         Ok(data_holder)
     }
 
-    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        attr: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
 }
@@ -55,10 +63,30 @@ impl ReadGdtf for FtMacro {
 impl TestReadGdtf for FtMacro {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (Some(Name::new("Macro Name 1").unwrap()), Some(FtMacro { macro_dmx_steps: vec![] })),
-            (Some(Name::new("Macro Name 2").unwrap()), Some(FtMacro { macro_dmx_steps: vec![] })),
-            (Some(Name::new("Macro Name 2a").unwrap()), Some(FtMacro { macro_dmx_steps: vec![] })),
-            (Some(Name::new("Macro Name 3").unwrap()), Some(FtMacro { macro_dmx_steps: MacroDmxStep::testdata_vec() })),
+            (
+                Some(Name::new("Macro Name 1").unwrap()),
+                Some(FtMacro {
+                    macro_dmx_steps: vec![],
+                }),
+            ),
+            (
+                Some(Name::new("Macro Name 2").unwrap()),
+                Some(FtMacro {
+                    macro_dmx_steps: vec![],
+                }),
+            ),
+            (
+                Some(Name::new("Macro Name 2a").unwrap()),
+                Some(FtMacro {
+                    macro_dmx_steps: vec![],
+                }),
+            ),
+            (
+                Some(Name::new("Macro Name 3").unwrap()),
+                Some(FtMacro {
+                    macro_dmx_steps: MacroDmxStep::testdata_vec(),
+                }),
+            ),
         ]
     }
 
@@ -67,7 +95,10 @@ impl TestReadGdtf for FtMacro {
             r#"<FTMacro Name="Macro Name 1"/>"#.to_string(),
             r#"<FTMacro Name="Macro Name 2"></FTMacro>"#.to_string(),
             r#"<FTMacro Name="Macro Name 2a"><MacroDMX/></FTMacro>"#.to_string(),
-            format!(r#"<FTMacro Name="Macro Name 3"><MacroDMX>{}</MacroDMX></FTMacro>"#, MacroDmxStep::testdata_xml())
+            format!(
+                r#"<FTMacro Name="Macro Name 3"><MacroDMX>{}</MacroDMX></FTMacro>"#,
+                MacroDmxStep::testdata_xml()
+            ),
         ]
     }
 

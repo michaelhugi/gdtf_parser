@@ -69,8 +69,8 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-use quick_xml::events::{BytesStart, Event};
 use quick_xml::events::attributes::Attribute;
+use quick_xml::events::{BytesStart, Event};
 use quick_xml::Reader;
 
 use crate::fixture_type::FixtureType;
@@ -107,32 +107,46 @@ impl ReadGdtf for Gdtf {
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         if attr.key == b"DataVersion" {
             data_holder.data_version = Some(DataVersion::new_from_attr(attr));
         }
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(), Self::Error> {
         if event.name() == FixtureType::NODE_NAME {
-            data_holder.fixture_type = Some(FixtureType::read_single_from_event(reader, event, has_children)?.1);
+            data_holder.fixture_type =
+                Some(FixtureType::read_single_from_event(reader, event, has_children)?.1);
         }
         Ok(())
     }
 
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(Self {
-            data_version: data_holder.data_version.ok_or_else(|| Self::attribute_not_found(b"DataVersion"))?,
-            fixture_type: data_holder.fixture_type.ok_or_else(|| Self::child_not_found(b"FixtureType"))?,
+            data_version: data_holder
+                .data_version
+                .ok_or_else(|| Self::attribute_not_found(b"DataVersion"))?,
+            fixture_type: data_holder
+                .fixture_type
+                .ok_or_else(|| Self::child_not_found(b"FixtureType"))?,
         })
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed");
     }
 }
-
 
 impl TryFrom<&Path> for Gdtf {
     type Error = GdtfError;
@@ -140,8 +154,9 @@ impl TryFrom<&Path> for Gdtf {
     fn try_from(file_path: &Path) -> Result<Self, Self::Error> {
         let mut archive = zip::ZipArchive::new(File::open(file_path)?)?;
         let mut description_xml = String::new();
-        archive.by_name("description.xml")?.read_to_string(&mut description_xml)?;
-
+        archive
+            .by_name("description.xml")?
+            .read_to_string(&mut description_xml)?;
 
         let mut reader = Reader::from_str(&description_xml);
         let mut buf: Vec<u8> = Vec::new();
@@ -149,16 +164,12 @@ impl TryFrom<&Path> for Gdtf {
             match reader.read_event(&mut buf)? {
                 Event::Start(e) => {
                     if e.name() == b"GDTF" {
-                        return Ok(
-                            Gdtf::read_single_from_event(&mut reader, e, true)?.1
-                        );
+                        return Ok(Gdtf::read_single_from_event(&mut reader, e, true)?.1);
                     }
                 }
                 Event::Empty(e) => {
                     if e.name() == b"GDTF" {
-                        return Ok(
-                            Gdtf::read_single_from_event(&mut reader, e, false)?.1
-                        );
+                        return Ok(Gdtf::read_single_from_event(&mut reader, e, false)?.1);
                     }
                 }
                 Event::Eof => {
@@ -177,13 +188,11 @@ impl TryFrom<&Path> for Gdtf {
     }
 }
 
-
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 // Start of DataVersion
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
-
 
 ///The DataVersion attribute defines the minimal version of compatibility. The Version format is “Major.Minor”, where major and minor is Uint with size 1 byte
 #[derive(Debug, PartialEq, Clone)]
@@ -221,12 +230,14 @@ impl DataVersion {
         let mut value = s.split('.');
         let major = value.next().unwrap_or("").parse::<i32>().unwrap_or(-1);
         let minor = value.next().unwrap_or("").parse::<i32>().unwrap_or(-1);
-        if value.next().is_some() { return Self::Unknown(s.to_string()); }
+        if value.next().is_some() {
+            return Self::Unknown(s.to_string());
+        }
 
         match (major, minor) {
             (1, 0) => Self::Version1_0,
             (1, 1) => Self::Version1_1,
-            (_, _) => Self::Unknown(s.to_string())
+            (_, _) => Self::Unknown(s.to_string()),
         }
     }
     ///Parses a string defined in gdtf-xml-description to DataVersion.
@@ -245,7 +256,6 @@ impl DataVersion {
     }
 }
 
-
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 // End of DataVersion
@@ -254,13 +264,13 @@ impl DataVersion {
 
 #[cfg(test)]
 mod tests {
-    use std::{thread, time};
     use std::convert::TryFrom;
     use std::path::Path;
     use std::time::Duration;
+    use std::{thread, time};
 
-    use crate::{DataVersion, Gdtf};
     use crate::utils::testdata;
+    use crate::{DataVersion, Gdtf};
 
     #[test]
     fn test_acme() {
@@ -286,60 +296,138 @@ mod tests {
     fn test_time() {
         thread::sleep(Duration::from_millis(2000));
         let now = time::Instant::now();
-        let _ = Gdtf::try_from(Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf")).unwrap();
+        let _ = Gdtf::try_from(Path::new(
+            "test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf",
+        ))
+        .unwrap();
         println!("Deparsing Acme takes {:?}", now.elapsed());
         let now = time::Instant::now();
         let _ = Gdtf::try_from(Path::new("test/JB-Lighting@P12_Spot_HP@V_1.15.gdtf")).unwrap();
         println!("Deparsing JB takes {:?}", now.elapsed());
         let now = time::Instant::now();
-        let _ = Gdtf::try_from(Path::new("test/Robe_Lighting@Robin_Viva_CMY@13042021.gdtf")).unwrap();
+        let _ =
+            Gdtf::try_from(Path::new("test/Robe_Lighting@Robin_Viva_CMY@13042021.gdtf")).unwrap();
         println!("Deparsing Robe takes {:?}", now.elapsed());
         let now = time::Instant::now();
         let _ = Gdtf::try_from(Path::new("test/SGM_Light@G-7_Spot@Rev_A.gdtf")).unwrap();
         println!("Deparsing SGM takes {:?}", now.elapsed());
     }
 
-
     #[test]
     fn test_data_version_new_from_str() {
         assert_eq!(DataVersion::Version1_0, DataVersion::new_from_str("1.0"));
         assert_eq!(DataVersion::Version1_1, DataVersion::new_from_str("1.1"));
         //Test must be rewritten when 1.2 is introduced
-        assert_eq!(DataVersion::Unknown("1.2".to_string()), DataVersion::new_from_str("1.2"));
-        assert_eq!(DataVersion::Unknown("something invalid".to_string()), DataVersion::new_from_str("something invalid"));
-        assert_eq!(DataVersion::Unknown("1.1.2".to_string()), DataVersion::new_from_str("1.1.2"));
-        assert_eq!(DataVersion::Unknown("1.1.".to_string()), DataVersion::new_from_str("1.1."));
-        assert_eq!(DataVersion::Unknown(".1.1".to_string()), DataVersion::new_from_str(".1.1"));
-        assert_eq!(DataVersion::Unknown(".1".to_string()), DataVersion::new_from_str(".1"));
-        assert_eq!(DataVersion::Unknown("1.".to_string()), DataVersion::new_from_str("1."));
+        assert_eq!(
+            DataVersion::Unknown("1.2".to_string()),
+            DataVersion::new_from_str("1.2")
+        );
+        assert_eq!(
+            DataVersion::Unknown("something invalid".to_string()),
+            DataVersion::new_from_str("something invalid")
+        );
+        assert_eq!(
+            DataVersion::Unknown("1.1.2".to_string()),
+            DataVersion::new_from_str("1.1.2")
+        );
+        assert_eq!(
+            DataVersion::Unknown("1.1.".to_string()),
+            DataVersion::new_from_str("1.1.")
+        );
+        assert_eq!(
+            DataVersion::Unknown(".1.1".to_string()),
+            DataVersion::new_from_str(".1.1")
+        );
+        assert_eq!(
+            DataVersion::Unknown(".1".to_string()),
+            DataVersion::new_from_str(".1")
+        );
+        assert_eq!(
+            DataVersion::Unknown("1.".to_string()),
+            DataVersion::new_from_str("1.")
+        );
     }
 
     #[test]
     fn test_data_version_new_from_attr_owned() {
-        assert_eq!(DataVersion::Version1_0, DataVersion::new_from_attr(testdata::to_attr_owned(b"1.0")));
-        assert_eq!(DataVersion::Version1_1, DataVersion::new_from_attr(testdata::to_attr_owned(b"1.1")));
+        assert_eq!(
+            DataVersion::Version1_0,
+            DataVersion::new_from_attr(testdata::to_attr_owned(b"1.0"))
+        );
+        assert_eq!(
+            DataVersion::Version1_1,
+            DataVersion::new_from_attr(testdata::to_attr_owned(b"1.1"))
+        );
         //Test must be rewritten when 1.2 is introduced
-        assert_eq!(DataVersion::Unknown("1.2".to_string()), DataVersion::new_from_attr(testdata::to_attr_owned(b"1.2")));
-        assert_eq!(DataVersion::Unknown("something invalid".to_string()), DataVersion::new_from_attr(testdata::to_attr_owned(b"something invalid")));
-        assert_eq!(DataVersion::Unknown("1.1.2".to_string()), DataVersion::new_from_attr(testdata::to_attr_owned(b"1.1.2")));
-        assert_eq!(DataVersion::Unknown("1.1.".to_string()), DataVersion::new_from_attr(testdata::to_attr_owned(b"1.1.")));
-        assert_eq!(DataVersion::Unknown(".1.1".to_string()), DataVersion::new_from_attr(testdata::to_attr_owned(b".1.1")));
-        assert_eq!(DataVersion::Unknown(".1".to_string()), DataVersion::new_from_attr(testdata::to_attr_owned(b".1")));
-        assert_eq!(DataVersion::Unknown("1.".to_string()), DataVersion::new_from_attr(testdata::to_attr_owned(b"1.")));
+        assert_eq!(
+            DataVersion::Unknown("1.2".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_owned(b"1.2"))
+        );
+        assert_eq!(
+            DataVersion::Unknown("something invalid".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_owned(b"something invalid"))
+        );
+        assert_eq!(
+            DataVersion::Unknown("1.1.2".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_owned(b"1.1.2"))
+        );
+        assert_eq!(
+            DataVersion::Unknown("1.1.".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_owned(b"1.1."))
+        );
+        assert_eq!(
+            DataVersion::Unknown(".1.1".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_owned(b".1.1"))
+        );
+        assert_eq!(
+            DataVersion::Unknown(".1".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_owned(b".1"))
+        );
+        assert_eq!(
+            DataVersion::Unknown("1.".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_owned(b"1."))
+        );
     }
 
     #[test]
     fn test_data_version_new_from_attr_borrowed() {
-        assert_eq!(DataVersion::Version1_0, DataVersion::new_from_attr(testdata::to_attr_borrowed(b"1.0")));
-        assert_eq!(DataVersion::Version1_1, DataVersion::new_from_attr(testdata::to_attr_borrowed(b"1.1")));
+        assert_eq!(
+            DataVersion::Version1_0,
+            DataVersion::new_from_attr(testdata::to_attr_borrowed(b"1.0"))
+        );
+        assert_eq!(
+            DataVersion::Version1_1,
+            DataVersion::new_from_attr(testdata::to_attr_borrowed(b"1.1"))
+        );
         //Test must be rewritten when 1.2 is introduced
-        assert_eq!(DataVersion::Unknown("1.2".to_string()), DataVersion::new_from_attr(testdata::to_attr_borrowed(b"1.2")));
-        assert_eq!(DataVersion::Unknown("something invalid".to_string()), DataVersion::new_from_attr(testdata::to_attr_borrowed(b"something invalid")));
-        assert_eq!(DataVersion::Unknown("1.1.2".to_string()), DataVersion::new_from_attr(testdata::to_attr_borrowed(b"1.1.2")));
-        assert_eq!(DataVersion::Unknown("1.1.".to_string()), DataVersion::new_from_attr(testdata::to_attr_borrowed(b"1.1.")));
-        assert_eq!(DataVersion::Unknown(".1.1".to_string()), DataVersion::new_from_attr(testdata::to_attr_borrowed(b".1.1")));
-        assert_eq!(DataVersion::Unknown(".1".to_string()), DataVersion::new_from_attr(testdata::to_attr_borrowed(b".1")));
-        assert_eq!(DataVersion::Unknown("1.".to_string()), DataVersion::new_from_attr(testdata::to_attr_borrowed(b"1.")));
+        assert_eq!(
+            DataVersion::Unknown("1.2".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_borrowed(b"1.2"))
+        );
+        assert_eq!(
+            DataVersion::Unknown("something invalid".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_borrowed(b"something invalid"))
+        );
+        assert_eq!(
+            DataVersion::Unknown("1.1.2".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_borrowed(b"1.1.2"))
+        );
+        assert_eq!(
+            DataVersion::Unknown("1.1.".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_borrowed(b"1.1."))
+        );
+        assert_eq!(
+            DataVersion::Unknown(".1.1".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_borrowed(b".1.1"))
+        );
+        assert_eq!(
+            DataVersion::Unknown(".1".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_borrowed(b".1"))
+        );
+        assert_eq!(
+            DataVersion::Unknown("1.".to_string()),
+            DataVersion::new_from_attr(testdata::to_attr_borrowed(b"1."))
+        );
     }
 
     #[test]

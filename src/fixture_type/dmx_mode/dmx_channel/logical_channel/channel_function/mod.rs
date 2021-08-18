@@ -106,16 +106,29 @@ impl ReadGdtf for ChannelFunction {
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_primary_key_from_attr(attr: quick_xml::events::attributes::Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        attr: quick_xml::events::attributes::Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: quick_xml::events::attributes::Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: quick_xml::events::attributes::Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"Attribute" => data_holder.attribute = Some(Attribute::new_from_attr(attr)?),
-            b"OriginalAttribute" => data_holder.original_attribute = Some(read::attr_to_string(attr)),
-            b"DMXFrom" => data_holder.dmx_from = Some(DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_FROM)),
-            b"Default" => data_holder.default = Some(DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_DEFAULT)),
+            b"OriginalAttribute" => {
+                data_holder.original_attribute = Some(read::attr_to_string(attr))
+            }
+            b"DMXFrom" => {
+                data_holder.dmx_from =
+                    Some(DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_FROM))
+            }
+            b"Default" => {
+                data_holder.default =
+                    Some(DmxValue::new_from_attr(attr).unwrap_or(DEFAULT_DMX_DEFAULT))
+            }
             b"PhysicalFrom" => data_holder.physical_from = Some(read::attr_to_f32(attr)),
             b"PhysicalTo" => data_holder.physical_to = Some(read::attr_to_f32(attr)),
             b"RealFade" => data_holder.real_fade = Some(read::attr_to_f32(attr)),
@@ -124,23 +137,40 @@ impl ReadGdtf for ChannelFunction {
             b"Emitter" => data_holder.emitter = Node::new_from_attr(attr)?,
             b"Filter" => data_holder.filter = Node::new_from_attr(attr)?,
             b"ModeMaster" => data_holder.mode_master = Node::new_from_attr(attr)?,
-            b"ModeFrom" => data_holder.mode_from = match DmxValue::new_from_attr(attr) {
-                Ok(val) => Some(val),
-                Err(_) => None
-            },
-            b"ModeTo" => data_holder.mode_to = match DmxValue::new_from_attr(attr) {
-                Ok(val) => Some(val),
-                Err(_) => None
-            },
+            b"ModeFrom" => {
+                data_holder.mode_from = match DmxValue::new_from_attr(attr) {
+                    Ok(val) => Some(val),
+                    Err(_) => None,
+                }
+            }
+            b"ModeTo" => {
+                data_holder.mode_to = match DmxValue::new_from_attr(attr) {
+                    Ok(val) => Some(val),
+                    Err(_) => None,
+                }
+            }
             _ => {}
         }
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(), Self::Error> {
         if event.name() == ChannelSet::NODE_NAME {
             let cs = ChannelSet::read_single_from_event(reader, event, has_children)?;
-            data_holder.channel_sets.insert(cs.0.ok_or_else(|| Self::child_primary_key_not_found(ChannelSet::NODE_NAME, ChannelSet::PRIMARY_KEY_NAME))?, cs.1);
+            data_holder.channel_sets.insert(
+                cs.0.ok_or_else(|| {
+                    Self::child_primary_key_not_found(
+                        ChannelSet::NODE_NAME,
+                        ChannelSet::PRIMARY_KEY_NAME,
+                    )
+                })?,
+                cs.1,
+            );
         }
         Ok(())
     }
@@ -148,11 +178,17 @@ impl ReadGdtf for ChannelFunction {
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         let mode_master = match data_holder.mode_master {
             None => None,
-            Some(node) => Some(ModeMaster::new(node, data_holder.mode_from, data_holder.mode_to))
+            Some(node) => Some(ModeMaster::new(
+                node,
+                data_holder.mode_from,
+                data_holder.mode_to,
+            )),
         };
         Ok(Self {
             attribute: data_holder.attribute.unwrap_or(Attribute::NoFeature),
-            original_attribute: data_holder.original_attribute.unwrap_or_else(|| "".to_string()),
+            original_attribute: data_holder
+                .original_attribute
+                .unwrap_or_else(|| "".to_string()),
             dmx_from: data_holder.dmx_from.unwrap_or(DEFAULT_DMX_FROM),
             default: data_holder.default.unwrap_or(DEFAULT_DMX_DEFAULT),
             physical_from: data_holder.physical_from.unwrap_or(0_f32),
@@ -172,27 +208,273 @@ impl ReadGdtf for ChannelFunction {
 impl TestReadGdtf for ChannelFunction {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (Some(Name::new("Reserved").unwrap()), Some(Self { attribute: Attribute::new_from_str("NoFeature").unwrap(), dmx_from: DmxValue { initial_value: 185, n: 1, is_byte_shifting: false }, default: DmxValue { initial_value: 185, n: 1, is_byte_shifting: false }, original_attribute: "".to_string(), physical_from: 0.0, physical_to: 1.0, real_acceleration: 12.234101, real_fade: 0.000000, emitter: Node::new_from_str("Emitter1").unwrap(), filter: None, wheel: None, mode_master: None, channel_sets: HashMap::new() })),
-            (Some(Name::new("Reserved").unwrap()), Some(Self { attribute: Attribute::new_from_str("NoFeature").unwrap(), dmx_from: DmxValue { initial_value: 185, n: 1, is_byte_shifting: false }, default: DmxValue { initial_value: 185, n: 1, is_byte_shifting: false }, original_attribute: "".to_string(), physical_from: 0.0, physical_to: 1.0, real_acceleration: 12.234101, real_fade: 0.000000, emitter: Node::new_from_str("Emitter1").unwrap(), filter: None, wheel: None, mode_master: None, channel_sets: HashMap::new() })),
-            (Some(Name::new("Fade Wave Up").unwrap()), Some(Self { attribute: Attribute::new_from_str("Shutter1StrobeEffect").unwrap(), dmx_from: DmxValue { initial_value: 225, n: 1, is_byte_shifting: false }, default: DmxValue { initial_value: 225, n: 1, is_byte_shifting: false }, original_attribute: "".to_string(), physical_from: 0.0, physical_to: 1.0, real_acceleration: 0.0, real_fade: 0.0, emitter: None, filter: None, wheel: None, mode_master: None, channel_sets: ChannelSet::testdata_hash_map() })),
-            (Some(Name::new("Random Pixel").unwrap()), Some(Self { attribute: Attribute::new_from_str("").unwrap(), dmx_from: DmxValue { initial_value: 230, n: 1, is_byte_shifting: false }, default: DmxValue { initial_value: 230, n: 1, is_byte_shifting: false }, original_attribute: "".to_string(), physical_from: 0.0, physical_to: 1.0, real_acceleration: 0.0, real_fade: 0.0, emitter: None, filter: None, wheel: None, mode_master: None, channel_sets: ChannelSet::testdata_hash_map() })),
-            (Some(Name::new("Wave Up Down").unwrap()), Some(Self { attribute: Attribute::new_from_str("").unwrap(), dmx_from: DmxValue { initial_value: 235, n: 1, is_byte_shifting: false }, default: DmxValue { initial_value: 0, n: 1, is_byte_shifting: false }, original_attribute: "".to_string(), physical_from: 0.0, physical_to: 1.0, real_acceleration: 0.0, real_fade: 0.0, emitter: None, filter: None, wheel: None, mode_master: Some(ModeMaster { mode_master: Node::new_from_str("Base_ColorMacro1").unwrap().unwrap(), mode_from: DmxValue { initial_value: 14, n: 1, is_byte_shifting: false }, mode_to: DmxValue { initial_value: 20, n: 1, is_byte_shifting: true } }), channel_sets: ChannelSet::testdata_hash_map() })),
-            (Some(Name::new("Wave Up").unwrap()), Some(Self { attribute: Attribute::new_from_str("Shutter1StrobeEffect").unwrap(), dmx_from: DmxValue { initial_value: 240, n: 1, is_byte_shifting: true }, default: DmxValue { initial_value: 0, n: 1, is_byte_shifting: false }, original_attribute: "".to_string(), physical_from: 0.0, physical_to: 1.0, real_acceleration: 0.0, real_fade: 58.000134, emitter: None, filter: Node::new_from_str("Magenta").unwrap(), wheel: None, mode_master: None, channel_sets: ChannelSet::testdata_hash_map() })),
-            (Some(Name::new("Wave Down").unwrap()), Some(Self { attribute: Attribute::new_from_str("Shutter1StrobeEffect").unwrap(), dmx_from: DmxValue { initial_value: 245, n: 1, is_byte_shifting: false }, default: DmxValue { initial_value: 245, n: 1, is_byte_shifting: false }, original_attribute: "ShutStrEff".to_string(), physical_from: 0.0, physical_to: 1.0, real_acceleration: 0.0, real_fade: 0.0, emitter: None, filter: None, wheel: Node::new_from_str("Wheel1").unwrap(), mode_master: Some(ModeMaster { mode_master: Node::new_from_str("Base_ColorMacro1").unwrap().unwrap(), mode_from: DmxValue { initial_value: 0, n: 1, is_byte_shifting: false }, mode_to: DmxValue { initial_value: 0, n: 1, is_byte_shifting: false } }), channel_sets: ChannelSet::testdata_hash_map() })),
-            (Some(Name::new("Open (2)").unwrap()), Some(Self { attribute: Attribute::new_from_str("Shutter1").unwrap(), dmx_from: DmxValue { initial_value: 0, n: 1, is_byte_shifting: false }, default: DmxValue { initial_value: 250, n: 1, is_byte_shifting: true }, original_attribute: "".to_string(), physical_from: -85.000012, physical_to: 70.000012, real_acceleration: 0.0, real_fade: 0.0, emitter: None, filter: None, wheel: None, mode_master: None, channel_sets: ChannelSet::testdata_hash_map() }))
+            (
+                Some(Name::new("Reserved").unwrap()),
+                Some(Self {
+                    attribute: Attribute::new_from_str("NoFeature").unwrap(),
+                    dmx_from: DmxValue {
+                        initial_value: 185,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    default: DmxValue {
+                        initial_value: 185,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    original_attribute: "".to_string(),
+                    physical_from: 0.0,
+                    physical_to: 1.0,
+                    real_acceleration: 12.234101,
+                    real_fade: 0.000000,
+                    emitter: Node::new_from_str("Emitter1").unwrap(),
+                    filter: None,
+                    wheel: None,
+                    mode_master: None,
+                    channel_sets: HashMap::new(),
+                }),
+            ),
+            (
+                Some(Name::new("Reserved").unwrap()),
+                Some(Self {
+                    attribute: Attribute::new_from_str("NoFeature").unwrap(),
+                    dmx_from: DmxValue {
+                        initial_value: 185,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    default: DmxValue {
+                        initial_value: 185,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    original_attribute: "".to_string(),
+                    physical_from: 0.0,
+                    physical_to: 1.0,
+                    real_acceleration: 12.234101,
+                    real_fade: 0.000000,
+                    emitter: Node::new_from_str("Emitter1").unwrap(),
+                    filter: None,
+                    wheel: None,
+                    mode_master: None,
+                    channel_sets: HashMap::new(),
+                }),
+            ),
+            (
+                Some(Name::new("Fade Wave Up").unwrap()),
+                Some(Self {
+                    attribute: Attribute::new_from_str("Shutter1StrobeEffect").unwrap(),
+                    dmx_from: DmxValue {
+                        initial_value: 225,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    default: DmxValue {
+                        initial_value: 225,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    original_attribute: "".to_string(),
+                    physical_from: 0.0,
+                    physical_to: 1.0,
+                    real_acceleration: 0.0,
+                    real_fade: 0.0,
+                    emitter: None,
+                    filter: None,
+                    wheel: None,
+                    mode_master: None,
+                    channel_sets: ChannelSet::testdata_hash_map(),
+                }),
+            ),
+            (
+                Some(Name::new("Random Pixel").unwrap()),
+                Some(Self {
+                    attribute: Attribute::new_from_str("").unwrap(),
+                    dmx_from: DmxValue {
+                        initial_value: 230,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    default: DmxValue {
+                        initial_value: 230,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    original_attribute: "".to_string(),
+                    physical_from: 0.0,
+                    physical_to: 1.0,
+                    real_acceleration: 0.0,
+                    real_fade: 0.0,
+                    emitter: None,
+                    filter: None,
+                    wheel: None,
+                    mode_master: None,
+                    channel_sets: ChannelSet::testdata_hash_map(),
+                }),
+            ),
+            (
+                Some(Name::new("Wave Up Down").unwrap()),
+                Some(Self {
+                    attribute: Attribute::new_from_str("").unwrap(),
+                    dmx_from: DmxValue {
+                        initial_value: 235,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    default: DmxValue {
+                        initial_value: 0,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    original_attribute: "".to_string(),
+                    physical_from: 0.0,
+                    physical_to: 1.0,
+                    real_acceleration: 0.0,
+                    real_fade: 0.0,
+                    emitter: None,
+                    filter: None,
+                    wheel: None,
+                    mode_master: Some(ModeMaster {
+                        mode_master: Node::new_from_str("Base_ColorMacro1").unwrap().unwrap(),
+                        mode_from: DmxValue {
+                            initial_value: 14,
+                            n: 1,
+                            is_byte_shifting: false,
+                        },
+                        mode_to: DmxValue {
+                            initial_value: 20,
+                            n: 1,
+                            is_byte_shifting: true,
+                        },
+                    }),
+                    channel_sets: ChannelSet::testdata_hash_map(),
+                }),
+            ),
+            (
+                Some(Name::new("Wave Up").unwrap()),
+                Some(Self {
+                    attribute: Attribute::new_from_str("Shutter1StrobeEffect").unwrap(),
+                    dmx_from: DmxValue {
+                        initial_value: 240,
+                        n: 1,
+                        is_byte_shifting: true,
+                    },
+                    default: DmxValue {
+                        initial_value: 0,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    original_attribute: "".to_string(),
+                    physical_from: 0.0,
+                    physical_to: 1.0,
+                    real_acceleration: 0.0,
+                    real_fade: 58.000134,
+                    emitter: None,
+                    filter: Node::new_from_str("Magenta").unwrap(),
+                    wheel: None,
+                    mode_master: None,
+                    channel_sets: ChannelSet::testdata_hash_map(),
+                }),
+            ),
+            (
+                Some(Name::new("Wave Down").unwrap()),
+                Some(Self {
+                    attribute: Attribute::new_from_str("Shutter1StrobeEffect").unwrap(),
+                    dmx_from: DmxValue {
+                        initial_value: 245,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    default: DmxValue {
+                        initial_value: 245,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    original_attribute: "ShutStrEff".to_string(),
+                    physical_from: 0.0,
+                    physical_to: 1.0,
+                    real_acceleration: 0.0,
+                    real_fade: 0.0,
+                    emitter: None,
+                    filter: None,
+                    wheel: Node::new_from_str("Wheel1").unwrap(),
+                    mode_master: Some(ModeMaster {
+                        mode_master: Node::new_from_str("Base_ColorMacro1").unwrap().unwrap(),
+                        mode_from: DmxValue {
+                            initial_value: 0,
+                            n: 1,
+                            is_byte_shifting: false,
+                        },
+                        mode_to: DmxValue {
+                            initial_value: 0,
+                            n: 1,
+                            is_byte_shifting: false,
+                        },
+                    }),
+                    channel_sets: ChannelSet::testdata_hash_map(),
+                }),
+            ),
+            (
+                Some(Name::new("Open (2)").unwrap()),
+                Some(Self {
+                    attribute: Attribute::new_from_str("Shutter1").unwrap(),
+                    dmx_from: DmxValue {
+                        initial_value: 0,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    default: DmxValue {
+                        initial_value: 250,
+                        n: 1,
+                        is_byte_shifting: true,
+                    },
+                    original_attribute: "".to_string(),
+                    physical_from: -85.000012,
+                    physical_to: 70.000012,
+                    real_acceleration: 0.0,
+                    real_fade: 0.0,
+                    emitter: None,
+                    filter: None,
+                    wheel: None,
+                    mode_master: None,
+                    channel_sets: ChannelSet::testdata_hash_map(),
+                }),
+            ),
         ]
     }
 
     fn testdatas_xml() -> Vec<String> {
         vec![
-            format!(r#"<ChannelFunction Attribute="NoFeature" DMXFrom="185/1" Default="185/1" Name="Reserved" OriginalAttribute="" Emitter="Emitter1" PhysicalTo="1.000000" RealAcceleration="12.234101" RealFade="0.000000"/>"#),
-            format!(r#"<ChannelFunction Attribute="NoFeature" DMXFrom="185/1" Default="185/1" Name="Reserved" OriginalAttribute="" Emitter="Emitter1" PhysicalTo="1.000000" RealAcceleration="12.234101" RealFade="0.000000"></ChannelFunction>"#),
-            format!(r#"<ChannelFunction Attribute="Shutter1StrobeEffect" DMXFrom="225/1" Default="225/1" Name="Fade Wave Up" OriginalAttribute="" PhysicalFrom="0.000000" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#, ChannelSet::testdata_xml()),
-            format!(r#"<ChannelFunction Attribute="" DMXFrom="230/1" Default="230/1" Name="Random Pixel" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#, ChannelSet::testdata_xml()),
-            format!(r#"<ChannelFunction DMXFrom="235/1" Default="" Name="Wave Up Down" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" ModeMaster="Base_ColorMacro1" ModeFrom="14/1" ModeTo="20/1s">{}</ChannelFunction>"#, ChannelSet::testdata_xml()),
-            format!(r#"<ChannelFunction Attribute="Shutter1StrobeEffect" Filter="Magenta" DMXFrom="240/1s" Name="Wave Up" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="58.000134">{}</ChannelFunction>"#, ChannelSet::testdata_xml()),
-            format!(r#"<ChannelFunction Attribute="Shutter1StrobeEffect" Wheel="Wheel1" DMXFrom="245/1" Default="245/1" Name="Wave Down" OriginalAttribute="ShutStrEff" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"  ModeMaster="Base_ColorMacro1">{}</ChannelFunction>"#, ChannelSet::testdata_xml()),
-            format!(r#"<ChannelFunction Attribute="Shutter1" Default="250/1s" Name="Open (2)" OriginalAttribute="" PhysicalFrom="-85.000012" PhysicalTo="70.000015" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#, ChannelSet::testdata_xml()),
+            format!(
+                r#"<ChannelFunction Attribute="NoFeature" DMXFrom="185/1" Default="185/1" Name="Reserved" OriginalAttribute="" Emitter="Emitter1" PhysicalTo="1.000000" RealAcceleration="12.234101" RealFade="0.000000"/>"#
+            ),
+            format!(
+                r#"<ChannelFunction Attribute="NoFeature" DMXFrom="185/1" Default="185/1" Name="Reserved" OriginalAttribute="" Emitter="Emitter1" PhysicalTo="1.000000" RealAcceleration="12.234101" RealFade="0.000000"></ChannelFunction>"#
+            ),
+            format!(
+                r#"<ChannelFunction Attribute="Shutter1StrobeEffect" DMXFrom="225/1" Default="225/1" Name="Fade Wave Up" OriginalAttribute="" PhysicalFrom="0.000000" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#,
+                ChannelSet::testdata_xml()
+            ),
+            format!(
+                r#"<ChannelFunction Attribute="" DMXFrom="230/1" Default="230/1" Name="Random Pixel" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#,
+                ChannelSet::testdata_xml()
+            ),
+            format!(
+                r#"<ChannelFunction DMXFrom="235/1" Default="" Name="Wave Up Down" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" ModeMaster="Base_ColorMacro1" ModeFrom="14/1" ModeTo="20/1s">{}</ChannelFunction>"#,
+                ChannelSet::testdata_xml()
+            ),
+            format!(
+                r#"<ChannelFunction Attribute="Shutter1StrobeEffect" Filter="Magenta" DMXFrom="240/1s" Name="Wave Up" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="58.000134">{}</ChannelFunction>"#,
+                ChannelSet::testdata_xml()
+            ),
+            format!(
+                r#"<ChannelFunction Attribute="Shutter1StrobeEffect" Wheel="Wheel1" DMXFrom="245/1" Default="245/1" Name="Wave Down" OriginalAttribute="ShutStrEff" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"  ModeMaster="Base_ColorMacro1">{}</ChannelFunction>"#,
+                ChannelSet::testdata_xml()
+            ),
+            format!(
+                r#"<ChannelFunction Attribute="Shutter1" Default="250/1s" Name="Open (2)" OriginalAttribute="" PhysicalFrom="-85.000012" PhysicalTo="70.000015" RealAcceleration="0.000000" RealFade="0.000000">{}</ChannelFunction>"#,
+                ChannelSet::testdata_xml()
+            ),
         ]
     }
 
@@ -207,7 +489,6 @@ impl TestReadGdtf for ChannelFunction {
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 
-
 #[derive(Debug, PartialEq, Clone)]
 ///Node used in ChannelFunction.attribute. Link to attribute; Starting point is the attributes node. Default value: “NoFeature”.
 pub enum Attribute {
@@ -216,7 +497,6 @@ pub enum Attribute {
     ///Used for special value NoFeature
     NoFeature,
 }
-
 
 impl Attribute {
     ///Parses a string defined in gdtf-xml-description to Attribute
@@ -238,7 +518,7 @@ impl Attribute {
         } else {
             match Node::new_from_str(value)? {
                 None => Ok(Self::NoFeature),
-                Some(value) => Ok(Self::Feature(value))
+                Some(value) => Ok(Self::Feature(value)),
             }
         }
     }
@@ -304,20 +584,16 @@ impl ModeMaster {
     /// * `mode_from` - Dmx start value. If None is passed it will be replaced with Default value: 0/1
     /// * `mode_to` - Dmx end value. If None is passed it will be replaced with Default value: 0/1
     pub fn new(mode_master: Node, mode_from: Option<DmxValue>, mode_to: Option<DmxValue>) -> Self {
-        let mode_from = mode_from.unwrap_or(
-            DmxValue {
-                initial_value: 0,
-                n: 1,
-                is_byte_shifting: false,
-            }
-        );
-        let mode_to = mode_to.unwrap_or(
-            DmxValue {
-                initial_value: 0,
-                n: 1,
-                is_byte_shifting: false,
-            }
-        );
+        let mode_from = mode_from.unwrap_or(DmxValue {
+            initial_value: 0,
+            n: 1,
+            is_byte_shifting: false,
+        });
+        let mode_to = mode_to.unwrap_or(DmxValue {
+            initial_value: 0,
+            n: 1,
+            is_byte_shifting: false,
+        });
 
         Self {
             mode_master,
@@ -327,7 +603,6 @@ impl ModeMaster {
     }
 }
 
-
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 // Start of ModeMaster
@@ -336,7 +611,9 @@ impl ModeMaster {
 
 #[cfg(test)]
 pub mod tests {
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::{Attribute, ChannelFunction, ModeMaster};
+    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::{
+        Attribute, ChannelFunction, ModeMaster,
+    };
     use crate::utils::errors::GdtfError;
     use crate::utils::read::TestReadGdtf;
     use crate::utils::testdata;
@@ -351,30 +628,77 @@ pub mod tests {
 
     #[test]
     fn test_attribute_new_from_str() {
-        assert_eq!(Attribute::new_from_str("NoFeature").unwrap(), Attribute::NoFeature);
+        assert_eq!(
+            Attribute::new_from_str("NoFeature").unwrap(),
+            Attribute::NoFeature
+        );
         assert_eq!(Attribute::new_from_str("").unwrap(), Attribute::NoFeature);
-        assert_eq!(Attribute::new_from_str("Name1").unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string())])));
-        assert_eq!(Attribute::new_from_str("Name1.Name2").unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string()), Name("Name2".to_string())])));
+        assert_eq!(
+            Attribute::new_from_str("Name1").unwrap(),
+            Attribute::Feature(Node(vec![Name("Name1".to_string())]))
+        );
+        assert_eq!(
+            Attribute::new_from_str("Name1.Name2").unwrap(),
+            Attribute::Feature(Node(vec![
+                Name("Name1".to_string()),
+                Name("Name2".to_string())
+            ]))
+        );
         assert!(Attribute::new_from_str("Name with invalid char {").is_err());
         assert!(Attribute::new_from_str("Name with invalid char ȸ").is_err());
     }
 
     #[test]
     fn test_attribute_new_from_attr_owned() {
-        assert_eq!(Attribute::new_from_attr(testdata::to_attr_owned(b"NoFeature")).unwrap(), Attribute::NoFeature);
-        assert_eq!(Attribute::new_from_attr(testdata::to_attr_owned(b"")).unwrap(), Attribute::NoFeature);
-        assert_eq!(Attribute::new_from_attr(testdata::to_attr_owned(b"Name1")).unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string())])));
-        assert_eq!(Attribute::new_from_attr(testdata::to_attr_owned(b"Name1.Name2")).unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string()), Name("Name2".to_string())])));
-        assert!(Attribute::new_from_attr(testdata::to_attr_owned(b"Name with invalid char {")).is_err());
+        assert_eq!(
+            Attribute::new_from_attr(testdata::to_attr_owned(b"NoFeature")).unwrap(),
+            Attribute::NoFeature
+        );
+        assert_eq!(
+            Attribute::new_from_attr(testdata::to_attr_owned(b"")).unwrap(),
+            Attribute::NoFeature
+        );
+        assert_eq!(
+            Attribute::new_from_attr(testdata::to_attr_owned(b"Name1")).unwrap(),
+            Attribute::Feature(Node(vec![Name("Name1".to_string())]))
+        );
+        assert_eq!(
+            Attribute::new_from_attr(testdata::to_attr_owned(b"Name1.Name2")).unwrap(),
+            Attribute::Feature(Node(vec![
+                Name("Name1".to_string()),
+                Name("Name2".to_string())
+            ]))
+        );
+        assert!(
+            Attribute::new_from_attr(testdata::to_attr_owned(b"Name with invalid char {")).is_err()
+        );
     }
 
     #[test]
     fn test_attribute_new_from_attr_borrowed() {
-        assert_eq!(Attribute::new_from_attr(testdata::to_attr_borrowed(b"NoFeature")).unwrap(), Attribute::NoFeature);
-        assert_eq!(Attribute::new_from_attr(testdata::to_attr_borrowed(b"")).unwrap(), Attribute::NoFeature);
-        assert_eq!(Attribute::new_from_attr(testdata::to_attr_borrowed(b"Name1")).unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string())])));
-        assert_eq!(Attribute::new_from_attr(testdata::to_attr_borrowed(b"Name1.Name2")).unwrap(), Attribute::Feature(Node(vec![Name("Name1".to_string()), Name("Name2".to_string())])));
-        assert!(Attribute::new_from_attr(testdata::to_attr_borrowed(b"Name with invalid char {")).is_err());
+        assert_eq!(
+            Attribute::new_from_attr(testdata::to_attr_borrowed(b"NoFeature")).unwrap(),
+            Attribute::NoFeature
+        );
+        assert_eq!(
+            Attribute::new_from_attr(testdata::to_attr_borrowed(b"")).unwrap(),
+            Attribute::NoFeature
+        );
+        assert_eq!(
+            Attribute::new_from_attr(testdata::to_attr_borrowed(b"Name1")).unwrap(),
+            Attribute::Feature(Node(vec![Name("Name1".to_string())]))
+        );
+        assert_eq!(
+            Attribute::new_from_attr(testdata::to_attr_borrowed(b"Name1.Name2")).unwrap(),
+            Attribute::Feature(Node(vec![
+                Name("Name1".to_string()),
+                Name("Name2".to_string())
+            ]))
+        );
+        assert!(
+            Attribute::new_from_attr(testdata::to_attr_borrowed(b"Name with invalid char {"))
+                .is_err()
+        );
     }
 
     #[test]
@@ -402,7 +726,15 @@ pub mod tests {
         );
 
         assert_eq!(
-            ModeMaster::new(Node::new_from_str("Name")?.unwrap(), Some(DmxValue { initial_value: 13, n: 2, is_byte_shifting: true }), None),
+            ModeMaster::new(
+                Node::new_from_str("Name")?.unwrap(),
+                Some(DmxValue {
+                    initial_value: 13,
+                    n: 2,
+                    is_byte_shifting: true
+                }),
+                None
+            ),
             ModeMaster {
                 mode_master: Node(vec![Name("Name".to_string())]),
                 mode_from: DmxValue {
@@ -419,7 +751,15 @@ pub mod tests {
         );
 
         assert_eq!(
-            ModeMaster::new(Node::new_from_str("Name")?.unwrap(), None, Some(DmxValue { initial_value: 13, n: 2, is_byte_shifting: true })),
+            ModeMaster::new(
+                Node::new_from_str("Name")?.unwrap(),
+                None,
+                Some(DmxValue {
+                    initial_value: 13,
+                    n: 2,
+                    is_byte_shifting: true
+                })
+            ),
             ModeMaster {
                 mode_master: Node(vec![Name("Name".to_string())]),
                 mode_to: DmxValue {
@@ -436,7 +776,19 @@ pub mod tests {
         );
 
         assert_eq!(
-            ModeMaster::new(Node::new_from_str("Name")?.unwrap(), Some(DmxValue { initial_value: 22, n: 3, is_byte_shifting: false }), Some(DmxValue { initial_value: 13, n: 2, is_byte_shifting: true })),
+            ModeMaster::new(
+                Node::new_from_str("Name")?.unwrap(),
+                Some(DmxValue {
+                    initial_value: 22,
+                    n: 3,
+                    is_byte_shifting: false
+                }),
+                Some(DmxValue {
+                    initial_value: 13,
+                    n: 2,
+                    is_byte_shifting: true
+                })
+            ),
             ModeMaster {
                 mode_master: Node(vec![Name("Name".to_string())]),
                 mode_to: DmxValue {

@@ -41,30 +41,43 @@ impl ReadGdtf for Measurement {
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"Physical" => data_holder.physical = read::attr_to_f32(attr),
             b"LuminousIntensity" => data_holder.luminous_intensity = read::attr_to_f32(attr),
             b"Transmission" => data_holder.transmission = read::attr_to_f32(attr),
-            b"InterpolationTo" => data_holder.interpolation_to = InterpolationTo::new_from_attr(attr),
+            b"InterpolationTo" => {
+                data_holder.interpolation_to = InterpolationTo::new_from_attr(attr)
+            }
             _ => {}
         }
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(), Self::Error> {
         if let MeasurementPoint::NODE_NAME = event.name() {
-            data_holder.measurement_points.push(MeasurementPoint::read_single_from_event(reader, event, has_children)?.1)
+            data_holder
+                .measurement_points
+                .push(MeasurementPoint::read_single_from_event(reader, event, has_children)?.1)
         }
         Ok(())
     }
-
 
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(data_holder)
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed")
     }
 }
@@ -73,10 +86,46 @@ impl ReadGdtf for Measurement {
 impl TestReadGdtf for Measurement {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(Self { physical: 100.0, luminous_intensity: 0.0, transmission: 1.0, interpolation_to: InterpolationTo::Linear, measurement_points: vec![] })),
-            (None, Some(Self { physical: 76.000001, luminous_intensity: 0.0, transmission: 1.0, interpolation_to: InterpolationTo::Linear, measurement_points: vec![] })),
-            (None, Some(Self { physical: 100.0, luminous_intensity: 0.0, transmission: 76.000000, interpolation_to: InterpolationTo::Step, measurement_points: MeasurementPoint::testdata_vec() })),
-            (None, Some(Self { physical: 0.0, luminous_intensity: 300000.000000, transmission: 0.0, interpolation_to: InterpolationTo::Log, measurement_points: vec![] })),
+            (
+                None,
+                Some(Self {
+                    physical: 100.0,
+                    luminous_intensity: 0.0,
+                    transmission: 1.0,
+                    interpolation_to: InterpolationTo::Linear,
+                    measurement_points: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    physical: 76.000001,
+                    luminous_intensity: 0.0,
+                    transmission: 1.0,
+                    interpolation_to: InterpolationTo::Linear,
+                    measurement_points: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    physical: 100.0,
+                    luminous_intensity: 0.0,
+                    transmission: 76.000000,
+                    interpolation_to: InterpolationTo::Step,
+                    measurement_points: MeasurementPoint::testdata_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    physical: 0.0,
+                    luminous_intensity: 300000.000000,
+                    transmission: 0.0,
+                    interpolation_to: InterpolationTo::Log,
+                    measurement_points: vec![],
+                }),
+            ),
         ]
     }
 
@@ -121,7 +170,7 @@ impl InterpolationTo {
         match value {
             "Step" => Self::Step,
             "Log" => Self::Log,
-            _ => Self::Linear
+            _ => Self::Linear,
         }
     }
 
@@ -168,26 +217,55 @@ mod tests {
 
     #[test]
     fn test_interpolation_to_new_from_str() {
-        assert_eq!(InterpolationTo::Linear, InterpolationTo::new_from_str("Linear"));
+        assert_eq!(
+            InterpolationTo::Linear,
+            InterpolationTo::new_from_str("Linear")
+        );
         assert_eq!(InterpolationTo::Log, InterpolationTo::new_from_str("Log"));
         assert_eq!(InterpolationTo::Step, InterpolationTo::new_from_str("Step"));
-        assert_eq!(InterpolationTo::Linear, InterpolationTo::new_from_str("Anything else"));
+        assert_eq!(
+            InterpolationTo::Linear,
+            InterpolationTo::new_from_str("Anything else")
+        );
     }
 
     #[test]
     fn test_interpolation_to_new_from_attr_owned() {
-        assert_eq!(InterpolationTo::Linear, InterpolationTo::new_from_attr(testdata::to_attr_owned(b"Linear")));
-        assert_eq!(InterpolationTo::Log, InterpolationTo::new_from_attr(testdata::to_attr_owned(b"Log")));
-        assert_eq!(InterpolationTo::Step, InterpolationTo::new_from_attr(testdata::to_attr_owned(b"Step")));
-        assert_eq!(InterpolationTo::Linear, InterpolationTo::new_from_attr(testdata::to_attr_owned(b"Anything else")));
+        assert_eq!(
+            InterpolationTo::Linear,
+            InterpolationTo::new_from_attr(testdata::to_attr_owned(b"Linear"))
+        );
+        assert_eq!(
+            InterpolationTo::Log,
+            InterpolationTo::new_from_attr(testdata::to_attr_owned(b"Log"))
+        );
+        assert_eq!(
+            InterpolationTo::Step,
+            InterpolationTo::new_from_attr(testdata::to_attr_owned(b"Step"))
+        );
+        assert_eq!(
+            InterpolationTo::Linear,
+            InterpolationTo::new_from_attr(testdata::to_attr_owned(b"Anything else"))
+        );
     }
 
     #[test]
     fn test_interpolation_to_new_from_attr_borrowed() {
-        assert_eq!(InterpolationTo::Linear, InterpolationTo::new_from_attr(testdata::to_attr_borrowed(b"Linear")));
-        assert_eq!(InterpolationTo::Log, InterpolationTo::new_from_attr(testdata::to_attr_borrowed(b"Log")));
-        assert_eq!(InterpolationTo::Step, InterpolationTo::new_from_attr(testdata::to_attr_borrowed(b"Step")));
-        assert_eq!(InterpolationTo::Linear, InterpolationTo::new_from_attr(testdata::to_attr_borrowed(b"Anything else")));
+        assert_eq!(
+            InterpolationTo::Linear,
+            InterpolationTo::new_from_attr(testdata::to_attr_borrowed(b"Linear"))
+        );
+        assert_eq!(
+            InterpolationTo::Log,
+            InterpolationTo::new_from_attr(testdata::to_attr_borrowed(b"Log"))
+        );
+        assert_eq!(
+            InterpolationTo::Step,
+            InterpolationTo::new_from_attr(testdata::to_attr_borrowed(b"Step"))
+        );
+        assert_eq!(
+            InterpolationTo::Linear,
+            InterpolationTo::new_from_attr(testdata::to_attr_borrowed(b"Anything else"))
+        );
     }
-
 }

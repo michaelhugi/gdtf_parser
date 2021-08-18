@@ -11,7 +11,7 @@ use crate::utils::errors::GdtfError;
 use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
-use crate::utils::units::color_cie::{COLOR_CIE_WHITE, ColorCie};
+use crate::utils::units::color_cie::{ColorCie, COLOR_CIE_WHITE};
 use crate::utils::units::rotation::Rotation;
 
 /// Contains information about PrismFacet for a wheel slot
@@ -44,7 +44,10 @@ impl ReadGdtf for Facet {
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"Color" => data_holder.color = Some(ColorCie::new_from_attr(attr)?),
             b"Rotation" => data_holder.rotation = Some(Rotation::new_from_attr(attr)?),
@@ -53,18 +56,27 @@ impl ReadGdtf for Facet {
         Ok(())
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        _: &mut Self::DataHolder,
+        _: &mut Reader<&[u8]>,
+        _: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         Ok(())
     }
 
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(Self {
             color: data_holder.color.unwrap_or(DEFAULT_COLOR),
-            rotation: data_holder.rotation.ok_or_else(|| Self::attribute_not_found(b"Rotation"))?,
+            rotation: data_holder
+                .rotation
+                .ok_or_else(|| Self::attribute_not_found(b"Rotation"))?,
         })
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed")
     }
 }
@@ -73,10 +85,50 @@ impl ReadGdtf for Facet {
 impl TestReadGdtf for Facet {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(Self { color: ColorCie { x: 0.312700, y: 0.329000, Y: 100.000000 }, rotation: Rotation([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [2.0, 0.0, 1.0]]) })),
-            (None, Some(Self { color: ColorCie { x: 0.312700, y: 0.329000, Y: 100.000000 }, rotation: Rotation([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [2.0, 0.0, 1.0]]) })),
-            (None, Some(Self { color: ColorCie { x: 0.312700, y: 0.329000, Y: 78.000001 }, rotation: Rotation([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [2.0, 0.0, 1.0]]) })),
-            (None, Some(Self { color: ColorCie { x: 0.312700, y: 0.329000, Y: 100.000000 }, rotation: Rotation([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [2.0, 0.0, 1.0]]) }))
+            (
+                None,
+                Some(Self {
+                    color: ColorCie {
+                        x: 0.312700,
+                        y: 0.329000,
+                        Y: 100.000000,
+                    },
+                    rotation: Rotation([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [2.0, 0.0, 1.0]]),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    color: ColorCie {
+                        x: 0.312700,
+                        y: 0.329000,
+                        Y: 100.000000,
+                    },
+                    rotation: Rotation([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [2.0, 0.0, 1.0]]),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    color: ColorCie {
+                        x: 0.312700,
+                        y: 0.329000,
+                        Y: 78.000001,
+                    },
+                    rotation: Rotation([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [2.0, 0.0, 1.0]]),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    color: ColorCie {
+                        x: 0.312700,
+                        y: 0.329000,
+                        Y: 100.000000,
+                    },
+                    rotation: Rotation([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [2.0, 0.0, 1.0]]),
+                }),
+            ),
         ]
     }
 
@@ -99,7 +151,7 @@ impl TestReadGdtf for Facet {
 
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::wheel::slot::facet::{DEFAULT_COLOR, Facet};
+    use crate::fixture_type::wheel::slot::facet::{Facet, DEFAULT_COLOR};
     use crate::utils::read::TestReadGdtf;
     use crate::utils::units::color_cie::ColorCie;
 
@@ -110,6 +162,13 @@ mod tests {
 
     #[test]
     fn test_default_color() {
-        assert_eq!(DEFAULT_COLOR, ColorCie { x: 0.3127, y: 0.3290, Y: 100.0 });
+        assert_eq!(
+            DEFAULT_COLOR,
+            ColorCie {
+                x: 0.3127,
+                y: 0.3290,
+                Y: 100.0
+            }
+        );
     }
 }

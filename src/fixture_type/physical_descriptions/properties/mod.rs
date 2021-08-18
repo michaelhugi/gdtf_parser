@@ -14,10 +14,10 @@ use crate::utils::read::TestReadGdtf;
 #[cfg(test)]
 use crate::utils::units::node::Node;
 
-pub mod operating_temperature;
-pub mod weight;
-pub mod power_consumtion;
 pub mod leg_height;
+pub mod operating_temperature;
+pub mod power_consumtion;
+pub mod weight;
 
 ///Defines the general properties of the device type
 #[derive(Debug, PartialEq, Default, Clone)]
@@ -45,12 +45,29 @@ impl ReadGdtf for Properties {
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(), Self::Error> {
         match event.name() {
-            OperatingTemperature::NODE_NAME => data_holder.operationg_temperature = Some(OperatingTemperature::read_single_from_event(reader, event, has_children)?.1),
-            Weight::NODE_NAME => data_holder.weight = Some(Weight::read_single_from_event(reader, event, has_children)?.1),
-            PowerConsumtion::NODE_NAME => data_holder.power_consumtion.push(PowerConsumtion::read_single_from_event(reader, event, has_children)?.1),
-            LegHeight::NODE_NAME => data_holder.leg_height = Some(LegHeight::read_single_from_event(reader, event, has_children)?.1),
+            OperatingTemperature::NODE_NAME => {
+                data_holder.operationg_temperature = Some(
+                    OperatingTemperature::read_single_from_event(reader, event, has_children)?.1,
+                )
+            }
+            Weight::NODE_NAME => {
+                data_holder.weight =
+                    Some(Weight::read_single_from_event(reader, event, has_children)?.1)
+            }
+            PowerConsumtion::NODE_NAME => data_holder
+                .power_consumtion
+                .push(PowerConsumtion::read_single_from_event(reader, event, has_children)?.1),
+            LegHeight::NODE_NAME => {
+                data_holder.leg_height =
+                    Some(LegHeight::read_single_from_event(reader, event, has_children)?.1)
+            }
             _ => {}
         }
         Ok(())
@@ -60,7 +77,9 @@ impl ReadGdtf for Properties {
         Ok(data_holder)
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed")
     }
 }
@@ -69,11 +88,15 @@ impl ReadGdtf for Properties {
 impl TestReadGdtf for Properties {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(Properties {
-                operationg_temperature: Some(OperatingTemperature { low: 0.0, high: 45.0 }),
-                weight: Some(Weight { value: 23.0 }),
-                power_consumtion: vec![
-                    PowerConsumtion {
+            (
+                None,
+                Some(Properties {
+                    operationg_temperature: Some(OperatingTemperature {
+                        low: 0.0,
+                        high: 45.0,
+                    }),
+                    weight: Some(Weight { value: 23.0 }),
+                    power_consumtion: vec![PowerConsumtion {
                         value: 800.000000,
                         power_factor: 0.960000,
                         connector: Node::new_from_str("powerCON TRUE1 IN").unwrap().unwrap(),
@@ -81,12 +104,28 @@ impl TestReadGdtf for Properties {
                         voltage_high: 241.000000,
                         frequency_low: 49.0,
                         frequency_high: 61.0,
-                    }
-                ],
-                leg_height: Some(LegHeight { value: 0.012 }),
-            })),
-            (None, Some(Properties { operationg_temperature: None, weight: None, power_consumtion: vec![], leg_height: None })),
-            (None, Some(Properties { operationg_temperature: None, weight: None, power_consumtion: vec![], leg_height: None })),
+                    }],
+                    leg_height: Some(LegHeight { value: 0.012 }),
+                }),
+            ),
+            (
+                None,
+                Some(Properties {
+                    operationg_temperature: None,
+                    weight: None,
+                    power_consumtion: vec![],
+                    leg_height: None,
+                }),
+            ),
+            (
+                None,
+                Some(Properties {
+                    operationg_temperature: None,
+                    weight: None,
+                    power_consumtion: vec![],
+                    leg_height: None,
+                }),
+            ),
         ]
     }
 

@@ -42,7 +42,10 @@ impl ReadGdtf for MacroDmxValue {
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"Value" => data_holder.value = Some(DmxValue::new_from_attr(attr)?),
             b"DMXChannel" => data_holder.dmx_channel = Node::new_from_attr(attr)?,
@@ -51,18 +54,29 @@ impl ReadGdtf for MacroDmxValue {
         Ok(())
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        _: &mut Self::DataHolder,
+        _: &mut Reader<&[u8]>,
+        _: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         Ok(())
     }
 
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(Self {
-            value: data_holder.value.ok_or_else(|| Self::attribute_not_found(b"Value"))?,
-            dmx_channel: data_holder.dmx_channel.ok_or_else(|| Self::attribute_not_found(b"DMXChannel"))?,
+            value: data_holder
+                .value
+                .ok_or_else(|| Self::attribute_not_found(b"Value"))?,
+            dmx_channel: data_holder
+                .dmx_channel
+                .ok_or_else(|| Self::attribute_not_found(b"DMXChannel"))?,
         })
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed");
     }
 }
@@ -71,8 +85,28 @@ impl ReadGdtf for MacroDmxValue {
 impl TestReadGdtf for MacroDmxValue {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(Self { value: DmxValue { initial_value: 12, n: 1, is_byte_shifting: false }, dmx_channel: Node::new_from_str("Channel1").unwrap().unwrap() })),
-            (None, Some(Self { value: DmxValue { initial_value: 13, n: 2, is_byte_shifting: true }, dmx_channel: Node::new_from_str("Channel2").unwrap().unwrap() })),
+            (
+                None,
+                Some(Self {
+                    value: DmxValue {
+                        initial_value: 12,
+                        n: 1,
+                        is_byte_shifting: false,
+                    },
+                    dmx_channel: Node::new_from_str("Channel1").unwrap().unwrap(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    value: DmxValue {
+                        initial_value: 13,
+                        n: 2,
+                        is_byte_shifting: true,
+                    },
+                    dmx_channel: Node::new_from_str("Channel2").unwrap().unwrap(),
+                }),
+            ),
         ]
     }
 

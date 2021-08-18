@@ -35,10 +35,17 @@ impl ReadGdtf for Wheel {
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(), Self::Error> {
         if event.name() == Slot::NODE_NAME {
             let slot = Slot::read_single_from_event(reader, event, has_children)?;
-            data_holder.slots.insert(slot.0.unwrap_or_else(|| Name("?".to_string())), slot.1);
+            data_holder
+                .slots
+                .insert(slot.0.unwrap_or_else(|| Name("?".to_string())), slot.1);
         }
         Ok(())
     }
@@ -47,7 +54,9 @@ impl ReadGdtf for Wheel {
         Ok(data_holder)
     }
 
-    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        attr: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
 }
@@ -56,9 +65,24 @@ impl ReadGdtf for Wheel {
 impl TestReadGdtf for Wheel {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (Some(Name::new("PrismWheel 1").unwrap()), Some(Self { slots: HashMap::new() })),
-            (Some(Name::new("PrismWheel 2").unwrap()), Some(Self { slots: HashMap::new() })),
-            (Some(Name::new("PrismWheel 3").unwrap()), Some(Self { slots: Slot::testdata_hash_map() })),
+            (
+                Some(Name::new("PrismWheel 1").unwrap()),
+                Some(Self {
+                    slots: HashMap::new(),
+                }),
+            ),
+            (
+                Some(Name::new("PrismWheel 2").unwrap()),
+                Some(Self {
+                    slots: HashMap::new(),
+                }),
+            ),
+            (
+                Some(Name::new("PrismWheel 3").unwrap()),
+                Some(Self {
+                    slots: Slot::testdata_hash_map(),
+                }),
+            ),
         ]
     }
 
@@ -66,7 +90,10 @@ impl TestReadGdtf for Wheel {
         vec![
             r#"<Wheel Name="PrismWheel 1"/>"#.to_string(),
             r#"<Wheel Name="PrismWheel 2"></Wheel>"#.to_string(),
-            format!(r#"<Wheel Name="PrismWheel 3">{}</Wheel>"#, Slot::testdata_xml())
+            format!(
+                r#"<Wheel Name="PrismWheel 3">{}</Wheel>"#,
+                Slot::testdata_xml()
+            ),
         ]
     }
 

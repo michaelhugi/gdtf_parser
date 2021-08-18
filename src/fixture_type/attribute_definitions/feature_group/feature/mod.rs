@@ -28,7 +28,9 @@ impl ReadGdtf for Feature {
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
     const ONLY_PRIMARY_KEY: bool = true;
 
-    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        attr: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
 
@@ -36,7 +38,12 @@ impl ReadGdtf for Feature {
         panic!("Should not be executed");
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        _: &mut Self::DataHolder,
+        _: &mut Reader<&[u8]>,
+        _: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         panic!("Should not be executed");
     }
 
@@ -55,7 +62,7 @@ impl TestReadGdtf for Feature {
             (Some(Name::new("Indirect").unwrap()), None),
             (Some(Name::new("PanTilt").unwrap()), None),
             (Some(Name::new("Gobo").unwrap()), None),
-            (Some(Name::new("").unwrap()), None)
+            (Some(Name::new("").unwrap()), None),
         ]
     }
 
@@ -67,7 +74,7 @@ impl TestReadGdtf for Feature {
             r#"<Feature Name="Indirect"/>"#.to_string(),
             r#"<Feature Name="PanTilt"/>"#.to_string(),
             r#"<Feature Name="Gobo"/>"#.to_string(),
-            r#"<Feature Name=""/>"#.to_string()
+            r#"<Feature Name=""/>"#.to_string(),
         ]
     }
 
@@ -75,7 +82,6 @@ impl TestReadGdtf for Feature {
         vec![]
     }
 }
-
 
 #[cfg(test)]
 pub mod tests {

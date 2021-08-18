@@ -38,47 +38,96 @@ impl ReadGdtf for Filter {
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         if let b"Color" = attr.key {
             data_holder.color = Some(ColorCie::new_from_attr(attr)?);
         }
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(), Self::Error> {
         if let Measurement::NODE_NAME = event.name() {
-            data_holder.measurements.push(Measurement::read_single_from_event(reader, event, has_children)?.1)
+            data_holder
+                .measurements
+                .push(Measurement::read_single_from_event(reader, event, has_children)?.1)
         }
         Ok(())
     }
 
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(Self {
-            color: data_holder.color.ok_or_else(|| Self::attribute_not_found(b"Color"))?,
+            color: data_holder
+                .color
+                .ok_or_else(|| Self::attribute_not_found(b"Color"))?,
             measurements: data_holder.measurements,
         })
     }
 
-    fn read_primary_key_from_attr(attr: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        attr: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(Name::new_from_attr(attr)?))
     }
 }
-
 
 #[cfg(test)]
 impl TestReadGdtf for Filter {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (Some(Name("magenta_flag".to_string())), Some(Filter { color: ColorCie { x: 0.384400, y: 0.158500, Y: 100.0 }, measurements: Measurement::testdata_vec() })),
-            (Some(Name("yellow_flag".to_string())), Some(Filter { color: ColorCie { x: 0.431200, y: 0.507000, Y: 100.0 }, measurements: Measurement::testdata_vec() })),
-            (Some(Name("cto_flag".to_string())), Some(Filter { color: ColorCie { x: 0.470600, y: 0.392300, Y: 100.0 }, measurements: vec![] })),
+            (
+                Some(Name("magenta_flag".to_string())),
+                Some(Filter {
+                    color: ColorCie {
+                        x: 0.384400,
+                        y: 0.158500,
+                        Y: 100.0,
+                    },
+                    measurements: Measurement::testdata_vec(),
+                }),
+            ),
+            (
+                Some(Name("yellow_flag".to_string())),
+                Some(Filter {
+                    color: ColorCie {
+                        x: 0.431200,
+                        y: 0.507000,
+                        Y: 100.0,
+                    },
+                    measurements: Measurement::testdata_vec(),
+                }),
+            ),
+            (
+                Some(Name("cto_flag".to_string())),
+                Some(Filter {
+                    color: ColorCie {
+                        x: 0.470600,
+                        y: 0.392300,
+                        Y: 100.0,
+                    },
+                    measurements: vec![],
+                }),
+            ),
         ]
     }
 
     fn testdatas_xml() -> Vec<String> {
         vec![
-            format!(r#"<Filter Color="0.384400,0.158500,100.000000" Name="magenta_flag">{}</Filter>"#, Measurement::testdata_xml()),
-            format!(r#"<Filter Color="0.431200,0.507000,100.000000" Name="yellow_flag">{}</Filter>"#, Measurement::testdata_xml()),
+            format!(
+                r#"<Filter Color="0.384400,0.158500,100.000000" Name="magenta_flag">{}</Filter>"#,
+                Measurement::testdata_xml()
+            ),
+            format!(
+                r#"<Filter Color="0.431200,0.507000,100.000000" Name="yellow_flag">{}</Filter>"#,
+                Measurement::testdata_xml()
+            ),
             r#"<Filter Color="0.470600,0.392300,100.000000" Name="cto_flag"/>"#.to_string(),
         ]
     }

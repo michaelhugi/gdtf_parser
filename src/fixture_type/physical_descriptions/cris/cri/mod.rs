@@ -28,7 +28,10 @@ pub struct Cri {
 /// ```
 impl Default for Cri {
     fn default() -> Self {
-        Self { color_rendering_index: 100, ces: 0 }
+        Self {
+            color_rendering_index: 100,
+            ces: 0,
+        }
     }
 }
 
@@ -41,13 +44,19 @@ impl ReadGdtf for Cri {
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
-            b"ColorRenderingIndex" => data_holder.color_rendering_index = read::attr_to_u8_option(attr).ok_or_else(|| Self::attribute_not_found(b"ColorRenderingIndex"))?,
+            b"ColorRenderingIndex" => {
+                data_holder.color_rendering_index = read::attr_to_u8_option(attr)
+                    .ok_or_else(|| Self::attribute_not_found(b"ColorRenderingIndex"))?
+            }
             b"CES" => {
                 lazy_static! {
-                        static ref REG: Regex = Regex::new(r"CES(\d{2})").unwrap();
-                    }
+                    static ref REG: Regex = Regex::new(r"CES(\d{2})").unwrap();
+                }
                 for cap in REG.captures_iter(read::attr_to_str(&attr)) {
                     data_holder.ces = u8::from_str(&cap[1]).unwrap_or(0);
                 }
@@ -57,7 +66,12 @@ impl ReadGdtf for Cri {
         Ok(())
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        _: &mut Self::DataHolder,
+        _: &mut Reader<&[u8]>,
+        _: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         Ok(())
     }
 
@@ -65,7 +79,9 @@ impl ReadGdtf for Cri {
         Ok(data_holder)
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed")
     }
 }
@@ -74,15 +90,27 @@ impl ReadGdtf for Cri {
 impl TestReadGdtf for Cri {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(Cri { ces: 1, color_rendering_index: 100 })),
-            (None, Some(Cri { ces: 99, color_rendering_index: 23 }))
+            (
+                None,
+                Some(Cri {
+                    ces: 1,
+                    color_rendering_index: 100,
+                }),
+            ),
+            (
+                None,
+                Some(Cri {
+                    ces: 99,
+                    color_rendering_index: 23,
+                }),
+            ),
         ]
     }
 
     fn testdatas_xml() -> Vec<String> {
         vec![
             r#"<CRI CES="CES01"></CRI>"#.to_string(),
-            r#"<CRI CES="CES99" ColorRenderingIndex="23"></CRI>"#.to_string()
+            r#"<CRI CES="CES99" ColorRenderingIndex="23"></CRI>"#.to_string(),
         ]
     }
 
@@ -90,7 +118,6 @@ impl TestReadGdtf for Cri {
         vec![]
     }
 }
-
 
 #[cfg(test)]
 pub mod tests {

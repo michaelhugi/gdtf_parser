@@ -53,7 +53,10 @@ impl ReadGdtf for ColorSpace {
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"Mode" => data_holder.mode = ColorSpaceMode::new_from_attr(attr),
             b"Red" => data_holder.red = Some(ColorCie::new_from_attr(attr)?),
@@ -65,48 +68,55 @@ impl ReadGdtf for ColorSpace {
         Ok(())
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        _: &mut Self::DataHolder,
+        _: &mut Reader<&[u8]>,
+        _: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         Ok(())
     }
 
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(match data_holder.mode {
-            ColorSpaceMode::Custom => {
-                Self {
-                    red: data_holder.red.ok_or_else(|| Self::attribute_not_found(b"Red"))?,
-                    green: data_holder.green.ok_or_else(|| Self::attribute_not_found(b"Green"))?,
-                    blue: data_holder.blue.ok_or_else(|| Self::attribute_not_found(b"Blue"))?,
-                    white_point: data_holder.white_point.ok_or_else(|| Self::attribute_not_found(b"WhitePoint"))?,
-                }
-            }
-            ColorSpaceMode::ProPhoto => {
-                Self {
-                    red: PRO_PHOTO_RED,
-                    green: PRO_PHOTO_GREEN,
-                    blue: PRO_PHOTO_BLUE,
-                    white_point: PRO_PHOTO_WHITE_POINT,
-                }
-            }
-            ColorSpaceMode::SRgb => {
-                Self {
-                    red: SRGB_RED,
-                    green: SRGB_GREEN,
-                    blue: SRGB_BLUE,
-                    white_point: SRGB_WHITE_POINT,
-                }
-            }
-            ColorSpaceMode::Ansi => {
-                Self {
-                    red: ANSI_RED,
-                    green: ANSI_GREEN,
-                    blue: ANSI_BLUE,
-                    white_point: ANSI_WHITE_POINT,
-                }
-            }
+            ColorSpaceMode::Custom => Self {
+                red: data_holder
+                    .red
+                    .ok_or_else(|| Self::attribute_not_found(b"Red"))?,
+                green: data_holder
+                    .green
+                    .ok_or_else(|| Self::attribute_not_found(b"Green"))?,
+                blue: data_holder
+                    .blue
+                    .ok_or_else(|| Self::attribute_not_found(b"Blue"))?,
+                white_point: data_holder
+                    .white_point
+                    .ok_or_else(|| Self::attribute_not_found(b"WhitePoint"))?,
+            },
+            ColorSpaceMode::ProPhoto => Self {
+                red: PRO_PHOTO_RED,
+                green: PRO_PHOTO_GREEN,
+                blue: PRO_PHOTO_BLUE,
+                white_point: PRO_PHOTO_WHITE_POINT,
+            },
+            ColorSpaceMode::SRgb => Self {
+                red: SRGB_RED,
+                green: SRGB_GREEN,
+                blue: SRGB_BLUE,
+                white_point: SRGB_WHITE_POINT,
+            },
+            ColorSpaceMode::Ansi => Self {
+                red: ANSI_RED,
+                green: ANSI_GREEN,
+                blue: ANSI_BLUE,
+                white_point: ANSI_WHITE_POINT,
+            },
         })
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed")
     }
 }
@@ -115,30 +125,106 @@ impl ReadGdtf for ColorSpace {
 impl TestReadGdtf for ColorSpace {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(ColorSpace {
-                red: ColorCie { x: 0.6400, y: 0.3300, Y: 021.26 },
-                green: ColorCie { x: 0.3000, y: 0.6000, Y: 071.52 },
-                blue: ColorCie { x: 0.1500, y: 0.0600, Y: 007.22 },
-                white_point: ColorCie { x: 0.3127, y: 0.3290, Y: 100.00 },
-            })),
-            (None, Some(ColorSpace {
-                red: ColorCie { x: 0.7347, y: 0.2653, Y: 100.0 },
-                green: ColorCie { x: 0.1596, y: 0.8404, Y: 100.0 },
-                blue: ColorCie { x: 0.0366, y: 0.0001, Y: 100.0 },
-                white_point: ColorCie { x: 0.3457, y: 0.3585, Y: 100.0 },
-            })),
-            (None, Some(ColorSpace {
-                red: ColorCie { x: 0.7347, y: 0.2653, Y: 100.0 },
-                green: ColorCie { x: 0.1596, y: 0.8404, Y: 100.0 },
-                blue: ColorCie { x: 0.0366, y: 0.001, Y: 100.0 },
-                white_point: ColorCie { x: 0.4254, y: 0.4044, Y: 100.0 },
-            })),
-            (None, Some(ColorSpace {
-                red: ColorCie { x: 1.3, y: 3.2, Y: 13.4 },
-                green: ColorCie { x: 12.1, y: 73.2, Y: 46.2 },
-                blue: ColorCie { x: 74.3, y: 93.0, Y: 77.1 },
-                white_point: ColorCie { x: 90.1, y: 38.5, Y: 12.1 },
-            })),
+            (
+                None,
+                Some(ColorSpace {
+                    red: ColorCie {
+                        x: 0.6400,
+                        y: 0.3300,
+                        Y: 021.26,
+                    },
+                    green: ColorCie {
+                        x: 0.3000,
+                        y: 0.6000,
+                        Y: 071.52,
+                    },
+                    blue: ColorCie {
+                        x: 0.1500,
+                        y: 0.0600,
+                        Y: 007.22,
+                    },
+                    white_point: ColorCie {
+                        x: 0.3127,
+                        y: 0.3290,
+                        Y: 100.00,
+                    },
+                }),
+            ),
+            (
+                None,
+                Some(ColorSpace {
+                    red: ColorCie {
+                        x: 0.7347,
+                        y: 0.2653,
+                        Y: 100.0,
+                    },
+                    green: ColorCie {
+                        x: 0.1596,
+                        y: 0.8404,
+                        Y: 100.0,
+                    },
+                    blue: ColorCie {
+                        x: 0.0366,
+                        y: 0.0001,
+                        Y: 100.0,
+                    },
+                    white_point: ColorCie {
+                        x: 0.3457,
+                        y: 0.3585,
+                        Y: 100.0,
+                    },
+                }),
+            ),
+            (
+                None,
+                Some(ColorSpace {
+                    red: ColorCie {
+                        x: 0.7347,
+                        y: 0.2653,
+                        Y: 100.0,
+                    },
+                    green: ColorCie {
+                        x: 0.1596,
+                        y: 0.8404,
+                        Y: 100.0,
+                    },
+                    blue: ColorCie {
+                        x: 0.0366,
+                        y: 0.001,
+                        Y: 100.0,
+                    },
+                    white_point: ColorCie {
+                        x: 0.4254,
+                        y: 0.4044,
+                        Y: 100.0,
+                    },
+                }),
+            ),
+            (
+                None,
+                Some(ColorSpace {
+                    red: ColorCie {
+                        x: 1.3,
+                        y: 3.2,
+                        Y: 13.4,
+                    },
+                    green: ColorCie {
+                        x: 12.1,
+                        y: 73.2,
+                        Y: 46.2,
+                    },
+                    blue: ColorCie {
+                        x: 74.3,
+                        y: 93.0,
+                        Y: 77.1,
+                    },
+                    white_point: ColorCie {
+                        x: 90.1,
+                        y: 38.5,
+                        Y: 12.1,
+                    },
+                }),
+            ),
         ]
     }
 
@@ -169,32 +255,79 @@ impl TestReadGdtf for ColorSpace {
 //-----------------------------------------------------------------------------------------------------------------
 
 ///0.6400, 0.3300, 0.2126
-const SRGB_RED: ColorCie = ColorCie { x: 0.64, y: 0.33, Y: 21.26 };
+const SRGB_RED: ColorCie = ColorCie {
+    x: 0.64,
+    y: 0.33,
+    Y: 21.26,
+};
 ///0.3000, 0.6000, 0.7152
-const SRGB_GREEN: ColorCie = ColorCie { x: 0.3, y: 0.6, Y: 71.52 };
+const SRGB_GREEN: ColorCie = ColorCie {
+    x: 0.3,
+    y: 0.6,
+    Y: 71.52,
+};
 ///0.1500, 0.0600, 0.0722
-const SRGB_BLUE: ColorCie = ColorCie { x: 0.15, y: 0.06, Y: 7.22 };
+const SRGB_BLUE: ColorCie = ColorCie {
+    x: 0.15,
+    y: 0.06,
+    Y: 7.22,
+};
 ///0.3127, 0.3290, 1.0000
-const SRGB_WHITE_POINT: ColorCie = ColorCie { x: 0.3127, y: 0.329, Y: 100.0 };
+const SRGB_WHITE_POINT: ColorCie = ColorCie {
+    x: 0.3127,
+    y: 0.329,
+    Y: 100.0,
+};
 
 ///0.7347, 0.2653
-const PRO_PHOTO_RED: ColorCie = ColorCie { x: 0.7347, y: 0.2653, Y: 100.0 };
+const PRO_PHOTO_RED: ColorCie = ColorCie {
+    x: 0.7347,
+    y: 0.2653,
+    Y: 100.0,
+};
 ///0.1596, 0.8404
-const PRO_PHOTO_GREEN: ColorCie = ColorCie { x: 0.1596, y: 0.8404, Y: 100.0 };
+const PRO_PHOTO_GREEN: ColorCie = ColorCie {
+    x: 0.1596,
+    y: 0.8404,
+    Y: 100.0,
+};
 ///0.0366, 0.0001
-const PRO_PHOTO_BLUE: ColorCie = ColorCie { x: 0.0366, y: 0.0001, Y: 100.0 };
+const PRO_PHOTO_BLUE: ColorCie = ColorCie {
+    x: 0.0366,
+    y: 0.0001,
+    Y: 100.0,
+};
 ///0.3457, 0.3585
-const PRO_PHOTO_WHITE_POINT: ColorCie = ColorCie { x: 0.3457, y: 0.3585, Y: 100.0 };
+const PRO_PHOTO_WHITE_POINT: ColorCie = ColorCie {
+    x: 0.3457,
+    y: 0.3585,
+    Y: 100.0,
+};
 
 ///0.7347, 0.2653
-const ANSI_RED: ColorCie = ColorCie { x: 0.7347, y: 0.2653, Y: 100.0 };
+const ANSI_RED: ColorCie = ColorCie {
+    x: 0.7347,
+    y: 0.2653,
+    Y: 100.0,
+};
 ///0.1596, 0.8404
-const ANSI_GREEN: ColorCie = ColorCie { x: 0.1596, y: 0.8404, Y: 100.0 };
+const ANSI_GREEN: ColorCie = ColorCie {
+    x: 0.1596,
+    y: 0.8404,
+    Y: 100.0,
+};
 ///0.0366, 0.001
-const ANSI_BLUE: ColorCie = ColorCie { x: 0.0366, y: 0.001, Y: 100.0 };
+const ANSI_BLUE: ColorCie = ColorCie {
+    x: 0.0366,
+    y: 0.001,
+    Y: 100.0,
+};
 ///0.4254, 0.4044
-const ANSI_WHITE_POINT: ColorCie = ColorCie { x: 0.4254, y: 0.4044, Y: 100.0 };
-
+const ANSI_WHITE_POINT: ColorCie = ColorCie {
+    x: 0.4254,
+    y: 0.4044,
+    Y: 100.0,
+};
 
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
@@ -234,7 +367,7 @@ impl ColorSpaceMode {
             "Custom" => Self::Custom,
             "ProPhoto" => Self::ProPhoto,
             "ANSI" => Self::Ansi,
-            _ => Self::SRgb
+            _ => Self::SRgb,
         }
     }
 

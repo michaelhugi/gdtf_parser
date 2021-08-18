@@ -25,7 +25,12 @@ impl ReadGdtf for DmxProfile {
         Ok(())
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        _: &mut Self::DataHolder,
+        _: &mut Reader<&[u8]>,
+        _: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         Ok(())
     }
 
@@ -33,7 +38,9 @@ impl ReadGdtf for DmxProfile {
         Ok(data_holder)
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed")
     }
 }
@@ -41,9 +48,7 @@ impl ReadGdtf for DmxProfile {
 #[cfg(test)]
 impl TestReadGdtf for DmxProfile {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
-        vec![
-            (None, Some(DmxProfile {}))
-        ]
+        vec![(None, Some(DmxProfile {}))]
     }
 
     fn testdatas_xml() -> Vec<String> {
@@ -54,7 +59,6 @@ impl TestReadGdtf for DmxProfile {
         vec![]
     }
 }
-
 
 #[cfg(test)]
 mod tests {

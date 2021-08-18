@@ -48,7 +48,10 @@ impl ReadGdtf for AnimationSystem {
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"P1" => data_holder.p1 = Some(PixelArray::new_from_attr(attr)?),
             b"P2" => data_holder.p2 = Some(PixelArray::new_from_attr(attr)?),
@@ -59,20 +62,35 @@ impl ReadGdtf for AnimationSystem {
         Ok(())
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        _: &mut Self::DataHolder,
+        _: &mut Reader<&[u8]>,
+        _: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         Ok(())
     }
 
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(Self {
-            p1: data_holder.p1.ok_or_else(|| Self::attribute_not_found(b"P1"))?,
-            p2: data_holder.p2.ok_or_else(|| Self::attribute_not_found(b"P2"))?,
-            p3: data_holder.p3.ok_or_else(|| Self::attribute_not_found(b"P3"))?,
-            radius: data_holder.radius.ok_or_else(|| Self::attribute_not_found(b"Radius"))?,
+            p1: data_holder
+                .p1
+                .ok_or_else(|| Self::attribute_not_found(b"P1"))?,
+            p2: data_holder
+                .p2
+                .ok_or_else(|| Self::attribute_not_found(b"P2"))?,
+            p3: data_holder
+                .p3
+                .ok_or_else(|| Self::attribute_not_found(b"P3"))?,
+            radius: data_holder
+                .radius
+                .ok_or_else(|| Self::attribute_not_found(b"Radius"))?,
         })
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed")
     }
 }
@@ -81,8 +99,24 @@ impl ReadGdtf for AnimationSystem {
 impl TestReadGdtf for AnimationSystem {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(AnimationSystem { p1: PixelArray(Pixel(-0.7), Pixel(0.0)), p2: PixelArray(Pixel(0.0), Pixel(0.7)), p3: PixelArray(Pixel(1.4), Pixel(0.7)), radius: Pixel(0.5) })),
-            (None, Some(AnimationSystem { p1: PixelArray(Pixel(-0.7), Pixel(0.0)), p2: PixelArray(Pixel(0.0), Pixel(0.7)), p3: PixelArray(Pixel(1.4), Pixel(0.7)), radius: Pixel(0.5) }))
+            (
+                None,
+                Some(AnimationSystem {
+                    p1: PixelArray(Pixel(-0.7), Pixel(0.0)),
+                    p2: PixelArray(Pixel(0.0), Pixel(0.7)),
+                    p3: PixelArray(Pixel(1.4), Pixel(0.7)),
+                    radius: Pixel(0.5),
+                }),
+            ),
+            (
+                None,
+                Some(AnimationSystem {
+                    p1: PixelArray(Pixel(-0.7), Pixel(0.0)),
+                    p2: PixelArray(Pixel(0.0), Pixel(0.7)),
+                    p3: PixelArray(Pixel(1.4), Pixel(0.7)),
+                    radius: Pixel(0.5),
+                }),
+            ),
         ]
     }
 

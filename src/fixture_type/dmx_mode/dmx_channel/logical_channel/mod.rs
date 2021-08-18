@@ -6,8 +6,8 @@ use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
-use crate::fixture_type::dmx_mode::dmx_channel::DmxChannel;
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
+use crate::fixture_type::dmx_mode::dmx_channel::DmxChannel;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
 use crate::utils::read::ReadGdtf;
@@ -62,33 +62,55 @@ impl ReadGdtf for LogicalChannel {
     const PRIMARY_KEY_NAME: &'static [u8] = b"";
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed")
     }
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"Attribute" => data_holder.attribute = Node::new_from_attr(attr)?,
             b"Snap" => data_holder.snap = Some(Snap::new_from_attr(attr)),
             b"Master" => data_holder.master = Some(Master::new_from_attr(attr)),
             b"MibFade" => data_holder.mib_fade = Some(read::attr_to_f32(attr)),
-            b"DMXChangeTimeLimit" => data_holder.dmx_change_time_limit = Some(read::attr_to_f32(attr)),
+            b"DMXChangeTimeLimit" => {
+                data_holder.dmx_change_time_limit = Some(read::attr_to_f32(attr))
+            }
             _ => {}
         }
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         if event.name() == ChannelFunction::NODE_NAME {
             let cf = ChannelFunction::read_single_from_event(reader, event, true)?;
-            data_holder.channel_functions.insert(cf.0.ok_or_else(|| Self::child_primary_key_not_found(ChannelFunction::NODE_NAME, ChannelFunction::PRIMARY_KEY_NAME))?, cf.1);
+            data_holder.channel_functions.insert(
+                cf.0.ok_or_else(|| {
+                    Self::child_primary_key_not_found(
+                        ChannelFunction::NODE_NAME,
+                        ChannelFunction::PRIMARY_KEY_NAME,
+                    )
+                })?,
+                cf.1,
+            );
         }
         Ok(())
     }
 
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
         Ok(Self {
-            attribute: data_holder.attribute.ok_or_else(|| Self::attribute_not_found(b"Attribute"))?,
+            attribute: data_holder
+                .attribute
+                .ok_or_else(|| Self::attribute_not_found(b"Attribute"))?,
             snap: data_holder.snap.unwrap_or(Snap::No),
             master: data_holder.master.unwrap_or(Master::None),
             mib_fade: data_holder.mib_fade.unwrap_or(0_f32),
@@ -102,12 +124,72 @@ impl ReadGdtf for LogicalChannel {
 impl TestReadGdtf for LogicalChannel {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(Self { attribute: Node::new_from_str("Pan").unwrap().unwrap(), snap: Snap::No, master: Master::None, mib_fade: 0.0, dmx_change_time_limit: 12.0, channel_functions: HashMap::new() })),
-            (None, Some(Self { attribute: Node::new_from_str("Pan").unwrap().unwrap(), snap: Snap::Yes, master: Master::None, mib_fade: 0.0, dmx_change_time_limit: 0.0, channel_functions: HashMap::new() })),
-            (None, Some(Self { attribute: Node::new_from_str("Pan").unwrap().unwrap(), snap: Snap::On, master: Master::Grand, mib_fade: 18.032032, dmx_change_time_limit: 12.0, channel_functions: ChannelFunction::testdata_hash_map() })),
-            (None, Some(Self { attribute: Node::new_from_str("Tilt").unwrap().unwrap(), snap: Snap::Off, master: Master::Group, mib_fade: 0.0, dmx_change_time_limit: 12.0, channel_functions: ChannelFunction::testdata_hash_map() })),
-            (None, Some(Self { attribute: Node::new_from_str("Pan").unwrap().unwrap(), snap: Snap::No, master: Master::None, mib_fade: 0.0, dmx_change_time_limit: 0.0, channel_functions: ChannelFunction::testdata_hash_map() })),
-            (None, Some(Self { attribute: Node::new_from_str("Pan").unwrap().unwrap(), snap: Snap::No, master: Master::None, mib_fade: 0.0, dmx_change_time_limit: 12.000001, channel_functions: ChannelFunction::testdata_hash_map() })),
+            (
+                None,
+                Some(Self {
+                    attribute: Node::new_from_str("Pan").unwrap().unwrap(),
+                    snap: Snap::No,
+                    master: Master::None,
+                    mib_fade: 0.0,
+                    dmx_change_time_limit: 12.0,
+                    channel_functions: HashMap::new(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    attribute: Node::new_from_str("Pan").unwrap().unwrap(),
+                    snap: Snap::Yes,
+                    master: Master::None,
+                    mib_fade: 0.0,
+                    dmx_change_time_limit: 0.0,
+                    channel_functions: HashMap::new(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    attribute: Node::new_from_str("Pan").unwrap().unwrap(),
+                    snap: Snap::On,
+                    master: Master::Grand,
+                    mib_fade: 18.032032,
+                    dmx_change_time_limit: 12.0,
+                    channel_functions: ChannelFunction::testdata_hash_map(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    attribute: Node::new_from_str("Tilt").unwrap().unwrap(),
+                    snap: Snap::Off,
+                    master: Master::Group,
+                    mib_fade: 0.0,
+                    dmx_change_time_limit: 12.0,
+                    channel_functions: ChannelFunction::testdata_hash_map(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    attribute: Node::new_from_str("Pan").unwrap().unwrap(),
+                    snap: Snap::No,
+                    master: Master::None,
+                    mib_fade: 0.0,
+                    dmx_change_time_limit: 0.0,
+                    channel_functions: ChannelFunction::testdata_hash_map(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    attribute: Node::new_from_str("Pan").unwrap().unwrap(),
+                    snap: Snap::No,
+                    master: Master::None,
+                    mib_fade: 0.0,
+                    dmx_change_time_limit: 12.000001,
+                    channel_functions: ChannelFunction::testdata_hash_map(),
+                }),
+            ),
         ]
     }
 
@@ -129,7 +211,6 @@ impl TestReadGdtf for LogicalChannel {
         ]
     }
 }
-
 
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
@@ -177,7 +258,7 @@ impl Snap {
             "Yes" => Yes,
             "On" => On,
             "Off" => Off,
-            _ => Default::default()
+            _ => Default::default(),
         }
     }
     ///Creates a new snap from an xml attribute deparsed by quick-xml
@@ -246,7 +327,7 @@ impl Master {
         match s {
             "Grand" => Grand,
             "Group" => Group,
-            _ => None
+            _ => None,
         }
     }
 
@@ -272,10 +353,11 @@ impl Master {
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 
-
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::{LogicalChannel, Master, Snap};
+    use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::{
+        LogicalChannel, Master, Snap,
+    };
     use crate::utils::read::TestReadGdtf;
     use crate::utils::testdata;
 
@@ -295,28 +377,56 @@ mod tests {
 
     #[test]
     fn test_snap_new_from_attr_owned() {
-        assert_eq!(Snap::No, Snap::new_from_attr(testdata::to_attr_owned(b"No")));
-        assert_eq!(Snap::Yes, Snap::new_from_attr(testdata::to_attr_owned(b"Yes")));
-        assert_eq!(Snap::On, Snap::new_from_attr(testdata::to_attr_owned(b"On")));
-        assert_eq!(Snap::Off, Snap::new_from_attr(testdata::to_attr_owned(b"Off")));
-        assert_eq!(Snap::No, Snap::new_from_attr(testdata::to_attr_owned(b"Anything else")));
+        assert_eq!(
+            Snap::No,
+            Snap::new_from_attr(testdata::to_attr_owned(b"No"))
+        );
+        assert_eq!(
+            Snap::Yes,
+            Snap::new_from_attr(testdata::to_attr_owned(b"Yes"))
+        );
+        assert_eq!(
+            Snap::On,
+            Snap::new_from_attr(testdata::to_attr_owned(b"On"))
+        );
+        assert_eq!(
+            Snap::Off,
+            Snap::new_from_attr(testdata::to_attr_owned(b"Off"))
+        );
+        assert_eq!(
+            Snap::No,
+            Snap::new_from_attr(testdata::to_attr_owned(b"Anything else"))
+        );
     }
 
     #[test]
     fn test_snap_new_from_attr_borrowed() {
-        assert_eq!(Snap::No, Snap::new_from_attr(testdata::to_attr_borrowed(b"No")));
-        assert_eq!(Snap::Yes, Snap::new_from_attr(testdata::to_attr_borrowed(b"Yes")));
-        assert_eq!(Snap::On, Snap::new_from_attr(testdata::to_attr_borrowed(b"On")));
-        assert_eq!(Snap::Off, Snap::new_from_attr(testdata::to_attr_borrowed(b"Off")));
-        assert_eq!(Snap::No, Snap::new_from_attr(testdata::to_attr_borrowed(b"Anything else")));
+        assert_eq!(
+            Snap::No,
+            Snap::new_from_attr(testdata::to_attr_borrowed(b"No"))
+        );
+        assert_eq!(
+            Snap::Yes,
+            Snap::new_from_attr(testdata::to_attr_borrowed(b"Yes"))
+        );
+        assert_eq!(
+            Snap::On,
+            Snap::new_from_attr(testdata::to_attr_borrowed(b"On"))
+        );
+        assert_eq!(
+            Snap::Off,
+            Snap::new_from_attr(testdata::to_attr_borrowed(b"Off"))
+        );
+        assert_eq!(
+            Snap::No,
+            Snap::new_from_attr(testdata::to_attr_borrowed(b"Anything else"))
+        );
     }
-
 
     #[test]
     fn test_snap_default() {
         assert_eq!(Snap::No, Default::default());
     }
-
 
     #[test]
     fn test_master_default() {
@@ -328,22 +438,49 @@ mod tests {
         assert_eq!(Master::None, Master::new_from_str("None"));
         assert_eq!(Master::Grand, Master::new_from_str("Grand"));
         assert_eq!(Master::Group, Master::new_from_str("Group"));
-        assert_eq!(Master::None, Master::new_from_str("Anything strange like ȸ"));
+        assert_eq!(
+            Master::None,
+            Master::new_from_str("Anything strange like ȸ")
+        );
     }
 
     #[test]
     fn test_master_new_from_attr_owned() {
-        assert_eq!(Master::None, Master::new_from_attr(testdata::to_attr_owned(b"None")));
-        assert_eq!(Master::Grand, Master::new_from_attr(testdata::to_attr_owned(b"Grand")));
-        assert_eq!(Master::Group, Master::new_from_attr(testdata::to_attr_owned(b"Group")));
-        assert_eq!(Master::None, Master::new_from_attr(testdata::to_attr_owned(b"Anything strange like {")));
+        assert_eq!(
+            Master::None,
+            Master::new_from_attr(testdata::to_attr_owned(b"None"))
+        );
+        assert_eq!(
+            Master::Grand,
+            Master::new_from_attr(testdata::to_attr_owned(b"Grand"))
+        );
+        assert_eq!(
+            Master::Group,
+            Master::new_from_attr(testdata::to_attr_owned(b"Group"))
+        );
+        assert_eq!(
+            Master::None,
+            Master::new_from_attr(testdata::to_attr_owned(b"Anything strange like {"))
+        );
     }
 
     #[test]
     fn test_master_new_from_attr_borrowed() {
-        assert_eq!(Master::None, Master::new_from_attr(testdata::to_attr_borrowed(b"None")));
-        assert_eq!(Master::Grand, Master::new_from_attr(testdata::to_attr_borrowed(b"Grand")));
-        assert_eq!(Master::Group, Master::new_from_attr(testdata::to_attr_borrowed(b"Group")));
-        assert_eq!(Master::None, Master::new_from_attr(testdata::to_attr_borrowed(b"Anything strange like {")));
+        assert_eq!(
+            Master::None,
+            Master::new_from_attr(testdata::to_attr_borrowed(b"None"))
+        );
+        assert_eq!(
+            Master::Grand,
+            Master::new_from_attr(testdata::to_attr_borrowed(b"Grand"))
+        );
+        assert_eq!(
+            Master::Group,
+            Master::new_from_attr(testdata::to_attr_borrowed(b"Group"))
+        );
+        assert_eq!(
+            Master::None,
+            Master::new_from_attr(testdata::to_attr_borrowed(b"Anything strange like {"))
+        );
     }
 }

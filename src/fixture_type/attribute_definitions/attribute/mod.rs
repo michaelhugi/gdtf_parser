@@ -61,23 +61,28 @@ impl ReadGdtf for Attribute {
     const PRIMARY_KEY_NAME: &'static [u8] = b"Name";
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_primary_key_from_attr(attr: quick_xml::events::attributes::Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        attr: quick_xml::events::attributes::Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         Ok(Some(AttributeName::new_from_attr(attr)?))
     }
 
     fn move_data(data_holder: Self::DataHolder) -> Result<Self, Self::Error> {
-        Ok(
-            Self {
-                pretty: data_holder.pretty.unwrap_or_else(|| "".to_string()),
-                activation_group: data_holder.activation_group,
-                feature: data_holder.feature.ok_or_else(|| Self::attribute_not_found(b"Feature"))?,
-                main_attribute: data_holder.main_attribute,
-                physical_unit: data_holder.physical_unit.unwrap_or(PhysicalUnit::None),
-                color: data_holder.color,
-            }
-        )
+        Ok(Self {
+            pretty: data_holder.pretty.unwrap_or_else(|| "".to_string()),
+            activation_group: data_holder.activation_group,
+            feature: data_holder
+                .feature
+                .ok_or_else(|| Self::attribute_not_found(b"Feature"))?,
+            main_attribute: data_holder.main_attribute,
+            physical_unit: data_holder.physical_unit.unwrap_or(PhysicalUnit::None),
+            color: data_holder.color,
+        })
     }
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: quick_xml::events::attributes::Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: quick_xml::events::attributes::Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"Pretty" => data_holder.pretty = read::attr_to_string_option(attr),
             b"ActivationGroup" => data_holder.activation_group = Node::new_from_attr(attr)?,
@@ -90,7 +95,12 @@ impl ReadGdtf for Attribute {
         Ok(())
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        _: &mut Self::DataHolder,
+        _: &mut Reader<&[u8]>,
+        _: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         Ok(())
     }
 }
@@ -99,16 +109,122 @@ impl ReadGdtf for Attribute {
 impl TestReadGdtf for Attribute {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (Some(AttributeName::Shutter_n_(1)), Some(Self { feature: Node::new_from_str("Beam.Beam").unwrap().unwrap(), pretty: "".to_string(), activation_group: None, color: None, main_attribute: None, physical_unit: PhysicalUnit::None })),
-            (Some(AttributeName::Dimmer), Some(Self { feature: Node::new_from_str("Dimmer.Dimmer").unwrap().unwrap(), pretty: "Dim".to_string(), activation_group: None, color: None, main_attribute: None, physical_unit: PhysicalUnit::None })),
-            (Some(AttributeName::Color_n_(1)), Some(Self { pretty: "".to_string(), activation_group: None, feature: Node::new_from_str("Color.Color").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, color: None })),
-            (Some(AttributeName::Pan), Some(Self { feature: Node::new_from_str("Position.PanTilt").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::Angle, pretty: "P".to_string(), activation_group: Node::new_from_str("PanTilt").unwrap(), color: None })),
-            (Some(AttributeName::Tilt), Some(Self { activation_group: Node::new_from_str("PanTilt").unwrap(), feature: Node::new_from_str("Position.PanTilt").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, pretty: "T".to_string(), color: None })),
-            (Some(AttributeName::UserDefined(Name::new("Something Else").unwrap())), Some(Self { activation_group: Node::new_from_str("PanTilt").unwrap(), feature: Node::new_from_str("Position.PanTilt").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, pretty: "T".to_string(), color: None })),
-            (Some(AttributeName::Gobo_n_(1)), Some(Self { feature: Node::new_from_str("Gobo.Gobo").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, pretty: "G1".to_string(), activation_group: None, color: None })),
-            (Some(AttributeName::Gobo_n_SelectShake(1)), Some(Self { activation_group: Node::new_from_str("Gobo1").unwrap(), feature: Node::new_from_str("Gobo.Gobo").unwrap().unwrap(), main_attribute: Node::new_from_str("Gobo1").unwrap(), physical_unit: PhysicalUnit::Frequency, pretty: "Select Shake".to_string(), color: None })),
-            (Some(AttributeName::Gobo_n_WheelSpin(2)), Some(Self { activation_group: Node::new_from_str("Gobo1").unwrap(), feature: Node::new_from_str("Gobo.Gobo").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::AngularSpeed, pretty: "Wheel Spin".to_string(), color: None })),
-            (Some(AttributeName::UserDefined(Name::new("Reserved").unwrap())), Some(Self { color: Some(ColorCie { x: 0.312700, y: 0.329, Y: 100.0 }), feature: Node::new_from_str("Control.Control").unwrap().unwrap(), main_attribute: None, physical_unit: PhysicalUnit::None, pretty: "Reserved".to_string(), activation_group: None }))
+            (
+                Some(AttributeName::Shutter_n_(1)),
+                Some(Self {
+                    feature: Node::new_from_str("Beam.Beam").unwrap().unwrap(),
+                    pretty: "".to_string(),
+                    activation_group: None,
+                    color: None,
+                    main_attribute: None,
+                    physical_unit: PhysicalUnit::None,
+                }),
+            ),
+            (
+                Some(AttributeName::Dimmer),
+                Some(Self {
+                    feature: Node::new_from_str("Dimmer.Dimmer").unwrap().unwrap(),
+                    pretty: "Dim".to_string(),
+                    activation_group: None,
+                    color: None,
+                    main_attribute: None,
+                    physical_unit: PhysicalUnit::None,
+                }),
+            ),
+            (
+                Some(AttributeName::Color_n_(1)),
+                Some(Self {
+                    pretty: "".to_string(),
+                    activation_group: None,
+                    feature: Node::new_from_str("Color.Color").unwrap().unwrap(),
+                    main_attribute: None,
+                    physical_unit: PhysicalUnit::None,
+                    color: None,
+                }),
+            ),
+            (
+                Some(AttributeName::Pan),
+                Some(Self {
+                    feature: Node::new_from_str("Position.PanTilt").unwrap().unwrap(),
+                    main_attribute: None,
+                    physical_unit: PhysicalUnit::Angle,
+                    pretty: "P".to_string(),
+                    activation_group: Node::new_from_str("PanTilt").unwrap(),
+                    color: None,
+                }),
+            ),
+            (
+                Some(AttributeName::Tilt),
+                Some(Self {
+                    activation_group: Node::new_from_str("PanTilt").unwrap(),
+                    feature: Node::new_from_str("Position.PanTilt").unwrap().unwrap(),
+                    main_attribute: None,
+                    physical_unit: PhysicalUnit::None,
+                    pretty: "T".to_string(),
+                    color: None,
+                }),
+            ),
+            (
+                Some(AttributeName::UserDefined(
+                    Name::new("Something Else").unwrap(),
+                )),
+                Some(Self {
+                    activation_group: Node::new_from_str("PanTilt").unwrap(),
+                    feature: Node::new_from_str("Position.PanTilt").unwrap().unwrap(),
+                    main_attribute: None,
+                    physical_unit: PhysicalUnit::None,
+                    pretty: "T".to_string(),
+                    color: None,
+                }),
+            ),
+            (
+                Some(AttributeName::Gobo_n_(1)),
+                Some(Self {
+                    feature: Node::new_from_str("Gobo.Gobo").unwrap().unwrap(),
+                    main_attribute: None,
+                    physical_unit: PhysicalUnit::None,
+                    pretty: "G1".to_string(),
+                    activation_group: None,
+                    color: None,
+                }),
+            ),
+            (
+                Some(AttributeName::Gobo_n_SelectShake(1)),
+                Some(Self {
+                    activation_group: Node::new_from_str("Gobo1").unwrap(),
+                    feature: Node::new_from_str("Gobo.Gobo").unwrap().unwrap(),
+                    main_attribute: Node::new_from_str("Gobo1").unwrap(),
+                    physical_unit: PhysicalUnit::Frequency,
+                    pretty: "Select Shake".to_string(),
+                    color: None,
+                }),
+            ),
+            (
+                Some(AttributeName::Gobo_n_WheelSpin(2)),
+                Some(Self {
+                    activation_group: Node::new_from_str("Gobo1").unwrap(),
+                    feature: Node::new_from_str("Gobo.Gobo").unwrap().unwrap(),
+                    main_attribute: None,
+                    physical_unit: PhysicalUnit::AngularSpeed,
+                    pretty: "Wheel Spin".to_string(),
+                    color: None,
+                }),
+            ),
+            (
+                Some(AttributeName::UserDefined(Name::new("Reserved").unwrap())),
+                Some(Self {
+                    color: Some(ColorCie {
+                        x: 0.312700,
+                        y: 0.329,
+                        Y: 100.0,
+                    }),
+                    feature: Node::new_from_str("Control.Control").unwrap().unwrap(),
+                    main_attribute: None,
+                    physical_unit: PhysicalUnit::None,
+                    pretty: "Reserved".to_string(),
+                    activation_group: None,
+                }),
+            ),
         ]
     }
 
@@ -131,7 +247,6 @@ impl TestReadGdtf for Attribute {
         vec![r#" <Attribute ActivationGroup="Gobo1" MainAttribute="Gobo1" Name="Gobo1SelectShake" PhysicalUnit="Frequency" Pretty="Select Shake"/>"#.to_string()]
     }
 }
-
 
 #[cfg(test)]
 pub mod tests {

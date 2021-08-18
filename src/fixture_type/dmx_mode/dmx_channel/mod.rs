@@ -63,28 +63,42 @@ impl ReadGdtf for DmxChannel {
     const PRIMARY_KEY_NAME: &'static [u8] = b"";
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed");
     }
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"DMXBreak" => data_holder.dmx_break = Some(DmxBreak::new_from_attr(attr)),
             b"Offset" => data_holder.offset = Offset::new_from_attr(attr),
             b"InitialFunction" => data_holder.initial_function = Node::new_from_attr(attr)?,
-            b"Highlight" => data_holder.highlight = match DmxValue::new_from_attr(attr) {
-                Ok(attr) => Some(attr),
-                Err(_) => None
-            },
+            b"Highlight" => {
+                data_holder.highlight = match DmxValue::new_from_attr(attr) {
+                    Ok(attr) => Some(attr),
+                    Err(_) => None,
+                }
+            }
             b"Geometry" => data_holder.geometry = Some(Name::new_from_attr(attr)?),
             _ => {}
         }
         Ok(())
     }
 
-    fn read_any_child(data_holder: &mut Self::DataHolder, reader: &mut Reader<&[u8]>, event: BytesStart<'_>, has_children: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        data_holder: &mut Self::DataHolder,
+        reader: &mut Reader<&[u8]>,
+        event: BytesStart<'_>,
+        has_children: bool,
+    ) -> Result<(), Self::Error> {
         if event.name() == b"LogicalChannel" {
-            data_holder.logical_channels.push(LogicalChannel::read_single_from_event(reader, event, has_children)?.1);
+            data_holder
+                .logical_channels
+                .push(LogicalChannel::read_single_from_event(reader, event, has_children)?.1);
         }
         Ok(())
     }
@@ -95,7 +109,9 @@ impl ReadGdtf for DmxChannel {
             offset: data_holder.offset,
             initial_function: data_holder.initial_function,
             highlight: data_holder.highlight,
-            geometry: data_holder.geometry.ok_or_else(|| Self::attribute_not_found(b"Geometry"))?,
+            geometry: data_holder
+                .geometry
+                .ok_or_else(|| Self::attribute_not_found(b"Geometry"))?,
             logical_channels: data_holder.logical_channels,
         })
     }
@@ -105,15 +121,133 @@ impl ReadGdtf for DmxChannel {
 impl TestReadGdtf for DmxChannel {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1, 2])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: vec![] })),
-            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1, 2])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: vec![] })),
-            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1, 2])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 12, n: 2, is_byte_shifting: true }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
-            (None, Some(Self { dmx_break: DmxBreak::Value(2), offset: None, initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: None, geometry: Name::new("Head").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
-            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: None, initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: None, geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
-            (None, Some(Self { dmx_break: DmxBreak::Value(55), offset: Some(Offset(vec![2])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
-            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
-            (None, Some(Self { dmx_break: DmxBreak::Value(1), offset: Some(Offset(vec![1, 2])), initial_function: None, highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
-            (None, Some(Self { dmx_break: DmxBreak::Overwrite, offset: Some(Offset(vec![1, 3])), initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(), highlight: Some(DmxValue { initial_value: 16, n: 1, is_byte_shifting: false }), geometry: Name::new("Yoke").unwrap(), logical_channels: LogicalChannel::testdata_vec() })),
+            (
+                None,
+                Some(Self {
+                    dmx_break: DmxBreak::Value(1),
+                    offset: Some(Offset(vec![1, 2])),
+                    initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(),
+                    highlight: Some(DmxValue {
+                        initial_value: 16,
+                        n: 1,
+                        is_byte_shifting: false,
+                    }),
+                    geometry: Name::new("Yoke").unwrap(),
+                    logical_channels: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    dmx_break: DmxBreak::Value(1),
+                    offset: Some(Offset(vec![1, 2])),
+                    initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(),
+                    highlight: Some(DmxValue {
+                        initial_value: 16,
+                        n: 1,
+                        is_byte_shifting: false,
+                    }),
+                    geometry: Name::new("Yoke").unwrap(),
+                    logical_channels: vec![],
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    dmx_break: DmxBreak::Value(1),
+                    offset: Some(Offset(vec![1, 2])),
+                    initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(),
+                    highlight: Some(DmxValue {
+                        initial_value: 12,
+                        n: 2,
+                        is_byte_shifting: true,
+                    }),
+                    geometry: Name::new("Yoke").unwrap(),
+                    logical_channels: LogicalChannel::testdata_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    dmx_break: DmxBreak::Value(2),
+                    offset: None,
+                    initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(),
+                    highlight: None,
+                    geometry: Name::new("Head").unwrap(),
+                    logical_channels: LogicalChannel::testdata_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    dmx_break: DmxBreak::Value(1),
+                    offset: None,
+                    initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(),
+                    highlight: None,
+                    geometry: Name::new("Yoke").unwrap(),
+                    logical_channels: LogicalChannel::testdata_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    dmx_break: DmxBreak::Value(55),
+                    offset: Some(Offset(vec![2])),
+                    initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(),
+                    highlight: Some(DmxValue {
+                        initial_value: 16,
+                        n: 1,
+                        is_byte_shifting: false,
+                    }),
+                    geometry: Name::new("Yoke").unwrap(),
+                    logical_channels: LogicalChannel::testdata_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    dmx_break: DmxBreak::Value(1),
+                    offset: Some(Offset(vec![1])),
+                    initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(),
+                    highlight: Some(DmxValue {
+                        initial_value: 16,
+                        n: 1,
+                        is_byte_shifting: false,
+                    }),
+                    geometry: Name::new("Yoke").unwrap(),
+                    logical_channels: LogicalChannel::testdata_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    dmx_break: DmxBreak::Value(1),
+                    offset: Some(Offset(vec![1, 2])),
+                    initial_function: None,
+                    highlight: Some(DmxValue {
+                        initial_value: 16,
+                        n: 1,
+                        is_byte_shifting: false,
+                    }),
+                    geometry: Name::new("Yoke").unwrap(),
+                    logical_channels: LogicalChannel::testdata_vec(),
+                }),
+            ),
+            (
+                None,
+                Some(Self {
+                    dmx_break: DmxBreak::Overwrite,
+                    offset: Some(Offset(vec![1, 3])),
+                    initial_function: Node::new_from_str("Yoke_Pan.Pan.Pan 1").unwrap(),
+                    highlight: Some(DmxValue {
+                        initial_value: 16,
+                        n: 1,
+                        is_byte_shifting: false,
+                    }),
+                    geometry: Name::new("Yoke").unwrap(),
+                    logical_channels: LogicalChannel::testdata_vec(),
+                }),
+            ),
         ]
     }
 
@@ -143,7 +277,6 @@ impl TestReadGdtf for DmxChannel {
 // Start of Offset
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
-
 
 ///The unit Offset used for DMXChannel used in GDTF
 ///Relative addresses of the current DMX channel from highest to least significant
@@ -177,7 +310,7 @@ impl Offset {
         for s in s.split(',').into_iter() {
             match i32::from_str(s) {
                 Ok(s) => v.push(s),
-                Err(_) => return None
+                Err(_) => return None,
             }
         }
         Some(Offset(v))
@@ -220,20 +353,17 @@ impl Offset {
     }
 }
 
-
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 // End of Offset
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 
-
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 // Start of DmxBreak
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
-
 
 ///DMXBreak used for DMXChannel in GDTF
 #[derive(Debug, PartialEq, Clone)]
@@ -293,7 +423,6 @@ impl Default for DmxBreak {
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 
-
 #[cfg(test)]
 mod tests {
     use crate::fixture_type::dmx_mode::dmx_channel::{DmxBreak, DmxChannel, Offset};
@@ -305,7 +434,6 @@ mod tests {
         DmxChannel::execute_tests();
     }
 
-
     #[test]
     fn test_offset_new_from_str() {
         assert!(Offset::new_from_str("None").is_none());
@@ -313,8 +441,14 @@ mod tests {
         assert_eq!(Offset(vec![-1]), Offset::new_from_str("-1").unwrap());
         assert_eq!(Offset(vec![1, 2]), Offset::new_from_str("1,2").unwrap());
         assert_eq!(Offset(vec![1, -2]), Offset::new_from_str("1,-2").unwrap());
-        assert_eq!(Offset(vec![0, 1, 2, -3]), Offset::new_from_str("0,1,2,-3").unwrap());
-        assert_eq!(Offset(vec![i32::MAX, i32::MIN]), Offset::new_from_str("2147483647,-2147483648").unwrap());
+        assert_eq!(
+            Offset(vec![0, 1, 2, -3]),
+            Offset::new_from_str("0,1,2,-3").unwrap()
+        );
+        assert_eq!(
+            Offset(vec![i32::MAX, i32::MIN]),
+            Offset::new_from_str("2147483647,-2147483648").unwrap()
+        );
 
         assert!(Offset::new_from_str("").is_none());
         assert!(Offset::new_from_str("Something else").is_none());
@@ -325,33 +459,77 @@ mod tests {
     #[test]
     fn test_offset_new_from_attr_owned() {
         assert!(Offset::new_from_attr(testdata::to_attr_owned(b"None")).is_none());
-        assert_eq!(Offset(vec![1]), Offset::new_from_attr(testdata::to_attr_owned(b"1")).unwrap());
-        assert_eq!(Offset(vec![-1]), Offset::new_from_attr(testdata::to_attr_owned(b"-1")).unwrap());
-        assert_eq!(Offset(vec![1, 2]), Offset::new_from_attr(testdata::to_attr_owned(b"1,2")).unwrap());
-        assert_eq!(Offset(vec![1, -2]), Offset::new_from_attr(testdata::to_attr_owned(b"1,-2")).unwrap());
-        assert_eq!(Offset(vec![0, 1, 2, -3]), Offset::new_from_attr(testdata::to_attr_owned(b"0,1,2,-3")).unwrap());
-        assert_eq!(Offset(vec![i32::MAX, i32::MIN]), Offset::new_from_attr(testdata::to_attr_owned(b"2147483647,-2147483648")).unwrap());
+        assert_eq!(
+            Offset(vec![1]),
+            Offset::new_from_attr(testdata::to_attr_owned(b"1")).unwrap()
+        );
+        assert_eq!(
+            Offset(vec![-1]),
+            Offset::new_from_attr(testdata::to_attr_owned(b"-1")).unwrap()
+        );
+        assert_eq!(
+            Offset(vec![1, 2]),
+            Offset::new_from_attr(testdata::to_attr_owned(b"1,2")).unwrap()
+        );
+        assert_eq!(
+            Offset(vec![1, -2]),
+            Offset::new_from_attr(testdata::to_attr_owned(b"1,-2")).unwrap()
+        );
+        assert_eq!(
+            Offset(vec![0, 1, 2, -3]),
+            Offset::new_from_attr(testdata::to_attr_owned(b"0,1,2,-3")).unwrap()
+        );
+        assert_eq!(
+            Offset(vec![i32::MAX, i32::MIN]),
+            Offset::new_from_attr(testdata::to_attr_owned(b"2147483647,-2147483648")).unwrap()
+        );
 
         assert!(Offset::new_from_attr(testdata::to_attr_owned(b"")).is_none());
         assert!(Offset::new_from_attr(testdata::to_attr_owned(b"Something else")).is_none());
-        assert!(Offset::new_from_attr(testdata::to_attr_owned(b"2147483648,-2147483648")).is_none());
-        assert!(Offset::new_from_attr(testdata::to_attr_owned(b"2147483648,-2147483649")).is_none());
+        assert!(
+            Offset::new_from_attr(testdata::to_attr_owned(b"2147483648,-2147483648")).is_none()
+        );
+        assert!(
+            Offset::new_from_attr(testdata::to_attr_owned(b"2147483648,-2147483649")).is_none()
+        );
     }
 
     #[test]
     fn test_offset_new_from_attr_borrowed() {
         assert!(Offset::new_from_attr(testdata::to_attr_borrowed(b"None")).is_none());
-        assert_eq!(Offset(vec![1]), Offset::new_from_attr(testdata::to_attr_borrowed(b"1")).unwrap());
-        assert_eq!(Offset(vec![-1]), Offset::new_from_attr(testdata::to_attr_borrowed(b"-1")).unwrap());
-        assert_eq!(Offset(vec![1, 2]), Offset::new_from_attr(testdata::to_attr_borrowed(b"1,2")).unwrap());
-        assert_eq!(Offset(vec![1, -2]), Offset::new_from_attr(testdata::to_attr_borrowed(b"1,-2")).unwrap());
-        assert_eq!(Offset(vec![0, 1, 2, -3]), Offset::new_from_attr(testdata::to_attr_borrowed(b"0,1,2,-3")).unwrap());
-        assert_eq!(Offset(vec![i32::MAX, i32::MIN]), Offset::new_from_attr(testdata::to_attr_borrowed(b"2147483647,-2147483648")).unwrap());
+        assert_eq!(
+            Offset(vec![1]),
+            Offset::new_from_attr(testdata::to_attr_borrowed(b"1")).unwrap()
+        );
+        assert_eq!(
+            Offset(vec![-1]),
+            Offset::new_from_attr(testdata::to_attr_borrowed(b"-1")).unwrap()
+        );
+        assert_eq!(
+            Offset(vec![1, 2]),
+            Offset::new_from_attr(testdata::to_attr_borrowed(b"1,2")).unwrap()
+        );
+        assert_eq!(
+            Offset(vec![1, -2]),
+            Offset::new_from_attr(testdata::to_attr_borrowed(b"1,-2")).unwrap()
+        );
+        assert_eq!(
+            Offset(vec![0, 1, 2, -3]),
+            Offset::new_from_attr(testdata::to_attr_borrowed(b"0,1,2,-3")).unwrap()
+        );
+        assert_eq!(
+            Offset(vec![i32::MAX, i32::MIN]),
+            Offset::new_from_attr(testdata::to_attr_borrowed(b"2147483647,-2147483648")).unwrap()
+        );
 
         assert!(Offset::new_from_attr(testdata::to_attr_borrowed(b"")).is_none());
         assert!(Offset::new_from_attr(testdata::to_attr_borrowed(b"Something else")).is_none());
-        assert!(Offset::new_from_attr(testdata::to_attr_borrowed(b"2147483648,-2147483648")).is_none());
-        assert!(Offset::new_from_attr(testdata::to_attr_borrowed(b"2147483648,-2147483649")).is_none());
+        assert!(
+            Offset::new_from_attr(testdata::to_attr_borrowed(b"2147483648,-2147483648")).is_none()
+        );
+        assert!(
+            Offset::new_from_attr(testdata::to_attr_borrowed(b"2147483648,-2147483649")).is_none()
+        );
     }
 
     #[test]
@@ -360,7 +538,6 @@ mod tests {
         assert_eq!(Offset(vec![1]), Offset::new(vec![1]));
         assert_eq!(Offset(vec![1, 3]), Offset::new(vec![1, 3]));
     }
-
 
     #[test]
     fn test_dmx_break_new_from_str() {
@@ -377,28 +554,82 @@ mod tests {
 
     #[test]
     fn test_dmx_break_new_from_attr_owned_valid() {
-        assert_eq!(DmxBreak::Value(23), DmxBreak::new_from_attr(testdata::to_attr_owned(b"23")));
-        assert_eq!(DmxBreak::Value(1), DmxBreak::new_from_attr(testdata::to_attr_owned(b"1")));
-        assert_eq!(DmxBreak::Value(145), DmxBreak::new_from_attr(testdata::to_attr_owned(b"145")));
-        assert_eq!(DmxBreak::Overwrite, DmxBreak::new_from_attr(testdata::to_attr_owned(b"Overwrite")));
-        assert_eq!(DmxBreak::Value(1), DmxBreak::new_from_attr(testdata::to_attr_owned(b"Something else")));
-        assert_eq!(DmxBreak::Value(1), DmxBreak::new_from_attr(testdata::to_attr_owned(b"23a")));
-        assert_eq!(DmxBreak::Value(1), DmxBreak::new_from_attr(testdata::to_attr_owned(b"")));
-        assert_eq!(DmxBreak::Value(1), DmxBreak::new_from_attr(testdata::to_attr_owned(b"a3")));
-        assert_eq!(DmxBreak::Value(1), DmxBreak::new_from_attr(testdata::to_attr_owned(b"Overwritee")));
+        assert_eq!(
+            DmxBreak::Value(23),
+            DmxBreak::new_from_attr(testdata::to_attr_owned(b"23"))
+        );
+        assert_eq!(
+            DmxBreak::Value(1),
+            DmxBreak::new_from_attr(testdata::to_attr_owned(b"1"))
+        );
+        assert_eq!(
+            DmxBreak::Value(145),
+            DmxBreak::new_from_attr(testdata::to_attr_owned(b"145"))
+        );
+        assert_eq!(
+            DmxBreak::Overwrite,
+            DmxBreak::new_from_attr(testdata::to_attr_owned(b"Overwrite"))
+        );
+        assert_eq!(
+            DmxBreak::Value(1),
+            DmxBreak::new_from_attr(testdata::to_attr_owned(b"Something else"))
+        );
+        assert_eq!(
+            DmxBreak::Value(1),
+            DmxBreak::new_from_attr(testdata::to_attr_owned(b"23a"))
+        );
+        assert_eq!(
+            DmxBreak::Value(1),
+            DmxBreak::new_from_attr(testdata::to_attr_owned(b""))
+        );
+        assert_eq!(
+            DmxBreak::Value(1),
+            DmxBreak::new_from_attr(testdata::to_attr_owned(b"a3"))
+        );
+        assert_eq!(
+            DmxBreak::Value(1),
+            DmxBreak::new_from_attr(testdata::to_attr_owned(b"Overwritee"))
+        );
     }
 
     #[test]
     fn test_dmx_break_new_from_attr_borrowed_valid() {
-        assert_eq!(DmxBreak::Value(23), DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"23")));
-        assert_eq!(DmxBreak::Value(1), DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"1")));
-        assert_eq!(DmxBreak::Value(145), DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"145")));
-        assert_eq!(DmxBreak::Overwrite, DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"Overwrite")));
-        assert_eq!(DmxBreak::Value(1), DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"Something else")));
-        assert_eq!(DmxBreak::Value(1), DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"23a")));
-        assert_eq!(DmxBreak::Value(1), DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"")));
-        assert_eq!(DmxBreak::Value(1), DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"a3")));
-        assert_eq!(DmxBreak::Value(1), DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"Overwritee")));
+        assert_eq!(
+            DmxBreak::Value(23),
+            DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"23"))
+        );
+        assert_eq!(
+            DmxBreak::Value(1),
+            DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"1"))
+        );
+        assert_eq!(
+            DmxBreak::Value(145),
+            DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"145"))
+        );
+        assert_eq!(
+            DmxBreak::Overwrite,
+            DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"Overwrite"))
+        );
+        assert_eq!(
+            DmxBreak::Value(1),
+            DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"Something else"))
+        );
+        assert_eq!(
+            DmxBreak::Value(1),
+            DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"23a"))
+        );
+        assert_eq!(
+            DmxBreak::Value(1),
+            DmxBreak::new_from_attr(testdata::to_attr_borrowed(b""))
+        );
+        assert_eq!(
+            DmxBreak::Value(1),
+            DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"a3"))
+        );
+        assert_eq!(
+            DmxBreak::Value(1),
+            DmxBreak::new_from_attr(testdata::to_attr_borrowed(b"Overwritee"))
+        );
     }
 
     #[test]

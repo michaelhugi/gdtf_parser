@@ -37,15 +37,15 @@ impl DmxValue {
             (value, false)
         };
         let value: Vec<&str> = value.split('/').collect();
-        if value.len() != 2 { return Err(GdtfDmxValueError {}); }
+        if value.len() != 2 {
+            return Err(GdtfDmxValueError {});
+        }
 
-        Ok(
-            DmxValue {
-                initial_value: u32::from_str(value[0]).map_err(|_| GdtfDmxValueError {})?,
-                n: u8::from_str(value[1]).map_err(|_| GdtfDmxValueError {})?,
-                is_byte_shifting,
-            }
-        )
+        Ok(DmxValue {
+            initial_value: u32::from_str(value[0]).map_err(|_| GdtfDmxValueError {})?,
+            n: u8::from_str(value[1]).map_err(|_| GdtfDmxValueError {})?,
+            is_byte_shifting,
+        })
     }
 
     ///Parses a quick-xml-attribute defined in gdtf-xml-description to DmxValue
@@ -62,14 +62,16 @@ impl DmxValue {
     }
 }
 
-
 #[derive(Debug)]
 /// Error that occures if the format of DmxValue is wrong e.q. not Uint/n or Uint/ns
 pub struct GdtfDmxValueError {}
 
 impl Display for GdtfDmxValueError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "The DMXValue must be formatted Uint/n or Uint/ns. Current form")
+        write!(
+            f,
+            "The DMXValue must be formatted Uint/n or Uint/ns. Current form"
+        )
     }
 }
 
@@ -88,10 +90,38 @@ mod tests {
 
     #[test]
     fn test_new_from_str() {
-        assert_eq!(DmxValue { initial_value: 255, n: 1, is_byte_shifting: false }, DmxValue::new_from_str("255/1").unwrap());
-        assert_eq!(DmxValue { initial_value: 14, n: 2, is_byte_shifting: false }, DmxValue::new_from_str("14/2").unwrap());
-        assert_eq!(DmxValue { initial_value: 14, n: 2, is_byte_shifting: true }, DmxValue::new_from_str("14/2s").unwrap());
-        assert_eq!(DmxValue { initial_value: 255, n: 1, is_byte_shifting: true }, DmxValue::new_from_str("255/1s").unwrap());
+        assert_eq!(
+            DmxValue {
+                initial_value: 255,
+                n: 1,
+                is_byte_shifting: false
+            },
+            DmxValue::new_from_str("255/1").unwrap()
+        );
+        assert_eq!(
+            DmxValue {
+                initial_value: 14,
+                n: 2,
+                is_byte_shifting: false
+            },
+            DmxValue::new_from_str("14/2").unwrap()
+        );
+        assert_eq!(
+            DmxValue {
+                initial_value: 14,
+                n: 2,
+                is_byte_shifting: true
+            },
+            DmxValue::new_from_str("14/2s").unwrap()
+        );
+        assert_eq!(
+            DmxValue {
+                initial_value: 255,
+                n: 1,
+                is_byte_shifting: true
+            },
+            DmxValue::new_from_str("255/1s").unwrap()
+        );
         assert!(DmxValue::new_from_str("Something invalid").is_err());
         assert!(DmxValue::new_from_str("12").is_err());
         assert!(DmxValue::new_from_str("2").is_err());
@@ -106,10 +136,38 @@ mod tests {
 
     #[test]
     fn test_new_from_attr_owned() {
-        assert_eq!(DmxValue { initial_value: 255, n: 1, is_byte_shifting: false }, DmxValue::new_from_attr(testdata::to_attr_owned(b"255/1")).unwrap());
-        assert_eq!(DmxValue { initial_value: 14, n: 2, is_byte_shifting: false }, DmxValue::new_from_attr(testdata::to_attr_owned(b"14/2")).unwrap());
-        assert_eq!(DmxValue { initial_value: 14, n: 2, is_byte_shifting: true }, DmxValue::new_from_attr(testdata::to_attr_owned(b"14/2s")).unwrap());
-        assert_eq!(DmxValue { initial_value: 255, n: 1, is_byte_shifting: true }, DmxValue::new_from_attr(testdata::to_attr_owned(b"255/1s")).unwrap());
+        assert_eq!(
+            DmxValue {
+                initial_value: 255,
+                n: 1,
+                is_byte_shifting: false
+            },
+            DmxValue::new_from_attr(testdata::to_attr_owned(b"255/1")).unwrap()
+        );
+        assert_eq!(
+            DmxValue {
+                initial_value: 14,
+                n: 2,
+                is_byte_shifting: false
+            },
+            DmxValue::new_from_attr(testdata::to_attr_owned(b"14/2")).unwrap()
+        );
+        assert_eq!(
+            DmxValue {
+                initial_value: 14,
+                n: 2,
+                is_byte_shifting: true
+            },
+            DmxValue::new_from_attr(testdata::to_attr_owned(b"14/2s")).unwrap()
+        );
+        assert_eq!(
+            DmxValue {
+                initial_value: 255,
+                n: 1,
+                is_byte_shifting: true
+            },
+            DmxValue::new_from_attr(testdata::to_attr_owned(b"255/1s")).unwrap()
+        );
         assert!(DmxValue::new_from_attr(testdata::to_attr_owned(b"Something invalid")).is_err());
         assert!(DmxValue::new_from_attr(testdata::to_attr_owned(b"12")).is_err());
         assert!(DmxValue::new_from_attr(testdata::to_attr_owned(b"2")).is_err());
@@ -124,10 +182,38 @@ mod tests {
 
     #[test]
     fn test_new_from_attr_borrowed() {
-        assert_eq!(DmxValue { initial_value: 255, n: 1, is_byte_shifting: false }, DmxValue::new_from_attr(testdata::to_attr_borrowed(b"255/1")).unwrap());
-        assert_eq!(DmxValue { initial_value: 14, n: 2, is_byte_shifting: false }, DmxValue::new_from_attr(testdata::to_attr_borrowed(b"14/2")).unwrap());
-        assert_eq!(DmxValue { initial_value: 14, n: 2, is_byte_shifting: true }, DmxValue::new_from_attr(testdata::to_attr_borrowed(b"14/2s")).unwrap());
-        assert_eq!(DmxValue { initial_value: 255, n: 1, is_byte_shifting: true }, DmxValue::new_from_attr(testdata::to_attr_borrowed(b"255/1s")).unwrap());
+        assert_eq!(
+            DmxValue {
+                initial_value: 255,
+                n: 1,
+                is_byte_shifting: false
+            },
+            DmxValue::new_from_attr(testdata::to_attr_borrowed(b"255/1")).unwrap()
+        );
+        assert_eq!(
+            DmxValue {
+                initial_value: 14,
+                n: 2,
+                is_byte_shifting: false
+            },
+            DmxValue::new_from_attr(testdata::to_attr_borrowed(b"14/2")).unwrap()
+        );
+        assert_eq!(
+            DmxValue {
+                initial_value: 14,
+                n: 2,
+                is_byte_shifting: true
+            },
+            DmxValue::new_from_attr(testdata::to_attr_borrowed(b"14/2s")).unwrap()
+        );
+        assert_eq!(
+            DmxValue {
+                initial_value: 255,
+                n: 1,
+                is_byte_shifting: true
+            },
+            DmxValue::new_from_attr(testdata::to_attr_borrowed(b"255/1s")).unwrap()
+        );
         assert!(DmxValue::new_from_attr(testdata::to_attr_borrowed(b"Something invalid")).is_err());
         assert!(DmxValue::new_from_attr(testdata::to_attr_borrowed(b"12")).is_err());
         assert!(DmxValue::new_from_attr(testdata::to_attr_borrowed(b"2")).is_err());

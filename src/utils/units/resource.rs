@@ -1,6 +1,5 @@
 //!Module for the unit Resource used in GDTF
 
-
 use quick_xml::events::attributes::Attribute;
 
 use crate::utils::read;
@@ -39,16 +38,25 @@ mod tests {
 
     #[test]
     pub fn test_new_from_str() {
-        assert_eq!(Resource::new_from_str("head.png"), Resource("head.png".to_string()));
+        assert_eq!(
+            Resource::new_from_str("head.png"),
+            Resource("head.png".to_string())
+        );
     }
 
     #[test]
     pub fn test_new_from_attr_owned() {
-        assert_eq!(Resource::new_from_attr(testdata::to_attr_owned(b"head.png")), Resource("head.png".to_string()));
+        assert_eq!(
+            Resource::new_from_attr(testdata::to_attr_owned(b"head.png")),
+            Resource("head.png".to_string())
+        );
     }
 
     #[test]
     pub fn test_new_from_attr_borrowed() {
-        assert_eq!(Resource::new_from_attr(testdata::to_attr_borrowed(b"head.png")), Resource("head.png".to_string()));
+        assert_eq!(
+            Resource::new_from_attr(testdata::to_attr_borrowed(b"head.png")),
+            Resource("head.png".to_string())
+        );
     }
 }

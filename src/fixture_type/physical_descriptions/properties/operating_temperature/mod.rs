@@ -26,7 +26,10 @@ pub struct OperatingTemperature {
 /// ```
 impl Default for OperatingTemperature {
     fn default() -> Self {
-        Self { low: 0.0, high: 40.0 }
+        Self {
+            low: 0.0,
+            high: 40.0,
+        }
     }
 }
 
@@ -40,7 +43,10 @@ impl ReadGdtf for OperatingTemperature {
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(
+        data_holder: &mut Self::DataHolder,
+        attr: Attribute<'_>,
+    ) -> Result<(), Self::Error> {
         match attr.key {
             b"Low" => data_holder.low = read::attr_to_f32(attr),
             b"High" => data_holder.high = read::attr_to_f32(attr),
@@ -49,7 +55,12 @@ impl ReadGdtf for OperatingTemperature {
         Ok(())
     }
 
-    fn read_any_child(_: &mut Self::DataHolder, _: &mut Reader<&[u8]>, _: BytesStart<'_>, _: bool) -> Result<(), Self::Error> {
+    fn read_any_child(
+        _: &mut Self::DataHolder,
+        _: &mut Reader<&[u8]>,
+        _: BytesStart<'_>,
+        _: bool,
+    ) -> Result<(), Self::Error> {
         Ok(())
     }
 
@@ -57,7 +68,9 @@ impl ReadGdtf for OperatingTemperature {
         Ok(data_holder)
     }
 
-    fn read_primary_key_from_attr(_: Attribute<'_>) -> Result<Option<Self::PrimaryKey>, Self::Error> {
+    fn read_primary_key_from_attr(
+        _: Attribute<'_>,
+    ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         panic!("Should not be executed")
     }
 }
@@ -66,10 +79,34 @@ impl ReadGdtf for OperatingTemperature {
 impl TestReadGdtf for OperatingTemperature {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(OperatingTemperature { low: 0.0, high: 40.0 })),
-            (None, Some(OperatingTemperature { low: -34.2, high: 40.0 })),
-            (None, Some(OperatingTemperature { low: 0.0, high: -322.1 })),
-            (None, Some(OperatingTemperature { low: 234.1, high: 478.321 })),
+            (
+                None,
+                Some(OperatingTemperature {
+                    low: 0.0,
+                    high: 40.0,
+                }),
+            ),
+            (
+                None,
+                Some(OperatingTemperature {
+                    low: -34.2,
+                    high: 40.0,
+                }),
+            ),
+            (
+                None,
+                Some(OperatingTemperature {
+                    low: 0.0,
+                    high: -322.1,
+                }),
+            ),
+            (
+                None,
+                Some(OperatingTemperature {
+                    low: 234.1,
+                    high: 478.321,
+                }),
+            ),
         ]
     }
 
@@ -78,7 +115,8 @@ impl TestReadGdtf for OperatingTemperature {
             r#"<OperatingTemperature/>"#.to_string(),
             r#"<OperatingTemperature Low="-34.2"/>"#.to_string(),
             r#"<OperatingTemperature High="-322.1"/>"#.to_string(),
-            r#"<OperatingTemperature Low="234.1" High="478.321"></OperatingTemperature>"#.to_string(),
+            r#"<OperatingTemperature Low="234.1" High="478.321"></OperatingTemperature>"#
+                .to_string(),
         ]
     }
 
@@ -86,7 +124,6 @@ impl TestReadGdtf for OperatingTemperature {
         vec![]
     }
 }
-
 
 #[cfg(test)]
 mod tests {

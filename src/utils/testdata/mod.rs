@@ -11,12 +11,18 @@ use crate::utils::errors::GdtfError;
 
 /// Creates a new quick-xml-attribute with borrowed value
 pub fn to_attr_borrowed(value: &[u8]) -> Attribute {
-    Attribute { key: &[], value: Cow::Borrowed(value) }
+    Attribute {
+        key: &[],
+        value: Cow::Borrowed(value),
+    }
 }
 
 /// Creates a new quick-xml-attribute with owned value
 pub fn to_attr_owned(value: &[u8]) -> Attribute {
-    Attribute { key: &[], value: Cow::Borrowed(value).to_owned() }
+    Attribute {
+        key: &[],
+        value: Cow::Borrowed(value).to_owned(),
+    }
 }
 
 #[allow(dead_code)]

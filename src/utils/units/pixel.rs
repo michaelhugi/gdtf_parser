@@ -1,8 +1,8 @@
 //! Module for the unit Pixel used in GDTF
 
 use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::fmt::{Display, Formatter};
 use std::num::ParseFloatError;
 use std::str::FromStr;
 
@@ -79,19 +79,43 @@ mod tests {
 
     #[test]
     pub fn test_new_from_attr_owned() {
-        assert_eq!(Pixel::new_from_attr(testdata::to_attr_owned(b"0")).unwrap(), Pixel(0.0));
-        assert_eq!(Pixel::new_from_attr(testdata::to_attr_owned(b"12")).unwrap(), Pixel(12.0));
-        assert_eq!(Pixel::new_from_attr(testdata::to_attr_owned(b"12.032120")).unwrap(), Pixel(12.032120));
-        assert_eq!(Pixel::new_from_attr(testdata::to_attr_owned(b"-1")).unwrap(), Pixel(-1.0));
+        assert_eq!(
+            Pixel::new_from_attr(testdata::to_attr_owned(b"0")).unwrap(),
+            Pixel(0.0)
+        );
+        assert_eq!(
+            Pixel::new_from_attr(testdata::to_attr_owned(b"12")).unwrap(),
+            Pixel(12.0)
+        );
+        assert_eq!(
+            Pixel::new_from_attr(testdata::to_attr_owned(b"12.032120")).unwrap(),
+            Pixel(12.032120)
+        );
+        assert_eq!(
+            Pixel::new_from_attr(testdata::to_attr_owned(b"-1")).unwrap(),
+            Pixel(-1.0)
+        );
         assert!(Pixel::new_from_attr(testdata::to_attr_owned(b"Something else")).is_err());
     }
 
     #[test]
     pub fn test_new_from_attr_borrowed() {
-        assert_eq!(Pixel::new_from_attr(testdata::to_attr_borrowed(b"0")).unwrap(), Pixel(0.0));
-        assert_eq!(Pixel::new_from_attr(testdata::to_attr_borrowed(b"12")).unwrap(), Pixel(12.0));
-        assert_eq!(Pixel::new_from_attr(testdata::to_attr_borrowed(b"12.032120")).unwrap(), Pixel(12.032120));
-        assert_eq!(Pixel::new_from_attr(testdata::to_attr_borrowed(b"-1")).unwrap(), Pixel(-1.0));
+        assert_eq!(
+            Pixel::new_from_attr(testdata::to_attr_borrowed(b"0")).unwrap(),
+            Pixel(0.0)
+        );
+        assert_eq!(
+            Pixel::new_from_attr(testdata::to_attr_borrowed(b"12")).unwrap(),
+            Pixel(12.0)
+        );
+        assert_eq!(
+            Pixel::new_from_attr(testdata::to_attr_borrowed(b"12.032120")).unwrap(),
+            Pixel(12.032120)
+        );
+        assert_eq!(
+            Pixel::new_from_attr(testdata::to_attr_borrowed(b"-1")).unwrap(),
+            Pixel(-1.0)
+        );
         assert!(Pixel::new_from_attr(testdata::to_attr_borrowed(b"Something else")).is_err());
     }
 }

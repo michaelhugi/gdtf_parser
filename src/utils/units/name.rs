@@ -23,7 +23,6 @@ impl Default for Name {
     }
 }
 
-
 impl Name {
     ///Creates a new instance of Name from a str. Only chars `[32..=122] = (SPACE..='z')` are allowed. if one of the other chars is passed to the function, it will return an Error
     /// ## Examples
@@ -84,14 +83,19 @@ impl Name {
                     if !(32..=122).contains(&char) {
                         let char = [char];
                         match std::str::from_utf8(&char) {
-                            Ok(char) => return Err(GdtfNameError::NotAllowedCharError(char.to_string())),
-                            Err(_) => return Err(GdtfNameError::NotAllowedCharError("Invalid char for Name in GDTF found".to_string()))
+                            Ok(char) => {
+                                return Err(GdtfNameError::NotAllowedCharError(char.to_string()))
+                            }
+                            Err(_) => {
+                                return Err(GdtfNameError::NotAllowedCharError(
+                                    "Invalid char for Name in GDTF found".to_string(),
+                                ))
+                            }
                         }
                     }
                 }
             }
         }
-
 
         Ok(())
     }
@@ -101,7 +105,7 @@ impl Name {
 ///Error used to indicate an Error during creating of Name
 pub enum GdtfNameError {
     ///Error used when a Name was tried to be created with a &str that contains a char out of the scope `[32..=122] = (SPACE..='z')` defined by Gdtf-specifications for Name
-    NotAllowedCharError(String)
+    NotAllowedCharError(String),
 }
 
 impl Error for GdtfNameError {}
@@ -111,7 +115,11 @@ impl fmt::Display for GdtfNameError {
         use GdtfNameError::*;
         match self {
             //GDTFNameError(_) => write!(f, "ColorCIE Error. Utf8 Error"),
-            NotAllowedCharError(s) => write!(f, "GdtfNameError: '{}' is not an allowed char for Name in GDTF", s)
+            NotAllowedCharError(s) => write!(
+                f,
+                "GdtfNameError: '{}' is not an allowed char for Name in GDTF",
+                s
+            ),
         }
     }
 }
@@ -136,18 +144,35 @@ mod tests {
 
     #[test]
     fn test_new_from_attr_owned() -> Result<(), GdtfNameError> {
-        assert_eq!(Name("".to_string()), Name::new_from_attr(testdata::to_attr_owned(b""))?);
-        assert_eq!(Name("Some Name".to_string()), Name::new_from_attr(testdata::to_attr_owned(b"Some Name"))?);
-        assert!(Name::new_from_attr(testdata::to_attr_owned(b"Some Name with invalid char {")).is_err());
+        assert_eq!(
+            Name("".to_string()),
+            Name::new_from_attr(testdata::to_attr_owned(b""))?
+        );
+        assert_eq!(
+            Name("Some Name".to_string()),
+            Name::new_from_attr(testdata::to_attr_owned(b"Some Name"))?
+        );
+        assert!(
+            Name::new_from_attr(testdata::to_attr_owned(b"Some Name with invalid char {")).is_err()
+        );
         assert!(Name::new_from_attr(testdata::to_attr_owned(&[20, 19, 21])).is_err());
         Ok(())
     }
 
     #[test]
     fn test_new_from_attr_borrowed() -> Result<(), GdtfNameError> {
-        assert_eq!(Name("".to_string()), Name::new_from_attr(testdata::to_attr_borrowed(b""))?);
-        assert_eq!(Name("Some Name".to_string()), Name::new_from_attr(testdata::to_attr_borrowed(b"Some Name"))?);
-        assert!(Name::new_from_attr(testdata::to_attr_borrowed(b"Some Name with invalid char {")).is_err());
+        assert_eq!(
+            Name("".to_string()),
+            Name::new_from_attr(testdata::to_attr_borrowed(b""))?
+        );
+        assert_eq!(
+            Name("Some Name".to_string()),
+            Name::new_from_attr(testdata::to_attr_borrowed(b"Some Name"))?
+        );
+        assert!(
+            Name::new_from_attr(testdata::to_attr_borrowed(b"Some Name with invalid char {"))
+                .is_err()
+        );
         assert!(Name::new_from_attr(testdata::to_attr_borrowed(&[20, 19, 21])).is_err());
         Ok(())
     }
@@ -156,11 +181,17 @@ mod tests {
     fn test_display_error() {
         match Name::new("Some Name with the invalid char { in the middle") {
             Ok(_) => panic!("Should return an error"),
-            Err(e) => assert_eq!(format!("{}", e), "GdtfNameError: '{' is not an allowed char for Name in GDTF")
+            Err(e) => assert_eq!(
+                format!("{}", e),
+                "GdtfNameError: '{' is not an allowed char for Name in GDTF"
+            ),
         }
         match Name::new("Some Name with the invalid char ȸ in the middle") {
             Ok(_) => panic!("Should return an error"),
-            Err(e) => assert_eq!(format!("{}", e), "GdtfNameError: 'ȸ' is not an allowed char for Name in GDTF")
+            Err(e) => assert_eq!(
+                format!("{}", e),
+                "GdtfNameError: 'ȸ' is not an allowed char for Name in GDTF"
+            ),
         }
     }
 
@@ -196,7 +227,9 @@ mod tests {
                     second = make_even(second);
                     third = make_even(third);
 
-                    test_validate_char(first.to_string() + &second.to_string() + &third.to_string());
+                    test_validate_char(
+                        first.to_string() + &second.to_string() + &third.to_string(),
+                    );
                 }
             }
         }

@@ -65,7 +65,7 @@ impl Node {
         }
         match Self::str_to_names_vec(value)? {
             None => Ok(None),
-            Some(names) => Ok(Some(Self(names)))
+            Some(names) => Ok(Some(Self(names))),
         }
     }
 
@@ -85,14 +85,16 @@ impl Node {
     }
 }
 
-
 #[derive(Debug)]
 /// Error that occures if the format of Node is wrong
 pub struct GdtfNodeError {}
 
 impl Display for GdtfNodeError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "Wrong argument for Node in GDTF. Format must be Name.Name.Name...!")
+        write!(
+            f,
+            "Wrong argument for Node in GDTF. Format must be Name.Name.Name...!"
+        )
     }
 }
 
@@ -104,19 +106,26 @@ impl From<GdtfNameError> for GdtfNodeError {
 
 impl Error for GdtfNodeError {}
 
-
 #[cfg(test)]
 mod tests {
     use crate::utils::testdata;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::{GdtfNodeError, Node as T};
 
-
     #[test]
     fn test_strs_to_names_vec() -> Result<(), GdtfNodeError> {
-        assert_eq!(vec![Name::new("Test")?, Name::new("Test2")?, Name::new("Test3")?], T::strs_to_names_vec(vec!["Test", "Test2", "Test3"])?);
-        assert_eq!(vec![Name::new("Test")?, Name::new("Test 3")?], T::strs_to_names_vec(vec!["Test", "Test 3"])?);
-        assert_eq!(vec![Name::new("Test")?], T::strs_to_names_vec(vec!["Test"])?);
+        assert_eq!(
+            vec![Name::new("Test")?, Name::new("Test2")?, Name::new("Test3")?],
+            T::strs_to_names_vec(vec!["Test", "Test2", "Test3"])?
+        );
+        assert_eq!(
+            vec![Name::new("Test")?, Name::new("Test 3")?],
+            T::strs_to_names_vec(vec!["Test", "Test 3"])?
+        );
+        assert_eq!(
+            vec![Name::new("Test")?],
+            T::strs_to_names_vec(vec!["Test"])?
+        );
         assert!(T::strs_to_names_vec(vec!["Test", "Te{"]).is_err());
         assert!(T::strs_to_names_vec(vec!["Te{"]).is_err());
         Ok(())
@@ -124,9 +133,18 @@ mod tests {
 
     #[test]
     fn test_str_to_names_vec() -> Result<(), GdtfNodeError> {
-        assert_eq!(vec![Name::new("Test")?], T::str_to_names_vec("Test")?.unwrap());
-        assert_eq!(vec![Name::new("Test")?, Name::new("Test3")?], T::str_to_names_vec("Test.Test3")?.unwrap());
-        assert_eq!(vec![Name::new("Test")?, Name::new("Test2")?, Name::new("Test3")?], T::str_to_names_vec("Test.Test2.Test3")?.unwrap());
+        assert_eq!(
+            vec![Name::new("Test")?],
+            T::str_to_names_vec("Test")?.unwrap()
+        );
+        assert_eq!(
+            vec![Name::new("Test")?, Name::new("Test3")?],
+            T::str_to_names_vec("Test.Test3")?.unwrap()
+        );
+        assert_eq!(
+            vec![Name::new("Test")?, Name::new("Test2")?, Name::new("Test3")?],
+            T::str_to_names_vec("Test.Test2.Test3")?.unwrap()
+        );
         assert!(T::str_to_names_vec("Te{").is_err());
         assert!(T::str_to_names_vec("Te{.Test").is_err());
         assert!(T::str_to_names_vec("Test.Te{.Test").is_err());
@@ -135,8 +153,14 @@ mod tests {
 
     #[test]
     fn test_new_from_str() -> Result<(), GdtfNodeError> {
-        assert_eq!(T::new_from_str("Name")?.unwrap(), T(vec![Name::new("Name")?]));
-        assert_eq!(T::new_from_str("Name.Name2")?.unwrap(), T(vec![Name::new("Name")?, Name::new("Name2")?]));
+        assert_eq!(
+            T::new_from_str("Name")?.unwrap(),
+            T(vec![Name::new("Name")?])
+        );
+        assert_eq!(
+            T::new_from_str("Name.Name2")?.unwrap(),
+            T(vec![Name::new("Name")?, Name::new("Name2")?])
+        );
         assert!(T::new_from_str("Invalid char {").is_err());
         assert!(T::new_from_str("Invalid char ȸ").is_err());
         Ok(())
@@ -144,16 +168,28 @@ mod tests {
 
     #[test]
     fn test_new_from_attr_owned() -> Result<(), GdtfNodeError> {
-        assert_eq!(T::new_from_attr(testdata::to_attr_owned(b"Name"))?.unwrap(), T(vec![Name::new("Name")?]));
-        assert_eq!(T::new_from_attr(testdata::to_attr_owned(b"Name.Name2"))?.unwrap(), T(vec![Name::new("Name")?, Name::new("Name2")?]));
+        assert_eq!(
+            T::new_from_attr(testdata::to_attr_owned(b"Name"))?.unwrap(),
+            T(vec![Name::new("Name")?])
+        );
+        assert_eq!(
+            T::new_from_attr(testdata::to_attr_owned(b"Name.Name2"))?.unwrap(),
+            T(vec![Name::new("Name")?, Name::new("Name2")?])
+        );
         assert!(T::new_from_attr(testdata::to_attr_owned(b"Invalid char {")).is_err());
         Ok(())
     }
 
     #[test]
     fn test_new_from_attr_borrowed() -> Result<(), GdtfNodeError> {
-        assert_eq!(T::new_from_attr(testdata::to_attr_borrowed(b"Name"))?.unwrap(), T(vec![Name::new("Name")?]));
-        assert_eq!(T::new_from_attr(testdata::to_attr_borrowed(b"Name.Name2"))?.unwrap(), T(vec![Name::new("Name")?, Name::new("Name2")?]));
+        assert_eq!(
+            T::new_from_attr(testdata::to_attr_borrowed(b"Name"))?.unwrap(),
+            T(vec![Name::new("Name")?])
+        );
+        assert_eq!(
+            T::new_from_attr(testdata::to_attr_borrowed(b"Name.Name2"))?.unwrap(),
+            T(vec![Name::new("Name")?, Name::new("Name2")?])
+        );
         assert!(T::new_from_attr(testdata::to_attr_borrowed(b"Invalid char {")).is_err());
         Ok(())
     }
