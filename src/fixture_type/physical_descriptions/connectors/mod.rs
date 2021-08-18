@@ -14,7 +14,7 @@ use crate::utils::units::connector_type::ConnectorType;
 use crate::utils::units::name::Name;
 
 ///defines the connector
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, Clone)]
 pub struct Connector {
     ///The type of the connector. Find a list of predefined types in Annex D.
     pub connector_type: ConnectorType,
@@ -27,7 +27,7 @@ pub struct Connector {
 }
 
 ///Connectors where the addition of the Gender value equals 0, can be connected; Default value: 0; Male Connectors are −1, Female are +1, Universal are 0.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ConnectionGender {
     Male = -1,
     Neutral = 0,
@@ -100,11 +100,11 @@ impl ReadGdtf for Connector {
 impl TestReadGdtf for Connector {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (Some(Name::new("DMX-IN").unwrap()), Some(Connector { connector_type: ConnectorType::XLR5, dmx_break: None, gender: Female, length: 0.0 })),
-            (Some(Name::new("DMX-OUT").unwrap()), Some(Connector { connector_type: ConnectorType::XLR5, dmx_break: Some(0), gender: Male, length: 0.0 })),
-            (Some(Name::new("Ethernet1").unwrap()), Some(Connector { connector_type: ConnectorType::RJ45, dmx_break: Some(1), gender: Neutral, length: 0.0 })),
-            (Some(Name::new("Ethernet2").unwrap()), Some(Connector { connector_type: ConnectorType::RJ45, dmx_break: Some(1), gender: Neutral, length: 12.0 })),
-            (Some(Name::new("powerCON TRUE1 IN").unwrap()), Some(Connector { connector_type: ConnectorType::PowerconTRUE1, dmx_break: Some(1), gender: Female, length: 0.001 })),
+            (Some(Name::new("DMX-IN").unwrap()), Some(Connector { connector_type: ConnectorType::Xlr5, dmx_break: None, gender: Female, length: 0.0 })),
+            (Some(Name::new("DMX-OUT").unwrap()), Some(Connector { connector_type: ConnectorType::Xlr5, dmx_break: Some(0), gender: Male, length: 0.0 })),
+            (Some(Name::new("Ethernet1").unwrap()), Some(Connector { connector_type: ConnectorType::Rj45, dmx_break: Some(1), gender: Neutral, length: 0.0 })),
+            (Some(Name::new("Ethernet2").unwrap()), Some(Connector { connector_type: ConnectorType::Rj45, dmx_break: Some(1), gender: Neutral, length: 12.0 })),
+            (Some(Name::new("powerCON TRUE1 IN").unwrap()), Some(Connector { connector_type: ConnectorType::PowerconTrue1, dmx_break: Some(1), gender: Female, length: 0.001 })),
             (Some(Name::new("powerCON TRUE1 OUT").unwrap()), Some(Connector { connector_type: ConnectorType::Other(Name::new("Something Else").unwrap()), dmx_break: Some(1), gender: Male, length: 0.0 })),
         ]
     }
@@ -145,26 +145,26 @@ mod tests {
     #[test]
     fn test_can_connect() {
         let bncf = Connector {
-            connector_type: ConnectorType::BNC,
+            connector_type: ConnectorType::Bnc,
             dmx_break: None,
             gender: ConnectionGender::Female,
             length: 0.0,
         };
         let bncm = Connector {
-            connector_type: ConnectorType::BNC,
+            connector_type: ConnectorType::Bnc,
             dmx_break: None,
             gender: ConnectionGender::Male,
             length: 0.0,
         };
 
         let han4f = Connector {
-            connector_type: ConnectorType::HAN_4,
+            connector_type: ConnectorType::Han_4,
             dmx_break: None,
             gender: ConnectionGender::Female,
             length: 0.0,
         };
         let han4m = Connector {
-            connector_type: ConnectorType::HAN_4,
+            connector_type: ConnectorType::Han_4,
             dmx_break: None,
             gender: ConnectionGender::Male,
             length: 0.0,

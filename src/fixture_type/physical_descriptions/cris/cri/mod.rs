@@ -6,7 +6,7 @@ use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 use regex::Regex;
 
-use crate::fixture_type::physical_descriptions::cris::CRIGroup;
+use crate::fixture_type::physical_descriptions::cris::CriGroup;
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
 use crate::utils::read::ReadGdtf;
@@ -33,7 +33,7 @@ impl ReadGdtf for Cri {
     type Error = GdtfError;
     type DataHolder = Cri;
     const NODE_NAME: &'static [u8] = b"CRI";
-    const PARENT_NODE_NAME: &'static [u8] = CRIGroup::NODE_NAME;
+    const PARENT_NODE_NAME: &'static [u8] = CriGroup::NODE_NAME;
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 

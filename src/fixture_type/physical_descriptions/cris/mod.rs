@@ -12,24 +12,24 @@ use crate::utils::read::TestReadGdtf;
 mod cri;
 
 ///Contains Color Rendering Indexes (CRI) for a single color temperature
-#[derive(Debug, PartialEq)]
-pub struct CRIGroup {
+#[derive(Debug, PartialEq, Clone)]
+pub struct CriGroup {
     ///Color temperature; Default value: 6 000; Unit: Kelvin
     pub color_temperature: f32,
     ///Each defines the CRI for one of the 99 color samples
     pub cris: Vec<Cri>,
 }
 
-impl Default for CRIGroup {
+impl Default for CriGroup {
     fn default() -> Self {
         Self { color_temperature: 6000.0, cris: vec![] }
     }
 }
 
-impl ReadGdtf for CRIGroup {
+impl ReadGdtf for CriGroup {
     type PrimaryKey = ();
     type Error = GdtfError;
-    type DataHolder = CRIGroup;
+    type DataHolder = CriGroup;
     const NODE_NAME: &'static [u8] = b"CRIGroup";
     const PARENT_NODE_NAME: &'static [u8] = b"CRIs";
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
@@ -59,13 +59,13 @@ impl ReadGdtf for CRIGroup {
 }
 
 #[cfg(test)]
-impl TestReadGdtf for CRIGroup {
+impl TestReadGdtf for CriGroup {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(CRIGroup { color_temperature: 2345.4, cris: vec![] })),
-            (None, Some(CRIGroup { color_temperature: 6000.0, cris: vec![] })),
-            (None, Some(CRIGroup { color_temperature: 2345.4, cris: Cri::testdata_vec() })),
-            (None, Some(CRIGroup { color_temperature: 6000.0, cris: Cri::testdata_vec() }))
+            (None, Some(CriGroup { color_temperature: 2345.4, cris: vec![] })),
+            (None, Some(CriGroup { color_temperature: 6000.0, cris: vec![] })),
+            (None, Some(CriGroup { color_temperature: 2345.4, cris: Cri::testdata_vec() })),
+            (None, Some(CriGroup { color_temperature: 6000.0, cris: Cri::testdata_vec() }))
         ]
     }
 
@@ -85,16 +85,16 @@ impl TestReadGdtf for CRIGroup {
 
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::physical_descriptions::cris::CRIGroup;
+    use crate::fixture_type::physical_descriptions::cris::CriGroup;
     use crate::utils::read::TestReadGdtf;
 
     #[test]
     fn test_default() {
-        assert_eq!(CRIGroup::default(), CRIGroup { cris: vec![], color_temperature: 6000.0 })
+        assert_eq!(CriGroup::default(), CriGroup { cris: vec![], color_temperature: 6000.0 })
     }
 
     #[test]
     fn test_deparse() {
-        CRIGroup::execute_tests()
+        CriGroup::execute_tests()
     }
 }

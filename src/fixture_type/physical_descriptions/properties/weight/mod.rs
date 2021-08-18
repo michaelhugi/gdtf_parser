@@ -3,23 +3,31 @@ use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
 use crate::utils::errors::GdtfError;
+use crate::utils::read;
 use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 
+///defines the overall weight of the device
 #[derive(Debug, PartialEq, Default, Clone)]
-pub struct DmxProfile {}
+pub struct Weight {
+    ///Weight of the device including all accessories. Unit: kilogram. Default value: 0
+    pub value: f32,
+}
 
-impl ReadGdtf for DmxProfile {
+impl ReadGdtf for Weight {
     type PrimaryKey = ();
     type Error = GdtfError;
-    type DataHolder = DmxProfile;
-    const NODE_NAME: &'static [u8] = b"DMXProfile";
-    const PARENT_NODE_NAME: &'static [u8] = b"DMXProfiles";
+    type DataHolder = Weight;
+    const NODE_NAME: &'static [u8] = b"Weight";
+    const PARENT_NODE_NAME: &'static [u8] = &[];
     const PRIMARY_KEY_NAME: &'static [u8] = &[];
     const ONLY_PRIMARY_KEY: bool = false;
 
-    fn read_any_attribute(_: &mut Self::DataHolder, _: Attribute<'_>) -> Result<(), Self::Error> {
+    fn read_any_attribute(data_holder: &mut Self::DataHolder, attr: Attribute<'_>) -> Result<(), Self::Error> {
+        if let b"Value" = attr.key {
+            data_holder.value = read::attr_to_f32(attr)
+        }
         Ok(())
     }
 
@@ -37,15 +45,21 @@ impl ReadGdtf for DmxProfile {
 }
 
 #[cfg(test)]
-impl TestReadGdtf for DmxProfile {
+impl TestReadGdtf for Weight {
     fn testdatas() -> Vec<(Option<Self::PrimaryKey>, Option<Self>)> {
         vec![
-            (None, Some(DmxProfile {}))
+            (None, Some(Weight { value: 0.0 })),
+            (None, Some(Weight { value: 77.0 })),
+            (None, Some(Weight { value: 0.37 })),
         ]
     }
 
     fn testdatas_xml() -> Vec<String> {
-        vec![r#"<DMXProfile/>"#.to_string()]
+        vec![
+            r#"<Weight/>"#.to_string(),
+            r#"<Weight Value="77"/>"#.to_string(),
+            r#"<Weight Value="0.37"></Weight>"#.to_string(),
+        ]
     }
 
     fn testdatas_xml_faulty() -> Vec<String> {
@@ -53,14 +67,13 @@ impl TestReadGdtf for DmxProfile {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::physical_descriptions::dmx_profiles::DmxProfile;
+    use crate::fixture_type::physical_descriptions::properties::weight::Weight;
     use crate::utils::read::TestReadGdtf;
 
     #[test]
     fn test_deparse() {
-        DmxProfile::execute_tests();
+        Weight::execute_tests()
     }
 }

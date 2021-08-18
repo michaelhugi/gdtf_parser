@@ -146,7 +146,7 @@ impl TestReadGdtf for ColorSpace {
             r#"<ColorSpace Mode="sRGB"/>"#.to_string(),
             r#"<ColorSpace Mode="ProPhoto"/>"#.to_string(),
             r#"<ColorSpace Mode="ANSI"/>"#.to_string(),
-            r#"<ColorSpace Mode="Custom" Red="1.3,3.2,13.4" Green="12.1,73.2,46.2" Blue="74.3,93.0,77.1" WhitePoint="90.1,38.5,12.1"/>"#.to_string()
+            r#"<ColorSpace Mode="Custom" Red="1.3,3.2,13.4" Green="12.1,73.2,46.2" Blue="74.3,93.0,77.1" WhitePoint="90.1,38.5,12.1"/>"#.to_string(),
         ]
     }
 
@@ -156,7 +156,7 @@ impl TestReadGdtf for ColorSpace {
             r#"<ColorSpace Mode="Custom" Red="1.3,3.2,13.4" Blue="74.3,93.0,77.1" WhitePoint="90.1,38.5,12.1"/>"#.to_string(),
             r#"<ColorSpace Mode="Custom" Red="1.3,3.2,13.4" Green="12.1,73.2,46.2" WhitePoint="90.1,38.5,12.1"/>"#.to_string(),
             r#"<ColorSpace Mode="Custom" Red="1.3,3.2,13.4" Green="12.1,73.2,46.2" Blue="74.3,93.0,77.1"/>"#.to_string(),
-            r#"<ColorSpace Mode="Custom"/>"#.to_string()
+            r#"<ColorSpace Mode="Custom"/>"#.to_string(),
         ]
     }
 }
