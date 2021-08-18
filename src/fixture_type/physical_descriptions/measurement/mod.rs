@@ -7,6 +7,7 @@ use quick_xml::events::BytesStart;
 use quick_xml::Reader;
 
 use crate::fixture_type::physical_descriptions::measurement::measurement_point::MeasurementPoint;
+
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
 use crate::utils::read::ReadGdtf;
@@ -189,8 +190,4 @@ mod tests {
         assert_eq!(InterpolationTo::Linear, InterpolationTo::new_from_attr(testdata::to_attr_borrowed(b"Anything else")));
     }
 
-    #[test]
-    fn test_interpolation_default() {
-        assert_eq!(InterpolationTo::Linear, Default::default());
-    }
 }

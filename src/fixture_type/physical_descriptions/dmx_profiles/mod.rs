@@ -1,3 +1,4 @@
+//!Defines DMX profile descriptions.
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
@@ -8,6 +9,7 @@ use crate::utils::read::ReadGdtf;
 use crate::utils::read::TestReadGdtf;
 
 #[derive(Debug, PartialEq, Default, Clone)]
+///Defines DMX profile descriptions.
 pub struct DmxProfile {}
 
 impl ReadGdtf for DmxProfile {

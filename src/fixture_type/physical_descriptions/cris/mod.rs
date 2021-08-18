@@ -1,3 +1,4 @@
+//!Contains Color Rendering Indexes (CRI) for a single color temperature
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
@@ -9,7 +10,7 @@ use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 
-mod cri;
+pub mod cri;
 
 ///Contains Color Rendering Indexes (CRI) for a single color temperature
 #[derive(Debug, PartialEq, Clone)]
@@ -20,6 +21,11 @@ pub struct CriGroup {
     pub cris: Vec<Cri>,
 }
 
+
+///```rust
+/// use gdtf_parser::fixture_type::physical_descriptions::cris::CriGroup;
+/// assert_eq!(CriGroup::default(),CriGroup{color_temperature:6000.0,cris:vec![]})
+/// ```
 impl Default for CriGroup {
     fn default() -> Self {
         Self { color_temperature: 6000.0, cris: vec![] }
@@ -65,7 +71,7 @@ impl TestReadGdtf for CriGroup {
             (None, Some(CriGroup { color_temperature: 2345.4, cris: vec![] })),
             (None, Some(CriGroup { color_temperature: 6000.0, cris: vec![] })),
             (None, Some(CriGroup { color_temperature: 2345.4, cris: Cri::testdata_vec() })),
-            (None, Some(CriGroup { color_temperature: 6000.0, cris: Cri::testdata_vec() }))
+            (None, Some(CriGroup { color_temperature: 6000.0, cris: Cri::testdata_vec() })),
         ]
     }
 
@@ -87,11 +93,6 @@ impl TestReadGdtf for CriGroup {
 mod tests {
     use crate::fixture_type::physical_descriptions::cris::CriGroup;
     use crate::utils::read::TestReadGdtf;
-
-    #[test]
-    fn test_default() {
-        assert_eq!(CriGroup::default(), CriGroup { cris: vec![], color_temperature: 6000.0 })
-    }
 
     #[test]
     fn test_deparse() {

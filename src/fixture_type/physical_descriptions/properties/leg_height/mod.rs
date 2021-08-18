@@ -1,3 +1,4 @@
+//!defines the height of the legs
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;

@@ -1,3 +1,4 @@
+//!Defines the color space that is used for color mixing with indirect RGB, Hue/Sat, xyY or CMY control input
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
@@ -253,6 +254,10 @@ impl ColorSpaceMode {
     }
 }
 
+///```rust
+/// use gdtf_parser::fixture_type::physical_descriptions::color_space::ColorSpaceMode;
+/// assert_eq!(ColorSpaceMode::default(), ColorSpaceMode::SRgb)
+/// ```
 impl Default for ColorSpaceMode {
     fn default() -> Self {
         Self::SRgb
@@ -266,13 +271,8 @@ impl Default for ColorSpaceMode {
 //-----------------------------------------------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
-    use crate::fixture_type::physical_descriptions::color_space::{ColorSpace, ColorSpaceMode};
+    use crate::fixture_type::physical_descriptions::color_space::ColorSpace;
     use crate::utils::read::TestReadGdtf;
-
-    #[test]
-    fn test_color_space_mode_default() {
-        assert_eq!(ColorSpaceMode::default(), ColorSpaceMode::SRgb)
-    }
 
     #[test]
     fn test_deparse() {

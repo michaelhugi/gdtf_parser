@@ -1,3 +1,4 @@
+//!The measurement point defines the energy of a specific wavelength of a spectrum
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;

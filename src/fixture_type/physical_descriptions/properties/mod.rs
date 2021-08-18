@@ -1,3 +1,4 @@
+//!Defines the general properties of the device type
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;

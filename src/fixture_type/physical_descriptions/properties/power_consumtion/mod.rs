@@ -1,3 +1,4 @@
+//!defines the maximum power consumption per connector
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
@@ -66,6 +67,22 @@ impl ReadGdtf for PowerConsumtion {
 }
 
 ///Default value implementation due to GDTF spec
+///```rust
+/// use gdtf_parser::fixture_type::physical_descriptions::properties::power_consumtion::PowerConsumtion;
+/// use gdtf_parser::utils::units::node::Node;
+/// assert_eq!(
+///    PowerConsumtion::default(),
+///    PowerConsumtion{
+///        value: 0.0,
+///        power_factor: 1.0,
+///        connector: Node::new_from_str("??").unwrap().unwrap(),
+///        voltage_low: 90.0,
+///        voltage_high: 240.0,
+///        frequency_low: 50.0,
+///        frequency_high: 60.0,
+///    }
+///);
+/// ```
 impl Default for PowerConsumtion {
     fn default() -> Self {
         Self {

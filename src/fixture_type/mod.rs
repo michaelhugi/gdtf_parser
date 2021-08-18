@@ -13,6 +13,7 @@ use crate::fixture_type::attribute_definitions::AttributeDefinitions;
 #[cfg(test)]
 use crate::fixture_type::attribute_definitions::feature_group::FeatureGroup;
 use crate::fixture_type::dmx_mode::DmxMode;
+use crate::fixture_type::physical_descriptions::PhysicalDescriptions;
 use crate::fixture_type::wheel::Wheel;
 use crate::Gdtf;
 use crate::utils::errors::GdtfError;
@@ -55,7 +56,7 @@ pub struct FixtureType {
     ///Defines the physical or virtual color wheels, gobo wheels, media server content and others.
     pub wheels: Option<HashMap<Name, Wheel>>,
     //Contains additional physical descriptions.
-    // pub physical_descriptions: Option<PhysicalDescriptions>,
+    pub physical_descriptions: Option<PhysicalDescriptions>,
     //Contains models of physically separated parts of the device.
     // pub models: Option<Models>,
     //Describes physically separated parts of the device.
@@ -84,6 +85,7 @@ pub(crate) struct FixtureTypeDataHolder {
     pub attribute_definitions: Option<AttributeDefinitions>,
     pub dmx_modes: Option<HashMap<Name, DmxMode>>,
     pub wheels: Option<HashMap<Name, Wheel>>,
+    pub physical_descriptions: Option<PhysicalDescriptions>,
 }
 
 impl ReadGdtf for FixtureType {
@@ -116,6 +118,7 @@ impl ReadGdtf for FixtureType {
             DmxMode::PARENT_NODE_NAME => data_holder.dmx_modes = Some(DmxMode::read_hash_map_from_event(reader, event, has_children)?),
             AttributeDefinitions::NODE_NAME => data_holder.attribute_definitions = Some(AttributeDefinitions::read_single_from_event(reader, event, has_children)?.1),
             Wheel::PARENT_NODE_NAME => data_holder.wheels = Some(Wheel::read_hash_map_from_event(reader, event, has_children)?),
+            PhysicalDescriptions::NODE_NAME => data_holder.physical_descriptions = Some(PhysicalDescriptions::read_single_from_event(reader, event, has_children)?.1),
             _ => {}
         }
         Ok(())
@@ -135,6 +138,7 @@ impl ReadGdtf for FixtureType {
             attribute_definitions: data_holder.attribute_definitions.ok_or_else(|| Self::attribute_not_found(b"AttributeDefinitons"))?,
             dmx_modes: data_holder.dmx_modes.ok_or_else(|| Self::attribute_not_found(b"DmxModes"))?,
             wheels: data_holder.wheels,
+            physical_descriptions: data_holder.physical_descriptions,
         })
     }
 
@@ -164,6 +168,7 @@ impl TestReadGdtf for FixtureType {
                 },
                 dmx_modes: DmxMode::testdata_hash_map(),
                 wheels: None,
+                physical_descriptions: Some(PhysicalDescriptions::testdata_vec()[0].clone()),
             })),
             (None, Some(Self {
                 name: Name::new("P12 Spot HP").unwrap(),
@@ -182,6 +187,7 @@ impl TestReadGdtf for FixtureType {
                 },
                 dmx_modes: DmxMode::testdata_hash_map(),
                 wheels: None,
+                physical_descriptions: None,
             })),
             (None, Some(Self {
                 name: Name::new("P12 Spot HP").unwrap(),
@@ -200,13 +206,14 @@ impl TestReadGdtf for FixtureType {
                 },
                 dmx_modes: DmxMode::testdata_hash_map(),
                 wheels: Some(Wheel::testdata_hash_map()),
-            }))
+                physical_descriptions: None,
+            })),
         ]
     }
 
     fn testdatas_xml() -> Vec<String> {
         vec![
-            format!(r#"<FixtureType CanHaveChildren="Yes" Description="P12 Spot HP (High Power) 640W" FixtureTypeID="807DC00C-18D5-4133-B781-1A003FA988FA" LongName="P12 Spot HP" Manufacturer="JB-Lighting" Name="P12 Spot HP" RefFT="807DC00C-18D5-4133-B781-1A003FA988FB" ShortName="P12SPHP" Thumbnail="P12 dunkel"><AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes>{}</Attributes><ActivationGroups>{}</ActivationGroups></AttributeDefinitions><DMXModes>{}</DMXModes></FixtureType>"#, FeatureGroup::testdata_xml(), Attribute::testdata_xml(), ActivationGroup::testdata_xml(), DmxMode::testdata_xml()),
+            format!(r#"<FixtureType CanHaveChildren="Yes" Description="P12 Spot HP (High Power) 640W" FixtureTypeID="807DC00C-18D5-4133-B781-1A003FA988FA" LongName="P12 Spot HP" Manufacturer="JB-Lighting" Name="P12 Spot HP" RefFT="807DC00C-18D5-4133-B781-1A003FA988FB" ShortName="P12SPHP" Thumbnail="P12 dunkel"><AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes>{}</Attributes><ActivationGroups>{}</ActivationGroups></AttributeDefinitions><DMXModes>{}</DMXModes>{}</FixtureType>"#, FeatureGroup::testdata_xml(), Attribute::testdata_xml(), ActivationGroup::testdata_xml(), DmxMode::testdata_xml(), PhysicalDescriptions::testdatas_xml()[0]),
             format!(r#"<FixtureType CanHaveChildren="No" Description="P12 Spot HP (High Power) 640W" FixtureTypeID="807DC00C-18D5-4133-B781-1A003FA988FA" LongName="P12 Spot HP" Manufacturer="JB-Lighting" Name="P12 Spot HP" RefFT="" ShortName="P12SPHP"><AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes>{}</Attributes><ActivationGroups>{}</ActivationGroups></AttributeDefinitions><DMXModes>{}</DMXModes></FixtureType>"#, FeatureGroup::testdata_xml(), Attribute::testdata_xml(), ActivationGroup::testdata_xml(), DmxMode::testdata_xml()),
             format!(r#"<FixtureType CanHaveChildren="No" Description="P12 Spot HP (High Power) 640W" FixtureTypeID="807DC00C-18D5-4133-B781-1A003FA988FA" LongName="P12 Spot HP" Manufacturer="JB-Lighting" Name="P12 Spot HP" RefFT="" ShortName="P12SPHP"><AttributeDefinitions><FeatureGroups>{}</FeatureGroups><Attributes>{}</Attributes><ActivationGroups>{}</ActivationGroups></AttributeDefinitions><Wheels>{}</Wheels><DMXModes>{}</DMXModes></FixtureType>"#, FeatureGroup::testdata_xml(), Attribute::testdata_xml(), ActivationGroup::testdata_xml(), Wheel::testdata_xml(), DmxMode::testdata_xml()),
         ]

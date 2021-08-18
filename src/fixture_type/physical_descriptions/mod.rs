@@ -1,3 +1,4 @@
+//!Describes the physical constitution of the device
 use std::collections::HashMap;
 
 use quick_xml::events::attributes::Attribute;

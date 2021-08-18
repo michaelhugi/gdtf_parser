@@ -1,3 +1,4 @@
+//!defines the ambient operating temperature range
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
@@ -18,6 +19,11 @@ pub struct OperatingTemperature {
 }
 
 ///Default for low is 0 degrees Celsius, default for high is 40 degrees Celsius
+///```rust
+///
+/// use gdtf_parser::fixture_type::physical_descriptions::properties::operating_temperature::OperatingTemperature;
+/// assert_eq!(OperatingTemperature::default(), OperatingTemperature { low: 0.0, high: 40.0 })
+/// ```
 impl Default for OperatingTemperature {
     fn default() -> Self {
         Self { low: 0.0, high: 40.0 }
@@ -86,11 +92,6 @@ impl TestReadGdtf for OperatingTemperature {
 mod tests {
     use crate::fixture_type::physical_descriptions::properties::operating_temperature::OperatingTemperature;
     use crate::utils::read::TestReadGdtf;
-
-    #[test]
-    fn test_default() {
-        assert_eq!(OperatingTemperature::default(), OperatingTemperature { low: 0.0, high: 40.0 })
-    }
 
     #[test]
     fn test_deparse() {

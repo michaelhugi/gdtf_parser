@@ -1,3 +1,4 @@
+//!defines the connector
 use std::str::FromStr;
 
 use quick_xml::events::attributes::Attribute;
@@ -34,7 +35,11 @@ pub enum ConnectionGender {
     Female = 1,
 }
 
-///Default fro ConnectionGender is 0 = Neutral
+///Default for ConnectionGender is 0 = Neutral
+///```rust
+/// use gdtf_parser::fixture_type::physical_descriptions::connectors::ConnectionGender;
+/// assert_eq!(ConnectionGender::default(), ConnectionGender::Neutral)
+/// ```
 impl Default for ConnectionGender {
     fn default() -> Self {
         Self::Neutral
@@ -135,11 +140,6 @@ mod tests {
     #[test]
     fn test_deparse() {
         Connector::execute_tests()
-    }
-
-    #[test]
-    fn test_connection_gender_default() {
-        assert_eq!(ConnectionGender::default(), ConnectionGender::Neutral)
     }
 
     #[test]

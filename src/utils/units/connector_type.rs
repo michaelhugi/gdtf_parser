@@ -1,3 +1,4 @@
+//!A list of predefined connectors or Other with Name
 use quick_xml::events::attributes::Attribute;
 
 use crate::utils::errors::GdtfError;

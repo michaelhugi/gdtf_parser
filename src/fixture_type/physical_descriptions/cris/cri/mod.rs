@@ -1,3 +1,4 @@
+//!Defines the CRI for one of the 99 color samples
 use std::str::FromStr;
 
 use lazy_static::lazy_static;
@@ -21,7 +22,10 @@ pub struct Cri {
     ///The color rendering index for this sample. Size: 1 byte; Default value: 100
     pub color_rendering_index: u8,
 }
-
+///```rust
+/// use gdtf_parser::fixture_type::physical_descriptions::cris::cri::Cri;
+/// assert_eq!(Cri::default(), Cri{color_rendering_index: 100, ces: 0})
+/// ```
 impl Default for Cri {
     fn default() -> Self {
         Self { color_rendering_index: 100, ces: 0 }

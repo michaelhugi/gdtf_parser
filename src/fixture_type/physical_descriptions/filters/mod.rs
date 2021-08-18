@@ -1,3 +1,4 @@
+//!Defines the description of the filter
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
@@ -78,12 +79,12 @@ impl TestReadGdtf for Filter {
         vec![
             format!(r#"<Filter Color="0.384400,0.158500,100.000000" Name="magenta_flag">{}</Filter>"#, Measurement::testdata_xml()),
             format!(r#"<Filter Color="0.431200,0.507000,100.000000" Name="yellow_flag">{}</Filter>"#, Measurement::testdata_xml()),
-            r#"<Filter Color="0.470600,0.392300,100.000000" Name="cto_flag"/>"#.to_string()
+            r#"<Filter Color="0.470600,0.392300,100.000000" Name="cto_flag"/>"#.to_string(),
         ]
     }
 
     fn testdatas_xml_faulty() -> Vec<String> {
-        vec![r#"<Filter Name="MyName"/>"#.to_string(), ]
+        vec![r#"<Filter Name="MyName"/>"#.to_string()]
     }
 }
 

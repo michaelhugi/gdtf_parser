@@ -1,3 +1,4 @@
+//!Defines the description of the emitter
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
