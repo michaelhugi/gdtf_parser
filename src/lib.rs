@@ -166,7 +166,7 @@ impl TryFrom<&Path> for Gdtf {
                     if e.name() == b"GDTF" {
                         return Ok(Gdtf::read_single_from_event(&mut reader, e, true)?.1);
                     }
-                }
+
                 Event::Empty(e) => {
                     if e.name() == b"GDTF" {
                         return Ok(Gdtf::read_single_from_event(&mut reader, e, false)?.1);
