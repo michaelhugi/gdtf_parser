@@ -69,8 +69,8 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-use quick_xml::events::attributes::Attribute;
 use quick_xml::events::{BytesStart, Event};
+use quick_xml::events::attributes::Attribute;
 use quick_xml::Reader;
 
 use crate::fixture_type::FixtureType;
@@ -166,7 +166,7 @@ impl TryFrom<&Path> for Gdtf {
                     if e.name() == b"GDTF" {
                         return Ok(Gdtf::read_single_from_event(&mut reader, e, true)?.1);
                     }
-
+                }
                 Event::Empty(e) => {
                     if e.name() == b"GDTF" {
                         return Ok(Gdtf::read_single_from_event(&mut reader, e, false)?.1);
@@ -264,13 +264,13 @@ impl DataVersion {
 
 #[cfg(test)]
 mod tests {
+    use std::{thread, time};
     use std::convert::TryFrom;
     use std::path::Path;
     use std::time::Duration;
-    use std::{thread, time};
 
-    use crate::utils::testdata;
     use crate::{DataVersion, Gdtf};
+    use crate::utils::testdata;
 
     #[test]
     fn test_acme() {
@@ -299,7 +299,7 @@ mod tests {
         let _ = Gdtf::try_from(Path::new(
             "test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf",
         ))
-        .unwrap();
+            .unwrap();
         println!("Deparsing Acme takes {:?}", now.elapsed());
         let now = time::Instant::now();
         let _ = Gdtf::try_from(Path::new("test/JB-Lighting@P12_Spot_HP@V_1.15.gdtf")).unwrap();
