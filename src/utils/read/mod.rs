@@ -108,13 +108,16 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
         let mut data_holder: Self::DataHolder = Default::default();
         let mut primary_key = None;
         for attr in event.attributes().into_iter() {
-            let attr = attr?;
+            let attr = attr.unwrap_or_else(|_| {
+                todo!()
+            });
             if attr.key == Self::PRIMARY_KEY_NAME {
                 primary_key = Self::read_primary_key_from_attr(attr)?;
             } else {
                 Self::read_any_attribute(&mut data_holder, attr)?;
             }
         }
+
         if has_children {
             let mut buf: Vec<u8> = Vec::new();
             loop {
@@ -147,7 +150,7 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
     /// Returns the primary_key of the node if the node hase a primary_key, else it returns none
     ///
     /// ⚠️**Be aware that when returning an Error, the whole GDTF-Deparsing will fail!** ⚠️
-    //
+//
     fn read_primary_key_from_attr(
         attr: Attribute<'_>,
     ) -> Result<Option<Self::PrimaryKey>, Self::Error>;
@@ -164,7 +167,9 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
         event: BytesStart<'_>,
     ) -> Result<Option<Self::PrimaryKey>, Self::Error> {
         for attr in event.attributes().into_iter() {
-            let attr = attr?;
+            let attr = attr.unwrap_or_else(|_| {
+                todo!();
+            });
             if attr.key == Self::PRIMARY_KEY_NAME {
                 return Self::read_primary_key_from_attr(attr);
             }
@@ -193,8 +198,8 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
         event: BytesStart<'_>,
         has_children: bool,
     ) -> Result<HashMap<Self::PrimaryKey, Self>, Self::Error>
-    where
-        Self: Sized,
+        where
+            Self: Sized,
     {
         if event.name() != Self::PARENT_NODE_NAME {
             panic!("Wrong call of read_hash_map_from_event for node {}. This method can only be used if you have an empty {}. If this is not empty, fill the map manually in your read_one_child() entry by entry.", Self::node_name(), Self::parent_node_name());
@@ -270,8 +275,8 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
         event: BytesStart<'_>,
         has_children: bool,
     ) -> Result<Vec<Self>, Self::Error>
-    where
-        Self: Sized,
+        where
+            Self: Sized,
     {
         if event.name() != Self::PARENT_NODE_NAME {
             panic!("Wrong call of read_vec_from_event for node {}. This method can only be used if you have an empty {}. If this is not empty, fill the vec manually in your read_one_child() entry by entry.", Self::node_name(), Self::parent_node_name());
@@ -329,8 +334,8 @@ pub(crate) trait ReadGdtf: std::fmt::Debug + Sized + PartialEq {
         event: BytesStart<'_>,
         has_children: bool,
     ) -> Result<Vec<Self::PrimaryKey>, Self::Error>
-    where
-        Self: Sized,
+        where
+            Self: Sized,
     {
         if event.name() != Self::PARENT_NODE_NAME {
             panic!("Wrong call of read_vec_from_event for node {}. This method can only be used if you have an empty {}. If this is not empty, fill the vec manually in your read_one_child() entry by entry.", Self::node_name(), Self::parent_node_name());
@@ -678,8 +683,8 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
 
     /// Helper function for testing deparsing  multiple nodes as hash map from an xml
     fn read_hash_map_from_xml(xml: &str) -> Result<HashMap<Self::PrimaryKey, Self>, Self::Error>
-    where
-        Self: Sized,
+        where
+            Self: Sized,
     {
         let mut reader = Reader::from_str(xml);
         reader.trim_text(true);
@@ -720,8 +725,8 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
 
     /// Helper function for testing deparsing  multiple nodes as vec from an xml
     fn read_vec_from_xml(xml: &str) -> Result<Vec<Self>, Self::Error>
-    where
-        Self: Sized,
+        where
+            Self: Sized,
     {
         let mut reader = Reader::from_str(xml);
         reader.trim_text(true);
@@ -801,8 +806,8 @@ pub(crate) trait TestReadGdtf: ReadGdtf {
 
     /// Helper function for testing deparsing multiple nodes that only contain primary keys and no children as a vec of primary-keys from an xml
     fn read_primary_key_vec_from_xml(xml: &str) -> Result<Vec<Self::PrimaryKey>, Self::Error>
-    where
-        Self: Sized,
+        where
+            Self: Sized,
     {
         let mut reader = Reader::from_str(xml);
         reader.trim_text(true);

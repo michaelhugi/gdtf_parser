@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt;
 use std::num::{ParseFloatError, ParseIntError};
 use std::str::Utf8Error;
-
+use quick_xml::DeError;
 use zip::result::ZipError;
 
 use crate::utils::read::GdtfReadError;
@@ -35,6 +35,13 @@ pub enum GdtfError {
     GdtfPixelArrayError(GdtfPixelArrayError),
     GdtfPixelError(GdtfPixelError),
     GdtfRotationError(GdtfRotationError),
+    DeError(DeError),
+}
+
+impl From<DeError> for GdtfError {
+    fn from(e: DeError) -> Self {
+        GdtfError::DeError(e)
+    }
 }
 
 impl From<GdtfRotationError> for GdtfError {
@@ -118,6 +125,7 @@ impl fmt::Display for GdtfError {
             GdtfError::GdtfPixelArrayError(e) => write!(f, "GdtfError: {}", e),
             GdtfError::GdtfPixelError(e) => write!(f, "GdtfError: {}", e),
             GdtfError::GdtfRotationError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::DeError(e) => write!(f, "GdtfError: {}", e),
         }
     }
 }

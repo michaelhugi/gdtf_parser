@@ -1,0 +1,92 @@
+GDTF
+    FixtureType
+        AttributeDefinitions
+            ActivationGroups
+                ActivationGroup
+            FeatureGroups
+                FeatureGroup
+                    Feature
+            Attributes
+                Attribute
+        Wheels
+            Wheel
+                Slot
+                    Facet
+                    AnimationSystem
+        PhysicalDescriptions
+            Emitters
+                Emitter
+                    Measurement
+                        -MeasurementPoint
+            Filters
+                Filter
+                    Measurement
+                        -MeasurementPoint
+            ColorSpace
+            -DMXProfiles
+            -CRIs
+                CRI
+            Connectors
+                Connector
+            Properties
+                OperatingTemperature
+                Weight
+                PowerConsumption
+                LegHeight
+        Models
+            Model
+        Geometries
+            Geometry
+                ->same as Geometries
+            Axis
+                ->same as Geometries
+            FilterBeam
+                ->same as Geometries
+            FilterColor
+                ->same as Geometries
+            FilterGobo
+                ->same as Geometries
+            FilterShaper
+                ->same as Geometries
+            Beam
+                ->same as Geometries
+            MediiaServerLayer
+                ->same as Geometries
+            MediaServerCamera
+                ->same as Geometries
+            MediaServerMaster
+                ->same as Geometries
+            Display
+                ->same as Geometries
+            GeometryReference
+                Break
+        DMXModes
+            DMXMode
+                DMXChannels
+                    DMXChannel
+                        LogicalChannel
+                            ChannelFunction
+                                ChannelSet
+            Relations
+            FTMacros
+                MacroDMX
+                    DMXValue
+        Revisions
+            Revision
+        -FTPresets
+            ???
+        -Protocols
+            RDM
+                SoftwareVersionID
+                    DMXPersonality
+            Art-Net
+                ??
+            sACN
+                ??
+            PosiStageNet
+                ???
+            OpenSoundControl
+                ???
+            CITP
+                ???
+
