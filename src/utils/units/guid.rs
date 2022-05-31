@@ -5,6 +5,8 @@ use std::fmt::{Display, Formatter};
 use std::str::Utf8Error;
 
 use quick_xml::events::attributes::Attribute;
+use serde::{Deserialize, Deserializer};
+use serde::de::{EnumAccess, MapAccess, SeqAccess, Unexpected, Visitor};
 
 use crate::utils::read;
 
@@ -46,6 +48,33 @@ const CHAR_F_AS_U8: u8 = 0x46;
 ///GUID representation used in FixtureType in GDTF
 #[derive(Debug, PartialEq, Clone)]
 pub struct Guid(pub [u8; 16]);
+
+impl<'de> Deserialize<'de> for Guid {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_string(GuidVisitor)
+    }
+}
+
+struct GuidVisitor;
+
+impl<'de> Visitor<'de> for GuidVisitor {
+    type Value = Guid;
+
+    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+        formatter.write_str("Unique ID corresponding to RFC 4122: X–1 digit in hexadecimal notation. Example: \"308EA87D-7164-42DE-8106-A6D273F57A51\"")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
+        match Guid::new_from_str(v) {
+            Ok(v) => Ok(v),
+            Err(e) => Err(serde::de::Error::custom(format!("{}", e)))
+        }
+    }
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
+        return self.visit_str(&v);
+    }
+}
+
 
 impl Guid {
     ///Returns a dummy FixtureType_Guid with all zeros
@@ -447,6 +476,7 @@ impl Display for Guid {
 /// Error that occures if the format of GUID is wrong e.q. not XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 pub struct GdtfGuidError {}
 
+
 impl Display for GdtfGuidError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Wrong argument for GUID in GDTF. Format must be RFC 4122. The format is XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format!")
@@ -682,7 +712,7 @@ mod tests {
             T::new_from_attr(testdata::to_attr_borrowed(
                 b"308EA87D-7164-42DE-8106-A6D273F57A51"
             ))
-            .unwrap()
+                .unwrap()
         );
         assert!(T::new_from_attr(testdata::to_attr_borrowed(b"Something invalid")).is_err());
     }
@@ -694,7 +724,7 @@ mod tests {
             T::new_from_attr(testdata::to_attr_owned(
                 b"308EA87D-7164-42DE-8106-A6D273F57A51"
             ))
-            .unwrap()
+                .unwrap()
         );
         assert!(T::new_from_attr(testdata::to_attr_owned(b"Something invalid")).is_err());
     }
@@ -780,3 +810,5 @@ mod tests {
     ///Deparsed by Rust is slower but needed in this context so code is not tested with itself
     const CHAR_G_AS_BYTE: u8 = "G".as_bytes()[0];
 }
+
+

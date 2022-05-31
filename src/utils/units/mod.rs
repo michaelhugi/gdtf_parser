@@ -13,3 +13,5 @@ pub mod pixel;
 pub mod pixel_array;
 pub mod resource;
 pub mod rotation;
+pub mod guid_opt;
+pub mod can_have_children;

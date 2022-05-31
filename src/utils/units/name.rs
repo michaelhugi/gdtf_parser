@@ -1,8 +1,11 @@
 //! Module for the unit Name used in GDTF
 use std::error::Error;
 use std::fmt;
+use std::fmt::Formatter;
 
 use quick_xml::events::attributes::Attribute;
+use serde::{Deserialize, Deserializer};
+use serde::de::{EnumAccess, MapAccess, SeqAccess, Visitor};
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::utils::read;
@@ -11,6 +14,33 @@ use crate::utils::read;
 ///Name contains a String that only can hold letters with restricted literals `[32..=122] = (SPACE..='z')` due to GDTF specifications.
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct Name(pub String);
+
+impl<'de> Deserialize<'de> for Name {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_string(NameVisitor)
+    }
+}
+
+struct NameVisitor;
+
+impl<'de> Visitor<'de> for NameVisitor {
+    type Value = Name;
+
+    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+        formatter.write_str("Expecting string without special chars")
+    }
+
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
+        self.visit_str(&v)
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
+        match Name::new(v) {
+            Ok(v) => Ok(v),
+            Err(e) => Err(serde::de::Error::custom(format!("{}", e)))
+        }
+    }
+}
 
 ///Default is an empty Name
 /// ```rust
@@ -84,12 +114,12 @@ impl Name {
                         let char = [char];
                         match std::str::from_utf8(&char) {
                             Ok(char) => {
-                                return Err(GdtfNameError::NotAllowedCharError(char.to_string()))
+                                return Err(GdtfNameError::NotAllowedCharError(char.to_string()));
                             }
                             Err(_) => {
                                 return Err(GdtfNameError::NotAllowedCharError(
                                     "Invalid char for Name in GDTF found".to_string(),
-                                ))
+                                ));
                             }
                         }
                     }
