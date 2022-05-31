@@ -15,3 +15,4 @@ pub mod resource;
 pub mod rotation;
 pub mod guid_opt;
 pub mod can_have_children;
+pub mod data_version;

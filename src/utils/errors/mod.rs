@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt;
+use std::fmt::write;
 use std::num::{ParseFloatError, ParseIntError};
 use std::str::Utf8Error;
 use quick_xml::DeError;
@@ -36,6 +37,16 @@ pub enum GdtfError {
     GdtfPixelError(GdtfPixelError),
     GdtfRotationError(GdtfRotationError),
     DeError(DeError),
+    Custom(String),
+}
+
+impl GdtfError {
+    pub(crate) fn new_from_str(s: &str) -> Self {
+        Self::Custom(s.to_string())
+    }
+    pub(crate) fn new_from_string(s: String) -> Self {
+        Self::Custom(s)
+    }
 }
 
 impl From<DeError> for GdtfError {
@@ -126,6 +137,7 @@ impl fmt::Display for GdtfError {
             GdtfError::GdtfPixelError(e) => write!(f, "GdtfError: {}", e),
             GdtfError::GdtfRotationError(e) => write!(f, "GdtfError: {}", e),
             GdtfError::DeError(e) => write!(f, "GdtfError: {}", e),
+            GdtfError::Custom(e) => write!(f, "{}", e)
         }
     }
 }
