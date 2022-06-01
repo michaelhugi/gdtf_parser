@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<GDTF DataVersion="1.1">
+  <FixtureType CanHaveChildren="No" Description="" FixtureTypeID="6556380D-C96C-4DCF-911A-9154FDA8C0DC" LongName="Mini Ledspot 60W Movinghead" Manufacturer="Shenzhen" Name="Mini Led Spot 60W" RefFT="" ShortName="60W MH Spot" Thumbnail="thumbnail">
+    <AttributeDefinitions>
+      <ActivationGroups>
+        <ActivationGroup Name="PanTilt"/>
+        <ActivationGroup Name="ColorRGB"/>
+        <ActivationGroup Name="Gobo1"/>
+      </ActivationGroups>
+      <FeatureGroups>
+        <FeatureGroup Name="Dimmer" Pretty="Dimmer">
+          <Feature Name="Dimmer"/>
+        </FeatureGroup>
+        <FeatureGroup Name="Position" Pretty="Position">
+          <Feature Name="PanTilt"/>
+        </FeatureGroup>
+        <FeatureGroup Name="Color" Pretty="Color">
+          <Feature Name="Color"/>
+        </FeatureGroup>
+        <FeatureGroup Name="Gobo" Pretty="Gobo">
+          <Feature Name="Gobo"/>
+        </FeatureGroup>
+        <FeatureGroup Name="Control" Pretty="Control">
+          <Feature Name="Control"/>
+        </FeatureGroup>
+        <FeatureGroup Name="Beam" Pretty="Beam">
+          <Feature Name="Beam"/>
+        </FeatureGroup>
+      </FeatureGroups>
+      <Attributes>
+        <Attribute Feature="Dimmer.Dimmer" Name="Dimmer" PhysicalUnit="None" Pretty="Dim"/>
+        <Attribute ActivationGroup="PanTilt" Feature="Position.PanTilt" Name="Pan" PhysicalUnit="Angle" Pretty="P"/>
+        <Attribute ActivationGroup="PanTilt" Feature="Position.PanTilt" Name="Tilt" PhysicalUnit="Angle" Pretty="T"/>
+        <Attribute ActivationGroup="ColorRGB" Feature="Color.Color" Name="Color1" PhysicalUnit="None" Pretty="C1"/>
+        <Attribute ActivationGroup="Gobo1" Feature="Gobo.Gobo" Name="Gobo1" PhysicalUnit="None" Pretty="G1"/>
+        <Attribute ActivationGroup="Gobo1" Feature="Gobo.Gobo" MainAttribute="Gobo1" Name="Gobo1SelectShake" PhysicalUnit="Frequency" Pretty="Select Shake"/>
+        <Attribute ActivationGroup="Gobo1" Feature="Gobo.Gobo" MainAttribute="Gobo1" Name="Gobo1WheelSpin" PhysicalUnit="AngularSpeed" Pretty="Wheel Spin"/>
+        <Attribute ActivationGroup="ColorRGB" Feature="Color.Color" MainAttribute="Color1" Name="Color1WheelSpin" PhysicalUnit="AngularSpeed" Pretty="Wheel Spin"/>
+        <Attribute Feature="Control.Control" Name="PositionMSpeed" PhysicalUnit="None" Pretty="Pos MSpeed"/>
+        <Attribute Feature="Control.Control" Name="FixtureGlobalReset" PhysicalUnit="None" Pretty="Fixture Global Reset"/>
+        <Attribute Feature="Beam.Beam" Name="Shutter1Strobe" PhysicalUnit="Frequency" Pretty="Strobe1"/>
+      </Attributes>
+    </AttributeDefinitions>
+    <Wheels>
+      <Wheel Name="COLOR">
+        <Slot Color="0.312700,0.329000,100.000000" Name="WHITE"/>
+        <Slot Color="0.639400,0.328000,100.000000" Name="RED"/>
+        <Slot Color="0.300000,0.597900,100.000000" Name="GREEN"/>
+        <Slot Color="0.150000,0.060010,87.000000" Name="BLUE"/>
+        <Slot Color="0.425600,0.517200,100.000000" Name="YELLOW"/>
+        <Slot Color="0.536300,0.417300,92.750000" Name="ORANGE"/>
+        <Slot Color="0.133100,0.141000,47.250000" Name="CYAAN"/>
+        <Slot Color="0.410600,0.202700,35.500000" Name="MAGENTA"/>
+      </Wheel>
+      <Wheel Name="GOBO">
+        <Slot Color="0.312700,0.329000,100.000000" MediaFileName="Schermafbeelding 2022-02-10 om 21.48.50" Name="OPEN"/>
+        <Slot Color="0.312700,0.329000,100.000000" MediaFileName="Schermafbeelding 2022-02-10 om 21.49.34" Name="SHAPES"/>
+        <Slot Color="0.312700,0.329000,100.000000" MediaFileName="Schermafbeelding 2022-02-10 om 21.49.50" Name="SPIRAL"/>
+        <Slot Color="0.312700,0.329000,100.000000" MediaFileName="Schermafbeelding 2022-02-10 om 21.50.14" Name="SUN"/>
+        <Slot Color="0.312700,0.329000,100.000000" MediaFileName="Schermafbeelding 2022-02-10 om 21.50.29" Name="STAR"/>
+        <Slot Color="0.312700,0.329000,100.000000" MediaFileName="Schermafbeelding 2022-02-10 om 21.50.40" Name="TRIANGLE"/>
+        <Slot Color="0.312700,0.329000,100.000000" MediaFileName="Schermafbeelding 2022-02-10 om 21.50.52" Name="TUNNEL DOTS"/>
+        <Slot Color="0.312700,0.329000,100.000000" MediaFileName="Schermafbeelding 2022-02-10 om 21.51.00" Name="ROSE"/>
+      </Wheel>
+    </Wheels>
+    <PhysicalDescriptions>
+      <ColorSpace Mode="sRGB"/>
+      <Filters/>
+      <Emitters>
+        <Emitter Color="0.312700,0.329000,100.000000" DiodePart="" DominantWaveLength="0.000000" Name="Emitter 1">
+          <Measurement InterpolationTo="Linear" LuminousIntensity="0.000000" Physical="5.000000"/>
+          <Measurement InterpolationTo="Linear" LuminousIntensity="40200.000000" Physical="100.000000"/>
+        </Emitter>
+      </Emitters>
+      <DMXProfiles/>
+      <CRIs/>
+      <Connectors/>
+      <Properties>
+        <OperatingTemperature High="40.000000" Low="0.000000"/>
+        <Weight Value="3.250000"/>
+        <LegHeight Value="0.012000"/>
+      </Properties>
+    </PhysicalDescriptions>
+    <Models>
+      <Model File="" Height="0.065000" Length="0.160000" Name="Base" PrimitiveType="Base1_1" Width="0.150000"/>
+      <Model File="" Height="0.140000" Length="0.205000" Name="Yoke" PrimitiveType="Yoke" Width="0.065000"/>
+      <Model File="" Height="0.155000" Length="0.116000" Name="Head" PrimitiveType="Head" Width="0.130000"/>
+      <Model File="" Height="0.015000" Length="0.050000" Name="Beam" PrimitiveType="Cylinder" Width="0.050000"/>
+    </Models>
+    <Geometries>
+      <Geometry Model="Base" Name="Base" Position="{1.000000,0.000000,0.000000,0.000000}{0.000000,1.000000,0.000000,0.000000}{0.000000,0.000000,1.000000,0.000000}{0,0,0,1}">
+        <Axis Model="Yoke" Name="Yoke" Position="{1.000000,0.000000,0.000000,0.000000}{0.000000,1.000000,0.000000,0.000000}{0.000000,0.000000,1.000000,-0.140000}{0,0,0,1}">
+          <Axis Model="Head" Name="Head" Position="{1.000000,0.000000,0.000000,0.000000}{0.000000,1.000000,0.000000,0.000000}{0.000000,0.000000,1.000000,-0.050000}{0,0,0,1}">
+            <Beam BeamAngle="25.000000" BeamRadius="0.022500" BeamType="Spot" ColorRenderingIndex="90" ColorTemperature="6000.000000" FieldAngle="25.000000" LampType="LED" LuminousFlux="6000.000000" Model="Beam" Name="Beam" Position="{1.000000,0.000000,0.000000,0.000000}{0.000000,1.000000,0.000000,0.000000}{0.000000,0.000000,1.000000,-0.087000}{0,0,0,1}" PowerConsumption="60.000000" RectangleRatio="1.777700" ThrowRatio="1.000000"/>
+          </Axis>
+        </Axis>
+      </Geometry>
+    </Geometries>
+    <DMXModes>
+      <DMXMode Geometry="Base" Name="Default">
+        <DMXChannels>
+          <DMXChannel DMXBreak="1" Geometry="Yoke" Highlight="None" InitialFunction="Yoke_Pan.Pan.PAN" Offset="1,2">
+            <LogicalChannel Attribute="Pan" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Pan" DMXFrom="0/2" Default="32768/2" Name="PAN" OriginalAttribute="" PhysicalFrom="-270.000000" PhysicalTo="270.000000" RealAcceleration="0.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/2" Name="" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="32768/2" Name="Home" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="32769/2" Name="" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="Head" Highlight="None" InitialFunction="Head_Tilt.Tilt.TILT" Offset="3,4">
+            <LogicalChannel Attribute="Tilt" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Tilt" DMXFrom="0/2" Default="32768/2" Name="TILT" OriginalAttribute="" PhysicalFrom="-110.000000" PhysicalTo="110.000000" RealAcceleration="0.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/2" Name="" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="32768/2" Name="Home" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="32769/2" Name="" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="Beam" Highlight="None" InitialFunction="Beam_Color1.Color1.FIXED COLORS" Offset="5">
+            <LogicalChannel Attribute="Color1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="Yes">
+              <ChannelFunction Attribute="Color1" DMXFrom="0/1" Default="0/1" Name="FIXED COLORS" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="79.000000" RealAcceleration="0.000000" RealFade="0.000000" Wheel="COLOR">
+                <ChannelSet DMXFrom="0/1" Name="WHITE" WheelSlotIndex="1"/>
+                <ChannelSet DMXFrom="10/1" Name="RED" WheelSlotIndex="2"/>
+                <ChannelSet DMXFrom="20/1" Name="GREEN" WheelSlotIndex="3"/>
+                <ChannelSet DMXFrom="30/1" Name="BLUE" WheelSlotIndex="4"/>
+                <ChannelSet DMXFrom="40/1" Name="YELLOW" WheelSlotIndex="5"/>
+                <ChannelSet DMXFrom="50/1" Name="ORANGE" WheelSlotIndex="6"/>
+                <ChannelSet DMXFrom="60/1" Name="CYAAN" WheelSlotIndex="7"/>
+                <ChannelSet DMXFrom="70/1" Name="MAGENTA" WheelSlotIndex="8"/>
+              </ChannelFunction>
+              <ChannelFunction Attribute="Color1" DMXFrom="80/1" Default="80/1" Name="COLOR HALF" OriginalAttribute="" PhysicalFrom="80.000000" PhysicalTo="139.000000" RealAcceleration="0.000000" RealFade="0.000000" Wheel="COLOR">
+                <ChannelSet DMXFrom="80/1" Name="MAGENTA CYAAN" WheelSlotIndex="8"/>
+                <ChannelSet DMXFrom="90/1" Name="CYAAN ORANGE" WheelSlotIndex="7"/>
+                <ChannelSet DMXFrom="100/1" Name="ORANGE YELLOW" WheelSlotIndex="6"/>
+                <ChannelSet DMXFrom="110/1" Name="YELLOW BLUE" WheelSlotIndex="5"/>
+                <ChannelSet DMXFrom="120/1" Name="BLUE GREEN" WheelSlotIndex="4"/>
+                <ChannelSet DMXFrom="130/1" Name="GREEN RED" WheelSlotIndex="3"/>
+                <ChannelSet DMXFrom="139/1" Name="GREEN RED" WheelSlotIndex="2"/>
+              </ChannelFunction>
+              <ChannelFunction Attribute="Color1WheelSpin" DMXFrom="140/1" Default="140/1" Name="COLORWHEEL SPIN" OriginalAttribute="" PhysicalFrom="12.000000" PhysicalTo="90.000000" RealAcceleration="0.000000" RealFade="0.000000" Wheel="COLOR"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="Beam" Highlight="None" InitialFunction="Beam_Gobo1.Gobo1.GOBO" Offset="6">
+            <LogicalChannel Attribute="Gobo1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="Yes">
+              <ChannelFunction Attribute="Gobo1" DMXFrom="0/1" Default="0/1" Name="GOBO" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="63.000000" RealAcceleration="0.000000" RealFade="0.000000" Wheel="GOBO">
+                <ChannelSet DMXFrom="0/1" Name="OPEN" WheelSlotIndex="1"/>
+                <ChannelSet DMXFrom="8/1" Name="SHAPES" WheelSlotIndex="2"/>
+                <ChannelSet DMXFrom="16/1" Name="SPIRAL" WheelSlotIndex="3"/>
+                <ChannelSet DMXFrom="24/1" Name="SUN" WheelSlotIndex="4"/>
+                <ChannelSet DMXFrom="32/1" Name="STAR" WheelSlotIndex="5"/>
+                <ChannelSet DMXFrom="40/1" Name="TRIANGLE" WheelSlotIndex="6"/>
+                <ChannelSet DMXFrom="48/1" Name="TUNNEL DOTS" WheelSlotIndex="7"/>
+                <ChannelSet DMXFrom="56/1" Name="ROSE" WheelSlotIndex="8"/>
+              </ChannelFunction>
+              <ChannelFunction Attribute="Gobo1SelectShake" DMXFrom="64/1" Default="64/1" Name="GOBO SHAKE" OriginalAttribute="" PhysicalFrom="2.000000" PhysicalTo="5.000000" RealAcceleration="0.000000" RealFade="0.000000" Wheel="GOBO">
+                <ChannelSet DMXFrom="64/1" Name="OPEN" WheelSlotIndex="1"/>
+                <ChannelSet DMXFrom="72/1" Name="SHAPES" WheelSlotIndex="2"/>
+                <ChannelSet DMXFrom="80/1" Name="SPIRAL" WheelSlotIndex="3"/>
+                <ChannelSet DMXFrom="88/1" Name="SUN" WheelSlotIndex="4"/>
+                <ChannelSet DMXFrom="96/1" Name="STAR" WheelSlotIndex="5"/>
+                <ChannelSet DMXFrom="104/1" Name="TRIANGLE" WheelSlotIndex="6"/>
+                <ChannelSet DMXFrom="112/1" Name="TUNNEL DOTS" WheelSlotIndex="7"/>
+                <ChannelSet DMXFrom="120/1" Name="ROSE" WheelSlotIndex="8"/>
+              </ChannelFunction>
+              <ChannelFunction Attribute="Gobo1WheelSpin" DMXFrom="128/1" Default="128/1" Name="GoboWheelSpin" OriginalAttribute="" PhysicalFrom="12.000000" PhysicalTo="90.000000" RealAcceleration="0.000000" RealFade="0.000000" Wheel="GOBO"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="Beam" Highlight="None" InitialFunction="Beam_Shutter1Strobe.Shutter1Strobe.STROBO" Offset="7">
+            <LogicalChannel Attribute="Shutter1Strobe" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Dimmer" DMXFrom="0/1" Default="0/1" Name="Dimmer 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="7/1" Default="7/1" Emitter="Emitter 1" Name="STROBO" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="15.000000" RealAcceleration="0.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="7/1" Name="" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="8/1" Name="1 TO 15 FPS" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="251/1" Name="OPEN" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="Beam" Highlight="255/1" InitialFunction="Beam_Dimmer.Dimmer.DIMMER" Offset="8">
+            <LogicalChannel Attribute="Dimmer" DMXChangeTimeLimit="0.000000" Master="Grand" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Dimmer" DMXFrom="0/1" Default="0/1" Name="DIMMER" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/1" Name="Closed" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="13/1" Name="DIM 0-100" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="255/1" Name="Open FULL" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="Head" Highlight="None" InitialFunction="Head_PositionMSpeed.PositionMSpeed.MOVEMENTSPEED" Offset="9">
+            <LogicalChannel Attribute="PositionMSpeed" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="PositionMSpeed" DMXFrom="0/1" Default="0/1" Name="MOVEMENTSPEED" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="60.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="Head" Highlight="None" InitialFunction="Head_FixtureGlobalReset.FixtureGlobalReset.RESET" Offset="11">
+            <LogicalChannel Attribute="FixtureGlobalReset" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="FixtureGlobalReset" DMXFrom="0/1" Default="0/1" Name="RESET" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/1" Name="NO VALUE" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="250/1" Name="RESET" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+        </DMXChannels>
+        <Relations/>
+        <FTMacros/>
+      </DMXMode>
+    </DMXModes>
+    <Revisions>
+      <Revision Date="2021-07-05T07:57:28" Text="" UserID="0"/>
+      <Revision Date="2022-02-10T22:26:23" Text="REV0.0" UserID="0"/>
+      <Revision Date="2022-02-10T22:56:28" Text="REV0.0" UserID="0"/>
+      <Revision Date="2022-02-11T00:28:21" Text="REV0.5" UserID="0"/>
+      <Revision Date="2022-02-15T23:35:32" Text="REV1.0" UserID="0"/>
+      <Revision Date="2022-02-15T23:51:10" Text="REV1.0TEST" UserID="0"/>
+    </Revisions>
+    <FTPresets/>
+    <Protocols/>
+  </FixtureType>
+</GDTF>

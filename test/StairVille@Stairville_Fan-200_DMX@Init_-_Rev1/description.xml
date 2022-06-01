@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<GDTF DataVersion="1.1">
+  <FixtureType CanHaveChildren="No" Description="Stairville Fan-200 DMX Wind Machine" FixtureTypeID="5D873954-7E45-4B4E-B76F-4B12D9F06011" LongName="Stairville Fan-200 DMX Wind Machine" Manufacturer="StairVille" Name="Stairville Fan-200 DMX" RefFT="" ShortName="Stairville Fan-200 DMX" Thumbnail="thumbnail">
+    <AttributeDefinitions>
+      <ActivationGroups/>
+      <FeatureGroups>
+        <FeatureGroup Name="Control" Pretty="Control">
+          <Feature Name="Control"/>
+        </FeatureGroup>
+      </FeatureGroups>
+      <Attributes>
+        <Attribute Feature="Control.Control" Name="Fan1" PhysicalUnit="None" Pretty="Fan1"/>
+        <Attribute Color="0.320600,0.338900,71.500000" Feature="Control.Control" Name="Interval" PhysicalUnit="Time" Pretty="Interval"/>
+        <Attribute Color="0.312700,0.329000,100.000000" Feature="Control.Control" Name="Duration" PhysicalUnit="Time" Pretty="Duration"/>
+      </Attributes>
+    </AttributeDefinitions>
+    <Wheels/>
+    <PhysicalDescriptions>
+      <ColorSpace Mode="sRGB"/>
+      <Filters/>
+      <Emitters/>
+      <DMXProfiles/>
+      <CRIs/>
+      <Connectors>
+        <Connector DMXBreak="0" Gender="-1" Length="0.000000" Name="DMX In (5Pin)" Type="XLR5"/>
+        <Connector DMXBreak="0" Gender="-1" Length="0.000000" Name="DMX Out (5Pin)" Type="XLR5"/>
+        <Connector DMXBreak="0" Gender="-1" Length="0.000000" Name="DMX In (3Pin)" Type="XLR3"/>
+        <Connector DMXBreak="0" Gender="1" Length="0.000000" Name="DMX Out (3Pin)" Type="XLR3"/>
+        <Connector DMXBreak="0" Gender="1" Length="0.000000" Name="Power In" Type="NAC3FCA"/>
+        <Connector DMXBreak="0" Gender="1" Length="0.000000" Name="Power Out" Type="NAC3FCB"/>
+      </Connectors>
+      <Properties>
+        <PowerConsumption Connector="Power In" FrequencyHigh="60.000000" FrequencyLow="50.000000" PowerFactor="1.000000" Value="200.000000" VoltageHigh="240.000000" VoltageLow="230.000000"/>
+        <OperatingTemperature High="40.000000" Low="0.000000"/>
+        <Weight Value="9.800000"/>
+        <LegHeight Value="0.000000"/>
+      </Properties>
+    </PhysicalDescriptions>
+    <Models>
+      <Model File="" Height="0.100000" Length="0.430000" Name="Base" PrimitiveType="Cube" Width="0.400000"/>
+      <Model File="" Height="0.360000" Length="0.430000" Name="Geometry 1" PrimitiveType="Cylinder" Width="0.400000"/>
+    </Models>
+    <Geometries>
+      <Geometry Model="Base" Name="Base" Position="{1.000000,0.000000,0.000000,0.000000}{0.000000,1.000000,0.000000,0.000000}{0.000000,0.000000,1.000000,0.000000}{0,0,0,1}">
+        <Geometry Model="Geometry 1" Name="Fan" Position="{1.000000,0.000000,0.000000,0.000000}{0.000000,0.000000,1.000000,0.000000}{0.000000,-1.000000,0.000000,0.273588}{0,0,0,1}"/>
+      </Geometry>
+    </Geometries>
+    <DMXModes>
+      <DMXMode Geometry="Base" Name="Mode 1">
+        <DMXChannels>
+          <DMXChannel DMXBreak="1" Geometry="Fan" Highlight="None" InitialFunction="Fan_Fan1.Fan1.Fan1 1" Offset="1">
+            <LogicalChannel Attribute="Fan1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Fan1" DMXFrom="0/1" Default="0/1" Name="Fan1 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/1" Name="Off" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="1/1" Name="Off &gt; Full" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="255/1" Name="Full" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="Fan" Highlight="None" InitialFunction="Fan_Interval.Interval.Interval 1" Offset="2">
+            <LogicalChannel Attribute="Interval" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Interval" DMXFrom="0/1" Default="0/1" Name="Interval 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="999.000000" RealAcceleration="0.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/1" Name="Short Interval" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="1/1" Name="Short &gt; Long" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="255/1" Name="Long" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="Fan" Highlight="None" InitialFunction="Fan_Duration.Duration.Duration 1" Offset="3">
+            <LogicalChannel Attribute="Duration" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Duration" DMXFrom="0/1" Default="0/1" Name="Duration 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="999.000000" RealAcceleration="0.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/1" Name="Short" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="1/1" Name="Short To Long" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="255/1" Name="Long" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+        </DMXChannels>
+        <Relations/>
+        <FTMacros/>
+      </DMXMode>
+    </DMXModes>
+    <Revisions>
+      <Revision Date="2021-07-05T07:56:52" Text="" UserID="0"/>
+      <Revision Date="2021-11-06T16:45:07" Text="Init - Rev1" UserID="0"/>
+    </Revisions>
+    <FTPresets/>
+    <Protocols/>
+  </FixtureType>
+</GDTF>

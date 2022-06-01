@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<GDTF DataVersion="1.1">
+  <FixtureType CanHaveChildren="No" Description="Serveur Watchout ADSI" FixtureTypeID="92BFF304-59E4-4FC4-937C-DDBEE5EF2794" LongName="Serveur WO ADSI" Manufacturer="ADSI_DATATON" Name="WO_ADSI" RefFT="" ShortName="WO1" Thumbnail="">
+    <AttributeDefinitions>
+      <ActivationGroups>
+        <ActivationGroup Name="ColorIndirect"/>
+        <ActivationGroup Name="ColorHSB"/>
+      </ActivationGroups>
+      <FeatureGroups>
+        <FeatureGroup Name="Gobo" Pretty="Gobo">
+          <Feature Name="Media"/>
+        </FeatureGroup>
+        <FeatureGroup Name="Dimmer" Pretty="Dimmer">
+          <Feature Name="Dimmer"/>
+        </FeatureGroup>
+        <FeatureGroup Name="Color" Pretty="Color">
+          <Feature Name="Indirect"/>
+          <Feature Name="HSB"/>
+        </FeatureGroup>
+        <FeatureGroup Name="Focus" Pretty="Focus">
+          <Feature Name="Focus"/>
+        </FeatureGroup>
+      </FeatureGroups>
+      <Attributes>
+        <Attribute Feature="Gobo.Media" Name="MediaContent1" PhysicalUnit="None" Pretty="Media Content1"/>
+        <Attribute Feature="Dimmer.Dimmer" Name="Dimmer" PhysicalUnit="None" Pretty="Dim"/>
+        <Attribute ActivationGroup="ColorIndirect" Feature="Color.Indirect" Name="ColorRGB_Red" PhysicalUnit="None" Pretty="R"/>
+        <Attribute ActivationGroup="ColorIndirect" Feature="Color.Indirect" Name="ColorRGB_Green" PhysicalUnit="None" Pretty="G"/>
+        <Attribute ActivationGroup="ColorIndirect" Feature="Color.Indirect" Name="ColorRGB_Blue" PhysicalUnit="None" Pretty="B"/>
+        <Attribute ActivationGroup="ColorHSB" Feature="Color.HSB" Name="HSB_Hue" PhysicalUnit="Angle" Pretty="H"/>
+        <Attribute ActivationGroup="ColorHSB" Feature="Color.HSB" Name="HSB_Saturation" PhysicalUnit="Percent" Pretty="S"/>
+        <Attribute Feature="Focus.Focus" Name="Zoom" PhysicalUnit="Angle" Pretty="Zoom"/>
+      </Attributes>
+    </AttributeDefinitions>
+    <Wheels/>
+    <PhysicalDescriptions>
+      <ColorSpace Mode="sRGB"/>
+      <Filters/>
+      <Emitters>
+        <Emitter Color="0.312700,0.329000,100.000000" DiodePart="" DominantWaveLength="0.000000" Name="Emitter 1">
+          <Measurement InterpolationTo="Linear" LuminousIntensity="1.000000" Physical="100.000000"/>
+        </Emitter>
+      </Emitters>
+      <DMXProfiles/>
+      <CRIs/>
+      <Connectors/>
+      <Properties>
+        <OperatingTemperature High="40.000000" Low="0.000000"/>
+        <Weight Value="0.000000"/>
+        <LegHeight Value="0.000000"/>
+      </Properties>
+    </PhysicalDescriptions>
+    <Models/>
+    <Geometries>
+      <MediaServerMaster Name="serveur" Position="{1.000000,0.000000,0.000000,0.000000}{0.000000,1.000000,0.000000,0.000000}{0.000000,0.000000,1.000000,0.000000}{0,0,0,1}"/>
+    </Geometries>
+    <DMXModes>
+      <DMXMode Geometry="serveur" Name="ARTNET CONTROL">
+        <DMXChannels>
+          <DMXChannel DMXBreak="1" Geometry="serveur" Highlight="None" InitialFunction="serveur_MediaContent1.MediaContent1.MediaContent1 1" Offset="1">
+            <LogicalChannel Attribute="MediaContent1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="MediaContent1" DMXFrom="0/1" Default="0/1" Name="MediaContent1 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="255.000000" RealAcceleration="0.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/1" Name="Stop" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="25/1" Name="Media1" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="50/1" Name="Media2" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="75/1" Name="Media3" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="100/1" Name="Media4" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="125/1" Name="Media5" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="150/1" Name="Media6" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="175/1" Name="Media7" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="200/1" Name="Media8" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="225/1" Name="Media9" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="250/1" Name="HDMI INPUT" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="serveur" Highlight="None" InitialFunction="serveur_Dimmer.Dimmer.Dimmer 1" Offset="2">
+            <LogicalChannel Attribute="Dimmer" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Dimmer" DMXFrom="0/1" Default="0/1" Name="Dimmer 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="serveur" Highlight="None" InitialFunction="serveur_ColorRGB_Red.ColorRGB_Red.ColorRGB_Red 1" Offset="3">
+            <LogicalChannel Attribute="ColorRGB_Red" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorRGB_Red" DMXFrom="0/1" Default="255/1" Name="ColorRGB_Red 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="serveur" Highlight="None" InitialFunction="serveur_ColorRGB_Green.ColorRGB_Green.ColorRGB_Green 1" Offset="4">
+            <LogicalChannel Attribute="ColorRGB_Green" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorRGB_Green" DMXFrom="0/1" Default="255/1" Name="ColorRGB_Green 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="serveur" Highlight="None" InitialFunction="serveur_ColorRGB_Blue.ColorRGB_Blue.ColorRGB_Blue 1" Offset="5">
+            <LogicalChannel Attribute="ColorRGB_Blue" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorRGB_Blue" DMXFrom="0/1" Default="255/1" Name="ColorRGB_Blue 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="serveur" Highlight="None" InitialFunction="serveur_HSB_Hue.HSB_Hue.HSB_Hue 1" Offset="6">
+            <LogicalChannel Attribute="HSB_Hue" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="HSB_Hue" DMXFrom="0/1" Default="0/1" Name="HSB_Hue 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="serveur" Highlight="None" InitialFunction="serveur_HSB_Saturation.HSB_Saturation.HSB_Saturation 1" Offset="7">
+            <LogicalChannel Attribute="HSB_Saturation" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="HSB_Saturation" DMXFrom="0/1" Default="255/1" Name="HSB_Saturation 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Geometry="serveur" Highlight="None" InitialFunction="serveur_Zoom.Zoom.Zoom 1" Offset="8">
+            <LogicalChannel Attribute="Zoom" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Zoom" DMXFrom="0/1" Default="51/1" Name="Zoom 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealAcceleration="0.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+        </DMXChannels>
+        <Relations/>
+        <FTMacros/>
+      </DMXMode>
+    </DMXModes>
+    <Revisions>
+      <Revision Date="2021-07-05T07:56:52" Text="" UserID="0"/>
+      <Revision Date="2022-04-20T15:34:13" Text="V0.1" UserID="12421"/>
+    </Revisions>
+    <FTPresets/>
+    <Protocols/>
+  </FixtureType>
+</GDTF>

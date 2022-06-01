@@ -1,0 +1,746 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<GDTF DataVersion="1.0">
+  <FixtureType Description="an asymmetric cyc light based on a six-colour LED module, which uses cutting-edge HCR (High Color Rendering) LED technology to deliver a wide selection of colors from bold hues to pastel shades." FixtureTypeID="CFCEE3E8-0888-4FCB-BE68-09ED0BB168DE" LongName="Klemantis AS 1000" Manufacturer="ADB" Name="Klemantis AS 1000" RefFT="" ShortName="KL AS 1000" Thumbnail="ADB_Klemantis-1">
+    <AttributeDefinitions>
+      <ActivationGroups>
+        <ActivationGroup Name="ColorRGB"/>
+        <ActivationGroup Name="ColorHSB"/>
+      </ActivationGroups>
+      <FeatureGroups>
+        <FeatureGroup Name="Color" Pretty="Color">
+          <Feature Name="RGB"/>
+          <Feature Name="Color"/>
+          <Feature Name="HSB"/>
+        </FeatureGroup>
+        <FeatureGroup Name="Beam" Pretty="Beam">
+          <Feature Name="Beam"/>
+        </FeatureGroup>
+        <FeatureGroup Name="Dimmer" Pretty="Dimmer">
+          <Feature Name="Dimmer"/>
+        </FeatureGroup>
+        <FeatureGroup Name="Control" Pretty="Control">
+          <Feature Name="Control"/>
+        </FeatureGroup>
+      </FeatureGroups>
+      <Attributes>
+        <Attribute ActivationGroup="ColorRGB" Feature="Color.RGB" Name="ColorAdd_R" PhysicalUnit="ColorComponent" Pretty="R"/>
+        <Attribute ActivationGroup="ColorRGB" Feature="Color.RGB" Name="ColorAdd_G" PhysicalUnit="ColorComponent" Pretty="G"/>
+        <Attribute ActivationGroup="ColorRGB" Feature="Color.RGB" Name="ColorAdd_B" PhysicalUnit="ColorComponent" Pretty="B"/>
+        <Attribute Feature="Color.Color" Name="CTO" PhysicalUnit="None" Pretty="CTO"/>
+        <Attribute Feature="Color.RGB" Name="ColorMacro1" PhysicalUnit="None" Pretty="Color Macro1"/>
+        <Attribute Feature="Beam.Beam" Name="Shutter1Strobe" PhysicalUnit="Frequency" Pretty="Strobe1"/>
+        <Attribute Feature="Beam.Beam" Name="Shutter1StrobePulse" PhysicalUnit="Frequency" Pretty="Pulse1"/>
+        <Attribute Feature="Beam.Beam" Name="StrobeRate" PhysicalUnit="None" Pretty="Strobe Rate"/>
+        <Attribute Feature="Beam.Beam" Name="Shutter1StrobeRandomPulseOpen" PhysicalUnit="Frequency" Pretty="Random Pulse Open1"/>
+        <Attribute Feature="Beam.Beam" Name="Shutter1StrobePulseOpen" PhysicalUnit="Frequency" Pretty="Pulse Open1"/>
+        <Attribute Feature="Dimmer.Dimmer" Name="Dimmer" PhysicalUnit="LuminousIntensity" Pretty="Dim"/>
+        <Attribute Feature="Beam.Beam" Name="Effects1Fade" PhysicalUnit="None" Pretty="FX1 Fade"/>
+        <Attribute Feature="Control.Control" Name="Fans" PhysicalUnit="None" Pretty="Fans"/>
+        <Attribute Feature="Color.Color" Name="ColorEffects1" PhysicalUnit="None" Pretty="Color FX1"/>
+        <Attribute ActivationGroup="ColorRGB" Feature="Color.RGB" Name="ColorAdd_C" PhysicalUnit="ColorComponent" Pretty="C"/>
+        <Attribute ActivationGroup="ColorRGB" Feature="Color.RGB" Name="ColorAdd_M" PhysicalUnit="ColorComponent" Pretty="M"/>
+        <Attribute ActivationGroup="ColorRGB" Feature="Color.RGB" Name="ColorAdd_Y" PhysicalUnit="ColorComponent" Pretty="Y"/>
+        <Attribute ActivationGroup="ColorHSB" Feature="Color.HSB" Name="HSB_Hue" PhysicalUnit="Angle" Pretty="H"/>
+        <Attribute ActivationGroup="ColorHSB" Feature="Color.HSB" Name="HSB_Saturation" PhysicalUnit="Percent" Pretty="S"/>
+        <Attribute Feature="Control.Control" Name="NoFeature" PhysicalUnit="None" Pretty="NoFeature"/>
+        <Attribute Feature="Control.Control" Name="FixtureGlobalReset" PhysicalUnit="None" Pretty="Fixture Global Reset"/>
+        <Attribute Feature="Control.Control" Name="LEDFrequency" PhysicalUnit="None" Pretty="LED Frequency"/>
+      </Attributes>
+    </AttributeDefinitions>
+    <Wheels/>
+    <PhysicalDescriptions>
+      <ColorSpace Mode="sRGB"/>
+      <Filters/>
+      <Emitters>
+        <Emitter Color="0.640100,0.330000,21.260000" DiodePart="" DominantWaveLength="0.000000" Name="Red">
+          <Measurement InterpolationTo="Linear" LuminousIntensity="1.000000" Physical="100.000000"/>
+        </Emitter>
+        <Emitter Color="0.300000,0.600000,71.520000" DiodePart="" DominantWaveLength="0.000000" Name="Green">
+          <Measurement InterpolationTo="Linear" LuminousIntensity="1.000000" Physical="100.000000"/>
+        </Emitter>
+        <Emitter Color="0.150200,0.060080,7.232000" DiodePart="" DominantWaveLength="0.000000" Name="Blue">
+          <Measurement InterpolationTo="Linear" LuminousIntensity="1.000000" Physical="100.000000"/>
+        </Emitter>
+        <Emitter Color="0.224700,0.328700,78.740000" DiodePart="" DominantWaveLength="0.000000" Name="Cyan">
+          <Measurement InterpolationTo="Linear" LuminousIntensity="1.000000" Physical="100.000000"/>
+        </Emitter>
+        <Emitter Color="0.320900,0.154200,28.480000" DiodePart="" DominantWaveLength="0.000000" Name="Magenta">
+          <Measurement InterpolationTo="Linear" LuminousIntensity="1.000000" Physical="100.000000"/>
+        </Emitter>
+        <Emitter Color="0.419300,0.505300,92.780000" DiodePart="" DominantWaveLength="0.000000" Name="Yellow">
+          <Measurement InterpolationTo="Linear" LuminousIntensity="1.000000" Physical="100.000000"/>
+        </Emitter>
+      </Emitters>
+      <DMXProfiles/>
+      <CRIs/>
+    </PhysicalDescriptions>
+    <Models>
+      <Model File="ADB Klemantis as500 Yoke" Height="0.135824" Length="0.400000" Name="Yoke" PrimitiveType="Undefined" Width="0.264904"/>
+      <Model File="ADB Klemantis AS1000 Body" Height="0.152186" Length="0.996000" Name="Body" PrimitiveType="Undefined" Width="0.165172"/>
+      <Model File="ADB Klemantis AS1000 Lens" Height="0.053333" Length="0.984385" Name="Lens" PrimitiveType="Undefined" Width="0.064685"/>
+    </Models>
+    <Geometries>
+      <Geometry Model="Yoke" Name="Yoke" Position="{1.000000,0.000000,0.000000,0.000000}{0.000000,1.000000,0.000000,0.000000}{0.000000,0.000000,1.000000,0.000000}{0,0,0,1}">
+        <Geometry Model="Body" Name="Body" Position="{1.000000,0.000000,0.000000,0.000000}{0.000000,1.000000,0.000000,0.000000}{0.000000,0.000000,1.000000,-0.113200}{0,0,0,1}">
+          <Beam BeamAngle="20.000000" BeamRadius="0.025000" BeamType="Wash" ColorRenderingIndex="100" ColorTemperature="6000.000000" FieldAngle="25.000000" LampType="LED" LuminousFlux="2024.000000" Model="Lens" Name="Lens" Position="{1.000000,0.000000,0.000000,0.000000}{0.000000,1.000000,0.000000,0.000000}{0.000000,0.000000,1.000000,-0.050000}{0,0,0,1}" PowerConsumption="250.000000"/>
+        </Geometry>
+      </Geometry>
+    </Geometries>
+    <DMXModes>
+      <DMXMode Geometry="Yoke" Name="Default RGB">
+        <DMXChannels>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="1">
+            <LogicalChannel Attribute="ColorAdd_R" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_R" DMXFrom="0/1" Emitter="Red" Name="ColorAdd_R 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="2">
+            <LogicalChannel Attribute="ColorAdd_G" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_G" DMXFrom="0/1" Emitter="Green" Name="ColorAdd_G 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="3">
+            <LogicalChannel Attribute="ColorAdd_B" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_B" DMXFrom="0/1" Emitter="Blue" Name="ColorAdd_B 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="4">
+            <LogicalChannel Attribute="CTO" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="CTO" DMXFrom="0/1" Name="CTO 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/1" Name="off" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="1/1" Name="8000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="47/1" Name="7000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="93/1" Name="6000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="112/1" Name="5600 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="139/1" Name="5000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="186/1" Name="4000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="222/1" Name="3200 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="245/1" Name="2700 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="255/1" Name="2500 K" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="5">
+            <LogicalChannel Attribute="ColorMacro1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorMacro1" DMXFrom="0/1" Name="ColorMacro1 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="6">
+            <LogicalChannel Attribute="Shutter1Strobe" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="0/1" Name="Light Off" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobePulse" DMXFrom="4/1" Name="Slow to fast" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="16.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="104/1" Name="Light ON 1" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="StrobeRate" DMXFrom="108/1" Name="Variable Slow to fast" OriginalAttribute="" PhysicalFrom="0.500000" PhysicalTo="25.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="208/1" Name="Light ON" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobeRandomPulseOpen" DMXFrom="213/1" Name="Random Strobe Slow" OriginalAttribute="" PhysicalFrom="0.500000" PhysicalTo="0.500000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobeRandomPulseOpen" DMXFrom="226/1" Name="Random Medium Strobe" OriginalAttribute="" PhysicalFrom="0.750000" PhysicalTo="0.750000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobePulseOpen" DMXFrom="239/1" Name="Random Fast Strobe" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="252/1" Name="Light On" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="7,8">
+            <LogicalChannel Attribute="Dimmer" DMXChangeTimeLimit="0.000000" Master="Grand" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Dimmer" DMXFrom="0/2" Name="Dimmer 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="9">
+            <LogicalChannel Attribute="Effects1Fade" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Effects1Fade" DMXFrom="0/1" Name="Effects1Fade 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="10">
+            <LogicalChannel Attribute="Fans" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Fans" DMXFrom="0/1" Name="Fans 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="11">
+            <LogicalChannel Attribute="ColorEffects1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="0/1" Name="Magenta to OFF" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="128/1" Name="Tint OFF" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="129/1" Name="OFF to Green" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="12">
+            <LogicalChannel Attribute="NoFeature" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Name="Function" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="13">
+            <LogicalChannel Attribute="FixtureGlobalReset" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Name="unused" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="FixtureGlobalReset" DMXFrom="26/1" Name="reset" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="14">
+            <LogicalChannel Attribute="LEDFrequency" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="LEDFrequency" DMXFrom="0/1" Name="LEDFrequency 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+        </DMXChannels>
+        <Relations/>
+        <FTMacros/>
+      </DMXMode>
+      <DMXMode Geometry="Yoke" Name="Default CMY">
+        <DMXChannels>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="1">
+            <LogicalChannel Attribute="ColorAdd_C" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_C" DMXFrom="0/1" Emitter="Cyan" Name="ColorAdd_C 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="2">
+            <LogicalChannel Attribute="ColorAdd_M" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_M" DMXFrom="0/1" Emitter="Magenta" Name="ColorAdd_M 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="3">
+            <LogicalChannel Attribute="ColorAdd_Y" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_Y" DMXFrom="0/1" Emitter="Yellow" Name="ColorAdd_Y 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="4">
+            <LogicalChannel Attribute="CTO" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="CTO" DMXFrom="0/1" Name="CTO 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/1" Name="off" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="1/1" Name="8000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="47/1" Name="7000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="93/1" Name="6000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="112/1" Name="5600 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="139/1" Name="5000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="186/1" Name="4000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="222/1" Name="3200 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="245/1" Name="2700 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="255/1" Name="2500 K" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="5">
+            <LogicalChannel Attribute="ColorMacro1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorMacro1" DMXFrom="0/1" Name="ColorMacro1 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="6">
+            <LogicalChannel Attribute="Shutter1Strobe" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="0/1" Name="Light Off" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobePulse" DMXFrom="4/1" Name="Slow to fast" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="16.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="104/1" Name="Light ON 1" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="StrobeRate" DMXFrom="108/1" Name="Variable Slow to fast" OriginalAttribute="" PhysicalFrom="0.500000" PhysicalTo="25.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="208/1" Name="Light ON" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobeRandomPulseOpen" DMXFrom="213/1" Name="Random Strobe Slow" OriginalAttribute="" PhysicalFrom="0.500000" PhysicalTo="0.500000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobeRandomPulseOpen" DMXFrom="226/1" Name="Random Medium Strobe" OriginalAttribute="" PhysicalFrom="0.750000" PhysicalTo="0.750000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobePulseOpen" DMXFrom="239/1" Name="Random Fast Strobe" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="252/1" Name="Light On" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="7,8">
+            <LogicalChannel Attribute="Dimmer" DMXChangeTimeLimit="0.000000" Master="Grand" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Dimmer" DMXFrom="0/2" Name="Dimmer 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="9">
+            <LogicalChannel Attribute="Effects1Fade" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Effects1Fade" DMXFrom="0/1" Name="Effects1Fade 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="10">
+            <LogicalChannel Attribute="Fans" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Fans" DMXFrom="0/1" Name="Fans 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="11">
+            <LogicalChannel Attribute="ColorEffects1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="0/1" Name="Magenta to OFF" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="128/1" Name="Tint OFF" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="129/1" Name="OFF to Green" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="12">
+            <LogicalChannel Attribute="NoFeature" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Name="NoFeature 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="13">
+            <LogicalChannel Attribute="FixtureGlobalReset" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="FixtureGlobalReset" DMXFrom="0/1" Name="FixtureGlobalReset 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="14">
+            <LogicalChannel Attribute="LEDFrequency" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="LEDFrequency" DMXFrom="0/1" Name="LEDFrequency 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+        </DMXChannels>
+        <Relations/>
+        <FTMacros/>
+      </DMXMode>
+      <DMXMode Geometry="Yoke" Name="Default HSV">
+        <DMXChannels>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="1,2">
+            <LogicalChannel Attribute="HSB_Hue" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="HSB_Hue" DMXFrom="0/2" Name="Hue" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="3">
+            <LogicalChannel Attribute="HSB_Saturation" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="HSB_Saturation" DMXFrom="0/1" Name="Saturation" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="4">
+            <LogicalChannel Attribute="CTO" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="CTO" DMXFrom="0/1" Name="CTO 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/1" Name="off" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="1/1" Name="8000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="47/1" Name="7000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="93/1" Name="6000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="112/1" Name="5600 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="139/1" Name="5000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="186/1" Name="4000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="222/1" Name="3200 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="245/1" Name="2700 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="255/1" Name="2500 K" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="5">
+            <LogicalChannel Attribute="ColorMacro1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorMacro1" DMXFrom="0/1" Name="ColorMacro1 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="6">
+            <LogicalChannel Attribute="Shutter1Strobe" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="0/1" Name="Light Off" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobePulse" DMXFrom="4/1" Name="Slow to fast" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="16.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="104/1" Name="Light ON 1" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="StrobeRate" DMXFrom="108/1" Name="Variable Slow to fast" OriginalAttribute="" PhysicalFrom="0.500000" PhysicalTo="25.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="208/1" Name="Light ON" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobeRandomPulseOpen" DMXFrom="213/1" Name="Random Strobe Slow" OriginalAttribute="" PhysicalFrom="0.500000" PhysicalTo="0.500000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobeRandomPulseOpen" DMXFrom="226/1" Name="Random Medium Strobe" OriginalAttribute="" PhysicalFrom="0.750000" PhysicalTo="0.750000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobePulseOpen" DMXFrom="239/1" Name="Random Fast Strobe" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="252/1" Name="Light On" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="7,8">
+            <LogicalChannel Attribute="Dimmer" DMXChangeTimeLimit="0.000000" Master="Grand" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Dimmer" DMXFrom="0/2" Name="Dimmer 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="9">
+            <LogicalChannel Attribute="Effects1Fade" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Effects1Fade" DMXFrom="0/1" Name="Effects1Fade 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="10">
+            <LogicalChannel Attribute="Fans" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Fans" DMXFrom="0/1" Name="Fans 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="11">
+            <LogicalChannel Attribute="ColorEffects1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="0/1" Name="Magenta to OFF" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="128/1" Name="Tint OFF" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="129/1" Name="OFF to Green" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="12">
+            <LogicalChannel Attribute="NoFeature" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Name="NoFeature 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="13">
+            <LogicalChannel Attribute="FixtureGlobalReset" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="FixtureGlobalReset" DMXFrom="0/1" Name="FixtureGlobalReset 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="14">
+            <LogicalChannel Attribute="LEDFrequency" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="LEDFrequency" DMXFrom="0/1" Name="LEDFrequency 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+        </DMXChannels>
+        <Relations/>
+        <FTMacros/>
+      </DMXMode>
+      <DMXMode Geometry="Yoke" Name="Extended RGB">
+        <DMXChannels>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="1,2">
+            <LogicalChannel Attribute="ColorAdd_R" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_R" DMXFrom="0/2" Emitter="Red" Name="ColorAdd_R 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="3,4">
+            <LogicalChannel Attribute="ColorAdd_Y" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_Y" DMXFrom="0/2" Emitter="Yellow" Name="ColorAdd_Y 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="5,6">
+            <LogicalChannel Attribute="ColorAdd_G" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_G" DMXFrom="0/2" Emitter="Green" Name="ColorAdd_G 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Yoke" Highlight="None" Offset="7,8">
+            <LogicalChannel Attribute="ColorAdd_G" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_G" DMXFrom="0/2" Emitter="Green" Name="ColorAdd_G 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="9,10">
+            <LogicalChannel Attribute="ColorAdd_C" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_C" DMXFrom="0/2" Emitter="Cyan" Name="ColorAdd_C 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="11,12">
+            <LogicalChannel Attribute="ColorAdd_B" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_B" DMXFrom="0/2" Emitter="Blue" Name="ColorAdd_B 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="13">
+            <LogicalChannel Attribute="CTO" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="CTO" DMXFrom="0/1" Name="CTO 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/1" Name="off" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="1/1" Name="8000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="47/1" Name="7000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="93/1" Name="6000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="112/1" Name="5600 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="139/1" Name="5000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="186/1" Name="4000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="222/1" Name="3200 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="245/1" Name="2700 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="255/1" Name="2500 K" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="14">
+            <LogicalChannel Attribute="ColorMacro1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorMacro1" DMXFrom="0/1" Name="ColorMacro1 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="15">
+            <LogicalChannel Attribute="Shutter1Strobe" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="0/1" Name="Light Off" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobePulse" DMXFrom="4/1" Name="Slow to fast" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="16.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="104/1" Name="Light ON 1" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="StrobeRate" DMXFrom="108/1" Name="Variable Slow to fast" OriginalAttribute="" PhysicalFrom="0.500000" PhysicalTo="25.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="208/1" Name="Light ON" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobeRandomPulseOpen" DMXFrom="213/1" Name="Random Strobe Slow" OriginalAttribute="" PhysicalFrom="0.500000" PhysicalTo="0.500000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobeRandomPulseOpen" DMXFrom="226/1" Name="Random Medium Strobe" OriginalAttribute="" PhysicalFrom="0.750000" PhysicalTo="0.750000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobePulseOpen" DMXFrom="239/1" Name="Random Fast Strobe" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="252/1" Name="Light On" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="16,17">
+            <LogicalChannel Attribute="Dimmer" DMXChangeTimeLimit="0.000000" Master="Grand" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Dimmer" DMXFrom="0/2" Name="Dimmer 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Lens" Highlight="None" Offset="18">
+            <LogicalChannel Attribute="ColorAdd_R" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_R" DMXFrom="0/1" Emitter="Red" Name="ColorAdd_R 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Lens" Highlight="None" Offset="19">
+            <LogicalChannel Attribute="ColorAdd_G" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_G" DMXFrom="0/1" Emitter="Green" Name="ColorAdd_G 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Lens" Highlight="None" Offset="20">
+            <LogicalChannel Attribute="ColorAdd_B" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_B" DMXFrom="0/1" Emitter="Blue" Name="ColorAdd_B 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="21">
+            <LogicalChannel Attribute="Effects1Fade" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Effects1Fade" DMXFrom="0/1" Name="Effects1Fade 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Yoke" Highlight="None" Offset="22">
+            <LogicalChannel Attribute="NoFeature" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Name="Path" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="23">
+            <LogicalChannel Attribute="Fans" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Fans" DMXFrom="0/1" Name="Fans 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="24">
+            <LogicalChannel Attribute="ColorEffects1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="0/1" Name="Magenta to OFF" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="128/1" Name="Tint OFF" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="129/1" Name="OFF to Green" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="25">
+            <LogicalChannel Attribute="NoFeature" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Name="NoFeature 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="26">
+            <LogicalChannel Attribute="FixtureGlobalReset" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="FixtureGlobalReset" DMXFrom="0/1" Name="FixtureGlobalReset 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="27">
+            <LogicalChannel Attribute="LEDFrequency" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="LEDFrequency" DMXFrom="0/1" Name="LEDFrequency 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+        </DMXChannels>
+        <Relations/>
+        <FTMacros/>
+      </DMXMode>
+      <DMXMode Geometry="Yoke" Name="Extended CMY">
+        <DMXChannels>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="1,2">
+            <LogicalChannel Attribute="ColorAdd_R" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_R" DMXFrom="0/2" Emitter="Red" Name="ColorAdd_R 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="3,4">
+            <LogicalChannel Attribute="ColorAdd_Y" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_Y" DMXFrom="0/2" Emitter="Yellow" Name="ColorAdd_Y 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="5,6">
+            <LogicalChannel Attribute="ColorAdd_G" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_G" DMXFrom="0/2" Emitter="Green" Name="ColorAdd_G 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Yoke" Highlight="None" Offset="7,8">
+            <LogicalChannel Attribute="ColorAdd_G" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_G" DMXFrom="0/2" Emitter="Green" Name="ColorAdd_G 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="9,10">
+            <LogicalChannel Attribute="ColorAdd_C" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_C" DMXFrom="0/2" Emitter="Cyan" Name="ColorAdd_C 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="11,12">
+            <LogicalChannel Attribute="ColorAdd_B" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_B" DMXFrom="0/2" Emitter="Blue" Name="ColorAdd_B 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="13">
+            <LogicalChannel Attribute="CTO" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="CTO" DMXFrom="0/1" Name="CTO 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/1" Name="off" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="1/1" Name="8000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="47/1" Name="7000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="93/1" Name="6000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="112/1" Name="5600 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="139/1" Name="5000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="186/1" Name="4000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="222/1" Name="3200 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="245/1" Name="2700 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="255/1" Name="2500 K" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="14">
+            <LogicalChannel Attribute="ColorMacro1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorMacro1" DMXFrom="0/1" Name="ColorMacro1 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="15">
+            <LogicalChannel Attribute="Shutter1Strobe" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="0/1" Name="Light Off" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobePulse" DMXFrom="4/1" Name="Slow to fast" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="16.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="104/1" Name="Light ON 1" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="StrobeRate" DMXFrom="108/1" Name="Variable Slow to fast" OriginalAttribute="" PhysicalFrom="0.500000" PhysicalTo="25.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="208/1" Name="Light ON" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobeRandomPulseOpen" DMXFrom="213/1" Name="Random Strobe Slow" OriginalAttribute="" PhysicalFrom="0.500000" PhysicalTo="0.500000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobeRandomPulseOpen" DMXFrom="226/1" Name="Random Medium Strobe" OriginalAttribute="" PhysicalFrom="0.750000" PhysicalTo="0.750000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobePulseOpen" DMXFrom="239/1" Name="Random Fast Strobe" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="252/1" Name="Light On" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="16,17">
+            <LogicalChannel Attribute="Dimmer" DMXChangeTimeLimit="0.000000" Master="Grand" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Dimmer" DMXFrom="0/2" Name="Dimmer 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Lens" Highlight="None" Offset="18">
+            <LogicalChannel Attribute="ColorAdd_C" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_C" DMXFrom="0/1" Emitter="Cyan" Name="ColorAdd_R 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Lens" Highlight="None" Offset="19">
+            <LogicalChannel Attribute="ColorAdd_M" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_M" DMXFrom="0/1" Emitter="Magenta" Name="ColorAdd_G 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Lens" Highlight="None" Offset="20">
+            <LogicalChannel Attribute="ColorAdd_Y" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_Y" DMXFrom="0/1" Emitter="Yellow" Name="ColorAdd_B 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="21">
+            <LogicalChannel Attribute="Effects1Fade" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Effects1Fade" DMXFrom="0/1" Name="Effects1Fade 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Yoke" Highlight="None" Offset="22">
+            <LogicalChannel Attribute="NoFeature" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Name="Path" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="23">
+            <LogicalChannel Attribute="Fans" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Fans" DMXFrom="0/1" Name="Fans 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="24">
+            <LogicalChannel Attribute="ColorEffects1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="0/1" Name="Magenta to OFF" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="128/1" Name="Tint OFF" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="129/1" Name="OFF to Green" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="25">
+            <LogicalChannel Attribute="NoFeature" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Name="NoFeature 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="26">
+            <LogicalChannel Attribute="FixtureGlobalReset" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="FixtureGlobalReset" DMXFrom="0/1" Name="FixtureGlobalReset 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="27">
+            <LogicalChannel Attribute="LEDFrequency" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="LEDFrequency" DMXFrom="0/1" Name="LEDFrequency 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+        </DMXChannels>
+        <Relations/>
+        <FTMacros/>
+      </DMXMode>
+      <DMXMode Geometry="Yoke" Name="Extended HSV">
+        <DMXChannels>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="1,2">
+            <LogicalChannel Attribute="ColorAdd_R" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_R" DMXFrom="0/2" Emitter="Red" Name="ColorAdd_R 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="3,4">
+            <LogicalChannel Attribute="ColorAdd_Y" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_Y" DMXFrom="0/2" Emitter="Yellow" Name="ColorAdd_Y 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="5,6">
+            <LogicalChannel Attribute="ColorAdd_G" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_G" DMXFrom="0/2" Emitter="Green" Name="ColorAdd_G 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Yoke" Highlight="None" Offset="7,8">
+            <LogicalChannel Attribute="ColorAdd_G" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_G" DMXFrom="0/2" Emitter="Green" Name="ColorAdd_G 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="9,10">
+            <LogicalChannel Attribute="ColorAdd_C" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_C" DMXFrom="0/2" Emitter="Cyan" Name="ColorAdd_C 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="11,12">
+            <LogicalChannel Attribute="ColorAdd_B" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_B" DMXFrom="0/2" Emitter="Blue" Name="ColorAdd_B 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="13">
+            <LogicalChannel Attribute="CTO" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="CTO" DMXFrom="0/1" Name="CTO 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000">
+                <ChannelSet DMXFrom="0/1" Name="off" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="1/1" Name="8000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="47/1" Name="7000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="93/1" Name="6000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="112/1" Name="5600 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="139/1" Name="5000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="186/1" Name="4000 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="222/1" Name="3200 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="245/1" Name="2700 K" WheelSlotIndex="0"/>
+                <ChannelSet DMXFrom="255/1" Name="2500 K" WheelSlotIndex="0"/>
+              </ChannelFunction>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="14">
+            <LogicalChannel Attribute="ColorMacro1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorMacro1" DMXFrom="0/1" Name="ColorMacro1 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="15">
+            <LogicalChannel Attribute="Shutter1Strobe" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="0/1" Name="Light Off" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobePulse" DMXFrom="4/1" Name="Slow to fast" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="16.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="104/1" Name="Light ON 1" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="StrobeRate" DMXFrom="108/1" Name="Variable Slow to fast" OriginalAttribute="" PhysicalFrom="0.500000" PhysicalTo="25.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="208/1" Name="Light ON" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobeRandomPulseOpen" DMXFrom="213/1" Name="Random Strobe Slow" OriginalAttribute="" PhysicalFrom="0.500000" PhysicalTo="0.500000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobeRandomPulseOpen" DMXFrom="226/1" Name="Random Medium Strobe" OriginalAttribute="" PhysicalFrom="0.750000" PhysicalTo="0.750000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1StrobePulseOpen" DMXFrom="239/1" Name="Random Fast Strobe" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="Shutter1Strobe" DMXFrom="252/1" Name="Light On" OriginalAttribute="" PhysicalFrom="1.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Body" Highlight="None" Offset="16,17">
+            <LogicalChannel Attribute="Dimmer" DMXChangeTimeLimit="0.000000" Master="Grand" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Dimmer" DMXFrom="0/2" Name="Dimmer 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/2" Geometry="Lens" Highlight="None" Offset="18,19">
+            <LogicalChannel Attribute="HSB_Hue" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorAdd_C" DMXFrom="0/2" Name="ColorAdd_R 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Lens" Highlight="None" Offset="20">
+            <LogicalChannel Attribute="HSB_Saturation" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="HSB_Saturation" DMXFrom="0/1" Name="ColorAdd_B 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="21">
+            <LogicalChannel Attribute="Effects1Fade" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Effects1Fade" DMXFrom="0/1" Name="Effects1Fade 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Yoke" Highlight="None" Offset="22">
+            <LogicalChannel Attribute="NoFeature" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Name="Path" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="23">
+            <LogicalChannel Attribute="Fans" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="Fans" DMXFrom="0/1" Name="Fans 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="24">
+            <LogicalChannel Attribute="ColorEffects1" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="0/1" Name="Magenta to OFF" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="128/1" Name="Tint OFF" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="0.000000" RealFade="0.000000"/>
+              <ChannelFunction Attribute="ColorEffects1" DMXFrom="129/1" Name="OFF to Green" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="25">
+            <LogicalChannel Attribute="NoFeature" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="NoFeature" DMXFrom="0/1" Name="NoFeature 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="26">
+            <LogicalChannel Attribute="FixtureGlobalReset" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="FixtureGlobalReset" DMXFrom="0/1" Name="FixtureGlobalReset 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+          <DMXChannel DMXBreak="1" Default="0/1" Geometry="Body" Highlight="None" Offset="27">
+            <LogicalChannel Attribute="LEDFrequency" DMXChangeTimeLimit="0.000000" Master="None" MibFade="0.000000" Snap="No">
+              <ChannelFunction Attribute="LEDFrequency" DMXFrom="0/1" Name="LEDFrequency 1" OriginalAttribute="" PhysicalFrom="0.000000" PhysicalTo="1.000000" RealFade="0.000000"/>
+            </LogicalChannel>
+          </DMXChannel>
+        </DMXChannels>
+        <Relations/>
+        <FTMacros/>
+      </DMXMode>
+    </DMXModes>
+    <Revisions>
+      <Revision Date="2020-10-22T22:02:10" Text="Revision 0" UserID="878"/>
+      <Revision Date="2020-10-26T17:38:40" Text="Revision 1" UserID="878"/>
+    </Revisions>
+    <FTPresets/>
+    <Protocols/>
+  </FixtureType>
+</GDTF>
