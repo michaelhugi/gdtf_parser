@@ -3,9 +3,6 @@ use std::error::Error;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
-use quick_xml::events::attributes::Attribute;
-
-use crate::utils::read;
 use crate::utils::units::name::{GdtfNameError, Name};
 
 #[derive(Debug, PartialEq, Clone)]
@@ -44,7 +41,7 @@ impl Node {
         }
         let value = value.split('.');
         let mut tree: Vec<Name> = vec![];
-        for value in value.into_iter() {
+        for value in value {
             tree.push(Name::new(value)?);
         }
         Ok(Some(tree))
@@ -67,21 +64,6 @@ impl Node {
             None => Ok(None),
             Some(names) => Ok(Some(Self(names))),
         }
-    }
-
-    ///Parses a quick-xml-attribute from gdtf-xml-description to a Node
-    /// ```rust
-    /// use gdtf_parser::utils::units::name::Name;
-    /// use quick_xml::events::attributes::Attribute;
-    /// use std::borrow::Cow;
-    /// use gdtf_parser::utils::units::node::Node;
-    ///
-    /// assert_eq!(Node::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Name")}).unwrap().unwrap(), Node(vec![Name::new("Name").unwrap()]));
-    /// assert_eq!(Node::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Name1.Name2")}).unwrap().unwrap(), Node(vec![Name::new("Name1").unwrap(), Name::new("Name2").unwrap()]));
-    /// assert!(Node::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Name1.Name with invalid Char {")}).is_err());
-    /// ```
-    pub fn new_from_attr(attr: Attribute<'_>) -> Result<Option<Self>, GdtfNodeError> {
-        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 
@@ -108,7 +90,6 @@ impl Error for GdtfNodeError {}
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::testdata;
     use crate::utils::units::name::Name;
     use crate::utils::units::node::{GdtfNodeError, Node as T};
 
@@ -163,34 +144,6 @@ mod tests {
         );
         assert!(T::new_from_str("Invalid char {").is_err());
         assert!(T::new_from_str("Invalid char ȸ").is_err());
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_from_attr_owned() -> Result<(), GdtfNodeError> {
-        assert_eq!(
-            T::new_from_attr(testdata::to_attr_owned(b"Name"))?.unwrap(),
-            T(vec![Name::new("Name")?])
-        );
-        assert_eq!(
-            T::new_from_attr(testdata::to_attr_owned(b"Name.Name2"))?.unwrap(),
-            T(vec![Name::new("Name")?, Name::new("Name2")?])
-        );
-        assert!(T::new_from_attr(testdata::to_attr_owned(b"Invalid char {")).is_err());
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_from_attr_borrowed() -> Result<(), GdtfNodeError> {
-        assert_eq!(
-            T::new_from_attr(testdata::to_attr_borrowed(b"Name"))?.unwrap(),
-            T(vec![Name::new("Name")?])
-        );
-        assert_eq!(
-            T::new_from_attr(testdata::to_attr_borrowed(b"Name.Name2"))?.unwrap(),
-            T(vec![Name::new("Name")?, Name::new("Name2")?])
-        );
-        assert!(T::new_from_attr(testdata::to_attr_borrowed(b"Invalid char {")).is_err());
         Ok(())
     }
 }

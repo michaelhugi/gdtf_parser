@@ -1,12 +1,11 @@
 use std::error::Error;
 use std::fmt;
-use std::fmt::write;
 use std::num::{ParseFloatError, ParseIntError};
 use std::str::Utf8Error;
+
 use quick_xml::DeError;
 use zip::result::ZipError;
 
-use crate::utils::read::GdtfReadError;
 use crate::utils::units::color_cie::GdtfColorCieError;
 use crate::utils::units::dmx_value::GdtfDmxValueError;
 use crate::utils::units::guid::GdtfGuidError;
@@ -32,22 +31,12 @@ pub enum GdtfError {
     GdtfDmxValueError(GdtfDmxValueError),
     GdtfNodeError(GdtfNodeError),
     GdtfColorCieError(GdtfColorCieError),
-    GdtfDeparseError(GdtfReadError),
     GdtfPixelArrayError(GdtfPixelArrayError),
     GdtfPixelError(GdtfPixelError),
     GdtfRotationError(GdtfRotationError),
     DeError(DeError),
-    Custom(String),
 }
 
-impl GdtfError {
-    pub(crate) fn new_from_str(s: &str) -> Self {
-        Self::Custom(s.to_string())
-    }
-    pub(crate) fn new_from_string(s: String) -> Self {
-        Self::Custom(s)
-    }
-}
 
 impl From<DeError> for GdtfError {
     fn from(e: DeError) -> Self {
@@ -70,12 +59,6 @@ impl From<GdtfPixelArrayError> for GdtfError {
 impl From<GdtfPixelError> for GdtfError {
     fn from(e: GdtfPixelError) -> Self {
         GdtfError::GdtfPixelError(e)
-    }
-}
-
-impl From<GdtfReadError> for GdtfError {
-    fn from(e: GdtfReadError) -> Self {
-        GdtfError::GdtfDeparseError(e)
     }
 }
 
@@ -132,12 +115,10 @@ impl fmt::Display for GdtfError {
             GdtfError::GdtfDmxValueError(e) => write!(f, "GdtfError: {}", e),
             GdtfError::GdtfNodeError(e) => write!(f, "GdtfError: {}", e),
             GdtfError::GdtfColorCieError(e) => write!(f, "GdtfError: {}", e),
-            GdtfError::GdtfDeparseError(e) => write!(f, "GdtfError: {}", e),
             GdtfError::GdtfPixelArrayError(e) => write!(f, "GdtfError: {}", e),
             GdtfError::GdtfPixelError(e) => write!(f, "GdtfError: {}", e),
             GdtfError::GdtfRotationError(e) => write!(f, "GdtfError: {}", e),
-            GdtfError::DeError(e) => write!(f, "GdtfError: {}", e),
-            GdtfError::Custom(e) => write!(f, "{}", e)
+            GdtfError::DeError(e) => write!(f, "GdtfError: {}", e)
         }
     }
 }

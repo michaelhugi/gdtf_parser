@@ -3,10 +3,6 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::str::{FromStr, Utf8Error};
 
-use quick_xml::events::attributes::Attribute;
-
-use crate::utils::read;
-
 ///DMXValue used in GDTF
 /// Special type to define DMX value where n is the byte count. The byte count can be individually specified without depending on the resolution of the DMX Channel.
 /// By default byte mirroring is used for the conversion. So 255/1 in a 16 bit channel will result in 65535.
@@ -47,19 +43,6 @@ impl DmxValue {
             is_byte_shifting,
         })
     }
-
-    ///Parses a quick-xml-attribute defined in gdtf-xml-description to DmxValue
-    ///```rust
-    /// use gdtf_parser::utils::units::dmx_value::DmxValue;
-    /// use quick_xml::events::attributes::Attribute;
-    /// use std::borrow::Cow;
-    /// assert_eq!(DmxValue::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"255/1")}).unwrap(), DmxValue{ initial_value: 255, n: 1, is_byte_shifting: false});
-    /// assert_eq!(DmxValue::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"255/1s")}).unwrap(), DmxValue{ initial_value: 255, n: 1, is_byte_shifting: true});
-    /// assert!(DmxValue::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something invalid")}).is_err());
-    /// ```
-    pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfDmxValueError> {
-        Self::new_from_str(read::attr_to_str(&attr))
-    }
 }
 
 #[derive(Debug)]
@@ -85,7 +68,6 @@ impl From<Utf8Error> for GdtfDmxValueError {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::testdata;
     use crate::utils::units::dmx_value::DmxValue;
 
     #[test]
@@ -94,7 +76,7 @@ mod tests {
             DmxValue {
                 initial_value: 255,
                 n: 1,
-                is_byte_shifting: false
+                is_byte_shifting: false,
             },
             DmxValue::new_from_str("255/1").unwrap()
         );
@@ -102,7 +84,7 @@ mod tests {
             DmxValue {
                 initial_value: 14,
                 n: 2,
-                is_byte_shifting: false
+                is_byte_shifting: false,
             },
             DmxValue::new_from_str("14/2").unwrap()
         );
@@ -110,7 +92,7 @@ mod tests {
             DmxValue {
                 initial_value: 14,
                 n: 2,
-                is_byte_shifting: true
+                is_byte_shifting: true,
             },
             DmxValue::new_from_str("14/2s").unwrap()
         );
@@ -118,7 +100,7 @@ mod tests {
             DmxValue {
                 initial_value: 255,
                 n: 1,
-                is_byte_shifting: true
+                is_byte_shifting: true,
             },
             DmxValue::new_from_str("255/1s").unwrap()
         );
@@ -132,97 +114,5 @@ mod tests {
         assert!(DmxValue::new_from_str("-1/-3").is_err());
         assert!(DmxValue::new_from_str("1/-3s").is_err());
         assert!(DmxValue::new_from_str("1/-3").is_err());
-    }
-
-    #[test]
-    fn test_new_from_attr_owned() {
-        assert_eq!(
-            DmxValue {
-                initial_value: 255,
-                n: 1,
-                is_byte_shifting: false
-            },
-            DmxValue::new_from_attr(testdata::to_attr_owned(b"255/1")).unwrap()
-        );
-        assert_eq!(
-            DmxValue {
-                initial_value: 14,
-                n: 2,
-                is_byte_shifting: false
-            },
-            DmxValue::new_from_attr(testdata::to_attr_owned(b"14/2")).unwrap()
-        );
-        assert_eq!(
-            DmxValue {
-                initial_value: 14,
-                n: 2,
-                is_byte_shifting: true
-            },
-            DmxValue::new_from_attr(testdata::to_attr_owned(b"14/2s")).unwrap()
-        );
-        assert_eq!(
-            DmxValue {
-                initial_value: 255,
-                n: 1,
-                is_byte_shifting: true
-            },
-            DmxValue::new_from_attr(testdata::to_attr_owned(b"255/1s")).unwrap()
-        );
-        assert!(DmxValue::new_from_attr(testdata::to_attr_owned(b"Something invalid")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_owned(b"12")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_owned(b"2")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_owned(b"12s")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_owned(b"-1/3")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_owned(b"-1/3s")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_owned(b"-1/-3")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_owned(b"-1/-3s")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_owned(b"1/-3")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_owned(b"1/-3s")).is_err());
-    }
-
-    #[test]
-    fn test_new_from_attr_borrowed() {
-        assert_eq!(
-            DmxValue {
-                initial_value: 255,
-                n: 1,
-                is_byte_shifting: false
-            },
-            DmxValue::new_from_attr(testdata::to_attr_borrowed(b"255/1")).unwrap()
-        );
-        assert_eq!(
-            DmxValue {
-                initial_value: 14,
-                n: 2,
-                is_byte_shifting: false
-            },
-            DmxValue::new_from_attr(testdata::to_attr_borrowed(b"14/2")).unwrap()
-        );
-        assert_eq!(
-            DmxValue {
-                initial_value: 14,
-                n: 2,
-                is_byte_shifting: true
-            },
-            DmxValue::new_from_attr(testdata::to_attr_borrowed(b"14/2s")).unwrap()
-        );
-        assert_eq!(
-            DmxValue {
-                initial_value: 255,
-                n: 1,
-                is_byte_shifting: true
-            },
-            DmxValue::new_from_attr(testdata::to_attr_borrowed(b"255/1s")).unwrap()
-        );
-        assert!(DmxValue::new_from_attr(testdata::to_attr_borrowed(b"Something invalid")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_borrowed(b"12")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_borrowed(b"2")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_borrowed(b"12s")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_borrowed(b"-1/3")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_borrowed(b"-1/3s")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_borrowed(b"-1/-3")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_borrowed(b"-1/-3s")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_borrowed(b"1/-3")).is_err());
-        assert!(DmxValue::new_from_attr(testdata::to_attr_borrowed(b"1/-3s")).is_err());
     }
 }

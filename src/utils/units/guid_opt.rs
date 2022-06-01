@@ -1,7 +1,9 @@
 use std::fmt;
 use std::fmt::Formatter;
+
 use serde::{Deserialize, Deserializer};
 use serde::de::Visitor;
+
 use crate::utils::units::guid::Guid;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -24,7 +26,7 @@ impl<'de> Visitor<'de> for GuidOptVisitor {
     }
 
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
-        if v == "" {
+        if v.is_empty() {
             return Ok(GuidOpt(None));
         }
         match Guid::new_from_str(v) {

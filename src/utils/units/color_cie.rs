@@ -4,10 +4,6 @@ use std::fmt;
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use quick_xml::events::attributes::Attribute;
-
-use crate::utils::read;
-
 ///CIE color representation xyY 1931 used in GDTF
 #[derive(Debug, PartialEq, Clone)]
 #[allow(non_snake_case)]
@@ -38,18 +34,6 @@ impl ColorCie {
             y: f32::from_str(value[1]).map_err(|_| MalformatError)?,
             Y: f32::from_str(value[2]).map_err(|_| MalformatError)?,
         })
-    }
-
-    ///Parses a quick-xml-attribute defined in gdtf-xml-description to ColorCie
-    /// ```rust
-    /// use gdtf_parser::utils::units::color_cie::ColorCie;
-    /// use quick_xml::events::attributes::Attribute;
-    /// use std::borrow::Cow;
-    /// assert_eq!(ColorCie::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"1.2,3.5,8.2")}).unwrap(), ColorCie{ x: 1.2, y: 3.5, Y: 8.2});
-    /// assert!(ColorCie::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something invalid")}).is_err());
-    /// ```
-    pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfColorCieError> {
-        Self::new_from_str(read::attr_to_str(&attr))
     }
 }
 
@@ -89,10 +73,8 @@ impl Error for GdtfColorCieError {}
 
 #[cfg(test)]
 mod tests {
-
     use crate::utils::errors::GdtfError;
-    use crate::utils::testdata;
-    use crate::utils::units::color_cie::{ColorCie, COLOR_CIE_WHITE};
+    use crate::utils::units::color_cie::{COLOR_CIE_WHITE, ColorCie};
 
     #[test]
     fn test_new_from_str() -> Result<(), GdtfError> {
@@ -100,7 +82,7 @@ mod tests {
             ColorCie {
                 x: 234.2,
                 y: 123.123,
-                Y: 123.
+                Y: 123.,
             },
             ColorCie::new_from_str("234.2,123.123,123.000")?
         );
@@ -108,55 +90,11 @@ mod tests {
             ColorCie {
                 x: 234.2,
                 y: 0.329003,
-                Y: 123.
+                Y: 123.,
             },
             ColorCie::new_from_str("234.2,0.329003,123.000")?
         );
         assert!(ColorCie::new_from_str("something invalid").is_err());
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_from_attr_borrowed() -> Result<(), GdtfError> {
-        assert_eq!(
-            ColorCie {
-                x: 234.2,
-                y: 123.123,
-                Y: 123.
-            },
-            ColorCie::new_from_attr(testdata::to_attr_borrowed(b"234.2,123.123,123.000"))?
-        );
-        assert_eq!(
-            ColorCie {
-                x: 234.2,
-                y: 0.329003,
-                Y: 123.
-            },
-            ColorCie::new_from_attr(testdata::to_attr_borrowed(b"234.2,0.329003,123.000"))?
-        );
-        assert!(ColorCie::new_from_attr(testdata::to_attr_borrowed(b"Something invalid")).is_err());
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_from_attr_owned() -> Result<(), GdtfError> {
-        assert_eq!(
-            ColorCie {
-                x: 234.2,
-                y: 123.123,
-                Y: 123.
-            },
-            ColorCie::new_from_attr(testdata::to_attr_owned(b"234.2,123.123,123.000"))?
-        );
-        assert_eq!(
-            ColorCie {
-                x: 234.2,
-                y: 0.329003,
-                Y: 123.
-            },
-            ColorCie::new_from_attr(testdata::to_attr_owned(b"234.2,0.329003,123.000"))?
-        );
-        assert!(ColorCie::new_from_attr(testdata::to_attr_owned(b"Something invalid")).is_err());
         Ok(())
     }
 
@@ -167,7 +105,7 @@ mod tests {
             ColorCie {
                 x: 0.3127,
                 y: 0.3290,
-                Y: 100.0
+                Y: 100.0,
             }
         );
     }

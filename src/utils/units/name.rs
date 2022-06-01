@@ -3,12 +3,9 @@ use std::error::Error;
 use std::fmt;
 use std::fmt::Formatter;
 
-use quick_xml::events::attributes::Attribute;
 use serde::{Deserialize, Deserializer};
-use serde::de::{EnumAccess, MapAccess, SeqAccess, Visitor};
+use serde::de::Visitor;
 use unicode_segmentation::UnicodeSegmentation;
-
-use crate::utils::read;
 
 ///Name representation used in GDTF spec
 ///Name contains a String that only can hold letters with restricted literals `[32..=122] = (SPACE..='z')` due to GDTF specifications.
@@ -67,20 +64,6 @@ impl Name {
     pub fn new(name: &str) -> Result<Self, GdtfNameError> {
         Self::validate_chars(name)?;
         Ok(Self(name.to_string()))
-    }
-
-    ///Creates a new instance of Name from a fast-xml Attribute. Only chars `[32..=122] = (SPACE..='z')` are allowed. If one of other chars is passed to the function, it will return an Error
-    /// ## Examples
-    /// ```rust
-    /// use gdtf_parser::utils::units::name::Name;
-    /// use quick_xml::events::attributes::Attribute;
-    /// use std::borrow::Cow;
-    /// assert_eq!(Name("".to_string()), Name::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"")}).unwrap());
-    /// assert_eq!(Name("Some Name".to_string()), Name::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Some Name")}).unwrap());
-    /// assert!(Name::new_from_attr(Attribute{key: &[], value: Cow::Borrowed(b"Some Name with invalid char {")}).is_err());
-    /// ```
-    pub fn new_from_attr(attr: Attribute) -> Result<Self, GdtfNameError> {
-        Self::new(read::attr_to_str(&attr))
     }
 
     ///Validates if all chars in a string are in `[32..=122] = (SPACE..='z')` due to GDTF specifications for Name
@@ -159,8 +142,7 @@ mod tests {
     use std::num::ParseIntError;
 
     use crate::utils::errors::GdtfError;
-    use crate::utils::testdata;
-    use crate::utils::units::name::{GdtfNameError, Name};
+    use crate::utils::units::name::Name;
 
     #[test]
     fn test_new() -> Result<(), GdtfError> {
@@ -169,41 +151,6 @@ mod tests {
         assert!(Name::new("Some Name with invalid char {").is_err());
         assert!(Name::new("Some Name with invalid char ȸ").is_err());
         assert!(Name::new(std::str::from_utf8(&[20, 19, 21])?).is_err());
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_from_attr_owned() -> Result<(), GdtfNameError> {
-        assert_eq!(
-            Name("".to_string()),
-            Name::new_from_attr(testdata::to_attr_owned(b""))?
-        );
-        assert_eq!(
-            Name("Some Name".to_string()),
-            Name::new_from_attr(testdata::to_attr_owned(b"Some Name"))?
-        );
-        assert!(
-            Name::new_from_attr(testdata::to_attr_owned(b"Some Name with invalid char {")).is_err()
-        );
-        assert!(Name::new_from_attr(testdata::to_attr_owned(&[20, 19, 21])).is_err());
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_from_attr_borrowed() -> Result<(), GdtfNameError> {
-        assert_eq!(
-            Name("".to_string()),
-            Name::new_from_attr(testdata::to_attr_borrowed(b""))?
-        );
-        assert_eq!(
-            Name("Some Name".to_string()),
-            Name::new_from_attr(testdata::to_attr_borrowed(b"Some Name"))?
-        );
-        assert!(
-            Name::new_from_attr(testdata::to_attr_borrowed(b"Some Name with invalid char {"))
-                .is_err()
-        );
-        assert!(Name::new_from_attr(testdata::to_attr_borrowed(&[20, 19, 21])).is_err());
         Ok(())
     }
 

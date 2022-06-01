@@ -1,92 +1,95 @@
-GDTF
-    FixtureType
-        AttributeDefinitions
-            ActivationGroups
-                ActivationGroup
-            FeatureGroups
-                FeatureGroup
-                    Feature
-            Attributes
-                Attribute
-        Wheels
-            Wheel
-                Slot
-                    Facet
-                    AnimationSystem
-        PhysicalDescriptions
-            Emitters
-                Emitter
-                    Measurement
-                        -MeasurementPoint
-            Filters
-                Filter
-                    Measurement
-                        -MeasurementPoint
-            ColorSpace
-            -DMXProfiles
-            -CRIs
-                CRI
-            Connectors
-                Connector
-            Properties
-                OperatingTemperature
-                Weight
-                PowerConsumption
-                LegHeight
-        Models
-            Model
-        Geometries
-            Geometry
+-GDTF
+    -FixtureType
+        -AttributeDefinitions
+            -Option<ActivationGroups>
+                Vec<ActivationGroup>
+            -FeatureGroups
+                -Vec<FeatureGroup>
+                    -Vec<Feature>
+            -Attributes
+                -Vec<Attribute>
+        -Option<Wheels>
+            -Vec<Wheel>
+                -Vec<Slot>
+                    -Option<Vec<Facet>>
+                    -Option<AnimationSystem>
+        -Option<PhysicalDescriptions>
+            -Option<Emitters>
+                -Vec<Emitter>
+                    -Vec<Measurement>
+                        -Option<Vec<MeasurementPoint>>
+            -Option<Filters>
+                -Vec<Filter>
+                    -Vec<Measurement>
+                        -Option<Vec<MeasurementPoint>>
+            -Option<ColorSpace>
+            -Option<DMXProfiles>
+            -Option<CRIs>
+                -Vec<CRIGroup>
+                    -Vec<CRI>
+            -Option<Connectors>
+                -Vec<Connector>
+            -Option<Properties>
+                -Option<OperatingTemperature>
+                -Option<Weight>
+                -Vec<PowerConsumption>
+                -Option<LegHeight>
+        -Option<Models>
+            -Vec<Model>
+        -Option<Geometries>
+            -Vec<Geometry>
                 ->same as Geometries
-            Axis
+            -Vec<Axis>
                 ->same as Geometries
-            FilterBeam
+            -Vec<FilterBeam>
                 ->same as Geometries
-            FilterColor
+            -Vec<FilterColor>
                 ->same as Geometries
-            FilterGobo
+            -Vec<FilterGobo>
                 ->same as Geometries
-            FilterShaper
+            -Vec<FilterShaper>
                 ->same as Geometries
-            Beam
+            -Vec<Beam>
                 ->same as Geometries
-            MediiaServerLayer
+            -Vec<MediiaServerLayer>
                 ->same as Geometries
-            MediaServerCamera
+            -Vec<MediaServerCamera>
                 ->same as Geometries
-            MediaServerMaster
+            -Vec<MediaServerMaster>
                 ->same as Geometries
-            Display
+            -Vec<Display>
                 ->same as Geometries
-            GeometryReference
-                Break
-        DMXModes
-            DMXMode
-                DMXChannels
-                    DMXChannel
-                        LogicalChannel
-                            ChannelFunction
-                                ChannelSet
-            Relations
-            FTMacros
-                MacroDMX
-                    DMXValue
-        Revisions
-            Revision
-        -FTPresets
-            ???
-        -Protocols
-            RDM
-                SoftwareVersionID
-                    DMXPersonality
-            Art-Net
+            -Vec<GeometryReference>
+                -Vec<Break>
+        -DMXModes
+            -Vec<DMXMode>
+                -DMXChannels
+                    -Vec<DMXChannel>
+                        -Vec<LogicalChannel>
+                            -Vec<ChannelFunction>
+                                -Vec<ChannelSet>
+                -Option<Relations>
+                -Option<FTMacros>
+                    -Vec<FTMacro>
+                        -Option<MacroDMX>
+                            -Vec<MacroDMXStep>
+                                -Vec<MacroDMXValue>
+        -Option<Revisions>
+            -Vec<Revision>
+        -Option<FTPresets>
+            -???
+        -Option<Protocols>
+            -Option<FTRDM>
+                -Vec<SoftwareVersionID>
+                    -Vec<DMXPersonality>
+            -Option<Art-Net>
                 ??
-            sACN
+            -Option<sACN>
                 ??
-            PosiStageNet
+            -Option<PosiStageNet>
                 ???
-            OpenSoundControl
+            -Option<OpenSoundControl>
                 ???
-            CITP
+            -Option<CITP>
                 ???
 

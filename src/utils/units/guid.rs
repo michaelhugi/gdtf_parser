@@ -4,11 +4,8 @@ use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::str::Utf8Error;
 
-use quick_xml::events::attributes::Attribute;
 use serde::{Deserialize, Deserializer};
-use serde::de::{EnumAccess, MapAccess, SeqAccess, Unexpected, Visitor};
-
-use crate::utils::read;
+use serde::de::Visitor;
 
 /// Char - represented as u8 for matching
 const CHAR_MINUS_AS_U8: u8 = 0x2D;
@@ -71,7 +68,7 @@ impl<'de> Visitor<'de> for GuidVisitor {
         }
     }
     fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
-        return self.visit_str(&v);
+        self.visit_str(&v)
     }
 }
 
@@ -154,21 +151,6 @@ impl Guid {
         bytes[0] = Self::pop_last_byte(&mut s)?;
 
         Ok(Guid(bytes))
-    }
-
-    /// Converts a quick-xml-attribute from gdtf-xml-description to a FixtureType_Guid. Returns an error if the format is not correct.
-    /// ```rust
-    /// use gdtf_parser::utils::units::guid::Guid;
-    /// use quick_xml::events::attributes::Attribute;
-    /// use std::borrow::Cow;
-    /// assert_eq!(
-    ///     Guid([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
-    ///     Guid::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"308EA87D-7164-42DE-8106-A6D273F57A51")}).unwrap()
-    /// );
-    /// assert!(Guid::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something invalid")}).is_err());
-    /// ```
-    pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfGuidError> {
-        Self::new_from_str(read::attr_to_str(&attr))
     }
 
     ///Returns the GUID as a string in format  XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX where XX is a byte in hex in UTF8 format or "" if GUID is empty
@@ -493,7 +475,6 @@ impl Error for GdtfGuidError {}
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::testdata;
     use crate::utils::units::guid::Guid as T;
 
     #[test]
@@ -703,30 +684,6 @@ mod tests {
         assert!(T::new_from_str("308EA87D-7164_42DE-8106-A6D273F57A51").is_err());
         assert!(T::new_from_str("308EA87D-7164-42DE/8106-A6D273F57A51").is_err());
         assert!(T::new_from_str("308EA87D-7164-42DE-8106_A6D273F57A51").is_err());
-    }
-
-    #[test]
-    fn test_new_from_attr_borrowed() {
-        assert_eq!(
-            T([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
-            T::new_from_attr(testdata::to_attr_borrowed(
-                b"308EA87D-7164-42DE-8106-A6D273F57A51"
-            ))
-                .unwrap()
-        );
-        assert!(T::new_from_attr(testdata::to_attr_borrowed(b"Something invalid")).is_err());
-    }
-
-    #[test]
-    fn test_new_from_attr_owned() {
-        assert_eq!(
-            T([48, 142, 168, 125, 113, 100, 66, 222, 129, 6, 166, 210, 115, 245, 122, 81]),
-            T::new_from_attr(testdata::to_attr_owned(
-                b"308EA87D-7164-42DE-8106-A6D273F57A51"
-            ))
-                .unwrap()
-        );
-        assert!(T::new_from_attr(testdata::to_attr_owned(b"Something invalid")).is_err());
     }
 
     #[test]

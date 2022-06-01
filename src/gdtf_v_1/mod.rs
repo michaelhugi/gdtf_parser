@@ -1,113 +1,79 @@
+use std::fs::File;
+use std::io::Read;
+use std::path::Path;
+
 use serde::Deserialize;
 
-use crate::gdtf_v_1::attribute_definitions::AttributeDefinitions;
-use crate::utils::units::can_have_children::CanHaveChildren;
+use crate::gdtf_v_1::fixture_type::FixtureType;
+use crate::utils::errors::GdtfError;
 use crate::utils::units::data_version::DataVersion;
-use crate::utils::units::guid::Guid;
-use crate::utils::units::guid_opt::GuidOpt;
-use crate::utils::units::name::Name;
-use crate::utils::units::resource::Resource;
 
-mod attribute_definitions;
+pub mod fixture_type;
 
 #[derive(Debug, PartialEq, Clone, Deserialize)]
 pub struct GdtfV1 {
     #[serde(rename = "FixtureType")]
     pub fixture_type: FixtureType,
+    #[serde(rename = "DataVersion")]
+    pub data_version: DataVersion,
 }
 
-#[derive(Debug, PartialEq, Clone, Deserialize)]
-pub struct FixtureType {
-    #[serde(rename = "Name")]
-    pub name: Name,
-    #[serde(rename = "ShortName")]
-    pub short_name: String,
-    #[serde(rename = "LongName")]
-    pub long_name: String,
-    #[serde(rename = "Manufacturer")]
-    pub manufacturer: String,
-    #[serde(rename = "Description")]
-    pub description: String,
-    #[serde(rename = "FixtureTypeID")]
-    pub fixture_type_id: Guid,
-    #[serde(rename = "Thumbnail")]
-    pub thumbnail: Resource,
-    #[serde(rename = "RefFT")]
-    pub ref_ft: GuidOpt,
-    #[serde(rename = "CanHaveChildren", default)]
-    pub can_have_children: CanHaveChildren,
-    #[serde(rename = "AttributeDefinitions")]
-    pub attribute_definitions: AttributeDefinitions,
+impl GdtfV1 {
+    pub fn open_file(file_path: &Path) -> Result<Self, GdtfError> {
+        let mut archive = zip::ZipArchive::new(File::open(file_path)?)?;
+        let mut description_xml = String::new();
+        archive
+            .by_name("description.xml")?
+            .read_to_string(&mut description_xml)?;
+        //Gdtf::deserialize()
+        let raw_model = quick_xml::de::from_str(&description_xml)?;
+        Ok(raw_model)
+    }
 }
+
 
 #[cfg(test)]
-pub mod tests {
-    use crate::{GdtfError, GdtfV1};
-    use crate::gdtf_v_1::attribute_definitions::attribute_definitions_test;
-    use crate::utils::units::can_have_children::CanHaveChildren;
-    use crate::utils::units::guid::Guid;
-    use crate::utils::units::guid_opt::GuidOpt;
-    use crate::utils::units::name::Name;
-    use crate::utils::units::resource::Resource;
+mod tests {
+    use std::path::Path;
 
-    pub(crate) fn test_acme_ae_610_beam(gdtf: &GdtfV1) -> Result<(), GdtfError> {
-        let ft = &gdtf.fixture_type;
-        assert_eq!(ft.name, Name::new("ACME AE-610 BEAM").unwrap());
-        assert_eq!(ft.short_name, "ACME AE 610 BEAM".to_string());
-        assert_eq!(ft.long_name, "ACME AE 610 BEAM".to_string());
-        assert_eq!(ft.manufacturer, "ACME".to_string());
-        assert_eq!(ft.description, "ACME AE-610 BEAM".to_string());
-        assert_eq!(ft.fixture_type_id, Guid::new_from_str("E62F2ECF-2A08-491D-BEEC-F5C491B89784").unwrap());
-        assert_eq!(ft.thumbnail, Resource::new_from_str("AE-610 BEAM"));
-        assert_eq!(ft.ref_ft, GuidOpt(Some(Guid::new_from_str("8F54E11C-4C91-11E9-80BC-F1DFE217E634").unwrap())));
-        assert_eq!(ft.can_have_children, CanHaveChildren::Yes);
-        attribute_definitions_test::test_acme_ae_610_beam(&gdtf.fixture_type.attribute_definitions)?;
+    use crate::gdtf_v_1::fixture_type::fixture_type_test;
+    use crate::gdtf_v_1::GdtfV1;
+    use crate::utils::errors::GdtfError;
+    use crate::utils::units::data_version::DataVersion;
+
+    #[test]
+    fn test_acme_ae_610t() -> Result<(), GdtfError> {
+        let path: &Path = Path::new("test/ACME@ACME_AE-610_BEAM@ACME_AE-610_BEAM.gdtf");
+        let gdtf = GdtfV1::open_file(path)?;
+        assert!(matches!(gdtf.data_version,DataVersion::Version1_0));
+        fixture_type_test::test_acme_ae_610_beam(&gdtf)?;
         return Ok(());
     }
 
-    pub(crate) fn test_jb_12_spot_hp(gdtf: &GdtfV1) -> Result<(), GdtfError> {
-        let ft = &gdtf.fixture_type;
-        assert_eq!(ft.name, Name::new("P12 Spot HP").unwrap());
-        assert_eq!(ft.short_name, "P12SPHP".to_string());
-        assert_eq!(ft.long_name, "P12 Spot HP".to_string());
-        assert_eq!(ft.manufacturer, "JB-Lighting".to_string());
-        assert_eq!(ft.description, "P12 Spot HP (High Power) 640W".to_string());
-        assert_eq!(ft.fixture_type_id, Guid::new_from_str("807DC00C-18D5-4133-B781-1A003FA988FA").unwrap());
-        assert_eq!(ft.thumbnail, Resource::new_from_str("P12 dunkel"));
-        assert_eq!(ft.ref_ft, GuidOpt(None));
-        assert_eq!(ft.can_have_children, CanHaveChildren::Yes);
-        attribute_definitions_test::test_jb_12_spot_hp(&gdtf.fixture_type.attribute_definitions)?;
+    #[test]
+    fn test_jb_12_spot() -> Result<(), GdtfError> {
+        let path: &Path = Path::new("test/JB-Lighting@P12_Spot_HP@V_1.15.gdtf");
+        let gdtf = GdtfV1::open_file(path)?;
+        assert!(matches!(gdtf.data_version,DataVersion::Version1_1));
+        fixture_type_test::test_jb_12_spot_hp(&gdtf)?;
         return Ok(());
     }
 
-
-    pub(crate) fn test_robe_robin_viva_cmy(gdtf: &GdtfV1) -> Result<(), GdtfError> {
-        let ft = &gdtf.fixture_type;
-        assert_eq!(ft.name, Name::new("Robin Viva CMY").unwrap());
-        assert_eq!(ft.short_name, "Viva™ CMY".to_string());
-        assert_eq!(ft.long_name, "Robin Viva™ CMY".to_string());
-        assert_eq!(ft.manufacturer, "Robe Lighting".to_string());
-        assert_eq!(ft.description, "Powerfully smooth, Robe’s VIVA CMY combines brightness of exceptionally clear zero-fringing white beam together with continuous color transitions of CMY mixing. ".to_string());
-        assert_eq!(ft.fixture_type_id, Guid::new_from_str("BEB8B97D-FF49-4FBE-A834-9BE2C7BC689B").unwrap());
-        assert_eq!(ft.thumbnail, Resource::new_from_str("thumbnail"));
-        assert_eq!(ft.ref_ft, GuidOpt(None));
-        assert_eq!(ft.can_have_children, CanHaveChildren::Yes);
-        attribute_definitions_test::test_robe_robin_viva_cmy(&gdtf.fixture_type.attribute_definitions)?;
+    #[test]
+    fn test_robe_robin_viva_cmy() -> Result<(), GdtfError> {
+        let path: &Path = Path::new("test/Robe_Lighting@Robin_Viva_CMY@13042021.gdtf");
+        let gdtf = GdtfV1::open_file(path)?;
+        assert!(matches!(gdtf.data_version,DataVersion::Version1_1));
+        fixture_type_test::test_robe_robin_viva_cmy(&gdtf)?;
         return Ok(());
     }
 
-    pub(crate) fn test_sgm_g7_spot(gdtf: &GdtfV1) -> Result<(), GdtfError> {
-        let ft = &gdtf.fixture_type;
-        assert_eq!(ft.name, Name::new("G-7 Spot").unwrap());
-        assert_eq!(ft.short_name, "G-7 Spot".to_string());
-        assert_eq!(ft.long_name, "G-7 Spot".to_string());
-        assert_eq!(ft.manufacturer, "SGM Light".to_string());
-        assert_eq!(ft.description, "The G-7 Spot is the quintessence of IP-rated moving heads. A fast, compact, and lightweight mid-sized moving head spot with high-output and low power consumption. Thanks to its white LED engine and CMY color mixing, the G-7 Spot is the perfect moving head for those who need maximum light output inside an easy-to-move luminaire. The G-7 Spot gives you a solid construction, a high-quality beam, and an optimal projection in a very flexible assembly. A fixture born to rock night after night.".to_string());
-        assert_eq!(ft.fixture_type_id, Guid::new_from_str("14030EC0-9085-4756-8B19-8B08369E06B9").unwrap());
-        assert_eq!(ft.thumbnail, Resource::new_from_str("G-7_RAL_black_small"));
-        assert_eq!(ft.ref_ft, GuidOpt(None));
-        assert_eq!(ft.can_have_children, CanHaveChildren::Yes);
-        attribute_definitions_test::test_sgm_g7_spot(&gdtf.fixture_type.attribute_definitions)?;
+    #[test]
+    fn test_sgm_g7_spot() -> Result<(), GdtfError> {
+        let path: &Path = Path::new("test/SGM_Light@G-7_Spot@Rev_A.gdtf");
+        let gdtf = GdtfV1::open_file(path)?;
+        assert!(matches!(gdtf.data_version,DataVersion::Version1_1));
+        fixture_type_test::test_sgm_g7_spot(&gdtf)?;
         return Ok(());
     }
 }

@@ -15,8 +15,8 @@ impl Default for CanHaveChildren {
 impl CanHaveChildren {
     pub fn bool(&self) -> bool {
         match self {
-            Yes => true,
-            No => false
+            Self::Yes => true,
+            Self::No => false
         }
     }
 }

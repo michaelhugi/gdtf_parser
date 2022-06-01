@@ -4,10 +4,8 @@
 use std::str::FromStr;
 
 use lazy_static::lazy_static;
-use quick_xml::events::attributes::Attribute;
 use regex::{Regex, RegexSet, SetMatches};
 
-use crate::utils::read;
 use crate::utils::units::name::{GdtfNameError, Name};
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
@@ -850,7 +848,7 @@ impl AttributeName {
                         static ref RE2: Regex = Regex::new(r"\d{1,}").unwrap();
                     }
 
-                    let mut caps = RE2.captures_iter(&value);
+                    let mut caps = RE2.captures_iter(value);
                     let n = caps.next().map_or(0_u8, |m| u8::from_str(&m[0]).unwrap());
                     let m = caps.next().map_or(0_u8, |m| u8::from_str(&m[0]).unwrap());
 
@@ -1148,28 +1146,11 @@ impl AttributeName {
             }
         })
     }
-
-    ///Parses a quick-xml-attribute from gdtf-xml-description into an AttributeName. Only chars `[32..=122] = (SPACE..='z')` are allowed. if one of the other chars is passed to the function, it will return an Error
-    ///```rust
-    /// use gdtf_parser::utils::units::attribute_name::AttributeName;
-    /// use gdtf_parser::utils::units::name::Name;
-    /// use quick_xml::events::attributes::Attribute;
-    /// use std::borrow::Cow;
-    /// assert_eq!(AttributeName::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Tilt")}).unwrap(), AttributeName::Tilt);
-    /// assert_eq!(AttributeName::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"PanTiltMode")}).unwrap(), AttributeName::PanTiltMode);
-    /// assert_eq!(AttributeName::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Effects1Adjust2")}).unwrap(), AttributeName::Effects_n_Adjust_m_(1,2));
-    /// assert_eq!(AttributeName::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Something else")}).unwrap(), AttributeName::UserDefined(Name("Something else".to_string())));
-    /// assert!(AttributeName::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"Name with invalid char {")}).is_err());
-    ///```
-    pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfNameError> {
-        Self::new_from_str(read::attr_to_str(&attr))
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::utils::errors::GdtfError;
-    use crate::utils::testdata;
     use crate::utils::units::attribute_name::AttributeName as T;
     use crate::utils::units::name::Name;
 
@@ -2059,146 +2040,6 @@ mod tests {
 
         assert!(T::new_from_str("something{invalid").is_err());
         assert!(T::new_from_str("something௸invalid").is_err());
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_from_attr_owned() -> Result<(), GdtfError> {
-        use T::*;
-        assert_eq!(
-            UserDefined(Name::new("test")?),
-            T::new_from_attr(testdata::to_attr_owned(b"test"))?
-        );
-        assert_eq!(
-            UserDefined(Name::new("")?),
-            T::new_from_attr(testdata::to_attr_owned(b""))?
-        );
-        assert_eq!(
-            Dimmer,
-            T::new_from_attr(testdata::to_attr_owned(b"Dimmer"))?
-        );
-        assert_eq!(Pan, T::new_from_attr(testdata::to_attr_owned(b"Pan"))?);
-        assert_eq!(Tilt, T::new_from_attr(testdata::to_attr_owned(b"Tilt"))?);
-        assert_eq!(
-            Gobo_n_(1),
-            T::new_from_attr(testdata::to_attr_owned(b"Gobo1"))?
-        );
-        assert_eq!(
-            Gobo_n_SelectSpin(2),
-            T::new_from_attr(testdata::to_attr_owned(b"Gobo2SelectSpin"))?
-        );
-        assert_eq!(
-            Gobo_n_SelectShake(120),
-            T::new_from_attr(testdata::to_attr_owned(b"Gobo120SelectShake"))?
-        );
-        assert_eq!(
-            Dimmer,
-            T::new_from_attr(testdata::to_attr_owned(b"Dimmer"))?
-        );
-        assert_eq!(
-            Dimmer,
-            T::new_from_attr(testdata::to_attr_owned(b"Dimmer"))?
-        );
-
-        assert_eq!(
-            Effects_n_Adjust_m_(1, 1),
-            T::new_from_attr(testdata::to_attr_owned(b"Effects1Adjust1"))?
-        );
-        assert_eq!(
-            Effects_n_Adjust_m_(1, 2),
-            T::new_from_attr(testdata::to_attr_owned(b"Effects1Adjust2"))?
-        );
-        assert_eq!(
-            Effects_n_Adjust_m_(2, 1),
-            T::new_from_attr(testdata::to_attr_owned(b"Effects2Adjust1"))?
-        );
-        assert_eq!(
-            Effects_n_Adjust_m_(2, 2),
-            T::new_from_attr(testdata::to_attr_owned(b"Effects2Adjust2"))?
-        );
-        assert_eq!(
-            Effects_n_Adjust_m_(2, 120),
-            T::new_from_attr(testdata::to_attr_owned(b"Effects2Adjust120"))?
-        );
-        assert_eq!(
-            Effects_n_Adjust_m_(120, 2),
-            T::new_from_attr(testdata::to_attr_owned(b"Effects120Adjust2"))?
-        );
-        assert_eq!(
-            Effects_n_Adjust_m_(120, 120),
-            T::new_from_attr(testdata::to_attr_owned(b"Effects120Adjust120"))?
-        );
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_from_attr_borrowed() -> Result<(), GdtfError> {
-        use T::*;
-        assert_eq!(
-            UserDefined(Name::new("test")?),
-            T::new_from_attr(testdata::to_attr_borrowed(b"test"))?
-        );
-        assert_eq!(
-            UserDefined(Name::new("")?),
-            T::new_from_attr(testdata::to_attr_borrowed(b""))?
-        );
-        assert_eq!(
-            Dimmer,
-            T::new_from_attr(testdata::to_attr_borrowed(b"Dimmer"))?
-        );
-        assert_eq!(Pan, T::new_from_attr(testdata::to_attr_borrowed(b"Pan"))?);
-        assert_eq!(Tilt, T::new_from_attr(testdata::to_attr_borrowed(b"Tilt"))?);
-        assert_eq!(
-            Gobo_n_(1),
-            T::new_from_attr(testdata::to_attr_borrowed(b"Gobo1"))?
-        );
-        assert_eq!(
-            Gobo_n_SelectSpin(2),
-            T::new_from_attr(testdata::to_attr_borrowed(b"Gobo2SelectSpin"))?
-        );
-        assert_eq!(
-            Gobo_n_SelectShake(120),
-            T::new_from_attr(testdata::to_attr_borrowed(b"Gobo120SelectShake"))?
-        );
-        assert_eq!(
-            Dimmer,
-            T::new_from_attr(testdata::to_attr_borrowed(b"Dimmer"))?
-        );
-        assert_eq!(
-            Dimmer,
-            T::new_from_attr(testdata::to_attr_borrowed(b"Dimmer"))?
-        );
-
-        assert_eq!(
-            Effects_n_Adjust_m_(1, 1),
-            T::new_from_attr(testdata::to_attr_borrowed(b"Effects1Adjust1"))?
-        );
-        assert_eq!(
-            Effects_n_Adjust_m_(1, 2),
-            T::new_from_attr(testdata::to_attr_borrowed(b"Effects1Adjust2"))?
-        );
-        assert_eq!(
-            Effects_n_Adjust_m_(2, 1),
-            T::new_from_attr(testdata::to_attr_borrowed(b"Effects2Adjust1"))?
-        );
-        assert_eq!(
-            Effects_n_Adjust_m_(2, 2),
-            T::new_from_attr(testdata::to_attr_borrowed(b"Effects2Adjust2"))?
-        );
-        assert_eq!(
-            Effects_n_Adjust_m_(2, 120),
-            T::new_from_attr(testdata::to_attr_borrowed(b"Effects2Adjust120"))?
-        );
-        assert_eq!(
-            Effects_n_Adjust_m_(120, 2),
-            T::new_from_attr(testdata::to_attr_borrowed(b"Effects120Adjust2"))?
-        );
-        assert_eq!(
-            Effects_n_Adjust_m_(120, 120),
-            T::new_from_attr(testdata::to_attr_borrowed(b"Effects120Adjust120"))?
-        );
-
         Ok(())
     }
 }

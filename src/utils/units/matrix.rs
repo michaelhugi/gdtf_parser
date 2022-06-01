@@ -7,10 +7,7 @@ use std::num::ParseFloatError;
 use std::str::FromStr;
 
 use lazy_static::lazy_static;
-use quick_xml::events::attributes::Attribute;
 use regex::Regex;
-
-use crate::utils::read;
 
 ///The transformation matrix consists 4 x 4 floats. Stored in a row-major order
 ///The matrix rotation is stored in the first three columns, and the translation is stored in the 4th column. The metric system consists of the Right-handed Cartesian Coordinates XYZ
@@ -72,28 +69,6 @@ impl Matrix {
             [m41, m42, m43, m44],
         ]))
     }
-
-    ///Parses a quick-xml-attribute defined in gdtf-xml-description to Matrix
-    /// ```rust
-    /// use gdtf_parser::utils::units::matrix::Matrix;
-    /// use quick_xml::events::attributes::Attribute;
-    /// use std::borrow::Cow;
-    ///
-    /// assert_eq!(
-    ///             Matrix::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"{1.1,1.2,1.3,1.4}{2.1,2.2,2.3,2.4}{3.1,3.2,3.3,3.4}{4.1,4.2,4.3,4.4}")}).unwrap(),
-    ///             Matrix([
-    ///                 [1.1, 1.2, 1.3, 1.4],
-    ///                 [2.1, 2.2, 2.3, 2.4],
-    ///                 [3.1, 3.2, 3.3, 3.4],
-    ///                 [4.1, 4.2, 4.3, 4.4],
-    ///             ])
-    ///         );
-    /// assert!(Matrix::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"{1.1,1.2,1.3,1.4}{2.1,2.2,2.3,2.4}{3.1,3.2,3.3,3.4}{4.1,4.2,4.3,4.4}{5.1}")}).is_err());
-    /// assert!(Matrix::new_from_attr(Attribute{ key: &[], value: Cow::Borrowed(b"{1.1,1.2,1.3,1.4}{2.1,2.2,2.3,2.4}{3.1,3.2,3.3,3.4}{4.1,4.2,4.3}")}).is_err());
-    /// ```
-    pub fn new_from_attr(attr: Attribute<'_>) -> Result<Self, GdtfMatrixError> {
-        Self::new_from_str(read::attr_to_str(&attr))
-    }
 }
 
 #[derive(Debug)]
@@ -121,7 +96,6 @@ impl From<ParseFloatError> for GdtfMatrixError {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::testdata;
     use crate::utils::units::matrix::{GdtfMatrixError, Matrix};
 
     #[test]
@@ -130,7 +104,7 @@ mod tests {
             Matrix::new_from_str(
                 "{1.1,1.2,1.3,1.4}{2.1,2.2,2.3,2.4}{3.1,3.2,3.3,3.4}{4.1,4.2,4.3,4.4}"
             )
-            .unwrap(),
+                .unwrap(),
             Matrix([
                 [1.1, 1.2, 1.3, 1.4],
                 [2.1, 2.2, 2.3, 2.4],
@@ -142,7 +116,7 @@ mod tests {
             Matrix::new_from_str(
                 "{1.1,1.2,1.3,1.4},{2.1,2.2,2.3,2.4},{3.1,3.2,3.3,3.4},{4.1,4.2,4.3,4.4}"
             )
-            .unwrap(),
+                .unwrap(),
             Matrix([
                 [1.1, 1.2, 1.3, 1.4],
                 [2.1, 2.2, 2.3, 2.4],
@@ -153,85 +127,11 @@ mod tests {
         assert!(Matrix::new_from_str(
             "{1.1,1.2,1.3,1.4},{2.1,2.2,2.3,2.4},{3.1,3.2,3.3,3.4},{4.1,4.2,4.3}"
         )
-        .is_err());
+            .is_err());
         assert!(Matrix::new_from_str(
             "{1.1,1.2,1.3,1.4},{2.1,2.2,2.3,2.4},{3.1,3.2,3.3,3.4},{4.1,4.2,4.3,4.4}5.4"
         )
-        .is_err());
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_attr_borrowed() -> Result<(), GdtfMatrixError> {
-        assert_eq!(
-            Matrix::new_from_attr(testdata::to_attr_borrowed(
-                b"{1.1,1.2,1.3,1.4}{2.1,2.2,2.3,2.4}{3.1,3.2,3.3,3.4}{4.1,4.2,4.3,4.4}"
-            ))
-            .unwrap(),
-            Matrix([
-                [1.1, 1.2, 1.3, 1.4],
-                [2.1, 2.2, 2.3, 2.4],
-                [3.1, 3.2, 3.3, 3.4],
-                [4.1, 4.2, 4.3, 4.4],
-            ])
-        );
-        assert_eq!(
-            Matrix::new_from_attr(testdata::to_attr_borrowed(
-                b"{1.1,1.2,1.3,1.4},{2.1,2.2,2.3,2.4},{3.1,3.2,3.3,3.4},{4.1,4.2,4.3,4.4}"
-            ))
-            .unwrap(),
-            Matrix([
-                [1.1, 1.2, 1.3, 1.4],
-                [2.1, 2.2, 2.3, 2.4],
-                [3.1, 3.2, 3.3, 3.4],
-                [4.1, 4.2, 4.3, 4.4],
-            ])
-        );
-        assert!(Matrix::new_from_attr(testdata::to_attr_borrowed(
-            b"{1.1,1.2,1.3,1.4},{2.1,2.2,2.3,2.4},{3.1,3.2,3.3,3.4},{4.1,4.2,4.3}"
-        ))
-        .is_err());
-        assert!(Matrix::new_from_attr(testdata::to_attr_borrowed(
-            b"{1.1,1.2,1.3,1.4},{2.1,2.2,2.3,2.4},{3.1,3.2,3.3,3.4},{4.1,4.2,4.3,4.4}5.4"
-        ))
-        .is_err());
-        Ok(())
-    }
-
-    #[test]
-    fn test_new_attr_owned() -> Result<(), GdtfMatrixError> {
-        assert_eq!(
-            Matrix::new_from_attr(testdata::to_attr_owned(
-                b"{1.1,1.2,1.3,1.4}{2.1,2.2,2.3,2.4}{3.1,3.2,3.3,3.4}{4.1,4.2,4.3,4.4}"
-            ))
-            .unwrap(),
-            Matrix([
-                [1.1, 1.2, 1.3, 1.4],
-                [2.1, 2.2, 2.3, 2.4],
-                [3.1, 3.2, 3.3, 3.4],
-                [4.1, 4.2, 4.3, 4.4],
-            ])
-        );
-        assert_eq!(
-            Matrix::new_from_attr(testdata::to_attr_owned(
-                b"{1.1,1.2,1.3,1.4},{2.1,2.2,2.3,2.4},{3.1,3.2,3.3,3.4},{4.1,4.2,4.3,4.4}"
-            ))
-            .unwrap(),
-            Matrix([
-                [1.1, 1.2, 1.3, 1.4],
-                [2.1, 2.2, 2.3, 2.4],
-                [3.1, 3.2, 3.3, 3.4],
-                [4.1, 4.2, 4.3, 4.4],
-            ])
-        );
-        assert!(Matrix::new_from_attr(testdata::to_attr_owned(
-            b"{1.1,1.2,1.3,1.4},{2.1,2.2,2.3,2.4},{3.1,3.2,3.3,3.4},{4.1,4.2,4.3}"
-        ))
-        .is_err());
-        assert!(Matrix::new_from_attr(testdata::to_attr_owned(
-            b"{1.1,1.2,1.3,1.4},{2.1,2.2,2.3,2.4},{3.1,3.2,3.3,3.4},{4.1,4.2,4.3,4.4}5.4"
-        ))
-        .is_err());
+            .is_err());
         Ok(())
     }
 }
