@@ -1,10 +1,13 @@
 //!AttributeName is a preferred Name for Attributes in GDTF Format.
 #![allow(non_camel_case_types)]
 
+use std::fmt::Formatter;
 use std::str::FromStr;
 
 use lazy_static::lazy_static;
 use regex::{Regex, RegexSet, SetMatches};
+use serde::{Deserialize, Deserializer};
+use serde::de::{Error, Visitor};
 
 use crate::utils::units::name::{GdtfNameError, Name};
 
@@ -1145,6 +1148,33 @@ impl AttributeName {
                 }
             }
         })
+    }
+}
+
+impl<'de> Deserialize<'de> for AttributeName {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_string(AttributeNameVisitor)
+    }
+}
+
+
+struct AttributeNameVisitor;
+
+impl<'de> Visitor<'de> for AttributeNameVisitor {
+    type Value = AttributeName;
+
+    fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
+        formatter.write_str("valid AttributeName String")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: Error {
+        match AttributeName::new_from_str(v) {
+            Ok(attribute_name) => Ok(attribute_name),
+            Err(e) => Err(Error::custom(format!("{}", e)))
+        }
+    }
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: Error {
+        self.visit_str(&v)
     }
 }
 

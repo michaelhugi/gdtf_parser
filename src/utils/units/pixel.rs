@@ -6,6 +6,9 @@ use std::fmt::{Display, Formatter};
 use std::num::ParseFloatError;
 use std::str::FromStr;
 
+use serde::de::Visitor;
+use serde::{Deserialize, Deserializer};
+
 ///Integer value representing one Pixel inside a MediaFile. Pixel count starts with zero in the top left corner.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Pixel(pub f32);
@@ -40,6 +43,32 @@ impl Error for GdtfPixelError {}
 impl From<ParseFloatError> for GdtfPixelError {
     fn from(_: ParseFloatError) -> Self {
         Self {}
+    }
+}
+
+impl<'de> Deserialize<'de> for Pixel {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_string(PixelVisitor)
+    }
+}
+
+struct PixelVisitor;
+
+impl<'de> Visitor<'de> for PixelVisitor {
+    type Value = Pixel;
+
+    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+        formatter.write_str("valid Pixel String")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
+        match Pixel::new_from_str(v) {
+            Ok(item) => Ok(item),
+            Err(e) => Err(serde::de::Error::custom(format!("{}", e)))
+        }
+    }
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
+        self.visit_str(&v)
     }
 }
 

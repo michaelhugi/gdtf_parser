@@ -21,7 +21,7 @@ impl<'de> Visitor<'de> for ResourceVisitor {
     type Value = Resource;
 
     fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
-        formatter.write_str("Expected string")
+        formatter.write_str("Expected valid Resource string")
     }
 
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: Error {

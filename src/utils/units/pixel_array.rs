@@ -4,6 +4,9 @@ use std::error::Error;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
+use serde::de::Visitor;
+use serde::{Deserialize, Deserializer};
+
 use crate::utils::units::pixel::{GdtfPixelError, Pixel};
 
 ///First Pixel is X-axis and second is Y-axis
@@ -47,6 +50,32 @@ impl Error for GdtfPixelArrayError {}
 impl From<GdtfPixelError> for GdtfPixelArrayError {
     fn from(_: GdtfPixelError) -> Self {
         Self {}
+    }
+}
+
+impl<'de> Deserialize<'de> for PixelArray {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_string(PixelArrayVisitor)
+    }
+}
+
+struct PixelArrayVisitor;
+
+impl<'de> Visitor<'de> for PixelArrayVisitor {
+    type Value = PixelArray;
+
+    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+        formatter.write_str("valid PixelArray String")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
+        match PixelArray::new_from_str(v) {
+            Ok(item) => Ok(item),
+            Err(e) => Err(serde::de::Error::custom(format!("{}", e)))
+        }
+    }
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
+        self.visit_str(&v)
     }
 }
 

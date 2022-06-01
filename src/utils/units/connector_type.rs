@@ -1,5 +1,11 @@
 //!A list of predefined connectors or Other with Name
 
+use std::fmt;
+use std::fmt::Formatter;
+
+use serde::de::Visitor;
+use serde::{Deserialize, Deserializer};
+
 use crate::utils::errors::GdtfError;
 use crate::utils::units::name::Name;
 
@@ -276,6 +282,32 @@ impl ConnectorType {
             "DIN 56905" => ConnectorType::Din_56905,
             _ => ConnectorType::Other(Name::new(inp)?),
         })
+    }
+}
+
+impl<'de> Deserialize<'de> for ConnectorType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_string(ConnectorTypeVisitor)
+    }
+}
+
+struct ConnectorTypeVisitor;
+
+impl<'de> Visitor<'de> for ConnectorTypeVisitor {
+    type Value = ConnectorType;
+
+    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+        formatter.write_str("valid ConnectorType String")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
+        match ConnectorType::new_from_str(v) {
+            Ok(item) => Ok(item),
+            Err(e) => Err(serde::de::Error::custom(format!("{}", e)))
+        }
+    }
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
+        self.visit_str(&v)
     }
 }
 

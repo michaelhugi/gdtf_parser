@@ -27,15 +27,15 @@ impl<'de> Visitor<'de> for NameVisitor {
         formatter.write_str("Expecting string without special chars")
     }
 
-    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
-        self.visit_str(&v)
-    }
-
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
         match Name::new(v) {
             Ok(v) => Ok(v),
             Err(e) => Err(serde::de::Error::custom(format!("{}", e)))
         }
+    }
+
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
+        self.visit_str(&v)
     }
 }
 

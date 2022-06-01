@@ -1,8 +1,11 @@
 //! Module for the unit ColorCIE used in GDTF
 use std::error::Error;
 use std::fmt;
-use std::fmt::Debug;
+use std::fmt::{Debug, Formatter};
 use std::str::FromStr;
+
+use serde::de::Visitor;
+use serde::{Deserialize, Deserializer};
 
 ///CIE color representation xyY 1931 used in GDTF
 #[derive(Debug, PartialEq, Clone)]
@@ -27,12 +30,12 @@ impl ColorCie {
         use GdtfColorCieError::*;
         let value: Vec<&str> = value.split(',').collect();
         if value.len() != 3 {
-            return Err(MalformatError);
+            return Err(MalformedError);
         }
         Ok(ColorCie {
-            x: f32::from_str(value[0]).map_err(|_| MalformatError)?,
-            y: f32::from_str(value[1]).map_err(|_| MalformatError)?,
-            Y: f32::from_str(value[2]).map_err(|_| MalformatError)?,
+            x: f32::from_str(value[0]).map_err(|_| MalformedError)?,
+            y: f32::from_str(value[1]).map_err(|_| MalformedError)?,
+            Y: f32::from_str(value[2]).map_err(|_| MalformedError)?,
         })
     }
 }
@@ -50,7 +53,7 @@ pub enum GdtfColorCieError {
     ///Error when passed argument was not UTF8
     Utf8Error(std::str::Utf8Error),
     //Error when format of string was not x,y,Y
-    MalformatError,
+    MalformedError,
 }
 
 impl From<std::str::Utf8Error> for GdtfColorCieError {
@@ -64,12 +67,40 @@ impl fmt::Display for GdtfColorCieError {
         use GdtfColorCieError::*;
         match self {
             Utf8Error(_) => write!(f, "ColorCIE Error. Utf8 Error"),
-            MalformatError => write!(f, "ColorCIE must be formatted floatx, floaty, floatY"),
+            MalformedError => write!(f, "ColorCIE must be formatted floatx, floaty, floatY"),
         }
     }
 }
 
 impl Error for GdtfColorCieError {}
+
+
+impl<'de> Deserialize<'de> for ColorCie {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_string(ColorCieVisitor)
+    }
+}
+
+
+struct ColorCieVisitor;
+
+impl<'de> Visitor<'de> for ColorCieVisitor {
+    type Value = ColorCie;
+
+    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+        formatter.write_str("valid ColorCIE String")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
+        match ColorCie::new_from_str(v) {
+            Ok(item) => Ok(item),
+            Err(e) => Err(serde::de::Error::custom(format!("{}", e)))
+        }
+    }
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
+        self.visit_str(&v)
+    }
+}
 
 #[cfg(test)]
 mod tests {

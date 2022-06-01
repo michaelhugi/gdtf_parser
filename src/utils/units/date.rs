@@ -1,8 +1,12 @@
 //! Module for the unit Date used in GDTF
 use std::error::Error;
+use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::num::ParseIntError;
 use std::str::{FromStr, Utf8Error};
+
+use serde::de::Visitor;
+use serde::{Deserialize, Deserializer};
 
 ///Date representation used in GDTF
 ///Date and time corresponding to UTC +00:00 (Coordinated Universal Time):
@@ -85,6 +89,32 @@ impl From<ParseIntError> for GdtfDateError {
 impl From<Utf8Error> for GdtfDateError {
     fn from(_: Utf8Error) -> Self {
         GdtfDateError {}
+    }
+}
+
+impl<'de> Deserialize<'de> for Date {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_string(DateVisitor)
+    }
+}
+
+struct DateVisitor;
+
+impl<'de> Visitor<'de> for DateVisitor {
+    type Value = Date;
+
+    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+        formatter.write_str("valid Date String")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
+        match Date::new_from_str(v) {
+            Ok(item) => Ok(item),
+            Err(e) => Err(serde::de::Error::custom(format!("{}", e)))
+        }
+    }
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
+        self.visit_str(&v)
     }
 }
 

@@ -1,7 +1,11 @@
 //! Module for the unit DMXValue used in GDTF
 use std::error::Error;
+use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::str::{FromStr, Utf8Error};
+
+use serde::{Deserialize, Deserializer};
+use serde::de::Visitor;
 
 ///DMXValue used in GDTF
 /// Special type to define DMX value where n is the byte count. The byte count can be individually specified without depending on the resolution of the DMX Channel.
@@ -63,6 +67,32 @@ impl Error for GdtfDmxValueError {}
 impl From<Utf8Error> for GdtfDmxValueError {
     fn from(_: Utf8Error) -> Self {
         GdtfDmxValueError {}
+    }
+}
+
+impl<'de> Deserialize<'de> for DmxValue {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_string(DmxValueVisitor)
+    }
+}
+
+struct DmxValueVisitor;
+
+impl<'de> Visitor<'de> for DmxValueVisitor {
+    type Value = DmxValue;
+
+    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+        formatter.write_str("valid DmxValue String")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
+        match DmxValue::new_from_str(v) {
+            Ok(item) => Ok(item),
+            Err(e) => Err(serde::de::Error::custom(format!("{}", e)))
+        }
+    }
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
+        self.visit_str(&v)
     }
 }
 

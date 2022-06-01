@@ -1,5 +1,11 @@
 //! Module for the unit PhysicalUnit used in GDTF
 
+use std::fmt;
+use std::fmt::Formatter;
+
+use serde::de::Visitor;
+use serde::{Deserialize, Deserializer};
+
 ///Physical Unit representation used in GDTF
 #[derive(Debug, PartialEq, Clone)]
 pub enum PhysicalUnit {
@@ -83,6 +89,29 @@ impl PhysicalUnit {
             "ColorComponent" => ColorComponent,
             _ => None,
         }
+    }
+}
+
+impl<'de> Deserialize<'de> for PhysicalUnit {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_string(PhysicalUnitVisitor)
+    }
+}
+
+struct PhysicalUnitVisitor;
+
+impl<'de> Visitor<'de> for PhysicalUnitVisitor {
+    type Value = PhysicalUnit;
+
+    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+        formatter.write_str("valid PhysicalUnit String")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
+        Ok(PhysicalUnit::new_from_str(v))
+    }
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
+        self.visit_str(&v)
     }
 }
 

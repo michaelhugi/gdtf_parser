@@ -8,6 +8,8 @@ use std::str::FromStr;
 
 use lazy_static::lazy_static;
 use regex::Regex;
+use serde::{Deserialize, Deserializer};
+use serde::de::Visitor;
 
 ///The transformation matrix consists 4 x 4 floats. Stored in a row-major order
 ///The matrix rotation is stored in the first three columns, and the translation is stored in the 4th column. The metric system consists of the Right-handed Cartesian Coordinates XYZ
@@ -91,6 +93,32 @@ impl Error for GdtfMatrixError {}
 impl From<ParseFloatError> for GdtfMatrixError {
     fn from(e: ParseFloatError) -> Self {
         Self::ParseFloatError(e)
+    }
+}
+
+impl<'de> Deserialize<'de> for Matrix {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_string(MatrixVisitor)
+    }
+}
+
+struct MatrixVisitor;
+
+impl<'de> Visitor<'de> for MatrixVisitor {
+    type Value = Matrix;
+
+    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+        formatter.write_str("valid Matrix String")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
+        match Matrix::new_from_str(v) {
+            Ok(item) => Ok(item),
+            Err(e) => Err(serde::de::Error::custom(format!("{}", e)))
+        }
+    }
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
+        self.visit_str(&v)
     }
 }
 
