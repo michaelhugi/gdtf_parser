@@ -65,75 +65,161 @@ pub struct FixtureType {
     pub protocols: Option<Protocols>,
 }
 
+
 #[cfg(test)]
-pub(crate) mod fixture_type_test {
-    use crate::gdtf_v_1::fixture_type::attribute_definitions::attribute_definitions_test;
+pub(crate) mod test {
+    use crate::gdtf_v_1::fixture_type::attribute_definitions::test as attribute_definitions_test;
+    use crate::gdtf_v_1::fixture_type::dmx_modes::test as dmx_modes_test;
+    use crate::gdtf_v_1::fixture_type::ft_presets::test as ft_presets_test;
+    use crate::gdtf_v_1::fixture_type::geometries::test as geometries_test;
+    use crate::gdtf_v_1::fixture_type::models::test as models_test;
+    use crate::gdtf_v_1::fixture_type::physical_descriptions::test as physical_descriptions_test;
+    use crate::gdtf_v_1::fixture_type::protocols::test as protocols_test;
+    use crate::gdtf_v_1::fixture_type::revisions::test as revisions_test;
+    use crate::gdtf_v_1::fixture_type::wheels::test as wheels_test;
     use crate::gdtf_v_1::GdtfV1;
     use crate::utils::errors::GdtfError;
-    use crate::utils::units::can_have_children::CanHaveChildren;
-    use crate::utils::units::guid::Guid;
-    use crate::utils::units::guid_opt::GuidOpt;
-    use crate::utils::units::name::Name;
-    use crate::utils::units::resource::Resource;
 
-    pub(crate) fn test_acme_ae_610_beam(gdtf: &GdtfV1) -> Result<(), GdtfError> {
-        let ft = &gdtf.fixture_type;
-        assert_eq!(ft.name, Name::new("ACME AE-610 BEAM").unwrap());
-        assert_eq!(ft.short_name, "ACME AE 610 BEAM".to_string());
-        assert_eq!(ft.long_name, "ACME AE 610 BEAM".to_string());
-        assert_eq!(ft.manufacturer, "ACME".to_string());
-        assert_eq!(ft.description, "ACME AE-610 BEAM".to_string());
-        assert_eq!(ft.fixture_type_id, Guid::new_from_str("E62F2ECF-2A08-491D-BEEC-F5C491B89784").unwrap());
-        assert_eq!(ft.thumbnail, Resource::new_from_str("AE-610 BEAM"));
-        assert_eq!(ft.ref_ft, GuidOpt(Some(Guid::new_from_str("8F54E11C-4C91-11E9-80BC-F1DFE217E634").unwrap())));
-        assert_eq!(ft.can_have_children, CanHaveChildren::Yes);
-        attribute_definitions_test::test_acme_ae_610_beam(&gdtf.fixture_type.attribute_definitions)?;
+    pub(crate) fn test_acme_ae_610t(gdtf: &GdtfV1) -> Result<(), GdtfError> {
+        attribute_definitions_test::test_acme_ae_610t(gdtf)?;
+        dmx_modes_test::test_acme_ae_610t(gdtf)?;
+        ft_presets_test::test_acme_ae_610t(gdtf)?;
+        geometries_test::test_acme_ae_610t(gdtf)?;
+        models_test::test_acme_ae_610t(gdtf)?;
+        physical_descriptions_test::test_acme_ae_610t(gdtf)?;
+        protocols_test::test_acme_ae_610t(gdtf)?;
+        revisions_test::test_acme_ae_610t(gdtf)?;
+        wheels_test::test_acme_ae_610t(gdtf)?;
         return Ok(());
     }
 
-    pub(crate) fn test_jb_12_spot_hp(gdtf: &GdtfV1) -> Result<(), GdtfError> {
-        let ft = &gdtf.fixture_type;
-        assert_eq!(ft.name, Name::new("P12 Spot HP").unwrap());
-        assert_eq!(ft.short_name, "P12SPHP".to_string());
-        assert_eq!(ft.long_name, "P12 Spot HP".to_string());
-        assert_eq!(ft.manufacturer, "JB-Lighting".to_string());
-        assert_eq!(ft.description, "P12 Spot HP (High Power) 640W".to_string());
-        assert_eq!(ft.fixture_type_id, Guid::new_from_str("807DC00C-18D5-4133-B781-1A003FA988FA").unwrap());
-        assert_eq!(ft.thumbnail, Resource::new_from_str("P12 dunkel"));
-        assert_eq!(ft.ref_ft, GuidOpt(None));
-        assert_eq!(ft.can_have_children, CanHaveChildren::Yes);
-        attribute_definitions_test::test_jb_12_spot_hp(&gdtf.fixture_type.attribute_definitions)?;
+    pub(crate) fn test_adb_klemantis(gdtf: &GdtfV1) -> Result<(), GdtfError> {
+        attribute_definitions_test::test_adb_klemantis(gdtf)?;
+        dmx_modes_test::test_adb_klemantis(gdtf)?;
+        ft_presets_test::test_adb_klemantis(gdtf)?;
+        geometries_test::test_adb_klemantis(gdtf)?;
+        models_test::test_adb_klemantis(gdtf)?;
+        physical_descriptions_test::test_adb_klemantis(gdtf)?;
+        protocols_test::test_adb_klemantis(gdtf)?;
+        revisions_test::test_adb_klemantis(gdtf)?;
+        wheels_test::test_adb_klemantis(gdtf)?;
         return Ok(());
     }
 
+    pub(crate) fn test_adj_mega_tripar(gdtf: &GdtfV1) -> Result<(), GdtfError> {
+        attribute_definitions_test::test_adj_mega_tripar(gdtf)?;
+        dmx_modes_test::test_adj_mega_tripar(gdtf)?;
+        ft_presets_test::test_adj_mega_tripar(gdtf)?;
+        geometries_test::test_adj_mega_tripar(gdtf)?;
+        models_test::test_adj_mega_tripar(gdtf)?;
+        physical_descriptions_test::test_adj_mega_tripar(gdtf)?;
+        protocols_test::test_adj_mega_tripar(gdtf)?;
+        revisions_test::test_adj_mega_tripar(gdtf)?;
+        wheels_test::test_adj_mega_tripar(gdtf)?;
+        return Ok(());
+    }
+
+    pub(crate) fn test_adsi_dataton(gdtf: &GdtfV1) -> Result<(), GdtfError> {
+        attribute_definitions_test::test_adsi_dataton(gdtf)?;
+        dmx_modes_test::test_adsi_dataton(gdtf)?;
+        ft_presets_test::test_adsi_dataton(gdtf)?;
+        geometries_test::test_adsi_dataton(gdtf)?;
+        models_test::test_adsi_dataton(gdtf)?;
+        physical_descriptions_test::test_adsi_dataton(gdtf)?;
+        protocols_test::test_adsi_dataton(gdtf)?;
+        revisions_test::test_adsi_dataton(gdtf)?;
+        wheels_test::test_adsi_dataton(gdtf)?;
+        return Ok(());
+    }
+
+    pub(crate) fn test_china_36x10(gdtf: &GdtfV1) -> Result<(), GdtfError> {
+        attribute_definitions_test::test_china_36x10(gdtf)?;
+        dmx_modes_test::test_china_36x10(gdtf)?;
+        ft_presets_test::test_china_36x10(gdtf)?;
+        geometries_test::test_china_36x10(gdtf)?;
+        models_test::test_china_36x10(gdtf)?;
+        physical_descriptions_test::test_china_36x10(gdtf)?;
+        protocols_test::test_china_36x10(gdtf)?;
+        revisions_test::test_china_36x10(gdtf)?;
+        wheels_test::test_china_36x10(gdtf)?;
+        return Ok(());
+    }
+
+    pub(crate) fn test_jb_lighting_p12(gdtf: &GdtfV1) -> Result<(), GdtfError> {
+        attribute_definitions_test::test_jb_lighting_p12(gdtf)?;
+        dmx_modes_test::test_jb_lighting_p12(gdtf)?;
+        ft_presets_test::test_jb_lighting_p12(gdtf)?;
+        geometries_test::test_jb_lighting_p12(gdtf)?;
+        models_test::test_jb_lighting_p12(gdtf)?;
+        physical_descriptions_test::test_jb_lighting_p12(gdtf)?;
+        protocols_test::test_jb_lighting_p12(gdtf)?;
+        revisions_test::test_jb_lighting_p12(gdtf)?;
+        wheels_test::test_jb_lighting_p12(gdtf)?;
+        return Ok(());
+    }
 
     pub(crate) fn test_robe_robin_viva_cmy(gdtf: &GdtfV1) -> Result<(), GdtfError> {
-        let ft = &gdtf.fixture_type;
-        assert_eq!(ft.name, Name::new("Robin Viva CMY").unwrap());
-        assert_eq!(ft.short_name, "Viva™ CMY".to_string());
-        assert_eq!(ft.long_name, "Robin Viva™ CMY".to_string());
-        assert_eq!(ft.manufacturer, "Robe Lighting".to_string());
-        assert_eq!(ft.description, "Powerfully smooth, Robe’s VIVA CMY combines brightness of exceptionally clear zero-fringing white beam together with continuous color transitions of CMY mixing. ".to_string());
-        assert_eq!(ft.fixture_type_id, Guid::new_from_str("BEB8B97D-FF49-4FBE-A834-9BE2C7BC689B").unwrap());
-        assert_eq!(ft.thumbnail, Resource::new_from_str("thumbnail"));
-        assert_eq!(ft.ref_ft, GuidOpt(None));
-        assert_eq!(ft.can_have_children, CanHaveChildren::Yes);
-        attribute_definitions_test::test_robe_robin_viva_cmy(&gdtf.fixture_type.attribute_definitions)?;
+        attribute_definitions_test::test_robe_robin_viva_cmy(gdtf)?;
+        dmx_modes_test::test_robe_robin_viva_cmy(gdtf)?;
+        ft_presets_test::test_robe_robin_viva_cmy(gdtf)?;
+        geometries_test::test_robe_robin_viva_cmy(gdtf)?;
+        models_test::test_robe_robin_viva_cmy(gdtf)?;
+        physical_descriptions_test::test_robe_robin_viva_cmy(gdtf)?;
+        protocols_test::test_robe_robin_viva_cmy(gdtf)?;
+        revisions_test::test_robe_robin_viva_cmy(gdtf)?;
+        wheels_test::test_robe_robin_viva_cmy(gdtf)?;
         return Ok(());
     }
 
     pub(crate) fn test_sgm_g7_spot(gdtf: &GdtfV1) -> Result<(), GdtfError> {
-        let ft = &gdtf.fixture_type;
-        assert_eq!(ft.name, Name::new("G-7 Spot").unwrap());
-        assert_eq!(ft.short_name, "G-7 Spot".to_string());
-        assert_eq!(ft.long_name, "G-7 Spot".to_string());
-        assert_eq!(ft.manufacturer, "SGM Light".to_string());
-        assert_eq!(ft.description, "The G-7 Spot is the quintessence of IP-rated moving heads. A fast, compact, and lightweight mid-sized moving head spot with high-output and low power consumption. Thanks to its white LED engine and CMY color mixing, the G-7 Spot is the perfect moving head for those who need maximum light output inside an easy-to-move luminaire. The G-7 Spot gives you a solid construction, a high-quality beam, and an optimal projection in a very flexible assembly. A fixture born to rock night after night.".to_string());
-        assert_eq!(ft.fixture_type_id, Guid::new_from_str("14030EC0-9085-4756-8B19-8B08369E06B9").unwrap());
-        assert_eq!(ft.thumbnail, Resource::new_from_str("G-7_RAL_black_small"));
-        assert_eq!(ft.ref_ft, GuidOpt(None));
-        assert_eq!(ft.can_have_children, CanHaveChildren::Yes);
-        attribute_definitions_test::test_sgm_g7_spot(&gdtf.fixture_type.attribute_definitions)?;
+        attribute_definitions_test::test_sgm_g7_spot(gdtf)?;
+        dmx_modes_test::test_sgm_g7_spot(gdtf)?;
+        ft_presets_test::test_sgm_g7_spot(gdtf)?;
+        geometries_test::test_sgm_g7_spot(gdtf)?;
+        models_test::test_sgm_g7_spot(gdtf)?;
+        physical_descriptions_test::test_sgm_g7_spot(gdtf)?;
+        protocols_test::test_sgm_g7_spot(gdtf)?;
+        revisions_test::test_sgm_g7_spot(gdtf)?;
+        wheels_test::test_sgm_g7_spot(gdtf)?;
+        return Ok(());
+    }
+
+    pub(crate) fn test_sgm_p6(gdtf: &GdtfV1) -> Result<(), GdtfError> {
+        attribute_definitions_test::test_sgm_p6(gdtf)?;
+        dmx_modes_test::test_sgm_p6(gdtf)?;
+        ft_presets_test::test_sgm_p6(gdtf)?;
+        geometries_test::test_sgm_p6(gdtf)?;
+        models_test::test_sgm_p6(gdtf)?;
+        physical_descriptions_test::test_sgm_p6(gdtf)?;
+        protocols_test::test_sgm_p6(gdtf)?;
+        revisions_test::test_sgm_p6(gdtf)?;
+        wheels_test::test_sgm_p6(gdtf)?;
+        return Ok(());
+    }
+
+    pub(crate) fn test_shenzhen_mini_led_spot(gdtf: &GdtfV1) -> Result<(), GdtfError> {
+        attribute_definitions_test::test_shenzhen_mini_led_spot(gdtf)?;
+        dmx_modes_test::test_shenzhen_mini_led_spot(gdtf)?;
+        ft_presets_test::test_shenzhen_mini_led_spot(gdtf)?;
+        geometries_test::test_shenzhen_mini_led_spot(gdtf)?;
+        models_test::test_shenzhen_mini_led_spot(gdtf)?;
+        physical_descriptions_test::test_shenzhen_mini_led_spot(gdtf)?;
+        protocols_test::test_shenzhen_mini_led_spot(gdtf)?;
+        revisions_test::test_shenzhen_mini_led_spot(gdtf)?;
+        wheels_test::test_shenzhen_mini_led_spot(gdtf)?;
+        return Ok(());
+    }
+
+    pub(crate) fn test_stairville_fan_200(gdtf: &GdtfV1) -> Result<(), GdtfError> {
+        attribute_definitions_test::test_stairville_fan_200(gdtf)?;
+        dmx_modes_test::test_stairville_fan_200(gdtf)?;
+        ft_presets_test::test_stairville_fan_200(gdtf)?;
+        geometries_test::test_stairville_fan_200(gdtf)?;
+        models_test::test_stairville_fan_200(gdtf)?;
+        physical_descriptions_test::test_stairville_fan_200(gdtf)?;
+        protocols_test::test_stairville_fan_200(gdtf)?;
+        revisions_test::test_stairville_fan_200(gdtf)?;
+        wheels_test::test_stairville_fan_200(gdtf)?;
         return Ok(());
     }
 }
