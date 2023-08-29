@@ -5,6 +5,7 @@ use std::fmt::{Display, Formatter};
 use std::str::Utf8Error;
 
 use quick_xml::events::attributes::Attribute;
+use serde::{Serialize, Deserialize};
 
 use crate::utils::read;
 
@@ -44,7 +45,7 @@ const CHAR_E_AS_U8: u8 = 0x45;
 const CHAR_F_AS_U8: u8 = 0x46;
 
 ///GUID representation used in FixtureType in GDTF
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Guid(pub [u8; 16]);
 
 impl Guid {

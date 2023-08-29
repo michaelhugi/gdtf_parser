@@ -2,6 +2,7 @@
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::physical_descriptions::cris::cri::Cri;
 use crate::utils::errors::GdtfError;
@@ -13,7 +14,7 @@ use crate::utils::read::TestReadGdtf;
 pub mod cri;
 
 ///Contains Color Rendering Indexes (CRI) for a single color temperature
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct CriGroup {
     ///Color temperature; Default value: 6 000; Unit: Kelvin
     pub color_temperature: f32,

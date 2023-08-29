@@ -1,4 +1,5 @@
 //!Defines DMX profile descriptions.
+use serde::{Serialize, Deserialize};
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
@@ -8,7 +9,7 @@ use crate::utils::read::ReadGdtf;
 #[cfg(test)]
 use crate::utils::read::TestReadGdtf;
 
-#[derive(Debug, PartialEq, Default, Clone)]
+#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
 ///Defines DMX profile descriptions.
 pub struct DmxProfile {}
 

@@ -4,6 +4,7 @@ use std::fmt::Debug;
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::wheel::slot::animation_system::AnimationSystem;
 use crate::fixture_type::wheel::slot::facet::Facet;
@@ -21,7 +22,7 @@ pub mod animation_system;
 pub mod facet;
 
 /// Represents a slot on a wheel
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Slot {
     /// Color of the wheel slot, Default value: {0.3127, 0.3290, 100.0} (white) For Y give relative value compared to overall output defined in property Luminous Flux of related Beam Geometry (transmissive case)
     pub color: ColorCie,

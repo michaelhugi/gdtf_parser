@@ -4,6 +4,7 @@ use std::fmt::Debug;
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::dmx_mode::ft_macro::macro_dmx_step::MacroDmxStep;
 use crate::utils::errors::GdtfError;
@@ -15,7 +16,7 @@ use crate::utils::units::name::Name;
 pub mod macro_dmx_step;
 
 ///Describes a macro defined by the manufacturer
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(Debug, PartialEq, Clone, Default, Serialize, Deserialize)]
 pub struct FtMacro {
     ///All steps to execute the Macro
     pub macro_dmx_steps: Vec<MacroDmxStep>,

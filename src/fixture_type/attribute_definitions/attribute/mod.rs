@@ -3,6 +3,7 @@ use std::fmt::Debug;
 
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
@@ -17,7 +18,7 @@ use crate::utils::units::node::Node;
 use crate::utils::units::physical_unit::PhysicalUnit;
 
 ///Describes a singular mutual exclusive control function
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Attribute {
     /// The pretty name of the attribute
     pub pretty: String,

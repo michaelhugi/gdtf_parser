@@ -4,6 +4,7 @@ use std::fmt::Debug;
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Deserialize, Serialize};
 
 use crate::fixture_type::wheel::slot::Slot;
 use crate::utils::errors::GdtfError;
@@ -14,7 +15,7 @@ use crate::utils::units::pixel::Pixel;
 use crate::utils::units::pixel_array::PixelArray;
 
 ///Defines the animation system disk and it describes the animation system behavior
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct AnimationSystem {
     ///First Point of the Spline describing the path of animation system in the beam in relation to the middle of the Media File
     pub p1: PixelArray,

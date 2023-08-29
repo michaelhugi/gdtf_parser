@@ -5,12 +5,13 @@ use std::fmt;
 use std::fmt::{Display, Formatter};
 
 use quick_xml::events::attributes::Attribute;
+use serde::{Serialize, Deserialize};
 
 use crate::utils::read;
 use crate::utils::units::pixel::{GdtfPixelError, Pixel};
 
 ///First Pixel is X-axis and second is Y-axis
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct PixelArray(pub Pixel, pub Pixel);
 
 impl PixelArray {

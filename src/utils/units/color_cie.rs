@@ -5,11 +5,12 @@ use std::fmt::Debug;
 use std::str::FromStr;
 
 use quick_xml::events::attributes::Attribute;
+use serde::{Serialize, Deserialize};
 
 use crate::utils::read;
 
 ///CIE color representation xyY 1931 used in GDTF
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 pub struct ColorCie {
     ///x for color representation xyY 1931

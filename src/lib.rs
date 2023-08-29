@@ -72,6 +72,7 @@ use std::path::Path;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::events::attributes::Attribute;
 use quick_xml::Reader;
+use serde::{Deserialize, Serialize};
 
 use crate::fixture_type::FixtureType;
 use crate::utils::errors::GdtfError;
@@ -82,7 +83,7 @@ pub mod fixture_type;
 pub mod utils;
 
 ///Describes the hierarchical and logical structure and controls of any type of controllable device (e.g. luminaires, fog machines, etc.) in the lighting and entertainment industry.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Gdtf {
     ///The DataVersion attribute defines the minimal version of compatibility
     pub data_version: DataVersion,
@@ -195,7 +196,7 @@ impl TryFrom<&Path> for Gdtf {
 //-----------------------------------------------------------------------------------------------------------------
 
 ///The DataVersion attribute defines the minimal version of compatibility. The Version format is “Major.Minor”, where major and minor is Uint with size 1 byte
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum DataVersion {
     ///Enum for GDTF Version 1.0
     Version1_0,

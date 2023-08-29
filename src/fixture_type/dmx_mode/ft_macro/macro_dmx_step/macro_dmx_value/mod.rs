@@ -5,6 +5,7 @@ use std::fmt::Debug;
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::dmx_mode::ft_macro::macro_dmx_step::MacroDmxStep;
 use crate::utils::errors::GdtfError;
@@ -15,7 +16,7 @@ use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::node::Node;
 
 ///Defines a dmx value for a step in a macro
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct MacroDmxValue {
     ///Value of the DMX channel
     pub value: DmxValue,

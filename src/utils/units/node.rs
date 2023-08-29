@@ -4,11 +4,12 @@ use std::fmt;
 use std::fmt::{Display, Formatter};
 
 use quick_xml::events::attributes::Attribute;
+use serde::{Deserialize, Serialize};
 
 use crate::utils::read;
 use crate::utils::units::name::{GdtfNameError, Name};
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Node(pub Vec<Name>);
 
 ///Node representation used in GDTF. A Node is a link to another xml node

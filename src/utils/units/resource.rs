@@ -1,11 +1,12 @@
 //!Module for the unit Resource used in GDTF
 
 use quick_xml::events::attributes::Attribute;
+use serde::{Serialize, Deserialize};
 
 use crate::utils::read;
 
 ///File name of the resource file without extension and without subfolder.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Resource(pub String);
 
 impl Resource {

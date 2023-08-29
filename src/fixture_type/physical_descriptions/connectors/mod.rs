@@ -1,5 +1,6 @@
 //!defines the connector
 use std::str::FromStr;
+use serde::{Serialize, Deserialize};
 
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
@@ -17,7 +18,7 @@ use crate::utils::units::connector_type::ConnectorType;
 use crate::utils::units::name::Name;
 
 ///defines the connector
-#[derive(Debug, PartialEq, Default, Clone)]
+#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
 pub struct Connector {
     ///The type of the connector. Find a list of predefined types in Annex D.
     pub connector_type: ConnectorType,
@@ -30,7 +31,7 @@ pub struct Connector {
 }
 
 ///Connectors where the addition of the Gender value equals 0, can be connected; Default value: 0; Male Connectors are −1, Female are +1, Universal are 0.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum ConnectionGender {
     Male = -1,
     Neutral = 0,

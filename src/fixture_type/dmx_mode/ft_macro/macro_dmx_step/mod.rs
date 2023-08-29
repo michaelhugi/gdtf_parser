@@ -4,6 +4,7 @@ use std::fmt::Debug;
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::dmx_mode::ft_macro::macro_dmx_step::macro_dmx_value::MacroDmxValue;
 use crate::utils::errors::GdtfError;
@@ -15,7 +16,7 @@ use crate::utils::read::TestReadGdtf;
 pub mod macro_dmx_value;
 
 ///Defines a DMX sequence for a macro
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct MacroDmxStep {
     ///Duration of a step; Default value: 1; Unit: seconds.
     pub duration: f32,

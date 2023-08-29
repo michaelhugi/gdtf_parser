@@ -2,6 +2,7 @@
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Deserialize, Serialize};
 
 use crate::fixture_type::physical_descriptions::measurement::Measurement;
 use crate::utils::errors::GdtfError;
@@ -11,7 +12,7 @@ use crate::utils::read::ReadGdtf;
 use crate::utils::read::TestReadGdtf;
 
 ///The measurement point defines the energy of a specific wavelength of a spectrum
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(Debug, PartialEq, Clone, Default, Serialize, Deserialize)]
 pub struct MeasurementPoint {
     ///Center wavelength of measurement (nm).
     pub wave_length: f32,

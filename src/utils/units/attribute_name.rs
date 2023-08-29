@@ -6,11 +6,12 @@ use std::str::FromStr;
 use lazy_static::lazy_static;
 use quick_xml::events::attributes::Attribute;
 use regex::{Regex, RegexSet, SetMatches};
+use serde::{Serialize, Deserialize};
 
 use crate::utils::read;
 use crate::utils::units::name::{GdtfNameError, Name};
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
 ///AttributeName is an enum for preferred Names used in GDTF for Attributes. It contains an option UserDefined(Name) which can contain all other Names for Atttribute
 pub enum AttributeName {
     ///Fallback if a user-defined Name for an Attribute was used

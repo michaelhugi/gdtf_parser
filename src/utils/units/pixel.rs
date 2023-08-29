@@ -7,11 +7,12 @@ use std::num::ParseFloatError;
 use std::str::FromStr;
 
 use quick_xml::events::attributes::Attribute;
+use serde::{Serialize, Deserialize};
 
 use crate::utils::read;
 
 ///Integer value representing one Pixel inside a MediaFile. Pixel count starts with zero in the top left corner.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Pixel(pub f32);
 
 impl Pixel {

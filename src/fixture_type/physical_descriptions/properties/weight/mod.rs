@@ -2,6 +2,7 @@
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
@@ -10,7 +11,7 @@ use crate::utils::read::ReadGdtf;
 use crate::utils::read::TestReadGdtf;
 
 ///defines the overall weight of the device
-#[derive(Debug, PartialEq, Default, Clone)]
+#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
 pub struct Weight {
     ///Weight of the device including all accessories. Unit: kilogram. Default value: 0
     pub value: f32,
