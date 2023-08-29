@@ -3,13 +3,14 @@ use std::error::Error;
 use std::fmt;
 
 use quick_xml::events::attributes::Attribute;
+use serde::{Serialize, Deserialize};
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::utils::read;
 
 ///Name representation used in GDTF spec
 ///Name contains a String that only can hold letters with restricted literals `[32..=122] = (SPACE..='z')` due to GDTF specifications.
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
 pub struct Name(pub String);
 
 ///Default is an empty Name

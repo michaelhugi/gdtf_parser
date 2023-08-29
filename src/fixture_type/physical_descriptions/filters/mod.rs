@@ -2,6 +2,7 @@
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Deserialize, Serialize};
 
 use crate::fixture_type::physical_descriptions::measurement::Measurement;
 use crate::utils::errors::GdtfError;
@@ -12,7 +13,7 @@ use crate::utils::units::color_cie::ColorCie;
 use crate::utils::units::name::Name;
 
 ///Defines the description of the filter
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Filter {
     ///Approximate absolute color point when this filter is the only item fully inserted into the beam and the fixture is at maximum intensity. For Y give relative value compared to overall output defined in property Luminous Flux of related Beam Geometry (transmissive case).
     pub color: ColorCie,

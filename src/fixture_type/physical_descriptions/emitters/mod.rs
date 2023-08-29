@@ -2,6 +2,7 @@
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::physical_descriptions::measurement::Measurement;
 use crate::utils::errors::GdtfError;
@@ -13,7 +14,7 @@ use crate::utils::units::color_cie::ColorCie;
 use crate::utils::units::name::Name;
 
 ///Defines the description of the emitter
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(Debug, PartialEq, Clone, Default, Serialize, Deserialize)]
 pub struct Emitter {
     ///Approximate absolute color point if applicable. Omit for non-visible emitters (e.g., UV). For Y give relative value compared to overall output defined in property Luminous Flux of related Beam Geometry (transmissive case).
     pub color: Option<ColorCie>,

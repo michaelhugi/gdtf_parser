@@ -5,6 +5,7 @@ use std::fmt::Debug;
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::wheel::slot::Slot;
 use crate::utils::errors::GdtfError;
@@ -16,7 +17,7 @@ use crate::utils::units::name::Name;
 pub mod slot;
 
 ///Each wheel describes a single physical or virtual wheel of the fixture type.
-#[derive(Debug, PartialEq, Default, Clone)]
+#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
 pub struct Wheel {
     /// All slots for the wheel
     pub slots: HashMap<Name, Slot>,

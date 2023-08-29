@@ -2,6 +2,7 @@
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
@@ -11,7 +12,7 @@ use crate::utils::read::TestReadGdtf;
 use crate::utils::units::color_cie::ColorCie;
 
 ///Defines the color space that is used for color mixing with indirect RGB, Hue/Sat, xyY or CMY control input
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct ColorSpace {
     ///CIE xyY of the Red Primary
     pub red: ColorCie,

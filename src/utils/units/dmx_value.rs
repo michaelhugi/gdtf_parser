@@ -2,6 +2,7 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::str::{FromStr, Utf8Error};
+use serde::{Serialize, Deserialize};
 
 use quick_xml::events::attributes::Attribute;
 
@@ -11,7 +12,7 @@ use crate::utils::read;
 /// Special type to define DMX value where n is the byte count. The byte count can be individually specified without depending on the resolution of the DMX Channel.
 /// By default byte mirroring is used for the conversion. So 255/1 in a 16 bit channel will result in 65535.
 /// You can use the byte shifting operator to use byte shifting for the conversion. So 255/1s in a 16 bit channel will result in 65280.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 pub struct DmxValue {
     ///The initial value without byte shift

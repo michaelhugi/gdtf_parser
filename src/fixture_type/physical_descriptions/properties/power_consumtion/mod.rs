@@ -2,6 +2,7 @@
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::physical_descriptions::properties::Properties;
 use crate::utils::errors::GdtfError;
@@ -12,7 +13,7 @@ use crate::utils::read::TestReadGdtf;
 use crate::utils::units::node::Node;
 
 ///defines the maximum power consumption per connector
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct PowerConsumtion {
     ///Defines the power consumption of the connector at full load. Unit: VA. Default value: 0
     pub value: f32,

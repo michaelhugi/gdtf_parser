@@ -5,6 +5,7 @@ use std::fmt::Debug;
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::dmx_mode::dmx_channel::DmxChannel;
 use crate::fixture_type::dmx_mode::ft_macro::FtMacro;
@@ -21,7 +22,7 @@ pub mod ft_macro;
 pub mod relation;
 
 ///Each DMX mode describes logical control a part of the device in a specific mode
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(Debug, PartialEq, Clone, Default, Serialize, Deserialize)]
 pub struct DmxMode {
     ///Name of the first geometry in the device; Only top level geometries are allowed to be linked.
     pub geometry: Name,

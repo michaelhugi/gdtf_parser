@@ -4,6 +4,7 @@ use std::fmt::Debug;
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::ChannelFunction;
 use crate::utils::errors::GdtfError;
@@ -14,7 +15,7 @@ use crate::utils::read::TestReadGdtf;
 use crate::utils::units::dmx_value::DmxValue;
 use crate::utils::units::name::Name;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 /// Defines the channel sets of the channel function
 pub struct ChannelSet {
     ///Start DMX value; The end DMX value is calculated as a DMXFrom of the next channel set – 1 or the maximum value of the current channel function

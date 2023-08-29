@@ -5,6 +5,7 @@ use std::str::FromStr;
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
 use crate::utils::errors::GdtfError;
@@ -19,7 +20,7 @@ use crate::utils::units::node::Node;
 pub mod logical_channel;
 
 ///This section defines the DMX channe
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct DmxChannel {
     ///Number of the DMXBreak; Default value: 1; Special value: “Overwrite” – means that this number will be overwritten by Geometry Reference; Size: 4 bytes
     pub dmx_break: DmxBreak,
@@ -280,7 +281,7 @@ impl TestReadGdtf for DmxChannel {
 
 ///The unit Offset used for DMXChannel used in GDTF
 ///Relative addresses of the current DMX channel from highest to least significant
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Offset(pub Vec<i32>);
 
 impl Offset {
@@ -366,7 +367,7 @@ impl Offset {
 //-----------------------------------------------------------------------------------------------------------------
 
 ///DMXBreak used for DMXChannel in GDTF
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum DmxBreak {
     ///Number of the DMXBreak; Default value: 1
     Value(u32),

@@ -1,6 +1,7 @@
 //! Contains LogicalChannel and it's children
 use std::collections::HashMap;
 use std::fmt::Debug;
+use serde::{Serialize, Deserialize};
 
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
@@ -19,7 +20,7 @@ use crate::utils::units::node::Node;
 pub mod channel_function;
 
 ///The Fixture Type Attribute is assinged to a LogicalChannel and defines the function of the LogicalChannel. All logical channels that are children of the same DMX channel are mutually exclusive. In a DMX mode, only one logical channel with the same attribute can reference the same geometry at a time.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct LogicalChannel {
     ///Link to the attribute; The starting point is the Attribute Collect
     pub attribute: Node,
@@ -220,7 +221,7 @@ impl TestReadGdtf for LogicalChannel {
 
 ///Snap representation for Snap for LogicalChannel used in GDTF
 /// If snap is enabled, the logical channel will not fade between values. Instead, it will jump directly to the new value
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum Snap {
     No,
     Yes,
@@ -294,7 +295,7 @@ impl Snap {
 
 ///Master representation for logicalChannel in GDTF
 ///Defines if all the subordinate channel functions react to a Group Control defined by the control system
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum Master {
     None,
     Grand,

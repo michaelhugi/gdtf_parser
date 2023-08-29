@@ -5,6 +5,7 @@ use std::fmt::Debug;
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::physical_descriptions::measurement::measurement_point::MeasurementPoint;
 
@@ -17,7 +18,7 @@ use crate::utils::read::TestReadGdtf;
 pub mod measurement_point;
 
 ///The measurement defines the relation between the requested output by a control channel and the physically achieved intensity
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(Debug, PartialEq, Clone, Default, Serialize, Deserialize)]
 pub struct Measurement {
     ///For additive color mixing: uniquely given emitter intensity DMX percentage. Value range between > 0 and ≤ 100.
     ///For subtractive color mixing: uniquely given flag insertion DMX percentage. Value range between 0 and 100.
@@ -150,7 +151,7 @@ impl TestReadGdtf for Measurement {
 //-----------------------------------------------------------------------------------------------------------------
 
 ///Interpolation scheme from the previous value.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum InterpolationTo {
     Linear,
     Step,

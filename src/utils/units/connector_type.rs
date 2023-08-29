@@ -1,12 +1,13 @@
 //!A list of predefined connectors or Other with Name
 use quick_xml::events::attributes::Attribute;
+use serde::{Serialize, Deserialize};
 
 use crate::utils::errors::GdtfError;
 use crate::utils::read;
 use crate::utils::units::name::Name;
 
 ///A list of predefined connectors or Other with Name
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub enum ConnectorType {
     ///BNC connector

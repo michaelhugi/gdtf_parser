@@ -3,9 +3,10 @@
 use quick_xml::events::attributes::Attribute;
 
 use crate::utils::read;
+use serde::{Serialize, Deserialize};
 
 ///Physical Unit representation used in GDTF
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum PhysicalUnit {
     None,
     Percent,

@@ -1,5 +1,6 @@
 //!Defines the CRI for one of the 99 color samples
 use std::str::FromStr;
+use serde::{Serialize, Deserialize};
 
 use lazy_static::lazy_static;
 use quick_xml::events::attributes::Attribute;
@@ -15,7 +16,7 @@ use crate::utils::read::ReadGdtf;
 use crate::utils::read::TestReadGdtf;
 
 ///Defines the CRI for one of the 99 color samples
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Cri {
     ///Color sample. The defined values are “CES01”, “CES02”, … “CES99”. Default Value “CES01"
     pub ces: u8,

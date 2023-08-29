@@ -4,6 +4,7 @@ use std::fmt::Debug;
 
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::attribute_definitions::activation_group::ActivationGroup;
 use crate::fixture_type::attribute_definitions::attribute::Attribute;
@@ -20,7 +21,7 @@ pub(crate) mod activation_group;
 pub mod attribute;
 pub mod feature_group;
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 /// Defines the attribute definitions for the Fixture Type Attributes.
 pub struct AttributeDefinitions {
     ///Describes the logical grouping of attributes. For example, Gobo 1 and Gobo 2 are grouped in the feature Gobo of the feature group Gobo.

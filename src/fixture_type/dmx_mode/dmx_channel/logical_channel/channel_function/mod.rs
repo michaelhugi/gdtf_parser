@@ -6,6 +6,7 @@ use std::fmt::Debug;
 use quick_xml::events::attributes::Attribute as XmlAttribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::channel_function::channel_set::ChannelSet;
 use crate::fixture_type::dmx_mode::dmx_channel::logical_channel::LogicalChannel;
@@ -21,7 +22,7 @@ use crate::utils::units::node::{GdtfNodeError, Node};
 pub mod channel_set;
 
 ///The Fixture Type Attribute is assinged to a Channel Function and defines the function of its DMX Range
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChannelFunction {
     ///Link to attribute; Starting point is the attributes node_2. Default value: “NoFeature”.
     pub attribute: Attribute,
@@ -489,7 +490,7 @@ impl TestReadGdtf for ChannelFunction {
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 ///Node used in ChannelFunction.attribute. Link to attribute; Starting point is the attributes node. Default value: “NoFeature”.
 pub enum Attribute {
     ///Used when a reference to a node is present
@@ -565,7 +566,7 @@ impl Default for Attribute {
 //-----------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct ModeMaster {
     ///Link to DMX Channel or Channel Function; Starting point DMX mode
     pub mode_master: Node,

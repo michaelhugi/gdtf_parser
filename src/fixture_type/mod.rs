@@ -4,6 +4,7 @@ use std::fmt::Debug;
 
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 #[cfg(test)]
 use crate::fixture_type::attribute_definitions::activation_group::ActivationGroup;
@@ -31,7 +32,7 @@ pub mod physical_descriptions;
 pub mod wheel;
 
 ///The FixtureType node_2 is the starting point of the description of the fixture type
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct FixtureType {
     ///Name of the fixture type.
     pub name: Name,
@@ -312,7 +313,7 @@ impl TestReadGdtf for FixtureType {
 //-----------------------------------------------------------------------------------------------------------------
 
 ///Describes if it is possible to mount other devices to this device. Value: “Yes”, “No”. Default value: “Yes”
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum CanHaveChildren {
     Yes,
     No,

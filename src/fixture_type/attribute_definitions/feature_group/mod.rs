@@ -7,6 +7,7 @@ use std::fmt::Debug;
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::attribute_definitions::feature_group::feature::Feature;
 use crate::utils::errors::GdtfError;
@@ -18,7 +19,7 @@ use crate::utils::units::name::Name;
 
 pub(crate) mod feature;
 
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(Debug, PartialEq, Clone, Default, Serialize, Deserialize)]
 ///Groups the logical control elements called Feature into a structured way for easier access and finding
 pub struct FeatureGroup {
     /// The pretty name of the feature group

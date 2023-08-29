@@ -2,6 +2,7 @@
 use quick_xml::events::attributes::Attribute;
 use quick_xml::events::BytesStart;
 use quick_xml::Reader;
+use serde::{Serialize, Deserialize};
 
 use crate::fixture_type::physical_descriptions::properties::leg_height::LegHeight;
 use crate::fixture_type::physical_descriptions::properties::operating_temperature::OperatingTemperature;
@@ -20,7 +21,7 @@ pub mod power_consumtion;
 pub mod weight;
 
 ///Defines the general properties of the device type
-#[derive(Debug, PartialEq, Default, Clone)]
+#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
 pub struct Properties {
     ///Temperature range in which the device can be operated.
     pub operationg_temperature: Option<OperatingTemperature>,
